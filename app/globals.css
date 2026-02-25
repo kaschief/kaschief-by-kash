@@ -1,0 +1,126 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Bold modern palette: deep charcoal, electric cyan, warm off-white */
+  --background: #F8F7F4;
+  --foreground: #0D0D0D;
+  --card: #FFFFFF;
+  --card-foreground: #0D0D0D;
+  --popover: #FFFFFF;
+  --popover-foreground: #0D0D0D;
+  --primary: #0D0D0D;
+  --primary-foreground: #F8F7F4;
+  --secondary: #F0EFEB;
+  --secondary-foreground: #0D0D0D;
+  --muted: #F0EFEB;
+  --muted-foreground: #6B6B6B;
+  --accent: #00D4AA;
+  --accent-foreground: #0D0D0D;
+  --destructive: #FF3B30;
+  --destructive-foreground: #FF3B30;
+  --border: #E5E4E0;
+  --input: #E5E4E0;
+  --ring: #00D4AA;
+  --chart-1: #00D4AA;
+  --chart-2: #FF6B35;
+  --chart-3: #0D0D0D;
+  --chart-4: #6B6B6B;
+  --chart-5: #00A88A;
+  --radius: 1rem;
+
+  /* Custom portfolio tokens */
+  --surface-dark: #0D0D0D;
+  --surface-dark-secondary: #1A1A1A;
+  --text-on-dark: #F8F7F4;
+  --text-on-dark-muted: #9A9A9A;
+  --accent-glow: #00D4AA;
+  --accent-warm: #FF6B35;
+  --career-nurse: #FF3B30;
+  --career-engineer: #3B82F6;
+  --career-manager: #F59E0B;
+  --career-builder: #00D4AA;
+}
+
+@theme inline {
+  --font-sans: 'DM Sans', sans-serif;
+  --font-serif: 'Instrument Serif', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-dark-secondary: var(--surface-dark-secondary);
+  --color-text-on-dark: var(--text-on-dark);
+  --color-text-on-dark-muted: var(--text-on-dark-muted);
+  --color-accent-glow: var(--accent-glow);
+  --color-accent-warm: var(--accent-warm);
+  --color-career-nurse: var(--career-nurse);
+  --color-career-engineer: var(--career-engineer);
+  --color-career-manager: var(--career-manager);
+  --color-career-builder: var(--career-builder);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -30px) scale(1.05); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-float {
+  animation: float 20s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 25s ease-in-out 5s infinite;
+}
+
+.animate-float-slow {
+  animation: float 30s ease-in-out 10s infinite;
+}
