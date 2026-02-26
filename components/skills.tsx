@@ -4,81 +4,44 @@ import { useRef } from "react"
 import { motion, useScroll, useTransform, useInView } from "framer-motion"
 import { FadeUp, FadeIn, RevealLine } from "./motion"
 import Image from "next/image"
-import { 
-  Code2, 
-  Layers, 
-  TestTube, 
-  GitBranch, 
-  Cpu, 
-  Users, 
-  TrendingUp, 
-  MessageSquare 
-} from "lucide-react"
 
 /* ------------------------------------------------------------------ */
-/*  Meta-skills with icons                                             */
+/*  Tools - Sentence form (per screenshot)                             */
 /* ------------------------------------------------------------------ */
 
-const META_SKILLS = [
-  { 
-    icon: Code2, 
-    color: "#5B9EC2",
-    name: "Systems Architecture", 
-    desc: "Building maintainable frontends that scale. 13,500 lines of Pine Script without chaos proves the discipline." 
+const TOOLS = [
+  {
+    category: "FRONTEND",
+    content: (
+      <>
+        <strong className="text-[var(--cream)]">React</strong> since 2018, <strong className="text-[var(--cream)]">Vue</strong> at Compado & CAPinside, <strong className="text-[var(--cream)]">TypeScript</strong> as default, Next.js when full-stack is needed.
+      </>
+    ),
   },
-  { 
-    icon: Layers, 
-    color: "#C9A84C",
-    name: "Pattern Recognition", 
-    desc: "From EKG rhythms to market structure. Finding signal in noise is the same skill in different syntax." 
+  {
+    category: "TESTING",
+    content: (
+      <>
+        <strong className="text-[var(--cream)]">Playwright</strong> — built the E2E infrastructure at DKB. <strong className="text-[var(--cream)]">Jest</strong> for unit patterns. CI/CD with GitHub Actions.
+      </>
+    ),
   },
-  { 
-    icon: TestTube, 
-    color: "#5EBB73",
-    name: "Testing Culture", 
-    desc: "Built Playwright infrastructure at DKB from scratch. Pre-deploy verification became standard." 
+  {
+    category: "SPECIALIZED",
+    content: (
+      <>
+        <strong className="text-[var(--cream)]">Pine Script v6</strong> — 13,500 lines written from scratch. <strong className="text-[var(--cream)]">AI/LLM workflows</strong> as daily development practice. TradingView platform and ecosystem.
+      </>
+    ),
   },
-  { 
-    icon: GitBranch, 
-    color: "#E05252",
-    name: "Process Design", 
-    desc: "Monthly releases to weekly. Found the friction points, fixed the handoffs, measured the results." 
+  {
+    category: "LEADERSHIP",
+    content: (
+      <>
+        Roadmapping, hiring for fit, weekly 1:1s, mentoring into senior roles, cross-functional communication across engineering and product.
+      </>
+    ),
   },
-  { 
-    icon: Cpu, 
-    color: "#8B7355",
-    name: "Performance Engineering", 
-    desc: "Core Web Vitals, lazy loading, Lighthouse scores. 50% faster loads at Compado, 35% at CAPinside." 
-  },
-  { 
-    icon: Users, 
-    color: "#9B8AC4",
-    name: "Team Leadership", 
-    desc: "Managing engineers, unblocking people, protecting culture across tech stacks." 
-  },
-  { 
-    icon: TrendingUp, 
-    color: "#5B9EC2",
-    name: "Evidence-Based Decisions", 
-    desc: "A/B testing at AMBOSS. Backtesting trading systems. Opinions are cheap; data is expensive." 
-  },
-  { 
-    icon: MessageSquare, 
-    color: "#C9A84C",
-    name: "Technical Communication", 
-    desc: "Translating between engineers, product, and stakeholders. Making the complex clear." 
-  },
-]
-
-/* ------------------------------------------------------------------ */
-/*  Tools & Technologies by category                                   */
-/* ------------------------------------------------------------------ */
-
-const TOOL_CATEGORIES = [
-  { category: "Frontend", items: ["React", "Vue", "TypeScript", "Next.js"] },
-  { category: "Testing", items: ["Playwright", "Jest", "Cypress"] },
-  { category: "Specialized", items: ["Pine Script v6", "TradingView", "AI/LLM workflows"] },
-  { category: "Infrastructure", items: ["GitHub Actions", "CI/CD", "Micro-frontends"] },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -86,10 +49,10 @@ const TOOL_CATEGORIES = [
 /* ------------------------------------------------------------------ */
 
 const LANGUAGES = [
-  { lang: "English", level: "Native" },
-  { lang: "French", level: "Conversational" },
-  { lang: "Spanish", level: "Conversational" },
-  { lang: "German", level: "B2 working proficiency" },
+  { lang: "English", desc: "Native tongue.", level: "NATIVE" },
+  { lang: "Français", desc: "Conversational — used daily in Berlin.", level: "C1" },
+  { lang: "Español", desc: "Conversational.", level: "B1" },
+  { lang: "Deutsch", desc: "Working proficiency in Berlin.", level: "B1" },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -208,66 +171,33 @@ export function Skills() {
         </div>
 
         {/* ============================================================ */}
-        {/*  META-SKILLS - Ruled list with icons                         */}
+        {/*  TOOLS - Sentence form per screenshot                        */}
         {/* ============================================================ */}
         <div className="mb-16">
           <FadeIn>
             <p className="mb-8 font-mono text-[9px] font-medium uppercase tracking-[0.25em] text-[#3A3830]">
-              Core Capabilities
+              Tools
             </p>
           </FadeIn>
           <StaggerContainer>
-            {META_SKILLS.map((skill, i) => {
-              const Icon = skill.icon
-              return (
-                <StaggerItem 
-                  key={skill.name} 
-                  className={`flex gap-5 border-b border-[#16161E] py-5 ${i === 0 ? "border-t" : ""}`}
-                >
-                  <Icon size={14} style={{ color: skill.color }} className="mt-0.5 shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-semibold text-[#F0E6D0]">{skill.name}</h4>
-                    <p className="mt-1.5 text-sm font-light leading-relaxed text-[#8A8478]">{skill.desc}</p>
-                  </div>
-                </StaggerItem>
-              )
-            })}
-          </StaggerContainer>
-        </div>
-
-        {/* ============================================================ */}
-        {/*  TOOLS & TECHNOLOGIES - Ruled rows, inline items             */}
-        {/* ============================================================ */}
-        <div className="mb-16">
-          <FadeIn>
-            <p className="mb-8 font-mono text-[9px] font-medium uppercase tracking-[0.25em] text-[#3A3830]">
-              Tools & Technologies
-            </p>
-          </FadeIn>
-          <StaggerContainer>
-            {TOOL_CATEGORIES.map((cat, i) => (
+            {TOOLS.map((tool, i) => (
               <StaggerItem 
-                key={cat.category} 
-                className={`flex items-baseline gap-6 border-b border-[#16161E] py-4 ${i === 0 ? "border-t" : ""}`}
+                key={tool.category} 
+                className={`flex flex-col gap-2 border-b border-[#16161E] py-5 sm:flex-row sm:gap-6 ${i === 0 ? "border-t" : ""}`}
               >
-                <span className="w-24 shrink-0 font-mono text-[9px] uppercase tracking-wider text-[#3A3830]">
-                  {cat.category}
+                <span className="w-28 shrink-0 font-mono text-[9px] uppercase tracking-wider text-[#3A3830]">
+                  {tool.category}
                 </span>
-                <span className="text-sm text-[#C0B898]">
-                  {cat.items.map((item, j) => (
-                    <span key={item}>
-                      {item}
-                      {j < cat.items.length - 1 && <span className="mx-2 text-[#2A2820]">·</span>}
-                    </span>
-                  ))}
-                </span>
+                <p className="text-sm leading-relaxed text-[#C0B898]">
+                  {tool.content}
+                </p>
               </StaggerItem>
             ))}
           </StaggerContainer>
         </div>
 
         {/* ============================================================ */}
-        {/*  LANGUAGES - Ruled rows                                      */}
+        {/*  LANGUAGES - per screenshot with level badges                */}
         {/* ============================================================ */}
         <div>
           <FadeIn>
@@ -279,10 +209,15 @@ export function Skills() {
             {LANGUAGES.map((l, i) => (
               <StaggerItem 
                 key={l.lang} 
-                className={`flex items-baseline justify-between border-b border-[#16161E] py-4 ${i === 0 ? "border-t" : ""}`}
+                className={`flex items-baseline justify-between gap-4 border-b border-[#16161E] py-5 ${i === 0 ? "border-t" : ""}`}
               >
-                <span className="font-serif text-base italic text-[#F0E6D0]">{l.lang}</span>
-                <span className="text-sm text-[#8A8478]">{l.level}</span>
+                <span className="shrink-0 font-serif text-base italic text-[var(--cream)]">{l.lang}</span>
+                <span className="flex-1 text-sm text-[#8A8478]">
+                  {l.desc}
+                </span>
+                <span className="shrink-0 font-mono text-[9px] tracking-wider text-[#5A5A50]">
+                  {l.level}
+                </span>
               </StaggerItem>
             ))}
           </StaggerContainer>

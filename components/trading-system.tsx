@@ -11,90 +11,104 @@ import Image from "next/image"
 
 const INDICATORS = [
   {
-    name: "Deviations",
-    category: "Statistical",
-    color: "#E05252",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/deviations-close-sn7E1oBJX36F3N3UkDiE9ea9fb1RxZ.png",
-    desc: "Statistical session expansion using IQR. Maps 13 sessions to show if price is normal or extreme.",
+    name: "MBZ Core",
+    category: "Liquidity",
+    color: "#5B9EC2",
+    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mbz-core-uM9NWDZi4KLZqvVvT0dqRSIKkSNfJV.png",
+    desc: "5 gap types as tradable zones",
+    lines: "1,400",
   },
   {
     name: "SIF Core",
-    category: "Statistical",
-    color: "#E05252",
+    category: "Liquidity",
+    color: "#5B9EC2",
     image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/sif-core-WckR4OEaHZE5H43lLswpXo6kCxOvhp.png",
-    desc: "Institutional trap detection. Identifies fake breakouts where retail traders get caught.",
-  },
-  {
-    name: "MBZ Core",
-    category: "Zones",
-    color: "#5EBB73",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mbz-core-uM9NWDZi4KLZqvVvT0dqRSIKkSNfJV.png",
-    desc: "5 gap types as tradable zones with real-time fill tracking.",
+    desc: "Institutional trap detection",
+    lines: "950",
   },
   {
     name: "Gaps",
-    category: "Zones",
-    color: "#5EBB73",
+    category: "Liquidity",
+    color: "#5B9EC2",
     image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/gaps-EgRvSfB3NJhPW14tPVbJH1GZBIQZFA.png",
-    desc: "NWOG, NDOG, RTH, BPR, FVG with fill percentages. Floating mode keeps unfilled gaps visible.",
-  },
-  {
-    name: "MBZ Prime",
-    category: "Zones",
-    color: "#5EBB73",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mbz-prime-Yyp04JDi4e2bwQ7xZI0Y95AJkwbAEU.png",
-    desc: "Session liquidity pools aggregated across all timeframes.",
-  },
-  {
-    name: "DTT Weekly",
-    category: "Sessions",
-    color: "#C9A84C",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dtt-weekly-cHXKyAwK6Sg4fI1HHlfGhNRgqualNj.png",
-    desc: "4 named sessions with dynamic Fibonacci projections anchored to developing highs/lows.",
-  },
-  {
-    name: "DTT Intraday",
-    category: "Sessions",
-    color: "#C9A84C",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dtt-intraday-2ldNORG9f0rmjvGmqXPKg0cR5JxFgP.png",
-    desc: "15-session model with IQR range projections. The intraday rhythm most traders miss.",
+    desc: "NWOG, NDOG, RTH mapping",
+    lines: "1,890",
   },
   {
     name: "Pulse",
     category: "Liquidity",
     color: "#5B9EC2",
     image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/pulse-l6NqVxnL6oPDYNdDpbqchMJTXYTANM.png",
-    desc: "Multi-timeframe sweep levels from 8 timeframes. Where liquidity has been swept and where it remains.",
+    desc: "Multi-timeframe sweep levels",
+    lines: "1,200",
   },
   {
     name: "HTF Algo",
     category: "Liquidity",
     color: "#5B9EC2",
     image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/htf-algo-WV3WYNaBTqSF8kpxzUgUQxIAn5EjbY.png",
-    desc: "Higher timeframe liquidity levels, ADR-filtered to show only relevant targets.",
+    desc: "Higher timeframe liquidity levels",
+    lines: "780",
   },
   {
     name: "LTF Algo",
     category: "Liquidity",
     color: "#5B9EC2",
     image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ltf-algo-RoIY3SkuFP9bEaRSCO6Xni65DkVJTb.png",
-    desc: "The execution tool. Identifies when liquidity grabs fail with precise entry targets.",
+    desc: "Execution tool for entries",
+    lines: "650",
+  },
+  {
+    name: "DTT Weekly",
+    category: "Session",
+    color: "#C9A84C",
+    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dtt-weekly-cHXKyAwK6Sg4fI1HHlfGhNRgqualNj.png",
+    desc: "4 named sessions with Fibonacci",
+    lines: "1,100",
+  },
+  {
+    name: "DTT Intraday",
+    category: "Session",
+    color: "#C9A84C",
+    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dtt-intraday-2ldNORG9f0rmjvGmqXPKg0cR5JxFgP.png",
+    desc: "15-session model with IQR",
+    lines: "1,350",
+  },
+  {
+    name: "Deviations",
+    category: "Range",
+    color: "#5EBB73",
+    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/deviations-close-sn7E1oBJX36F3N3UkDiE9ea9fb1RxZ.png",
+    desc: "Statistical session expansion using IQR",
+    lines: "890",
   },
   {
     name: "ADR",
-    category: "Liquidity",
-    color: "#5B9EC2",
+    category: "Range",
+    color: "#5EBB73",
     image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/adr-K5HcqKaW2wZOjwCt5WY6BQR6h8PzZB.png",
-    desc: "Average Daily Range with ceiling/floor. The 1/3 ADR level is where early sweeps exhaust.",
+    desc: "Average Daily Range with ceiling/floor",
+    lines: "420",
+  },
+  {
+    name: "MBZ Prime",
+    category: "Range",
+    color: "#5EBB73",
+    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mbz-prime-Yyp04JDi4e2bwQ7xZI0Y95AJkwbAEU.png",
+    desc: "Session liquidity pools aggregated",
+    lines: "1,050",
   },
   {
     name: "MBZ Relay",
-    category: "Infrastructure",
-    color: "#888",
+    category: "Range",
+    color: "#5EBB73",
     image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mbz-relay-4hYhKT2dJzLJWz5jTrcRLz6oZPNrFV.png",
-    desc: "Auto HTF pairing and zone broadcasting. Set once, works everywhere.",
+    desc: "Auto HTF pairing and zone broadcasting",
+    lines: "520",
   },
 ]
+
+const CATEGORIES = ["Liquidity", "Session", "Range"]
 
 /* ------------------------------------------------------------------ */
 /*  Progression - shows evolution from naked to full stack             */
@@ -126,55 +140,6 @@ const PROGRESSION = [
     image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked%2Bpulse-0VIC5O2b1WbouOo8CZIitJgVU7KDqG.png",
   },
 ]
-
-/* ------------------------------------------------------------------ */
-/*  Indicator Card - grayscale to color on hover, click to view        */
-/* ------------------------------------------------------------------ */
-
-function IndicatorCard({ 
-  indicator, 
-  onSelect 
-}: { 
-  indicator: (typeof INDICATORS)[0]
-  onSelect: () => void 
-}) {
-  const ref = useRef<HTMLButtonElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-30px" })
-
-  return (
-    <motion.button
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5 }}
-      onClick={onSelect}
-      className="group relative aspect-video w-full overflow-hidden rounded-xl border border-[var(--stroke)] bg-[var(--bg-card)] transition-all hover:border-[var(--gold)]/30"
-    >
-      {/* Image - grayscale, colorizes on hover */}
-      <Image
-        src={indicator.image}
-        alt={indicator.name}
-        fill
-        className="object-cover transition-all duration-500 grayscale group-hover:grayscale-0"
-        sizes="(max-width: 768px) 100vw, 33vw"
-      />
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-deep)]/90 via-transparent to-transparent" />
-      {/* Label */}
-      <div className="absolute bottom-0 left-0 right-0 p-4">
-        <div className="flex items-center gap-2">
-          <span 
-            className="h-1.5 w-1.5 rounded-full transition-opacity group-hover:opacity-100 opacity-50"
-            style={{ backgroundColor: indicator.color }}
-          />
-          <span className="text-sm font-medium text-[var(--cream)] transition-colors group-hover:text-[var(--gold)]">
-            {indicator.name}
-          </span>
-        </div>
-      </div>
-    </motion.button>
-  )
-}
 
 /* ------------------------------------------------------------------ */
 /*  Indicator Detail Modal                                             */
@@ -254,6 +219,9 @@ function IndicatorDetail({
           <p className="mt-3 text-base leading-relaxed text-[var(--cream-muted)]">
             {indicator.desc}
           </p>
+          <p className="mt-2 font-mono text-xs text-[var(--gold)]">
+            {indicator.lines} lines
+          </p>
         </div>
       </motion.div>
 
@@ -263,7 +231,7 @@ function IndicatorDetail({
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
         onClick={onClose}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
         aria-label="Close"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -280,10 +248,14 @@ function IndicatorDetail({
 
 export function TradingArsenal() {
   const [selectedIndicator, setSelectedIndicator] = useState<(typeof INDICATORS)[0] | null>(null)
+  const [activeCategory, setActiveCategory] = useState("Liquidity")
   const [activeProgression, setActiveProgression] = useState(0)
   const [lightboxImage, setLightboxImage] = useState<string | null>(null)
   const progressionRef = useRef<HTMLDivElement>(null)
   const progressionInView = useInView(progressionRef, { once: true, margin: "-50px" })
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  const filteredIndicators = INDICATORS.filter(ind => ind.category === activeCategory)
 
   return (
     <div className="relative pb-20">
@@ -321,7 +293,7 @@ export function TradingArsenal() {
                     animate={progressionInView ? { opacity: 1, x: 0 } : {}}
                     transition={{ duration: 0.4, delay: i * 0.1 }}
                     onClick={() => setActiveProgression(i)}
-                    className={`group w-full text-left transition-all duration-300 ${
+                    className={`group w-full cursor-pointer text-left transition-all duration-300 ${
                       activeProgression === i 
                         ? "rounded-lg border border-[#5EBB73]/30 bg-[var(--bg-elevated)] p-4" 
                         : "rounded-lg border border-transparent p-4 hover:bg-[var(--bg-card)]"
@@ -356,7 +328,7 @@ export function TradingArsenal() {
                 animate={progressionInView ? { opacity: 1 } : {}}
                 transition={{ duration: 0.5, delay: 0.3 }}
                 onClick={() => setLightboxImage(PROGRESSION[activeProgression].image)}
-                className="group relative aspect-[16/10] w-full overflow-hidden rounded-xl border border-[var(--stroke)] transition-all hover:border-[var(--gold)]/30"
+                className="group relative aspect-[16/10] w-full cursor-pointer overflow-hidden rounded-xl border border-[var(--stroke)] transition-all hover:border-[var(--gold)]/30"
               >
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -384,21 +356,75 @@ export function TradingArsenal() {
             </div>
           </div>
 
-          {/* Indicator Grid - grayscale cards that colorize on hover */}
+          {/* ============================================================ */}
+          {/*  INDICATORS - Category tabs + horizontal scroll strip        */}
+          {/* ============================================================ */}
           <FadeUp delay={0.2}>
-            <p className="mb-6 font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[var(--cream)]">
+            <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[var(--cream)]">
               The Indicators
             </p>
           </FadeUp>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {INDICATORS.map((indicator) => (
-              <IndicatorCard
-                key={indicator.name}
-                indicator={indicator}
-                onSelect={() => setSelectedIndicator(indicator)}
-              />
+          {/* Category Tabs */}
+          <div className="mb-6 flex gap-6 border-b border-[#16161E]">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`cursor-pointer pb-3 font-mono text-xs uppercase tracking-wider transition-colors ${
+                  activeCategory === cat 
+                    ? "border-b-2 border-[var(--gold)] text-[var(--cream)]" 
+                    : "text-[var(--text-faint)] hover:text-[var(--cream-muted)]"
+                }`}
+              >
+                {cat}
+              </button>
             ))}
+          </div>
+
+          {/* Horizontal Scroll Strip */}
+          <div 
+            ref={scrollContainerRef}
+            className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <AnimatePresence mode="wait">
+              {filteredIndicators.map((indicator, i) => (
+                <motion.button
+                  key={indicator.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, delay: i * 0.05 }}
+                  onClick={() => setSelectedIndicator(indicator)}
+                  className="group w-64 shrink-0 cursor-pointer text-left"
+                >
+                  {/* Image card */}
+                  <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[var(--stroke)] bg-[var(--bg-card)] transition-all group-hover:border-[var(--gold)]/30">
+                    <Image
+                      src={indicator.image}
+                      alt={indicator.name}
+                      fill
+                      className="object-cover transition-all duration-300 grayscale group-hover:grayscale-0"
+                      sizes="256px"
+                    />
+                  </div>
+                  
+                  {/* Info below */}
+                  <div className="mt-3">
+                    <h5 className="text-sm font-medium text-[var(--cream)] transition-colors group-hover:text-[var(--gold)]">
+                      {indicator.name}
+                    </h5>
+                    <p className="mt-1 text-xs text-[var(--text-dim)]">
+                      {indicator.desc}
+                    </p>
+                    <p className="mt-1 font-mono text-[10px] text-[var(--gold)]">
+                      {indicator.lines} lines
+                    </p>
+                  </div>
+                </motion.button>
+              ))}
+            </AnimatePresence>
           </div>
         </div>
       </div>
@@ -420,7 +446,7 @@ export function TradingArsenal() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-deep)]/90 p-6 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-[var(--bg-deep)]/90 p-6 backdrop-blur-sm"
             onClick={() => setLightboxImage(null)}
           >
             <motion.div
@@ -442,7 +468,7 @@ export function TradingArsenal() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="absolute bottom-8 left-1/2 -translate-x-1/2 text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
+              className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
               aria-label="Close"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

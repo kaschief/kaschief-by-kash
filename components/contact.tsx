@@ -56,7 +56,7 @@ export function Contact() {
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
               href="mailto:kaschiefj@gmail.com"
-              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold text-[var(--bg)] transition-all duration-300"
+              className="group relative inline-flex cursor-pointer items-center gap-2 overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold text-[var(--bg)] transition-all duration-300"
               style={{ background: "linear-gradient(135deg, #C9A84C, #A8893D)" }}
             >
               <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
@@ -69,7 +69,7 @@ export function Contact() {
               href="https://linkedin.com/in/kaschief-johnson"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-[var(--stroke)] px-6 py-3 text-sm font-medium text-[var(--cream-muted)] transition-all duration-300 hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--cream)]"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--stroke)] px-6 py-3 text-sm font-medium text-[var(--cream-muted)] transition-all duration-300 hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--cream)]"
             >
               LinkedIn <ArrowUpRight size={14} />
             </a>
@@ -77,7 +77,7 @@ export function Contact() {
               href="https://github.com/kaschief/kash-indicators"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-[var(--stroke)] px-6 py-3 text-sm font-medium text-[var(--cream-muted)] transition-all duration-300 hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--cream)]"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--stroke)] px-6 py-3 text-sm font-medium text-[var(--cream-muted)] transition-all duration-300 hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--cream)]"
             >
               GitHub <ArrowUpRight size={14} />
             </a>
