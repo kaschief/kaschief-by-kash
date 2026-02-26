@@ -19,6 +19,7 @@ const JOBS = [
     color: "#5B9EC2",
     tech: ["React", "A/B Testing", "User Research"],
     summary: "Medical exam platform used by 500K+ students globally",
+    url: "https://amboss.com",
     deepDive: {
       context: "This was my first engineering role, and it mattered that it was in health tech. Coming from nursing, I understood the users — medical students under immense pressure who needed tools that worked flawlessly.",
       contribution: "I wasn't just writing React components; I was validating whether features actually helped people learn faster. The A/B testing culture here shaped how I think about product decisions: not opinions, but evidence.",
@@ -35,6 +36,7 @@ const JOBS = [
     color: "#5B9EC2",
     tech: ["Vue", "SEO", "Performance"],
     summary: "Product comparison sites with dynamic content systems",
+    url: "https://compado.com",
     deepDive: {
       context: "Compado was where I learned that performance is a feature. We built product comparison sites where milliseconds mattered for SEO rankings and conversion.",
       contribution: "I went deep on Core Web Vitals, lazy loading strategies, and how to architect Vue apps that score well on Lighthouse while still being rich and interactive.",
@@ -51,6 +53,7 @@ const JOBS = [
     color: "#5B9EC2",
     tech: ["Vue", "TypeScript", "Fintech"],
     summary: "Fintech platform serving 10,000+ financial advisors",
+    url: "https://capinside.com",
     deepDive: {
       context: "Short tenure, deep impact. CAPinside had a legacy frontend that was holding back the entire product. I was brought in specifically to replace it.",
       contribution: "The challenge wasn't just technical — it was convincing a fintech company serving 10,000 financial advisors that a full rewrite was safer than continuing to patch. I mapped every feature, built migration paths, and delivered a Vue + TypeScript application that loaded 35% faster.",
@@ -67,6 +70,7 @@ const JOBS = [
     color: "#5B9EC2",
     tech: ["React", "TypeScript", "Playwright", "Micro-frontends"],
     summary: "Rebuilt UI/UX of a banking platform for 5M+ users",
+    url: "https://dkb.de",
     deepDive: {
       context: "DKB is Germany's largest direct bank — 5 million users. The frontend needed a complete overhaul, and I was part of the team rebuilding it in React with TypeScript and micro-frontends.",
       contribution: "What set me apart wasn't the code. I introduced testing culture: Jest for units, Playwright for e2e. The team had been shipping without automated tests. I built the testing infrastructure, wrote the patterns, and coached others to adopt them.",
@@ -199,42 +203,204 @@ function ActHeader({
 }
 
 /* ------------------------------------------------------------------ */
-/*  ACT I - The Nurse                                                  */
+/*  ACT I - The Nurse (with interactive ICU specialties)               */
 /* ------------------------------------------------------------------ */
 
-function ActI() {
+const ICU_UNITS = [
+  {
+    id: "neuro",
+    name: "Neuro ICU",
+    hospital: "Memorial Hermann",
+    focus: "Brain & spine critical care",
+    skills: [
+      "Continuous EEG monitoring and seizure recognition",
+      "Intracranial pressure management",
+      "Neurological assessments every 2 hours",
+      "Post-operative craniotomy care",
+      "Stroke protocol execution under 60 minutes",
+    ],
+    insight: "The brain doesn't give second chances. You learn to read subtle signs — a slight pupil change, decreased grip strength — before they become catastrophic."
+  },
+  {
+    id: "cardiac",
+    name: "Cardiac ICU",
+    hospital: "Texas Heart Institute",
+    focus: "Post-surgical heart patients",
+    skills: [
+      "12-lead EKG interpretation",
+      "Hemodynamic monitoring and Swan-Ganz catheters",
+      "Post-CABG and valve replacement care",
+      "IABP and LVAD management",
+      "Code blue leadership and ACLS",
+    ],
+    insight: "Heart surgery patients can crash in seconds. The rhythm strip is your early warning system — you learn to hear the alarms before they sound."
+  },
+  {
+    id: "er",
+    name: "ER Trauma",
+    hospital: "Ben Taub Hospital",
+    focus: "Level 1 trauma center",
+    skills: [
+      "Rapid triage and stabilization",
+      "Mass casualty incident protocols",
+      "Emergency intubation assistance",
+      "Blood product administration under pressure",
+      "Family communication during crises",
+    ],
+    insight: "Trauma taught me that chaos is manageable if you have a system. The fastest nurse isn't the best — the most systematic one is."
+  },
+]
+
+function ICUCard({ 
+  unit, 
+  isExpanded, 
+  onClick 
+}: { 
+  unit: (typeof ICU_UNITS)[0]
+  isExpanded: boolean
+  onClick: () => void 
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  
   return (
-    <ActHeader
-      act="ACT I"
-      title="The Nurse"
-      period="2012 - 2017"
-      location="Houston, TX"
-      color="#E05252"
-      takeaway="The ICU taught me that under pressure, process matters more than heroics. You can't panic. You assess, prioritize, and execute — or people die. That discipline never left me."
+    <motion.div
+      ref={ref}
+      layout
+      className="group"
     >
-      <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+      <motion.button
+        onClick={onClick}
+        className={`w-full text-left transition-all duration-300 ${
+          isExpanded 
+            ? "rounded-t-xl border border-b-0 border-[#E05252]/30 bg-[var(--bg-elevated)]" 
+            : "rounded-xl border border-[var(--stroke)] bg-[var(--bg-card)] hover:border-[#E05252]/20 hover:bg-[var(--bg-elevated)]"
+        }`}
+      >
+        <div className="flex items-center justify-between p-5">
+          <div>
+            <h4 className={`text-base font-medium transition-colors ${isExpanded ? "text-[#E05252]" : "text-[var(--cream)] group-hover:text-[#E05252]"}`}>
+              {unit.name}
+            </h4>
+            <p className="mt-1 text-xs text-[var(--text-faint)]">{unit.hospital}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden text-xs text-[var(--text-dim)] sm:inline">{unit.focus}</span>
+            <motion.span
+              animate={{ rotate: isExpanded ? 45 : 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--stroke)] text-[var(--text-faint)]"
+            >
+              +
+            </motion.span>
+          </div>
+        </div>
+      </motion.button>
+      
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden rounded-b-xl border border-t-0 border-[#E05252]/30 bg-[var(--bg-elevated)]"
+          >
+            <div className="p-5 pt-0">
+              <div className="mb-4 border-t border-[var(--stroke)] pt-4">
+                <p className="mb-3 font-mono text-[9px] font-medium uppercase tracking-[0.2em] text-[#E05252]">
+                  Key competencies
+                </p>
+                <ul className="space-y-2">
+                  {unit.skills.map((skill) => (
+                    <li key={skill} className="flex items-start gap-2 text-sm text-[var(--cream-muted)]">
+                      <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#E05252]/50" />
+                      {skill}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <p className="text-sm italic leading-relaxed text-[var(--text-dim)]">
+                {unit.insight}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
+
+function ActI() {
+  const [expandedUnit, setExpandedUnit] = useState<string | null>(null)
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
+  const glowOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.5, 0.5, 0])
+
+  return (
+    <div ref={ref} className="relative py-20 sm:py-28">
+      {/* Glow */}
+      <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
+        <div
+          className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(224,82,82,0.04) 0%, transparent 60%)" }}
+        />
+      </motion.div>
+
+      <div className="relative z-10 mx-auto max-w-5xl px-6">
+        {/* Header */}
+        <FadeIn>
+          <div className="mb-4 flex items-center gap-3">
+            <motion.span
+              className="inline-block h-1.5 w-1.5 rounded-full bg-[#E05252]"
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            />
+            <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[#E05252]">
+              ACT I
+            </span>
+          </div>
+        </FadeIn>
+        <RevealLine>
+          <h3 className="font-serif text-4xl font-normal tracking-[-0.02em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
+            The Nurse
+          </h3>
+        </RevealLine>
         <FadeUp delay={0.2}>
-          <p className="text-lg leading-[1.7] text-[var(--cream-muted)]">
-            I spent five years as a critical care nurse in Houston{"'"}s Texas Medical Center — the largest medical complex in the world. Neuro ICU, Cardiac ICU, ER trauma.
-          </p>
-          <p className="mt-4 text-sm leading-[1.9] text-[var(--text-dim)]">
-            This wasn{"'"}t a stepping stone. It was where I learned to read complex systems under pressure, communicate with precision, and make decisions when the cost of being wrong was someone{"'"}s life.
+          <p className="mt-4 font-mono text-xs text-[var(--text-faint)]">
+            2012 - 2017 · Houston, Texas
           </p>
         </FadeUp>
+
+        {/* Intro text */}
         <FadeUp delay={0.3}>
-          <div className="space-y-4">
-            <div className="rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-5">
-              <p className="mb-2 font-mono text-[9px] font-medium uppercase tracking-[0.2em] text-[#E05252]">Pattern Recognition</p>
-              <p className="text-sm text-[var(--cream-muted)]">Reading 12-lead EKGs, catching early signs of deterioration, understanding that vital signs tell a story before the patient can.</p>
-            </div>
-            <div className="rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-5">
-              <p className="mb-2 font-mono text-[9px] font-medium uppercase tracking-[0.2em] text-[#E05252]">Systems Thinking</p>
-              <p className="text-sm text-[var(--cream-muted)]">The human body is the original complex system. Every intervention has downstream effects. You learn to think in feedback loops.</p>
-            </div>
+          <p className="mt-8 max-w-2xl text-lg leading-[1.7] text-[var(--cream-muted)]">
+            Five years as a critical care nurse in Houston{"'"}s Texas Medical Center — the largest medical complex in the world.
+          </p>
+        </FadeUp>
+
+        {/* ICU Cards - expandable */}
+        <div className="mt-12 space-y-3">
+          {ICU_UNITS.map((unit, i) => (
+            <FadeUp key={unit.id} delay={0.3 + i * 0.1}>
+              <ICUCard
+                unit={unit}
+                isExpanded={expandedUnit === unit.id}
+                onClick={() => setExpandedUnit(expandedUnit === unit.id ? null : unit.id)}
+              />
+            </FadeUp>
+          ))}
+        </div>
+
+        {/* Takeaway */}
+        <FadeUp delay={0.6}>
+          <div className="mt-16 border-l-2 border-[rgba(224,82,82,0.3)] py-2 pl-6">
+            <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">
+              The ICU taught me that under pressure, process matters more than heroics. You assess, prioritize, and execute — or people die. That discipline never left me.
+            </p>
           </div>
         </FadeUp>
       </div>
-    </ActHeader>
+    </div>
   )
 }
 
@@ -319,10 +485,21 @@ function JobDetailView({ job, onBack }: { job: (typeof JOBS)[0]; onBack: () => v
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="rounded-2xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-8 sm:p-12"
+        className="relative rounded-2xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-8 sm:p-12"
       >
+        {/* Floating X close button */}
+        <button
+          onClick={onBack}
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-[var(--gold)]/30 text-[var(--gold)] transition-all hover:border-[var(--gold)] hover:bg-[var(--gold)]/10"
+          aria-label="Close"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M1 1l12 12M13 1L1 13" />
+          </svg>
+        </button>
+
         {/* Header */}
-        <div className="mb-8 border-b border-[var(--stroke)] pb-8">
+        <div className="mb-8 border-b border-[var(--stroke)] pb-8 pr-8">
           <p className="mb-2 font-mono text-xs text-[var(--text-faint)]">
             {job.period} · {job.location}
           </p>
@@ -330,7 +507,7 @@ function JobDetailView({ job, onBack }: { job: (typeof JOBS)[0]; onBack: () => v
             {job.company}
           </h2>
           <p className="mt-2 text-lg text-[var(--cream-muted)]">{job.role}</p>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             {job.tech.map((t) => (
               <span key={t} className="rounded-full border border-[var(--stroke)] px-3 py-1 font-mono text-[10px] text-[var(--act-blue)]">{t}</span>
             ))}
@@ -345,19 +522,27 @@ function JobDetailView({ job, onBack }: { job: (typeof JOBS)[0]; onBack: () => v
         </div>
 
         {/* Skills as subtle tags at bottom */}
-        <div className="mt-8 flex flex-wrap gap-2 border-t border-[var(--stroke)] pt-6">
+        <div className="mt-8 flex flex-wrap items-center gap-2 border-t border-[var(--stroke)] pt-6">
           {job.deepDive.skills.map((skill) => (
             <span key={skill} className="rounded-full bg-[var(--bg-card)] px-3 py-1.5 text-xs text-[var(--text-dim)]">
               {skill}
             </span>
           ))}
+          
+          {/* Company link */}
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto inline-flex items-center gap-1.5 font-mono text-xs text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
+          >
+            {job.url.replace("https://", "")}
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M3 9l6-6M4 3h5v5" />
+            </svg>
+          </a>
         </div>
       </motion.div>
-      
-      {/* Subtle hint */}
-      <p className="mt-4 text-center text-xs text-[var(--text-faint)]">
-        Click outside or press Esc to close
-      </p>
     </motion.div>
   )
 }
@@ -438,50 +623,126 @@ function ActII() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  ACT III - The Leader (with horizontal scroll stories)             */
+/*  ACT III - The Leader (skills overview + clickable case studies)    */
 /* ------------------------------------------------------------------ */
 
-function StoryCard({ story, isActive, onClick }: { 
+const LEADERSHIP_SKILLS = [
+  { skill: "Team Communication", desc: "Making refinements productive by forcing engagement over passive attendance" },
+  { skill: "Process Design", desc: "Monthly releases to weekly through systematic pre-deploy verification" },
+  { skill: "Hiring", desc: "Running parallel pipelines, delegating code reviews to future teammates" },
+  { skill: "Culture Protection", desc: "Addressing tech stack tribalism before it creates two-tier teams" },
+  { skill: "Mentorship", desc: "Coaching communication styles that get results without creating friction" },
+  { skill: "Scope Management", desc: "Catching scope creep in real-time, keeping features focused" },
+]
+
+function CaseStudyCard({ 
+  story, 
+  onSelect 
+}: { 
   story: (typeof MGMT_STORIES)[0]
-  isActive: boolean
-  onClick: () => void 
+  onSelect: () => void 
 }) {
+  const ref = useRef<HTMLButtonElement>(null)
+  const inView = useInView(ref, { once: true, margin: "-40px" })
+
   return (
     <motion.button
-      onClick={onClick}
-      className="group relative shrink-0 text-left"
-      whileHover={{ scale: 1.01 }}
-      transition={{ duration: 0.2 }}
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5 }}
+      onClick={onSelect}
+      className="group flex w-full items-center justify-between border-b border-[var(--stroke)] py-5 text-left transition-colors hover:border-[var(--gold-dim)]"
     >
-      <div 
-        className={`relative w-[280px] overflow-hidden rounded-2xl border bg-[var(--bg-elevated)] p-6 transition-all duration-300 sm:w-[320px] ${
-          isActive ? "border-[var(--gold)] ring-1 ring-[var(--gold)]" : "border-[var(--stroke)] hover:border-[rgba(255,255,255,0.1)]"
-        }`}
-      >
-        {/* Tag */}
+      <div className="flex items-center gap-4">
         <span
-          className="inline-block rounded-full px-2.5 py-0.5 font-mono text-[9px] font-medium uppercase tracking-wider"
+          className="inline-block rounded-full px-2 py-0.5 font-mono text-[8px] font-medium uppercase tracking-wider"
           style={{ backgroundColor: `${story.color}12`, color: story.color }}
         >
           {story.tag}
         </span>
-        
-        {/* Title */}
-        <h4 className="mt-4 text-base font-medium leading-snug text-[var(--cream)]">
+        <h4 className="text-sm text-[var(--cream)] transition-colors group-hover:text-[var(--gold)]">
           {story.title}
         </h4>
-        
-        {/* Full text - show it all, no hiding */}
-        <p className="mt-3 text-sm leading-[1.7] text-[var(--text-dim)]">
-          {story.text}
-        </p>
       </div>
+      <span className="font-mono text-xs text-[var(--text-faint)] transition-all group-hover:text-[var(--gold)] group-hover:translate-x-1">
+        Read
+      </span>
     </motion.button>
   )
 }
 
+function CaseStudyDetail({ story, onBack }: { story: (typeof MGMT_STORIES)[0]; onBack: () => void }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        onBack()
+      }
+    }
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onBack()
+    }
+    
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside)
+      document.addEventListener("keydown", handleEscape)
+    }, 100)
+    
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("keydown", handleEscape)
+    }
+  }, [onBack])
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="relative"
+    >
+      <motion.div
+        ref={containerRef}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="relative rounded-2xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-8 sm:p-12"
+      >
+        {/* Floating X close button */}
+        <button
+          onClick={onBack}
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-[var(--gold)]/30 text-[var(--gold)] transition-all hover:border-[var(--gold)] hover:bg-[var(--gold)]/10"
+          aria-label="Close"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M1 1l12 12M13 1L1 13" />
+          </svg>
+        </button>
+
+        <span
+          className="inline-block rounded-full px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-wider"
+          style={{ backgroundColor: `${story.color}15`, color: story.color }}
+        >
+          {story.tag}
+        </span>
+        <h2 className="mt-4 font-serif text-2xl text-[var(--cream)] sm:text-3xl">
+          {story.title}
+        </h2>
+        <p className="mt-6 text-base leading-[1.9] text-[var(--cream-muted)]">
+          {story.text}
+        </p>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 function ActIII() {
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [selectedStory, setSelectedStory] = useState<(typeof MGMT_STORIES)[0] | null>(null)
+  const [showCaseStudies, setShowCaseStudies] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
   const glowOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.5, 0.5, 0])
@@ -496,68 +757,116 @@ function ActIII() {
         />
       </motion.div>
 
-      <div className="relative z-10">
-        {/* Header */}
-        <div className="mx-auto max-w-5xl px-6">
-          <FadeIn>
-            <div className="mb-4 flex items-center gap-3">
-              <motion.span
-                className="inline-block h-1.5 w-1.5 rounded-full bg-[#C9A84C]"
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[#C9A84C]">
-                ACT III
-              </span>
-            </div>
-          </FadeIn>
-          <RevealLine>
-            <h3 className="font-serif text-4xl font-normal tracking-[-0.02em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
-              The Leader
-            </h3>
-          </RevealLine>
-          <FadeUp delay={0.2}>
-            <p className="mt-4 font-mono text-xs text-[var(--text-faint)]">
-              2022 - 2024 · Berlin
-            </p>
-          </FadeUp>
-          <FadeUp delay={0.3}>
-            <p className="mt-8 max-w-2xl text-lg leading-[1.7] text-[var(--cream-muted)]">
-              Engineering management at DKB Code Factory. Leading teams, shipping products, and learning that the hardest problems aren{"'"}t technical — they{"'"}re human.
-            </p>
-          </FadeUp>
-        </div>
-
-        {/* Horizontal scroll carousel - stories show full text, no expansion needed */}
-        <FadeUp delay={0.4}>
-          <div className="mt-12">
-            <div 
-              ref={scrollRef}
-              className="flex gap-4 overflow-x-auto px-6 pb-4 sm:gap-6 lg:px-[calc((100vw-64rem)/2+1.5rem)]"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      <div className="relative z-10 mx-auto max-w-5xl px-6">
+        <AnimatePresence mode="wait">
+          {selectedStory ? (
+            <CaseStudyDetail key="detail" story={selectedStory} onBack={() => setSelectedStory(null)} />
+          ) : (
+            <motion.div
+              key="main"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
             >
-              {MGMT_STORIES.map((story) => (
-                <StoryCard 
-                  key={story.id} 
-                  story={story} 
-                  isActive={false}
-                  onClick={() => {}}
-                />
-              ))}
-            </div>
-          </div>
-        </FadeUp>
+              {/* Header */}
+              <FadeIn>
+                <div className="mb-4 flex items-center gap-3">
+                  <motion.span
+                    className="inline-block h-1.5 w-1.5 rounded-full bg-[#C9A84C]"
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  />
+                  <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[#C9A84C]">
+                    ACT III
+                  </span>
+                </div>
+              </FadeIn>
+              <RevealLine>
+                <h3 className="font-serif text-4xl font-normal tracking-[-0.02em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
+                  The Leader
+                </h3>
+              </RevealLine>
+              <FadeUp delay={0.2}>
+                <p className="mt-4 font-mono text-xs text-[var(--text-faint)]">
+                  2022 - 2024 · DKB Code Factory, Berlin
+                </p>
+              </FadeUp>
+              <FadeUp delay={0.3}>
+                <p className="mt-8 max-w-2xl text-lg leading-[1.7] text-[var(--cream-muted)]">
+                  Engineering management for Germany{"'"}s largest direct bank. Leading teams, shipping products, and learning that the hardest problems aren{"'"}t technical — they{"'"}re human.
+                </p>
+              </FadeUp>
 
-        {/* Takeaway */}
-        <div className="mx-auto max-w-5xl px-6">
-          <FadeUp delay={0.5}>
-            <div className="mt-12 border-l-2 border-[rgba(201,168,76,0.3)] py-2 pl-6">
-              <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">
-                Management isn{"'"}t about being in charge. It{"'"}s about creating the conditions where other people can do their best work.
-              </p>
-            </div>
-          </FadeUp>
-        </div>
+              {/* Leadership Skills Grid */}
+              <FadeUp delay={0.4}>
+                <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {LEADERSHIP_SKILLS.map((item, i) => (
+                    <motion.div
+                      key={item.skill}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 + i * 0.05 }}
+                      className="rounded-xl border border-[var(--stroke)] bg-[var(--bg-card)] p-4 transition-all hover:border-[var(--gold)]/20 hover:bg-[var(--bg-elevated)]"
+                    >
+                      <h4 className="text-sm font-medium text-[var(--cream)]">{item.skill}</h4>
+                      <p className="mt-2 text-xs leading-relaxed text-[var(--text-dim)]">{item.desc}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </FadeUp>
+
+              {/* Case Studies Toggle */}
+              <FadeUp delay={0.5}>
+                <div className="mt-12">
+                  <button
+                    onClick={() => setShowCaseStudies(!showCaseStudies)}
+                    className="group flex items-center gap-3 font-mono text-sm text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
+                  >
+                    <motion.span
+                      animate={{ rotate: showCaseStudies ? 90 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      →
+                    </motion.span>
+                    {showCaseStudies ? "Hide case studies" : "View case studies"}
+                  </button>
+
+                  <AnimatePresence>
+                    {showCaseStudies && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-6 rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-6">
+                          {MGMT_STORIES.map((story) => (
+                            <CaseStudyCard
+                              key={story.id}
+                              story={story}
+                              onSelect={() => setSelectedStory(story)}
+                            />
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </FadeUp>
+
+              {/* Takeaway */}
+              <FadeUp delay={0.6}>
+                <div className="mt-12 border-l-2 border-[rgba(201,168,76,0.3)] py-2 pl-6">
+                  <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">
+                    Management isn{"'"}t about being in charge. It{"'"}s about creating the conditions where other people can do their best work.
+                  </p>
+                </div>
+              </FadeUp>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )
@@ -568,55 +877,65 @@ function ActIII() {
 /* ------------------------------------------------------------------ */
 
 function ActIV() {
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
+  const glowOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.5, 0.5, 0])
+
   return (
-    <ActHeader
-      act="ACT IV"
-      title="The Builder"
-      period="2024 - Present"
-      location="Self-Employed, Berlin"
-      color="#5EBB73"
-      takeaway="This is where everything converges. ICU pattern recognition, engineering discipline, leadership under pressure. The market doesn't care what you've done before. It only cares if you can read it correctly, right now."
-    >
-      <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+    <div ref={ref} className="relative py-20 sm:py-28">
+      {/* Glow */}
+      <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
+        <div
+          className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(94,187,115,0.04) 0%, transparent 60%)" }}
+        />
+      </motion.div>
+
+      <div className="relative z-10 mx-auto max-w-5xl px-6">
+        {/* Header */}
+        <FadeIn>
+          <div className="mb-4 flex items-center gap-3">
+            <motion.span
+              className="inline-block h-1.5 w-1.5 rounded-full bg-[#5EBB73]"
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            />
+            <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[#5EBB73]">
+              ACT IV
+            </span>
+          </div>
+        </FadeIn>
+        <RevealLine>
+          <h3 className="font-serif text-4xl font-normal tracking-[-0.02em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
+            The Builder
+          </h3>
+        </RevealLine>
         <FadeUp delay={0.2}>
-          <p className="text-lg leading-[1.7] text-[var(--cream-muted)]">
+          <p className="mt-4 font-mono text-xs text-[var(--text-faint)]">
+            2024 - Present · Self-Employed, Berlin
+          </p>
+        </FadeUp>
+
+        {/* Main content */}
+        <FadeUp delay={0.3}>
+          <p className="mt-8 max-w-2xl text-lg leading-[1.7] text-[var(--cream-muted)]">
             An algorithmic futures trading system. 14 custom indicators. 13,500 lines of Pine Script v6, written from scratch with AI-assisted development as a daily workflow.
           </p>
-          <p className="mt-4 text-sm leading-[1.9] text-[var(--text-dim)]">
+          <p className="mt-4 max-w-2xl text-sm leading-[1.9] text-[var(--text-dim)]">
             No libraries, no wrappers. The market gives feedback instantly, and it doesn{"'"}t care about your feelings. Managing funded accounts with real money on the line.
           </p>
         </FadeUp>
-        <FadeUp delay={0.3}>
-          <div className="rounded-2xl bg-[var(--bg-elevated)] p-6">
-            <p className="mb-4 font-mono text-[9px] font-medium uppercase tracking-[0.2em] text-[#5EBB73]">
-              What this requires
+
+        {/* Takeaway */}
+        <FadeUp delay={0.4}>
+          <div className="mt-12 border-l-2 border-[rgba(94,187,115,0.3)] py-2 pl-6">
+            <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">
+              This is where everything converges. ICU pattern recognition, engineering discipline, leadership under pressure. The market doesn{"'"}t care what you{"'"}ve done before. It only cares if you can read it correctly, right now.
             </p>
-            <ul className="space-y-3 text-sm text-[var(--cream-muted)]">
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#5EBB73]" />
-                Pattern recognition under uncertainty
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#5EBB73]" />
-                Disciplined execution without emotion
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#5EBB73]" />
-                Systems thinking at scale
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#5EBB73]" />
-                Rapid iteration and evidence-based decisions
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#5EBB73]" />
-                Full ownership of outcomes
-              </li>
-            </ul>
           </div>
         </FadeUp>
       </div>
-    </ActHeader>
+    </div>
   )
 }
 
