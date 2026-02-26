@@ -1,426 +1,416 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
-import { FadeUp, FadeIn, RevealLine, ScaleOnScroll, StaggerContainer, StaggerItem } from "./motion"
+import { useState, useRef, useCallback } from "react"
+import { motion, AnimatePresence, useInView } from "framer-motion"
+import { X } from "lucide-react"
+import { FadeUp } from "./motion"
 import Image from "next/image"
+import { createPortal } from "react-dom"
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */
 
-const LAYERS = [
+const INDICATORS = [
   {
-    id: "naked",
-    label: "Naked",
-    shortLabel: "01",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked-VMuu7dsvaVlzWtw8lmDMmS7mVX17V2.png",
-    text: "NQ1 futures, 5-minute. Just candles. Where does price want to go, and what's in its way? Without structure, this is just noise.",
+    name: "MBZ Core",
+    lines: "1,400",
+    category: "ZONES",
+    desc: "5 gap types as tradable zones with real-time fill tracking",
+    detail: "Maps NWOG, NDOG, RTH gaps, BPR, and FVG. Each gap type has fill probability based on historical data. Floating mode keeps unfilled gaps visible near current price.",
+    importance: "high",
   },
   {
-    id: "adr",
-    label: "+ ADR",
-    shortLabel: "02",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked%2Badr-fs9lGsRFiIshlvbEaM89Inr4CbTgdC.png",
-    text: "Daily range boundaries appear. The ceiling and floor of expected movement. The 1/3 ADR level is where early-session sweeps exhaust before the real move begins.",
+    name: "Deviations",
+    lines: "1,200",
+    category: "STATS",
+    desc: "Statistical expansion from 13 sessions. My most important indicator.",
+    detail: "Uses IQR (not averages) to prevent outlier sessions from skewing expected range. Shows whether price is at a normal level or at a statistical extreme. This is the foundation of my edge.",
+    importance: "critical",
   },
   {
-    id: "deviations",
-    label: "+ Deviations",
-    shortLabel: "03",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked%2Bdeviations-dgmE6WiDyufvSh9Cc0qPdUwJIqpIWy.png",
-    text: "13 intraday sessions light up with statistical expansion zones. You can see whether price is at a normal level or at an extreme.",
+    name: "Pulse",
+    lines: "740",
+    category: "SWEEPS",
+    desc: "Multi-TF sweep levels. Monthly/weekly/daily. The ultimate.",
+    detail: "BSL/SSL from 8 timeframes. Shows where liquidity has been swept and where it remains. ADR-filtered to prevent false signals in ranging conditions.",
+    importance: "high",
   },
   {
-    id: "dtt",
-    label: "+ DTT",
-    shortLabel: "04",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked%2Bdtt-dylDYara81YRgoTGGlojHaTPMCnh6E.png",
-    text: "The week splits into 4 named sessions: Iscariot, Aries, Ash, Icarus. Dynamic Fibonacci projections anchor to developing highs/lows.",
+    name: "DTT Weekly",
+    lines: "800",
+    category: "SESSIONS",
+    desc: "4 named sessions: Iscariot, Aries, Ash, Icarus",
+    detail: "The week splits into named sessions with distinct behavioral patterns. Dynamic Fibonacci projections anchor to developing highs and lows within each session.",
+    importance: "medium",
   },
   {
-    id: "gaps",
-    label: "+ Gaps",
-    shortLabel: "05",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked%2Bgaps-gazjXWAaR5pwFbjgtcM6FWMHShI3Q1.png",
-    text: "NWOG, NDOG, RTH gaps mapped. Fill percentages per gap. Floating mode keeps unfilled gaps visible near price.",
+    name: "DTT Intraday",
+    lines: "900",
+    category: "SESSIONS",
+    desc: "15-session model with IQR range projections",
+    detail: "Micro-sessions within the day, each with its own statistical expansion profile. Allows precise timing of entries based on when price typically moves.",
+    importance: "medium",
   },
   {
-    id: "pulse",
-    label: "+ Pulse",
-    shortLabel: "06",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked%2Bpulse-0VIC5O2b1WbouOo8CZIitJgVU7KDqG.png",
-    text: "The full picture. Monthly, weekly, daily sweep levels. Overnight and premarket ranges. All 14 indicators reading the same chart.",
+    name: "SIF Core",
+    lines: "950",
+    category: "TRAPS",
+    desc: "Detects institutional traps. Gaps that close immediately.",
+    detail: "Identifies fake breakouts where price creates a gap only to reverse immediately. These are high-probability setups when combined with other confluence.",
+    importance: "medium",
+  },
+  {
+    name: "Gaps",
+    lines: "1,890",
+    category: "ZONES",
+    desc: "NWOG, NDOG, RTH, BPR, FVG. Floating mode.",
+    detail: "Comprehensive gap mapping with fill percentages per gap type. Floating mode keeps unfilled gaps visible regardless of how far price has moved.",
+    importance: "high",
+  },
+  {
+    name: "ADR",
+    lines: "520",
+    category: "RANGE",
+    desc: "Daily range + Judas Swing detection",
+    detail: "Average Daily Range with ceiling/floor of expected movement. The 1/3 ADR level is where early-session sweeps exhaust before the real move begins.",
+    importance: "medium",
+  },
+  {
+    name: "HTF Algo",
+    lines: "1,100",
+    category: "SWEEPS",
+    desc: "BSL/SSL from 8 timeframes, ADR-filtered",
+    detail: "Higher timeframe liquidity levels that act as magnets for price. Filtered by ADR to prevent signals in low-volatility conditions.",
+    importance: "medium",
+  },
+  {
+    name: "LTF Algo",
+    lines: "800",
+    category: "SWEEPS",
+    desc: "Liquidity failures with tick-by-tick targets",
+    detail: "Lower timeframe execution tool. Identifies when liquidity grabs fail and price reverses. All price comparisons in tick units to eliminate phantom duplicates.",
+    importance: "medium",
+  },
+  {
+    name: "MBZ Prime",
+    lines: "1,200",
+    category: "ZONES",
+    desc: "Session liquidity pools across all timeframes",
+    detail: "Aggregates liquidity pools from multiple sessions and timeframes into a unified view. Shows where the biggest pools of stops are sitting.",
+    importance: "high",
+  },
+  {
+    name: "MBZ SIF Relay",
+    lines: "900",
+    category: "ZONES",
+    desc: "Auto HTF pairing. Broadcasts zones to any LTF chart.",
+    detail: "Infrastructure indicator that broadcasts higher timeframe zones to lower timeframe charts automatically. Keeps multi-TF analysis seamless.",
+    importance: "medium",
   },
 ]
 
 const GALLERY = [
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mbz-zd4McYL4UDAyZTWlzo3jzUqce8l9pT.png", label: "MBZ Core", desc: "5 gap types as tradable zones" },
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/sif-19wV1QFs0rRcCK5niQYmOOWhlyA2AE.png", label: "SIF Core", desc: "Institutional trap detection" },
+  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked-VMuu7dsvaVlzWtw8lmDMmS7mVX17V2.png", label: "Naked Price", desc: "Just candles. Where does price want to go?" },
+  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked%2Bpulse-0VIC5O2b1WbouOo8CZIitJgVU7KDqG.png", label: "Full Stack", desc: "All 14 indicators reading the same chart" },
   { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/deviations-close-sn7E1oBJX36F3N3UkDiE9ea9fb1RxZ.png", label: "Deviations", desc: "Statistical session expansion" },
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/deviations-wide-nixzOfoox1JQvL2d1mxjCky4g8FoXC.png", label: "Deviations Wide", desc: "Multi-session overview" },
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dtt-intraday-eSUMZqox7TXskbGAVLTvoxbXKRES7k.png", label: "DTT Intraday", desc: "15 micro-sessions with IQR" },
   { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dtt-weekly-cHXKyAwK6Sg4fI1HHlfGhNRgqualNj.png", label: "DTT Weekly", desc: "Named session Fibonacci" },
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/gaps-TiAYyuiSKXEn7p2NztThKr3TeCNzJt.png", label: "Gaps", desc: "NWOG, NDOG, RTH mapping" },
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/adr-vWykgdtVdZmT9fwyqfT0VkTKGybF4a.png", label: "ADR", desc: "Range + Judas detection" },
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/adr-with-consolidation-prediction-eLWf1nanOPZk1UkJNVUjykbq9Hftdr.png", label: "ADR + Predict", desc: "Consolidation forecasting" },
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/pulse-MWD-sweeps-bswGrWbwUytK0dwMTLELJaHdNX9nZk.png", label: "Pulse MWD", desc: "Multi-timeframe sweeps" },
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/pulse-pm%2Bons-jpNrYowEYHGAjicEhZ9ULVp9OG4gA9.png", label: "Pulse PM/ONS", desc: "Premarket & overnight" },
-]
-
-const INDICATORS = [
-  { name: "MBZ Core", lines: "1,400", desc: "5 gap types as tradable zones with real-time fill tracking" },
-  { name: "SIF Core", lines: "950", desc: "Detects institutional traps. Gaps that close immediately." },
-  { name: "Deviations", lines: "1,200", desc: "Statistical expansion from 13 sessions. My most important." },
-  { name: "Pulse", lines: "740", desc: "Multi-TF sweep levels. Monthly/weekly/daily. The ultimate." },
-  { name: "DTT Intraday", lines: "900", desc: "15-session model with IQR range projections" },
-  { name: "DTT Weekly", lines: "800", desc: "4 named sessions: Iscariot, Aries, Ash, Icarus" },
-  { name: "Gaps", lines: "1,890", desc: "NWOG, NDOG, RTH, BPR, FVG. Floating mode." },
-  { name: "ADR", lines: "520", desc: "Daily range + Judas Swing detection" },
-  { name: "HTF Algo", lines: "1,100", desc: "BSL/SSL from 8 timeframes, ADR-filtered" },
-  { name: "LTF Algo", lines: "800", desc: "Liquidity failures with tick-by-tick targets" },
-  { name: "MBZ Prime", lines: "1,200", desc: "Session liquidity pools across all timeframes" },
-  { name: "MBZ SIF Relay", lines: "900", desc: "Auto HTF pairing. Broadcasts zones to any LTF chart." },
-]
-
-const CODE_PATTERNS = [
-  { title: "IQR over averages", desc: "Outlier sessions don't inflate expected range. Interquartile range used across all statistical tools." },
-  { title: "Tick-based precision", desc: "All price comparisons in tick units, not floats. Kills phantom duplicates on forex and crypto." },
-  { title: "Provisional mitigation", desc: "Overnight touches flagged provisional until NY session confirms. 2am spikes don't kill live levels." },
-  { title: "Input change hashing", desc: "Settings hashed every bar. Anything changes, state clears instantly. Zero stale data." },
-  { title: "Dynamic capacity", desc: "Boost 4x, Ultra 8x, Ultra Pro 12x. Users pick depth vs performance. Nothing dropped silently." },
-  { title: "DRY parameterization", desc: "13,500 lines, zero duplicated detection logic. Functions take parameters. State is isolated." },
 ]
 
 /* ------------------------------------------------------------------ */
-/*  Gallery Card                                                       */
+/*  Modal for indicator detail                                         */
 /* ------------------------------------------------------------------ */
 
-function GalleryCard({ item, index }: { item: (typeof GALLERY)[0]; index: number }) {
-  const ref = useRef<HTMLDivElement>(null)
+function IndicatorModal({ 
+  indicator, 
+  onClose 
+}: { 
+  indicator: (typeof INDICATORS)[0] | null
+  onClose: () => void 
+}) {
+  const [mounted, setMounted] = useState(false)
+
+  useState(() => {
+    setMounted(true)
+  })
+
+  if (!mounted || !indicator) return null
+
+  return createPortal(
+    <AnimatePresence>
+      {indicator && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={onClose}
+            className="fixed inset-0 z-[200] bg-[#07070A]/85"
+            style={{ backdropFilter: "blur(16px)" }}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed left-1/2 top-1/2 z-[201] w-[90vw] max-w-lg -translate-x-1/2 -translate-y-1/2"
+          >
+            <div className="rounded-2xl border border-[rgba(94,187,115,0.2)] bg-[#0B0B0F] p-6 sm:p-8">
+              <button
+                onClick={onClose}
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-[var(--stroke)] text-[var(--text-dim)] transition-all hover:text-[var(--cream)]"
+              >
+                <X size={16} />
+              </button>
+
+              <span className="mb-3 inline-block rounded-md bg-[rgba(94,187,115,0.1)] px-2 py-0.5 font-mono text-[9px] font-medium text-[#5EBB73]">
+                {indicator.category}
+              </span>
+
+              <h3 className="mb-2 text-2xl font-bold text-[var(--cream)]">{indicator.name}</h3>
+              <p className="mb-4 font-mono text-xs text-[#5EBB73]">{indicator.lines} lines of Pine Script</p>
+              
+              <p className="mb-4 text-sm leading-relaxed text-[var(--cream-muted)]">{indicator.desc}</p>
+              <p className="text-sm leading-[1.8] text-[var(--text-dim)]">{indicator.detail}</p>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>,
+    document.body
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Bento Grid Item                                                    */
+/* ------------------------------------------------------------------ */
+
+function BentoItem({ 
+  indicator, 
+  onClick,
+  size = "normal"
+}: { 
+  indicator: (typeof INDICATORS)[0]
+  onClick: () => void
+  size?: "normal" | "large" | "wide"
+}) {
+  const ref = useRef<HTMLButtonElement>(null)
   const inView = useInView(ref, { once: true, margin: "-30px" })
+
+  const sizeClasses = {
+    normal: "col-span-1 row-span-1",
+    large: "col-span-1 row-span-2 sm:col-span-1",
+    wide: "col-span-1 sm:col-span-2 row-span-1",
+  }
+
+  return (
+    <motion.button
+      ref={ref}
+      initial={{ opacity: 0, y: 20, scale: 0.97 }}
+      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      onClick={onClick}
+      className={`group relative text-left ${sizeClasses[size]}`}
+    >
+      <div className="relative h-full overflow-hidden rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-5 transition-all duration-500 hover:border-[rgba(94,187,115,0.2)] hover:scale-[1.02]">
+        {/* Hover glow effect */}
+        <motion.div
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{
+            background: indicator.importance === "critical" 
+              ? "radial-gradient(ellipse at 50% 50%, rgba(94,187,115,0.08) 0%, transparent 70%)"
+              : "radial-gradient(ellipse at 50% 50%, rgba(94,187,115,0.04) 0%, transparent 70%)"
+          }}
+        />
+
+        <div className="relative z-10 flex h-full flex-col">
+          <div className="mb-3 flex items-start justify-between">
+            <span className="rounded-md bg-[rgba(94,187,115,0.08)] px-2 py-0.5 font-mono text-[8px] font-medium uppercase tracking-wider text-[#5EBB73]">
+              {indicator.category}
+            </span>
+            {indicator.importance === "critical" && (
+              <span className="rounded-full bg-[rgba(94,187,115,0.15)] px-2 py-0.5 font-mono text-[8px] font-semibold text-[#5EBB73]">
+                CORE
+              </span>
+            )}
+          </div>
+
+          <h4 className="mb-1 text-base font-semibold text-[var(--cream)] transition-colors group-hover:text-[#5EBB73]">
+            {indicator.name}
+          </h4>
+          
+          <p className="mb-3 flex-1 text-xs leading-relaxed text-[var(--text-dim)] transition-colors group-hover:text-[var(--cream-muted)]">
+            {indicator.desc}
+          </p>
+
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[10px] text-[#5EBB73]">{indicator.lines} lines</span>
+            <span className="text-[10px] text-[var(--text-faint)] opacity-0 transition-opacity group-hover:opacity-100">
+              Click to explore
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.button>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Gallery Reel                                                       */
+/* ------------------------------------------------------------------ */
+
+function GalleryReel() {
+  const [activeIndex, setActiveIndex] = useState(0)
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: "-50px" })
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30, scale: 0.97 }}
-      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
-      className="group shrink-0"
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className="relative"
     >
-      <div className="relative w-[420px] overflow-hidden rounded-xl border border-[var(--stroke)] transition-all duration-500 hover:border-[rgba(201,168,76,0.15)]">
-        <div className="pointer-events-none absolute inset-0 z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-          style={{ background: "radial-gradient(ellipse at center, rgba(201,168,76,0.04) 0%, transparent 70%)" }}
-        />
-        <Image
-          src={item.src}
-          alt={item.label}
-          width={840}
-          height={472}
-          className="w-full transition-transform duration-700 group-hover:scale-[1.03]"
-        />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#07070A]/90 to-transparent p-4 pt-8">
-          <p className="text-sm font-semibold text-[var(--cream)]">{item.label}</p>
-          <p className="mt-0.5 font-mono text-[10px] text-[var(--text-dim)]">{item.desc}</p>
+      {/* Main image */}
+      <div className="relative overflow-hidden rounded-xl border border-[var(--stroke)]">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeIndex}
+            initial={{ opacity: 0, scale: 1.02 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Image
+              src={GALLERY[activeIndex].src}
+              alt={GALLERY[activeIndex].label}
+              width={1600}
+              height={900}
+              className="w-full"
+            />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Caption overlay */}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#07070A]/90 to-transparent p-6 pt-12">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeIndex}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <p className="text-lg font-semibold text-[var(--cream)]">{GALLERY[activeIndex].label}</p>
+              <p className="mt-1 text-sm text-[var(--cream-muted)]">{GALLERY[activeIndex].desc}</p>
+            </motion.div>
+          </AnimatePresence>
         </div>
+      </div>
+
+      {/* Thumbnail strip */}
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
+        {GALLERY.map((item, i) => (
+          <button
+            key={item.label}
+            onClick={() => setActiveIndex(i)}
+            className={`group relative shrink-0 overflow-hidden rounded-lg border transition-all duration-300 ${
+              i === activeIndex 
+                ? "border-[#5EBB73] ring-1 ring-[#5EBB73]/30" 
+                : "border-[var(--stroke)] hover:border-[rgba(94,187,115,0.3)]"
+            }`}
+          >
+            <Image
+              src={item.src}
+              alt={item.label}
+              width={160}
+              height={90}
+              className="h-16 w-28 object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+            {i !== activeIndex && (
+              <div className="absolute inset-0 bg-[#07070A]/40 transition-opacity group-hover:opacity-0" />
+            )}
+          </button>
+        ))}
       </div>
     </motion.div>
   )
 }
 
 /* ------------------------------------------------------------------ */
-/*  Main Component                                                     */
+/*  Main Component - Arsenal Section                                   */
 /* ------------------------------------------------------------------ */
 
-export function TradingSystem() {
-  const [activeLayer, setActiveLayer] = useState(0)
-  const galleryRef = useRef<HTMLDivElement>(null)
-  const sectionRef = useRef<HTMLDivElement>(null)
+export function TradingArsenal() {
+  const [selectedIndicator, setSelectedIndicator] = useState<(typeof INDICATORS)[0] | null>(null)
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  })
-  const bgGlowOpacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0])
+  const handleClose = useCallback(() => setSelectedIndicator(null), [])
+
+  // Split indicators into bento layout
+  const criticalIndicators = INDICATORS.filter(i => i.importance === "critical")
+  const highIndicators = INDICATORS.filter(i => i.importance === "high")
+  const mediumIndicators = INDICATORS.filter(i => i.importance === "medium")
 
   return (
-    <section id="trading" ref={sectionRef} className="relative py-24 sm:py-32">
-      {/* Full-section atmospheric glow */}
-      <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: bgGlowOpacity }}>
-        <div
-          className="absolute left-1/2 top-[30%] h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(94,187,115,0.03) 0%, transparent 55%)" }}
-        />
-      </motion.div>
-
-      <div className="relative z-10 mx-auto max-w-6xl px-6">
-        {/* ------------------------------------------------------------ */}
-        {/*  Act IV header - matches other acts' styling                  */}
-        {/* ------------------------------------------------------------ */}
-        <div className="mb-16">
-          <FadeIn>
-            <div className="mb-4 flex items-center gap-3">
-              <motion.span
-                className="inline-block h-1.5 w-1.5 rounded-full bg-[#5EBB73]"
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[#5EBB73]">
-                ACT IV
-              </span>
-            </div>
-          </FadeIn>
-
-          <RevealLine>
-            <h2 className="text-4xl font-bold tracking-[-0.03em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
-              The Builder
-            </h2>
-          </RevealLine>
-
-          <FadeUp delay={0.2}>
-            <p className="mt-4 font-mono text-xs text-[var(--text-faint)]">
-              2024 - Present · Self-Employed, Berlin
-            </p>
-          </FadeUp>
-
-          <div className="mt-10 flex flex-col gap-10 lg:flex-row lg:gap-16">
-            <FadeUp delay={0.3} className="lg:w-1/2">
-              <p className="text-lg leading-[1.7] text-[var(--cream-muted)]">
-                An algorithmic futures trading system. 14 custom indicators. 13,500 lines of Pine Script v6, written from scratch with AI-assisted development as a daily workflow.
-              </p>
-              <p className="mt-4 text-sm leading-[1.9] text-[var(--text-dim)]">
-                No libraries, no wrappers. The market gives feedback instantly, and it doesn{"'"}t care about your feelings. Managing funded accounts with real money on the line.
-              </p>
-            </FadeUp>
-            <FadeUp delay={0.4} className="lg:w-1/2">
-              <div className="rounded-2xl bg-[var(--bg-elevated)] p-6">
-                <p className="mb-4 font-mono text-[9px] font-medium uppercase tracking-[0.2em] text-[#5EBB73]">
-                  The numbers
-                </p>
-                <div className="space-y-4">
-                  <div className="flex items-baseline justify-between border-b border-[var(--stroke)] pb-3">
-                    <span className="text-sm text-[var(--cream-muted)]">Custom indicators built</span>
-                    <span className="font-mono text-lg font-semibold text-[#5EBB73]">14</span>
-                  </div>
-                  <div className="flex items-baseline justify-between border-b border-[var(--stroke)] pb-3">
-                    <span className="text-sm text-[var(--cream-muted)]">Lines of Pine Script</span>
-                    <span className="font-mono text-lg font-semibold text-[#5EBB73]">13.5K</span>
-                  </div>
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-sm text-[var(--cream-muted)]">Funded account</span>
-                    <span className="font-mono text-lg font-semibold text-[#5EBB73]">$50K</span>
-                  </div>
-                </div>
-              </div>
-            </FadeUp>
-          </div>
-        </div>
-
-        {/* ------------------------------------------------------------ */}
-        {/*  Layering Section                                             */}
-        {/* ------------------------------------------------------------ */}
-        <div className="mb-20">
-          <FadeUp>
-            <div className="mb-6">
-              <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--gold)]">
-                The Layering Concept
-              </p>
-              <p className="max-w-lg text-sm text-[var(--text-dim)]">
-                Raw price action is noise. Each layer reveals structure that was always there.
-              </p>
-            </div>
-          </FadeUp>
-
-          {/* Layer selector */}
-          <FadeUp delay={0.1}>
-            <div className="mb-6 flex flex-wrap items-center gap-1">
-              {LAYERS.map((layer, i) => (
-                <button
-                  key={layer.id}
-                  onClick={() => setActiveLayer(i)}
-                  className="group relative flex items-center"
-                >
-                  <div
-                    className="flex h-9 items-center gap-1.5 rounded-lg px-3 font-mono text-[11px] transition-all duration-300"
-                    style={{
-                      backgroundColor: activeLayer === i ? "#C9A84C" : activeLayer > i ? "#16161E" : "#0E0E14",
-                      color: activeLayer === i ? "#07070A" : activeLayer > i ? "#5EBB73" : "#4A4640",
-                      fontWeight: activeLayer === i ? 600 : 400,
-                    }}
-                  >
-                    <span className="text-[9px]">{layer.shortLabel}</span>
-                    <span className="hidden sm:inline">{layer.label}</span>
-                  </div>
-                  {i < LAYERS.length - 1 && (
-                    <div className="mx-0.5 h-px w-2" style={{ backgroundColor: i < activeLayer ? "#5EBB7340" : "#16161E" }} />
-                  )}
-                </button>
-              ))}
-            </div>
-          </FadeUp>
-
-          {/* Split screen: image + text */}
-          <ScaleOnScroll>
-            <div className="overflow-hidden rounded-xl border border-[var(--stroke)] bg-[#0A0A0F]">
-              <div className="flex flex-col lg:flex-row">
-                {/* Image area */}
-                <div className="relative lg:w-2/3">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeLayer}
-                      initial={{ opacity: 0, scale: 1.02 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
-                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    >
-                      <Image
-                        src={LAYERS[activeLayer].image}
-                        alt={`Trading chart: ${LAYERS[activeLayer].label}`}
-                        width={1600}
-                        height={900}
-                        className="w-full"
-                        priority={activeLayer === 0}
-                      />
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-
-                {/* Text panel */}
-                <div className="flex flex-col justify-center border-t border-[var(--stroke)] p-6 lg:w-1/3 lg:border-l lg:border-t-0">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeLayer}
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -15 }}
-                      transition={{ duration: 0.35 }}
-                    >
-                      <span className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[#5EBB73]">
-                        Layer {activeLayer + 1} of {LAYERS.length}
-                      </span>
-                      <h4 className="mb-3 text-lg font-bold text-[var(--cream)]">{LAYERS[activeLayer].label}</h4>
-                      <p className="text-sm leading-[1.8] text-[var(--cream-muted)]">
-                        {LAYERS[activeLayer].text}
-                      </p>
-                    </motion.div>
-                  </AnimatePresence>
-
-                  {/* Navigation arrows */}
-                  <div className="mt-6 flex gap-2">
-                    <button
-                      onClick={() => setActiveLayer(Math.max(0, activeLayer - 1))}
-                      disabled={activeLayer === 0}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--stroke)] text-[var(--text-dim)] transition-all hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--gold)] disabled:opacity-25"
-                      aria-label="Previous layer"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
-                    </button>
-                    <button
-                      onClick={() => setActiveLayer(Math.min(LAYERS.length - 1, activeLayer + 1))}
-                      disabled={activeLayer === LAYERS.length - 1}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--stroke)] text-[var(--text-dim)] transition-all hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--gold)] disabled:opacity-25"
-                      aria-label="Next layer"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ScaleOnScroll>
-        </div>
-
-        {/* ------------------------------------------------------------ */}
-        {/*  Gallery                                                      */}
-        {/* ------------------------------------------------------------ */}
-        <div className="mb-20">
-          <FadeUp>
-            <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--gold)]">
-              Indicator Showcase
-            </p>
-            <p className="mb-6 max-w-lg text-sm text-[var(--text-dim)]">
-              Each indicator is a self-contained piece of engineering. Scroll through the collection.
-            </p>
-          </FadeUp>
-
-          <div
-            ref={galleryRef}
-            className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-4"
-            style={{ scrollbarWidth: "none" }}
-          >
-            {GALLERY.map((img, i) => (
-              <GalleryCard key={img.label} item={img} index={i} />
-            ))}
-          </div>
-        </div>
-
-        {/* ------------------------------------------------------------ */}
-        {/*  Indicator Grid                                               */}
-        {/* ------------------------------------------------------------ */}
-        <div className="mb-20">
-          <FadeUp>
-            <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--gold)]">
-              The Arsenal
-            </p>
-            <p className="mb-8 text-sm text-[var(--text-dim)]">14 indicators. Zero duplicated detection logic.</p>
-          </FadeUp>
-
-          <StaggerContainer className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" staggerDelay={0.04}>
-            {INDICATORS.map((ind) => (
-              <StaggerItem key={ind.name}>
-                <div className="group relative overflow-hidden rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-5 transition-all duration-400 hover:border-[rgba(201,168,76,0.12)]">
-                  <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-400 group-hover:opacity-100"
-                    style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.03) 0%, transparent 70%)" }}
-                  />
-                  <div className="relative z-10">
-                    <div className="mb-2 flex items-baseline justify-between">
-                      <span className="text-sm font-semibold text-[var(--cream)]">{ind.name}</span>
-                      <span className="font-mono text-[10px] text-[#5EBB73]">{ind.lines} lines</span>
-                    </div>
-                    <p className="text-xs leading-relaxed text-[var(--text-dim)] transition-colors group-hover:text-[var(--cream-muted)]">
-                      {ind.desc}
-                    </p>
-                  </div>
-                </div>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
-
-        {/* ------------------------------------------------------------ */}
-        {/*  Code Patterns (renamed from Engineering Philosophy)          */}
-        {/* ------------------------------------------------------------ */}
-        <div className="mb-16">
-          <FadeUp>
-            <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--gold)]">
-              How it stays maintainable
-            </p>
-            <p className="mb-8 text-sm text-[var(--text-dim)]">
-              Patterns that keep 13,500 lines readable and fast.
-            </p>
-          </FadeUp>
-
-          <StaggerContainer className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" staggerDelay={0.04}>
-            {CODE_PATTERNS.map((pat) => (
-              <StaggerItem key={pat.title}>
-                <div className="rounded-xl border border-[var(--stroke)] bg-[var(--bg)] p-5">
-                  <span className="mb-2 block font-mono text-xs font-semibold text-[var(--gold)]">{pat.title}</span>
-                  <p className="text-xs leading-relaxed text-[var(--text-dim)]">{pat.desc}</p>
-                </div>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
-
-        {/* Thematic takeaway - connects to the arc */}
-        <FadeUp delay={0.2}>
-          <div className="border-l-2 pl-5" style={{ borderColor: "rgba(94,187,115,0.3)" }}>
-            <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]" style={{ fontFamily: "var(--font-serif)" }}>
-              This is where everything converges. ICU pattern recognition, engineering discipline, leadership under pressure. The market doesn{"'"}t care what you{"'"}ve done before. It only cares if you can read it correctly, right now.
-            </p>
-          </div>
+    <section className="relative px-6 py-16 sm:py-24">
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
+        <FadeUp>
+          <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[#5EBB73]">
+            The Arsenal
+          </p>
+          <h3 className="mb-3 text-2xl font-bold text-[var(--cream)] sm:text-3xl">
+            14 indicators. 13,500 lines. Zero duplicated logic.
+          </h3>
+          <p className="mb-10 max-w-xl text-sm leading-relaxed text-[var(--text-dim)]">
+            Each indicator is a self-contained piece of engineering. Click any to explore what it does and why it matters.
+          </p>
         </FadeUp>
+
+        {/* Visual preview */}
+        <div className="mb-12">
+          <GalleryReel />
+        </div>
+
+        {/* Bento grid - dynamic sizes based on importance */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Critical indicators get prominence */}
+          {criticalIndicators.map((ind) => (
+            <BentoItem
+              key={ind.name}
+              indicator={ind}
+              onClick={() => setSelectedIndicator(ind)}
+              size="wide"
+            />
+          ))}
+          {/* High importance */}
+          {highIndicators.map((ind) => (
+            <BentoItem
+              key={ind.name}
+              indicator={ind}
+              onClick={() => setSelectedIndicator(ind)}
+              size="normal"
+            />
+          ))}
+          {/* Medium importance */}
+          {mediumIndicators.map((ind) => (
+            <BentoItem
+              key={ind.name}
+              indicator={ind}
+              onClick={() => setSelectedIndicator(ind)}
+              size="normal"
+            />
+          ))}
+        </div>
       </div>
+
+      {/* Modal */}
+      <IndicatorModal indicator={selectedIndicator} onClose={handleClose} />
     </section>
   )
 }
+
+// Keep old export name for compatibility
+export { TradingArsenal as TradingSystem }

@@ -1,13 +1,13 @@
 "use client"
 
 import { useRef, useEffect, useState } from "react"
-import { motion, useScroll, useTransform } from "framer-motion"
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 
 const ROLES = [
-  { label: "Nurse", color: "#E05252" },
-  { label: "Engineer", color: "#5B9EC2" },
-  { label: "Leader", color: "#C9A84C" },
-  { label: "Builder", color: "#5EBB73" },
+  { label: "Nurse", color: "#E05252", article: "a" },
+  { label: "Engineer", color: "#5B9EC2", article: "an" },
+  { label: "Leader", color: "#C9A84C", article: "a" },
+  { label: "Builder", color: "#5EBB73", article: "a" },
 ]
 
 function AnimatedRoles() {
@@ -16,23 +16,40 @@ function AnimatedRoles() {
     const t = setInterval(() => setIndex((i) => (i + 1) % ROLES.length), 2800)
     return () => clearInterval(t)
   }, [])
+
   return (
-    <span className="relative inline-flex h-[1.2em] w-[7ch] items-center overflow-hidden">
-      {ROLES.map((role, i) => (
-        <motion.span
-          key={role.label}
-          className="absolute left-0 font-sans font-bold"
-          style={{ color: role.color }}
-          initial={false}
-          animate={{
-            y: i === index ? 0 : i < index || (index === 0 && i === ROLES.length - 1) ? "-120%" : "120%",
-            opacity: i === index ? 1 : 0,
-          }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {role.label}
-        </motion.span>
-      ))}
+    <span className="relative inline-flex items-baseline gap-2">
+      {/* The article (a/an) - animated to match */}
+      <span className="relative inline-block h-[1.2em] w-[2ch] overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={ROLES[index].article}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute left-0 text-[var(--cream-muted)]"
+          >
+            {ROLES[index].article}
+          </motion.span>
+        </AnimatePresence>
+      </span>
+      {/* The role */}
+      <span className="relative inline-block h-[1.2em] w-[8ch] overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={ROLES[index].label}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute left-0 font-semibold"
+            style={{ color: ROLES[index].color }}
+          >
+            {ROLES[index].label}
+          </motion.span>
+        </AnimatePresence>
+      </span>
     </span>
   )
 }
@@ -43,8 +60,8 @@ export function Hero() {
     target: sectionRef,
     offset: ["start start", "end start"],
   })
-  const nameY = useTransform(scrollYProgress, [0, 1], [0, 120])
-  const nameOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, 100])
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
 
   return (
     <section
@@ -52,9 +69,8 @@ export function Hero() {
       className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden"
       style={{ background: "radial-gradient(ellipse 80% 60% at 50% 40%, #0E0E14 0%, #07070A 100%)" }}
     >
-      {/* Layered atmospheric background */}
+      {/* Atmospheric glows */}
       <div className="pointer-events-none absolute inset-0">
-        {/* Primary gold glow */}
         <div
           className="absolute left-1/2 top-[35%] h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
@@ -62,7 +78,6 @@ export function Hero() {
             animation: "glow-pulse 6s ease-in-out infinite",
           }}
         />
-        {/* Secondary blue glow */}
         <div
           className="absolute left-[15%] bottom-[20%] h-[400px] w-[400px] rounded-full"
           style={{
@@ -70,7 +85,6 @@ export function Hero() {
             animation: "glow-pulse 9s ease-in-out 3s infinite",
           }}
         />
-        {/* Red glow */}
         <div
           className="absolute right-[15%] top-[25%] h-[350px] w-[350px] rounded-full"
           style={{
@@ -91,7 +105,7 @@ export function Hero() {
       {/* Main content */}
       <motion.div
         className="relative z-10 mx-auto max-w-5xl px-6 text-center"
-        style={{ y: nameY, opacity: nameOpacity }}
+        style={{ y: contentY, opacity: contentOpacity }}
       >
         {/* Overline */}
         <motion.p
@@ -103,7 +117,7 @@ export function Hero() {
           A Portfolio in Four Acts
         </motion.p>
 
-        {/* Name - static gold gradient, no shimmer */}
+        {/* Name */}
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -130,29 +144,50 @@ export function Hero() {
           style={{ background: "linear-gradient(90deg, transparent, #C9A84C, transparent)" }}
         />
 
-        {/* Role cycling subtitle - properly centered */}
+        {/* Role cycling subtitle - fixed a/an grammar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.9 }}
-          className="mb-3 flex items-center justify-center gap-3 text-[clamp(1rem,2.5vw,1.35rem)] font-light"
+          className="mb-6 flex items-baseline justify-center text-[clamp(1rem,2.5vw,1.35rem)] font-light"
         >
-          <span className="text-[var(--cream-muted)]">Currently a</span>
+          <span className="mr-2 text-[var(--cream-muted)]">Currently</span>
           <AnimatedRoles />
         </motion.div>
 
+        {/* Brief intro - so recruiters know who you are immediately */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.1 }}
-          className="mx-auto max-w-md text-pretty text-sm leading-relaxed text-[var(--text-dim)] sm:text-base"
+          className="mx-auto max-w-xl text-pretty text-sm leading-relaxed text-[var(--text-dim)] sm:text-base"
         >
-          I build things, solve problems, and adapt.
-          <br />
-          The domain changes. The capability doesn{"'"}t.
+          From critical care nursing to frontend engineering to engineering management.
+          <br className="hidden sm:block" />
+          Now building algorithmic trading systems independently.
         </motion.p>
-      </motion.div>
 
+        {/* Quick value props */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.3 }}
+          className="mx-auto mt-10 flex max-w-lg flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs text-[var(--text-faint)]"
+        >
+          <span className="flex items-center gap-2">
+            <span className="h-1 w-1 rounded-full bg-[#E05252]" />
+            ICU-trained pattern recognition
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="h-1 w-1 rounded-full bg-[#5B9EC2]" />
+            7 years in tech
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="h-1 w-1 rounded-full bg-[#C9A84C]" />
+            15+ people led
+          </span>
+        </motion.div>
+      </motion.div>
     </section>
   )
 }
