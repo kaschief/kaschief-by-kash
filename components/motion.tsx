@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, useInView, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion"
+import { motion, useInView, useScroll, useTransform } from "framer-motion"
 import { useRef, useEffect, useState, type ReactNode } from "react"
 
 export function FadeUp({
@@ -211,22 +211,6 @@ export function Counter({ value, suffix = "" }: { value: number; suffix?: string
   )
 }
 
-export function useMouseGlow() {
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
-  const springX = useSpring(x, { stiffness: 50, damping: 20 })
-  const springY = useSpring(y, { stiffness: 50, damping: 20 })
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      x.set(e.clientX)
-      y.set(e.clientY)
-    }
-    window.addEventListener("mousemove", handler)
-    return () => window.removeEventListener("mousemove", handler)
-  }, [x, y])
-
-  return { x: springX, y: springY }
-}
 
 export { motion, useScroll, useTransform, useInView }

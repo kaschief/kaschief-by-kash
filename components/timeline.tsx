@@ -2,11 +2,11 @@
 
 import { useState, useRef } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
-import { Plus, ArrowRight, Briefcase } from "lucide-react"
+import { Plus, ArrowRight, X } from "lucide-react"
 import { FadeUp, FadeIn, RevealLine } from "./motion"
 
 /* ------------------------------------------------------------------ */
-/*  ACT II - Job Experience Cards                                      */
+/*  ACT II - Expandable Job Cards with deep-dive stories               */
 /* ------------------------------------------------------------------ */
 
 const JOBS = [
@@ -16,12 +16,13 @@ const JOBS = [
     period: "2018 - 2019",
     location: "Berlin",
     color: "#5B9EC2",
-    tech: ["React", "A/B Testing"],
+    tech: ["React", "A/B Testing", "User Research"],
+    summary: "Medical exam platform used by 500K+ students globally",
     highlights: [
-      "Medical exam prep platform used by 500K+ students globally",
       "Ran A/B tests that improved user engagement by 20%",
       "Helped take the product out of beta through user research and feature validation",
     ],
+    deepDive: "This was my first engineering role, and it mattered that it was in health tech. Coming from nursing, I understood the users -- medical students under immense pressure who needed tools that worked flawlessly. I wasn't just writing React components; I was validating whether features actually helped people learn faster. The A/B testing culture here shaped how I think about product decisions: not opinions, but evidence. We shipped features, measured them, and killed what didn't work. That discipline has stayed with me ever since.",
   },
   {
     company: "Compado",
@@ -29,12 +30,14 @@ const JOBS = [
     period: "2019 - 2021",
     location: "Berlin",
     color: "#5B9EC2",
-    tech: ["Vue", "SEO", "Performance"],
+    tech: ["Vue", "SEO", "Performance", "Chatbots"],
+    summary: "Product comparison sites with dynamic content systems",
     highlights: [
-      "Built product comparison sites: chatbots, dynamic loading, infinite scroll",
+      "Built chatbots, dynamic loading, infinite scroll experiences",
       "Improved page speed by 50%, grew organic traffic 25%",
       "Promoted to Senior Engineer",
     ],
+    deepDive: "Compado was where I learned that performance is a feature. We built product comparison sites where milliseconds mattered for SEO rankings and conversion. I went deep on Core Web Vitals, lazy loading strategies, and how to architect Vue apps that score well on Lighthouse while still being rich and interactive. I also built my first chatbot system here. The promotion to Senior wasn't about tenure -- it came because I took ownership of the entire frontend performance story and delivered measurable business results: 50% faster load times, 25% more organic traffic.",
   },
   {
     company: "CAPinside",
@@ -42,12 +45,13 @@ const JOBS = [
     period: "2021",
     location: "Hamburg",
     color: "#5B9EC2",
-    tech: ["Vue", "TypeScript", "Fintech"],
+    tech: ["Vue", "TypeScript", "Fintech", "Legacy Migration"],
+    summary: "Fintech platform serving 10,000+ financial advisors",
     highlights: [
-      "Fintech platform serving 10,000+ financial advisors",
       "Achieved 35% faster page load times",
-      "Replaced struggling legacy application",
+      "Replaced struggling legacy application end-to-end",
     ],
+    deepDive: "Short tenure, deep impact. CAPinside had a legacy frontend that was holding back the entire product. I was brought in specifically to replace it. The challenge wasn't just technical -- it was convincing a fintech company serving 10,000 financial advisors that a full rewrite was safer than continuing to patch. I mapped every feature, built migration paths, and delivered a Vue + TypeScript application that loaded 35% faster. The lesson: sometimes the most senior thing you can do is have the conviction to say 'this needs to be rebuilt' and then prove it.",
   },
   {
     company: "DKB Code Factory",
@@ -55,16 +59,18 @@ const JOBS = [
     period: "2021 - 2022",
     location: "Berlin",
     color: "#5B9EC2",
-    tech: ["React", "TypeScript", "Playwright", "Jest"],
+    tech: ["React", "TypeScript", "Playwright", "Jest", "Micro-frontends"],
+    summary: "Rebuilt UI/UX of a banking platform for 5M+ users",
     highlights: [
-      "Rebuilt UI/UX of a banking platform for 5 million users",
-      "Introduced Jest and Playwright testing frameworks",
+      "Introduced Jest and Playwright testing frameworks across the team",
       "Promoted to Engineering Manager within 12 months",
     ],
+    deepDive: "DKB is Germany's largest direct bank -- 5 million users. The frontend needed a complete overhaul, and I was part of the team rebuilding it in React with TypeScript and micro-frontends. But what set me apart wasn't the code. I introduced testing culture: Jest for units, Playwright for e2e. The team had been shipping without automated tests. I built the testing infrastructure, wrote the patterns, and coached others to adopt them. Within 12 months, I was promoted to Engineering Manager -- not because I asked, but because I was already doing the work: unblocking people, improving processes, and taking responsibility for outcomes beyond my own PRs.",
   },
 ]
 
 function JobCard({ job, index }: { job: (typeof JOBS)[0]; index: number }) {
+  const [expanded, setExpanded] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: "-40px" })
 
@@ -74,28 +80,43 @@ function JobCard({ job, index }: { job: (typeof JOBS)[0]; index: number }) {
       initial={{ opacity: 0, y: 30 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-5 transition-all duration-500 hover:border-[rgba(91,158,194,0.2)]"
+      className="group relative cursor-pointer overflow-hidden rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] transition-all duration-500 hover:border-[rgba(91,158,194,0.2)]"
+      onClick={() => setExpanded(!expanded)}
     >
-      {/* Top accent on hover */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+      {/* Top accent line */}
+      <div
+        className="absolute inset-x-0 top-0 h-px opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{ background: `linear-gradient(90deg, transparent, ${job.color}, transparent)` }}
       />
-      {/* Glow on hover */}
-      <div className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        style={{ background: `radial-gradient(ellipse at 50% 0%, ${job.color}06 0%, transparent 70%)` }}
+      {/* Hover glow */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{ background: `radial-gradient(ellipse at 50% 0%, ${job.color}08 0%, transparent 70%)` }}
       />
 
-      <div className="relative z-10">
+      <div className="relative z-10 p-5">
         <div className="mb-3 flex items-start justify-between">
           <div>
             <h4 className="text-sm font-semibold text-[var(--cream)]">{job.company}</h4>
             <p className="mt-0.5 text-xs text-[var(--cream-muted)]">{job.role}</p>
           </div>
-          <div className="text-right">
-            <span className="font-mono text-[10px] text-[var(--text-dim)]">{job.period}</span>
-            <p className="mt-0.5 font-mono text-[10px] text-[var(--text-faint)]">{job.location}</p>
+          <div className="flex items-start gap-3">
+            <div className="text-right">
+              <span className="font-mono text-[10px] text-[var(--text-dim)]">{job.period}</span>
+              <p className="mt-0.5 font-mono text-[10px] text-[var(--text-faint)]">{job.location}</p>
+            </div>
+            <motion.div
+              animate={{ rotate: expanded ? 45 : 0 }}
+              transition={{ duration: 0.2 }}
+              className="mt-0.5 shrink-0"
+            >
+              <Plus size={14} className="text-[var(--text-faint)] transition-colors group-hover:text-[var(--act-blue)]" />
+            </motion.div>
           </div>
         </div>
+
+        {/* Summary line */}
+        <p className="mb-3 text-xs leading-relaxed text-[var(--text-dim)]">{job.summary}</p>
 
         {/* Tech tags */}
         <div className="mb-3 flex flex-wrap gap-1.5">
@@ -104,7 +125,7 @@ function JobCard({ job, index }: { job: (typeof JOBS)[0]; index: number }) {
           ))}
         </div>
 
-        {/* Highlights */}
+        {/* Quick highlights */}
         <ul className="flex flex-col gap-1.5">
           {job.highlights.map((h) => (
             <li key={h} className="flex gap-2 text-xs leading-relaxed text-[var(--text-dim)]">
@@ -113,6 +134,35 @@ function JobCard({ job, index }: { job: (typeof JOBS)[0]; index: number }) {
             </li>
           ))}
         </ul>
+
+        {/* Expanded deep-dive */}
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="mt-4 border-t border-[var(--stroke)] pt-4">
+                <p className="mb-2 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--act-blue)]">
+                  The Full Story
+                </p>
+                <p className="text-sm leading-[1.9] text-[var(--cream-muted)]">
+                  {job.deepDive}
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Expand hint */}
+        {!expanded && (
+          <p className="mt-3 font-mono text-[9px] text-[var(--text-faint)] transition-colors group-hover:text-[var(--act-blue)]">
+            Click to read the full story
+          </p>
+        )}
       </div>
     </motion.div>
   )
@@ -127,31 +177,31 @@ const MGMT_STORIES = [
     tag: "CULTURE",
     color: "#C9A84C",
     title: "Fighting the culture of silence",
-    text: "Developers were staying passive during refinements, then claiming confusion during planning. I changed the approach: instead of 'any questions?' I started asking specific people 'what's the first edge case you'd test here?' Forced engagement. Made it safe to surface uncertainty. The team went from passive receivers to active participants.",
+    text: "Developers were staying passive during refinements, then claiming confusion during planning. I changed the approach: instead of 'any questions?' I started asking specific people 'what\u2019s the first edge case you\u2019d test here?' Forced engagement. Made it safe to surface uncertainty. The team went from passive receivers to active participants.",
   },
   {
     tag: "MENTORSHIP",
     color: "#5EBB73",
     title: "Coaching communication style",
-    text: "Our Product Owner was frustrated a developer seemed slow. I pointed out it might be the message, not the person. She was asking 'Would you mind finishing by tomorrow?' I shared my version: 'We're deploying tomorrow. Will your changes be included?' Same intent, different directness. She tried it. His responsiveness changed immediately.",
+    text: "Our Product Owner was frustrated a developer seemed slow. I pointed out it might be the message, not the person. She was asking 'Would you mind finishing by tomorrow?' I shared my version: 'We\u2019re deploying tomorrow. Will your changes be included?' Same intent, different directness. She tried it. His responsiveness changed immediately.",
   },
   {
     tag: "PROCESS",
     color: "#5B9EC2",
     title: "Monthly to weekly releases",
-    text: "Releases kept breaking. I coordinated readiness across multiple developers per release, assessed what was ready vs what would block the whole pipeline, and pushed for post-deployment debriefs. Found that support teams weren't testing their infrastructure connections until deploy day. Made pre-deploy verification standard. Monthly became weekly. 30% fewer bugs.",
+    text: "Releases kept breaking. I coordinated readiness across multiple developers per release, assessed what was ready vs what would block the whole pipeline, and pushed for post-deployment debriefs. Found that support teams weren\u2019t testing their infrastructure connections until deploy day. Made pre-deploy verification standard. Monthly became weekly. 30% fewer bugs.",
   },
   {
     tag: "TECHNICAL",
     color: "#E05252",
     title: "Catching scope creep in real time",
-    text: "A developer mentioned he was 'just fixing a small eslint issue.' Turned out the fix had expanded into a large refactor touching dozens of files, all inside a feature ticket. I caught it, moved the refactor to its own ticket, and refocused him on the feature. The broader issue became a team discussion, not one person's side quest buried in an unrelated PR.",
+    text: "A developer mentioned he was 'just fixing a small eslint issue.' Turned out the fix had expanded into a large refactor touching dozens of files, all inside a feature ticket. I caught it, moved the refactor to its own ticket, and refocused him on the feature. The broader issue became a team discussion, not one person\u2019s side quest buried in an unrelated PR.",
   },
   {
     tag: "CULTURE",
     color: "#C9A84C",
     title: "Protecting team culture across stacks",
-    text: "Some engineers were openly dismissive of colleagues working on a platform they considered inferior. I raised it directly with the engineering lead. The risk wasn't hurt feelings. It was creating a two-tier team where one group felt like second-class citizens. We agreed that leaders needed to be conscious of how their opinions about tech choices affected the humans working on those technologies.",
+    text: "Some engineers were openly dismissive of colleagues working on a platform they considered inferior. I raised it directly with the engineering lead. The risk wasn\u2019t hurt feelings. It was creating a two-tier team where one group felt like second-class citizens. We agreed that leaders needed to be conscious of how their opinions about tech choices affected the humans working on those technologies.",
   },
   {
     tag: "HIRING",
@@ -177,12 +227,14 @@ function MgmtStoryCard({ story, index }: { story: (typeof MGMT_STORIES)[0]; inde
       onClick={() => setOpen(!open)}
     >
       {/* Left accent bar */}
-      <div className="absolute left-0 top-0 bottom-0 w-[3px] transition-colors duration-300"
+      <div
+        className="absolute left-0 top-0 bottom-0 w-[3px] transition-colors duration-300"
         style={{ backgroundColor: open ? story.color : "transparent" }}
       />
 
       {/* Hover glow */}
-      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-400 group-hover:opacity-100"
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-400 group-hover:opacity-100"
         style={{ background: `radial-gradient(ellipse at 0% 50%, ${story.color}06 0%, transparent 60%)` }}
       />
 
@@ -229,7 +281,7 @@ function MgmtStoryCard({ story, index }: { story: (typeof MGMT_STORIES)[0]; inde
 }
 
 /* ------------------------------------------------------------------ */
-/*  Individual Act Scenes                                              */
+/*  Shared Act Header                                                  */
 /* ------------------------------------------------------------------ */
 
 function ActHeader({
@@ -242,7 +294,7 @@ function ActHeader({
   const glowOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.6, 0.6, 0])
 
   return (
-    <div ref={ref} className="relative py-20 sm:py-28">
+    <div ref={ref} className="relative py-20">
       {/* Act-colored atmospheric glow */}
       <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
         <div
@@ -287,12 +339,12 @@ function ActHeader({
 }
 
 /* ------------------------------------------------------------------ */
-/*  ACT I - The ICU                                                    */
+/*  ACT I - The Nurse                                                  */
 /* ------------------------------------------------------------------ */
 
 function ActI() {
   return (
-    <ActHeader act="ACT I" title="THE ICU" period="2015 - 2018" location="NYU Langone, New York" color="#E05252">
+    <ActHeader act="ACT I" title="THE NURSE" period="2015 - 2018" location="NYU Langone, New York" color="#E05252">
       <div className="flex flex-col gap-8 lg:flex-row lg:gap-16">
         <FadeUp delay={0.2} className="lg:w-2/5">
           <p className="text-lg text-[var(--cream-muted)]" style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.5 }}>
@@ -306,7 +358,6 @@ function ActI() {
           <p className="mt-4 text-sm leading-[1.9] text-[var(--text-dim)]">
             CCRN certified, because I chose to be held to the highest standard. This is where I learned systems thinking, crisis communication, and the cost of getting it wrong.
           </p>
-          {/* Key metrics */}
           <div className="mt-6 flex flex-wrap gap-6">
             {[
               { value: "3-4", label: "ICU patients per shift" },
@@ -326,53 +377,38 @@ function ActI() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  ACT II - The Code (with rich job cards)                            */
+/*  ACT II - The Engineer (expandable job cards)                       */
 /* ------------------------------------------------------------------ */
 
 function ActII() {
   return (
-    <ActHeader act="ACT II" title="THE CODE" period="2018 - 2022" location="Berlin & Hamburg" color="#5B9EC2">
+    <ActHeader act="ACT II" title="THE ENGINEER" period="2018 - 2022" location="Berlin & Hamburg" color="#5B9EC2">
       <FadeUp delay={0.2}>
         <p className="mb-4 text-lg text-[var(--cream-muted)]" style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.5 }}>
-          {"\u201CFour companies. Each pushed me deeper technically while keeping me close to users and product.\u201D"}
+          {"\u201CFour companies. Each one pushed me deeper technically while keeping me close to users and product.\u201D"}
         </p>
         <p className="mb-8 max-w-2xl text-sm leading-[1.9] text-[var(--text-dim)]">
-          From medical education to product comparison, from fintech to banking. Every role meant a new codebase, new users, new constraints. The constant: shipping features that people actually use, and earning promotions through impact.
+          From medical education to product comparison, from fintech to banking. Every role meant a new codebase, new users, new constraints. The constant: shipping features that people actually use, and earning promotions through impact not tenure.
         </p>
       </FadeUp>
 
-      {/* Job cards grid */}
+      {/* Expandable job cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {JOBS.map((job, i) => (
           <JobCard key={job.company} job={job} index={i} />
         ))}
       </div>
-
-      {/* Progression bar */}
-      <FadeUp delay={0.5}>
-        <div className="mt-8 flex items-center gap-3 rounded-xl border border-[var(--stroke)] bg-[var(--bg-surface)] p-4">
-          <Briefcase size={16} className="shrink-0 text-[var(--act-blue)]" />
-          <div className="flex flex-wrap items-center gap-2 font-mono text-[10px]">
-            <span className="text-[var(--text-dim)]">Engineer</span>
-            <ArrowRight size={10} className="text-[var(--act-blue)]" />
-            <span className="text-[var(--cream-muted)]">Senior Engineer</span>
-            <ArrowRight size={10} className="text-[var(--act-blue)]" />
-            <span className="font-semibold text-[var(--act-blue)]">Engineering Manager</span>
-            <span className="ml-2 text-[var(--text-faint)]">4 years, 4 companies</span>
-          </div>
-        </div>
-      </FadeUp>
     </ActHeader>
   )
 }
 
 /* ------------------------------------------------------------------ */
-/*  ACT III - The Team (management stories prominent)                  */
+/*  ACT III - The Leader                                               */
 /* ------------------------------------------------------------------ */
 
 function ActIII() {
   return (
-    <ActHeader act="ACT III" title="THE TEAM" period="2022 - 2024" location="DKB Code Factory, Berlin" color="#C9A84C">
+    <ActHeader act="ACT III" title="THE LEADER" period="2022 - 2024" location="DKB Code Factory, Berlin" color="#C9A84C">
       <div className="flex flex-col gap-10 lg:flex-row lg:gap-16">
         {/* Left: Summary + metrics */}
         <FadeUp delay={0.2} className="lg:w-2/5">
@@ -382,7 +418,6 @@ function ActIII() {
           <p className="mb-6 text-sm leading-[1.9] text-[var(--cream-muted)]">
             Eight engineers on one of Germany{"'"}s largest banking apps. Grew the core team from 6 to 10. Drove migration to React/TypeScript and micro-frontends. Monthly releases became weekly. Bugs dropped 30%. Ran weekly 1:1s. Coached engineers into senior roles.
           </p>
-          {/* Impact metrics */}
           <div className="flex flex-wrap gap-6">
             {[
               { value: "15+", label: "People managed" },
@@ -398,7 +433,7 @@ function ActIII() {
           </div>
         </FadeUp>
 
-        {/* Right: Management stories (always visible, not hidden behind toggle) */}
+        {/* Right: Management stories */}
         <div className="lg:w-3/5">
           <FadeUp delay={0.3}>
             <p className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--gold-dim)]">
@@ -417,7 +452,7 @@ function ActIII() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Divider between acts                                               */
+/*  Divider                                                            */
 /* ------------------------------------------------------------------ */
 
 function ActDivider({ color }: { color: string }) {
@@ -447,7 +482,8 @@ export function Timeline() {
     <section id="journey">
       {/* Section header */}
       <div className="relative px-6 py-16 text-center">
-        <div className="absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        <div
+          className="absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{ background: "radial-gradient(circle, rgba(201,168,76,0.03) 0%, transparent 60%)" }}
         />
         <FadeUp className="relative z-10">
