@@ -4,28 +4,137 @@ import { useRef } from "react"
 import { motion, useScroll, useTransform, useInView } from "framer-motion"
 import { FadeUp, FadeIn, RevealLine } from "./motion"
 import Image from "next/image"
+import { 
+  Code2, 
+  Layers, 
+  TestTube, 
+  GitBranch, 
+  Cpu, 
+  Users, 
+  TrendingUp, 
+  MessageSquare 
+} from "lucide-react"
 
 /* ------------------------------------------------------------------ */
-/*  Skill capabilities - simple flowing text, not grid boxes           */
+/*  Meta-skills with icons                                             */
 /* ------------------------------------------------------------------ */
 
-const CAPABILITIES = [
-  { label: "React", detail: "Primary since 2018" },
-  { label: "Vue", detail: "Compado, CAPinside" },
-  { label: "TypeScript", detail: "Default" },
-  { label: "Next.js", detail: "Full-stack" },
-  { label: "Playwright", detail: "Built at DKB" },
-  { label: "Jest", detail: "Testing patterns" },
-  { label: "Pine Script v6", detail: "14 indicators" },
-  { label: "AI/LLM", detail: "Daily practice" },
+const META_SKILLS = [
+  { 
+    icon: Code2, 
+    color: "#5B9EC2",
+    name: "Systems Architecture", 
+    desc: "Building maintainable frontends that scale. 13,500 lines of Pine Script without chaos proves the discipline." 
+  },
+  { 
+    icon: Layers, 
+    color: "#C9A84C",
+    name: "Pattern Recognition", 
+    desc: "From EKG rhythms to market structure. Finding signal in noise is the same skill in different syntax." 
+  },
+  { 
+    icon: TestTube, 
+    color: "#5EBB73",
+    name: "Testing Culture", 
+    desc: "Built Playwright infrastructure at DKB from scratch. Pre-deploy verification became standard." 
+  },
+  { 
+    icon: GitBranch, 
+    color: "#E05252",
+    name: "Process Design", 
+    desc: "Monthly releases to weekly. Found the friction points, fixed the handoffs, measured the results." 
+  },
+  { 
+    icon: Cpu, 
+    color: "#8B7355",
+    name: "Performance Engineering", 
+    desc: "Core Web Vitals, lazy loading, Lighthouse scores. 50% faster loads at Compado, 35% at CAPinside." 
+  },
+  { 
+    icon: Users, 
+    color: "#9B8AC4",
+    name: "Team Leadership", 
+    desc: "Managing engineers, unblocking people, protecting culture across tech stacks." 
+  },
+  { 
+    icon: TrendingUp, 
+    color: "#5B9EC2",
+    name: "Evidence-Based Decisions", 
+    desc: "A/B testing at AMBOSS. Backtesting trading systems. Opinions are cheap; data is expensive." 
+  },
+  { 
+    icon: MessageSquare, 
+    color: "#C9A84C",
+    name: "Technical Communication", 
+    desc: "Translating between engineers, product, and stakeholders. Making the complex clear." 
+  },
 ]
+
+/* ------------------------------------------------------------------ */
+/*  Tools & Technologies by category                                   */
+/* ------------------------------------------------------------------ */
+
+const TOOL_CATEGORIES = [
+  { category: "Frontend", items: ["React", "Vue", "TypeScript", "Next.js"] },
+  { category: "Testing", items: ["Playwright", "Jest", "Cypress"] },
+  { category: "Specialized", items: ["Pine Script v6", "TradingView", "AI/LLM workflows"] },
+  { category: "Infrastructure", items: ["GitHub Actions", "CI/CD", "Micro-frontends"] },
+]
+
+/* ------------------------------------------------------------------ */
+/*  Languages                                                          */
+/* ------------------------------------------------------------------ */
 
 const LANGUAGES = [
   { lang: "English", level: "Native" },
   { lang: "French", level: "Conversational" },
   { lang: "Spanish", level: "Conversational" },
-  { lang: "German", level: "B2" },
+  { lang: "German", level: "B2 working proficiency" },
 ]
+
+/* ------------------------------------------------------------------ */
+/*  Stagger animation wrapper                                          */
+/* ------------------------------------------------------------------ */
+
+function StaggerContainer({ 
+  children, 
+  className = "" 
+}: { 
+  children: React.ReactNode
+  className?: string 
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: "-50px" })
+  
+  return (
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.06 } }
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+function StaggerItem({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 12 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
 /* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
@@ -38,8 +147,6 @@ export function Skills() {
     offset: ["start end", "end start"],
   })
   const glowOpacity = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0, 0.4, 0.4, 0])
-  const capabilitiesRef = useRef<HTMLDivElement>(null)
-  const capabilitiesInView = useInView(capabilitiesRef, { once: true, margin: "-50px" })
 
   return (
     <section id="skills" ref={sectionRef} className="relative px-6 py-24 sm:py-32">
@@ -100,47 +207,85 @@ export function Skills() {
           </div>
         </div>
 
-        {/* Capabilities - flowing inline tags, not boxes */}
-        <div ref={capabilitiesRef} className="border-t border-[var(--stroke)] pt-12">
+        {/* ============================================================ */}
+        {/*  META-SKILLS - Ruled list with icons                         */}
+        {/* ============================================================ */}
+        <div className="mb-16">
           <FadeIn>
-            <p className="mb-6 font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[var(--gold)]">
-              Tools
+            <p className="mb-8 font-mono text-[9px] font-medium uppercase tracking-[0.25em] text-[#3A3830]">
+              Core Capabilities
             </p>
           </FadeIn>
-          <div className="flex flex-wrap gap-x-8 gap-y-4">
-            {CAPABILITIES.map((cap, i) => (
-              <motion.div
-                key={cap.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={capabilitiesInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
-                className="group"
-              >
-                <span className="text-base text-[var(--cream)] transition-colors group-hover:text-[var(--gold)]">
-                  {cap.label}
-                </span>
-                <span className="ml-2 text-xs text-[var(--text-faint)]">
-                  {cap.detail}
-                </span>
-              </motion.div>
-            ))}
-          </div>
+          <StaggerContainer>
+            {META_SKILLS.map((skill, i) => {
+              const Icon = skill.icon
+              return (
+                <StaggerItem 
+                  key={skill.name} 
+                  className={`flex gap-5 border-b border-[#16161E] py-5 ${i === 0 ? "border-t" : ""}`}
+                >
+                  <Icon size={14} style={{ color: skill.color }} className="mt-0.5 shrink-0" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-[#F0E6D0]">{skill.name}</h4>
+                    <p className="mt-1.5 text-sm font-light leading-relaxed text-[#8A8478]">{skill.desc}</p>
+                  </div>
+                </StaggerItem>
+              )
+            })}
+          </StaggerContainer>
+        </div>
 
-          {/* Languages - simple inline */}
-          <FadeUp delay={0.4}>
-            <div className="mt-12 flex flex-wrap items-center gap-6">
-              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[var(--text-faint)]">
-                Languages
-              </span>
-              {LANGUAGES.map((l, i) => (
-                <span key={l.lang} className="text-sm text-[var(--cream-muted)]">
-                  {l.lang}
-                  <span className="ml-1.5 text-xs text-[var(--text-faint)]">{l.level}</span>
-                  {i < LANGUAGES.length - 1 && <span className="ml-6 text-[var(--stroke)]">·</span>}
+        {/* ============================================================ */}
+        {/*  TOOLS & TECHNOLOGIES - Ruled rows, inline items             */}
+        {/* ============================================================ */}
+        <div className="mb-16">
+          <FadeIn>
+            <p className="mb-8 font-mono text-[9px] font-medium uppercase tracking-[0.25em] text-[#3A3830]">
+              Tools & Technologies
+            </p>
+          </FadeIn>
+          <StaggerContainer>
+            {TOOL_CATEGORIES.map((cat, i) => (
+              <StaggerItem 
+                key={cat.category} 
+                className={`flex items-baseline gap-6 border-b border-[#16161E] py-4 ${i === 0 ? "border-t" : ""}`}
+              >
+                <span className="w-24 shrink-0 font-mono text-[9px] uppercase tracking-wider text-[#3A3830]">
+                  {cat.category}
                 </span>
-              ))}
-            </div>
-          </FadeUp>
+                <span className="text-sm text-[#C0B898]">
+                  {cat.items.map((item, j) => (
+                    <span key={item}>
+                      {item}
+                      {j < cat.items.length - 1 && <span className="mx-2 text-[#2A2820]">·</span>}
+                    </span>
+                  ))}
+                </span>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
+        </div>
+
+        {/* ============================================================ */}
+        {/*  LANGUAGES - Ruled rows                                      */}
+        {/* ============================================================ */}
+        <div>
+          <FadeIn>
+            <p className="mb-8 font-mono text-[9px] font-medium uppercase tracking-[0.25em] text-[#3A3830]">
+              Languages
+            </p>
+          </FadeIn>
+          <StaggerContainer>
+            {LANGUAGES.map((l, i) => (
+              <StaggerItem 
+                key={l.lang} 
+                className={`flex items-baseline justify-between border-b border-[#16161E] py-4 ${i === 0 ? "border-t" : ""}`}
+              >
+                <span className="font-serif text-base italic text-[#F0E6D0]">{l.lang}</span>
+                <span className="text-sm text-[#8A8478]">{l.level}</span>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
         </div>
       </div>
     </section>

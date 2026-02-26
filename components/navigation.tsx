@@ -46,8 +46,13 @@ export function Navigation() {
 
   const scrollTo = (href: string) => {
     setMobileOpen(false)
-    const el = document.querySelector(href)
-    el?.scrollIntoView({ behavior: "smooth" })
+    const id = href.replace("#", "")
+    const el = document.getElementById(id)
+    if (el) {
+      const offset = 80
+      const top = el.getBoundingClientRect().top + window.scrollY - offset
+      window.scrollTo({ top, behavior: "smooth" })
+    }
   }
 
   return (
@@ -64,7 +69,7 @@ export function Navigation() {
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="font-serif text-2xl italic text-[#C9A84C] transition-opacity hover:opacity-70"
+              className="cursor-pointer font-serif text-2xl italic text-[#C9A84C] transition-opacity hover:opacity-70"
             >
               KJ
             </button>
@@ -76,7 +81,7 @@ export function Navigation() {
                   <button
                     key={link.href}
                     onClick={() => scrollTo(link.href)}
-                    className="relative py-1 font-mono text-[11px] font-medium uppercase tracking-[0.15em] transition-colors duration-300"
+                    className="relative cursor-pointer py-1 font-mono text-[11px] font-medium uppercase tracking-[0.15em] transition-colors duration-300"
                     style={{ color: isActive ? "#C9A84C" : "#8A8478" }}
                   >
                     {link.label}
@@ -94,7 +99,7 @@ export function Navigation() {
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="text-[#8A8478] transition-colors hover:text-[#C9A84C] md:hidden"
+              className="cursor-pointer text-[#8A8478] transition-colors hover:text-[#C9A84C] md:hidden"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
             >
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
@@ -118,7 +123,7 @@ export function Navigation() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
                       onClick={() => scrollTo(link.href)}
-                      className="text-left font-mono text-sm font-light uppercase tracking-[0.15em] text-[#B0A890] transition-colors hover:text-[#C9A84C]"
+                      className="cursor-pointer text-left font-mono text-sm font-light uppercase tracking-[0.15em] text-[#B0A890] transition-colors hover:text-[#C9A84C]"
                     >
                       {link.label}
                     </motion.button>
