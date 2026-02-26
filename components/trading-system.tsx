@@ -258,25 +258,25 @@ export function TradingArsenal() {
   const filteredIndicators = INDICATORS.filter(ind => ind.category === activeCategory)
 
   return (
-    <div className="relative pb-20">
+    <div className="relative pb-24">
       <div className="mx-auto max-w-5xl px-6">
         {/* Visual nesting under Act IV */}
         <div className="border-l-2 border-[#5EBB73]/20 pl-8 sm:pl-12">
           {/* Sub-section header */}
           <FadeUp>
-            <p className="mb-1 font-mono text-[9px] font-medium uppercase tracking-[0.3em] text-[#5EBB73]/60">
+            <p className="mb-2 font-mono text-[9px] font-medium uppercase tracking-[0.3em] text-[#5EBB73]/60">
               The Arsenal
             </p>
-            <h4 className="mb-2 font-serif text-2xl text-[var(--cream)] sm:text-3xl">
+            <h4 className="mb-3 font-serif text-2xl text-[var(--cream)] sm:text-3xl">
               The Tools I Built
             </h4>
-            <p className="mb-12 max-w-xl text-sm leading-relaxed text-[var(--text-dim)]">
+            <p className="mb-16 max-w-xl text-sm leading-relaxed text-[var(--text-dim)]">
               14 custom indicators. Each one solves a specific problem in reading price action.
             </p>
           </FadeUp>
 
           {/* Progression - clickable to enlarge */}
-          <div ref={progressionRef} className="mb-16">
+          <div ref={progressionRef} className="mb-20">
             <FadeIn>
               <p className="mb-6 font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[#5EBB73]">
                 The Progression
@@ -360,9 +360,9 @@ export function TradingArsenal() {
           {/*  INDICATORS - Category tabs + horizontal scroll strip        */}
           {/* ============================================================ */}
           <FadeUp delay={0.2}>
-            <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[var(--cream)]">
+            <h4 className="mb-6 font-serif text-xl text-[var(--cream)]">
               The Indicators
-            </p>
+            </h4>
           </FadeUp>
 
           {/* Category Tabs */}
@@ -399,8 +399,8 @@ export function TradingArsenal() {
                   onClick={() => setSelectedIndicator(indicator)}
                   className="group w-64 shrink-0 cursor-pointer text-left"
                 >
-                  {/* Image card */}
-                  <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[var(--stroke)] bg-[var(--bg-card)] transition-all group-hover:border-[var(--gold)]/30">
+                  {/* Image card - no border */}
+                  <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[var(--bg-card)] transition-all">
                     <Image
                       src={indicator.image}
                       alt={indicator.name}

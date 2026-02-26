@@ -112,7 +112,7 @@ export function Skills() {
   const glowOpacity = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0, 0.4, 0.4, 0])
 
   return (
-    <section id="skills" ref={sectionRef} className="relative px-6 py-24 sm:py-32">
+    <section id="skills" ref={sectionRef} className="relative px-6 py-32 sm:py-40">
       {/* Atmospheric glow */}
       <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
         <div className="absolute left-1/2 top-[40%] h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -122,7 +122,7 @@ export function Skills() {
 
       <div className="relative z-10 mx-auto max-w-5xl">
         {/* Profile photo + intro text side by side */}
-        <div className="mb-20 grid items-center gap-12 lg:grid-cols-5">
+        <div className="mb-24 grid items-center gap-12 lg:grid-cols-5 lg:gap-16">
           {/* Photo - smaller, accent border */}
           <FadeUp delay={0.1} className="lg:col-span-2">
             <div className="relative mx-auto aspect-[4/5] w-full max-w-xs overflow-hidden rounded-2xl lg:mx-0">
@@ -173,11 +173,9 @@ export function Skills() {
         {/* ============================================================ */}
         {/*  TOOLS - Sentence form per screenshot                        */}
         {/* ============================================================ */}
-        <div className="mb-16">
+        <div className="mb-20">
           <FadeIn>
-            <p className="mb-8 font-mono text-[9px] font-medium uppercase tracking-[0.25em] text-[#3A3830]">
-              Tools
-            </p>
+            <h3 className="mb-10 font-serif text-lg text-[var(--cream)]">Tools</h3>
           </FadeIn>
           <StaggerContainer>
             {TOOLS.map((tool, i) => (
@@ -201,9 +199,7 @@ export function Skills() {
         {/* ============================================================ */}
         <div>
           <FadeIn>
-            <p className="mb-8 font-mono text-[9px] font-medium uppercase tracking-[0.25em] text-[#3A3830]">
-              Languages
-            </p>
+            <h3 className="mb-10 font-serif text-lg text-[var(--cream)]">Languages</h3>
           </FadeIn>
           <StaggerContainer>
             {LANGUAGES.map((l, i) => (

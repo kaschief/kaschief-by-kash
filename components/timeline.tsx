@@ -155,7 +155,7 @@ function ActHeader({
   const glowOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.5, 0.5, 0])
 
   return (
-    <div ref={ref} className="relative py-20 sm:py-28">
+    <div ref={ref} className="relative py-24 sm:py-32">
       {/* Act-colored atmospheric glow */}
       <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
         <div
@@ -195,11 +195,11 @@ function ActHeader({
         </FadeUp>
 
         {/* Content */}
-        <div className="mt-12">{children}</div>
+        <div className="mt-16">{children}</div>
 
         {/* Takeaway */}
         <FadeUp delay={0.4}>
-          <div className="mt-16 border-l-2 py-2 pl-6" style={{ borderColor: `${color}30` }}>
+          <div className="mt-20 border-l-2 py-2 pl-6" style={{ borderColor: `${color}30` }}>
             <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">{takeaway}</p>
           </div>
         </FadeUp>
@@ -281,8 +281,8 @@ function JobRow({ job, onSelect }: { job: (typeof JOBS)[0]; onSelect: () => void
           {job.summary}
         </p>
       </div>
-      <span className="shrink-0 font-mono text-xs text-[var(--text-faint)] transition-all group-hover:text-[var(--gold)] group-hover:translate-x-1 sm:mt-2">
-        Read more
+      <span className="shrink-0 text-[var(--text-faint)] transition-all group-hover:text-[var(--gold)] group-hover:translate-x-1 sm:mt-2">
+        →
       </span>
     </motion.button>
   )
@@ -393,7 +393,7 @@ function ActII() {
   const glowOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.5, 0.5, 0])
 
   return (
-    <div ref={ref} className="relative py-20 sm:py-28">
+    <div ref={ref} className="relative py-24 sm:py-32">
       {/* Glow */}
       <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
         <div
@@ -506,8 +506,8 @@ function CaseStudyCard({
         </span>
       </div>
       
-      {/* Teaser excerpt */}
-      <p className="mt-2 text-sm leading-relaxed text-[#8A8478]">
+      {/* Teaser excerpt - smaller */}
+      <p className="mt-2 text-xs leading-relaxed text-[#6A6458]">
         {story.teaser}
       </p>
     </motion.button>
@@ -604,7 +604,7 @@ function ActIII() {
   const glowOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.5, 0.5, 0])
 
   return (
-    <div ref={ref} className="relative py-20 sm:py-28">
+    <div ref={ref} className="relative py-24 sm:py-32">
       {/* Glow */}
       <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
         <div
@@ -649,39 +649,47 @@ function ActIII() {
                 </p>
               </FadeUp>
 
-              {/* Stats Row - per screenshot */}
-              <FadeUp delay={0.25}>
-                <div className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8">
-                  {LEADER_STATS.map((stat) => (
-                    <div key={stat.label}>
-                      <p className="font-serif text-3xl text-[var(--gold)] sm:text-4xl">{stat.value}</p>
-                      <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]">{stat.label}</p>
+              {/* Two-column layout: Prose left, Stats right */}
+              <div className="mt-16 grid gap-12 lg:grid-cols-3 lg:gap-16">
+                {/* Left - prose */}
+                <div className="lg:col-span-2">
+                  <FadeUp delay={0.3}>
+                    <p className="text-lg leading-[1.8] text-[var(--cream-muted)]">
+                      Eight engineers on one of Germany{"'"}s largest banking apps. Grew the core team from 6 to 10. Drove migration to React/TypeScript and micro-frontends.
+                    </p>
+                    <p className="mt-6 text-sm leading-[1.9] text-[var(--text-dim)]">
+                      Monthly releases became weekly. Bugs dropped 30%. Ran weekly 1:1s. Coached engineers into senior roles. Navigated a regulated banking environment while staying hands-on with code — because I believe the best engineering managers still understand what they{"'"}re managing.
+                    </p>
+                  </FadeUp>
+
+                  {/* Quote */}
+                  <FadeUp delay={0.35}>
+                    <div className="mt-12 border-l-2 border-[var(--gold)]/30 py-2 pl-6">
+                      <p className="font-serif text-base italic leading-relaxed text-[var(--cream-muted)]">
+                        Management isn{"'"}t about being in charge. It{"'"}s about creating the conditions where other people can do their best work.
+                      </p>
                     </div>
-                  ))}
+                  </FadeUp>
                 </div>
-              </FadeUp>
 
-              {/* Prose paragraph */}
-              <FadeUp delay={0.3}>
-                <p className="mt-12 max-w-2xl text-base leading-[1.9] text-[var(--cream-muted)]">
-                  Eight engineers on one of Germany{"'"}s largest banking apps. Grew the core team from 6 to 10. Drove migration to React/TypeScript and micro-frontends. Monthly releases became weekly. Bugs dropped 30%. Ran weekly 1:1s. Coached engineers into senior roles. Navigated a regulated banking environment while staying hands-on with code — because I believe the best engineering managers still understand what they{"'"}re managing.
-                </p>
-              </FadeUp>
+                {/* Right - stats */}
+                <FadeUp delay={0.25}>
+                  <div className="space-y-8">
+                    {LEADER_STATS.map((stat) => (
+                      <div key={stat.label}>
+                        <p className="font-serif text-3xl text-[var(--gold)]">{stat.value}</p>
+                        <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]">{stat.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </FadeUp>
+              </div>
 
-              {/* Quote with gold border */}
-              <FadeUp delay={0.35}>
-                <div className="mt-10 border-l-2 border-[var(--gold)]/40 py-2 pl-6">
-                  <p className="font-serif text-lg italic leading-relaxed text-[var(--cream-muted)]">
-                    Management isn{"'"}t about being in charge. It{"'"}s about creating the conditions where other people can do their best work.
-                  </p>
-                </div>
-              </FadeUp>
-
-              {/* VIEW CASE STUDIES link */}
+              {/* VIEW CASE STUDIES link - more spacing */}
               <FadeUp delay={0.4}>
                 <button
                   onClick={() => setShowCaseStudies(!showCaseStudies)}
-                  className="mt-8 cursor-pointer font-mono text-xs uppercase tracking-wider text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
+                  className="mt-16 cursor-pointer font-mono text-xs uppercase tracking-wider text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
                 >
                   → {showCaseStudies ? "Hide case studies" : "View case studies"}
                 </button>
@@ -695,10 +703,8 @@ function ActIII() {
                       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden"
                     >
-                      <div className="mt-8">
-                        <p className="mb-6 font-mono text-[9px] uppercase tracking-[0.2em] text-[#3A3830]">
-                          Case Studies
-                        </p>
+                      {/* Indented container to show visual nesting */}
+                      <div className="mt-10 border-l border-[var(--stroke)] pl-6 sm:pl-8">
                         {MGMT_STORIES.map((story) => (
                           <CaseStudyCard
                             key={story.id}
@@ -729,7 +735,7 @@ function ActIV() {
   const glowOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.5, 0.5, 0])
 
   return (
-    <div ref={ref} className="relative py-20 sm:py-28">
+    <div ref={ref} className="relative py-24 sm:py-32">
       {/* Glow */}
       <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
         <div
@@ -763,24 +769,47 @@ function ActIV() {
           </p>
         </FadeUp>
 
-        {/* Main content */}
-        <FadeUp delay={0.3}>
-          <p className="mt-8 max-w-2xl text-lg leading-[1.7] text-[var(--cream-muted)]">
-            An algorithmic futures trading system. 14 custom indicators. 13,500 lines of Pine Script v6, written from scratch with AI-assisted development as a daily workflow.
-          </p>
-          <p className="mt-4 max-w-2xl text-sm leading-[1.9] text-[var(--text-dim)]">
-            No libraries, no wrappers. The market gives feedback instantly, and it doesn{"'"}t care about your feelings. Managing funded accounts with real money on the line.
-          </p>
-        </FadeUp>
+        {/* Two-column layout: Prose left, Stats right */}
+        <div className="mt-16 grid gap-12 lg:grid-cols-3 lg:gap-16">
+          {/* Left - prose */}
+          <div className="lg:col-span-2">
+            <FadeUp delay={0.3}>
+              <p className="text-lg leading-[1.8] text-[var(--cream-muted)]">
+                An algorithmic futures trading system. 14 custom indicators. 13,500 lines of Pine Script v6, written from scratch with AI-assisted development as a daily workflow.
+              </p>
+              <p className="mt-6 text-sm leading-[1.9] text-[var(--text-dim)]">
+                No libraries, no wrappers. The market gives feedback instantly, and it doesn{"'"}t care about your feelings. Managing funded accounts with real money on the line.
+              </p>
+            </FadeUp>
 
-        {/* Takeaway */}
-        <FadeUp delay={0.4}>
-          <div className="mt-12 border-l-2 border-[rgba(94,187,115,0.3)] py-2 pl-6">
-            <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">
-              This is where everything converges. ICU pattern recognition, engineering discipline, leadership under pressure. The market doesn{"'"}t care what you{"'"}ve done before. It only cares if you can read it correctly, right now.
-            </p>
+            {/* Takeaway */}
+            <FadeUp delay={0.4}>
+              <div className="mt-12 border-l-2 border-[rgba(94,187,115,0.3)] py-2 pl-6">
+                <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">
+                  This is where everything converges. ICU pattern recognition, engineering discipline, leadership under pressure. The market doesn{"'"}t care what you{"'"}ve done before. It only cares if you can read it correctly, right now.
+                </p>
+              </div>
+            </FadeUp>
           </div>
-        </FadeUp>
+
+          {/* Right - stats */}
+          <FadeUp delay={0.25}>
+            <div className="space-y-8">
+              <div>
+                <p className="font-serif text-3xl text-[#5EBB73]">14</p>
+                <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]">Custom indicators</p>
+              </div>
+              <div>
+                <p className="font-serif text-3xl text-[#5EBB73]">13.5K</p>
+                <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]">Lines of Pine Script</p>
+              </div>
+              <div>
+                <p className="font-serif text-3xl text-[#5EBB73]">Live</p>
+                <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]">Funded accounts</p>
+              </div>
+            </div>
+          </FadeUp>
+        </div>
       </div>
     </div>
   )
