@@ -2,15 +2,6 @@
 
 import { useRef, useEffect, useState } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { Counter } from "./motion"
-
-const STATS = [
-  { value: 7, suffix: "+", label: "Years in Tech" },
-  { value: 5, suffix: "M+", label: "Users Impacted" },
-  { value: 15, suffix: "+", label: "People Led" },
-  { value: 13, suffix: ".5K", label: "Lines Pine Script" },
-  { value: 4, suffix: "", label: "Careers" },
-]
 
 const ROLES = [
   { label: "Nurse", color: "#E05252" },
@@ -54,7 +45,6 @@ export function Hero() {
   })
   const nameY = useTransform(scrollYProgress, [0, 1], [0, 120])
   const nameOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
-  const statsY = useTransform(scrollYProgress, [0, 1], [0, 60])
 
   return (
     <section
@@ -163,25 +153,6 @@ export function Hero() {
         </motion.p>
       </motion.div>
 
-      {/* Stats strip */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.5 }}
-        className="relative z-10 mt-16 w-full sm:mt-20"
-        style={{ y: statsY }}
-      >
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-6 border-t border-[var(--stroke)] px-6 pt-8 sm:gap-10">
-          {STATS.map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center gap-1.5">
-              <span className="font-mono text-lg font-semibold text-[var(--gold)] sm:text-xl">
-                <Counter value={stat.value} suffix={stat.suffix} />
-              </span>
-              <span className="text-[9px] uppercase tracking-[0.15em] text-[var(--text-faint)]">{stat.label}</span>
-            </div>
-          ))}
-        </div>
-      </motion.div>
     </section>
   )
 }
