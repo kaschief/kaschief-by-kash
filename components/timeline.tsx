@@ -86,45 +86,51 @@ const JOBS = [
 
 const MGMT_STORIES = [
   {
-    id: "silence",
-    tag: "CULTURE",
-    color: "#C9A84C",
-    title: "Fighting the culture of silence",
-    text: "Developers were staying passive during refinements, then claiming confusion during planning. I changed the approach: instead of 'any questions?' I started asking specific people 'what's the first edge case you'd test here?' Forced engagement. Made it safe to surface uncertainty. The team went from passive receivers to active participants.",
-  },
-  {
-    id: "communication",
-    tag: "MENTORSHIP",
-    color: "#5EBB73",
-    title: "Coaching communication style",
-    text: "Our Product Owner was frustrated a developer seemed slow. I pointed out it might be the message, not the person. She was asking 'Would you mind finishing by tomorrow?' I shared my version: 'We're deploying tomorrow. Will your changes be included?' Same intent, different directness. She tried it. His responsiveness changed immediately.",
-  },
-  {
     id: "releases",
-    tag: "PROCESS",
-    color: "#5B9EC2",
-    title: "Monthly to weekly releases",
+    tags: ["LEADERSHIP", "PROCESS"],
+    color: "#C9A84C",
+    title: "Monthly to weekly — rebuilding delivery at DKB",
+    teaser: "Releases kept breaking. I coordinated readiness across multiple developers, found that support teams weren't testing until deploy day, and made pre-deploy verification standard.",
     text: "Releases kept breaking. I coordinated readiness across multiple developers per release, assessed what was ready vs what would block the whole pipeline, and pushed for post-deployment debriefs. Found that support teams weren't testing their infrastructure connections until deploy day. Made pre-deploy verification standard. Monthly became weekly. 30% fewer bugs.",
   },
   {
+    id: "playwright",
+    tags: ["ENGINEERING", "TESTING"],
+    color: "#5B9EC2",
+    title: "Introducing Playwright at scale in a banking app",
+    teaser: "DKB had no E2E infrastructure. I introduced Playwright, built the testing patterns, and coached the team to own it as a standard — not a nice-to-have.",
+    text: "The team had been shipping without automated tests. I built the testing infrastructure, wrote the patterns, and coached others to adopt them. Introduced Playwright for e2e testing and Jest for unit tests. Made testing culture standard, not optional.",
+  },
+  {
+    id: "trading",
+    tags: ["TRADING", "ENGINEERING"],
+    color: "#5EBB73",
+    title: "Building a production trading system alone",
+    teaser: "14 indicators. 13,500 lines. No libraries, no wrappers. Real money on the line from day one. The market is the harshest QA process there is.",
+    text: "An algorithmic futures trading system built from scratch. 14 custom indicators, 13,500 lines of Pine Script v6 with AI-assisted development as a daily workflow. No libraries, no wrappers. The market gives feedback instantly, and it doesn't care about your feelings.",
+  },
+  {
+    id: "silence",
+    tags: ["CULTURE", "LEADERSHIP"],
+    color: "#C9A84C",
+    title: "Fighting the culture of silence",
+    teaser: "Developers were staying passive during refinements. I changed from 'any questions?' to 'what's the first edge case you'd test here?' — forcing engagement.",
+    text: "Developers were staying passive during refinements, then claiming confusion during planning. I changed the approach: instead of 'any questions?' I started asking specific people 'what's the first edge case you'd test here?' Forced engagement. Made it safe to surface uncertainty. The team went from passive receivers to active participants.",
+  },
+  {
     id: "scope",
-    tag: "TECHNICAL",
+    tags: ["TECHNICAL", "PROCESS"],
     color: "#E05252",
     title: "Catching scope creep in real time",
+    teaser: "A developer mentioned he was 'just fixing a small eslint issue.' Turned out the fix had expanded into a large refactor touching dozens of files.",
     text: "A developer mentioned he was 'just fixing a small eslint issue.' Turned out the fix had expanded into a large refactor touching dozens of files, all inside a feature ticket. I caught it, moved the refactor to its own ticket, and refocused him on the feature. The broader issue became a team discussion, not one person's side quest buried in an unrelated PR.",
   },
   {
-    id: "culture",
-    tag: "CULTURE",
-    color: "#C9A84C",
-    title: "Protecting team culture across stacks",
-    text: "Some engineers were openly dismissive of colleagues working on a platform they considered inferior. I raised it directly with the engineering lead. The risk wasn't hurt feelings. It was creating a two-tier team where one group felt like second-class citizens. We agreed that leaders needed to be conscious of how their opinions about tech choices affected the humans working on those technologies.",
-  },
-  {
     id: "hiring",
-    tag: "HIRING",
+    tags: ["HIRING", "LEADERSHIP"],
     color: "#5EBB73",
     title: "Hiring for fit, not speed",
+    teaser: "HR wanted to close whichever candidate finished first. I pushed back: run both in parallel, give the team a real comparison.",
     text: "Two candidates in the pipeline. HR wanted to close whichever finished first. I pushed back: run both in parallel, give the team a comparison. Delegated code reviews to the engineers who would actually work with the hire. Set a clear timeline: one week for submission, 7-day follow-up. Hired the better candidate, not the faster one.",
   },
 ]
@@ -257,7 +263,7 @@ function JobRow({ job, onSelect }: { job: (typeof JOBS)[0]; onSelect: () => void
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5 }}
       onClick={onSelect}
-      className="group flex w-full flex-col gap-3 border-b border-[var(--stroke)] py-8 text-left transition-colors hover:border-[var(--gold-dim)] sm:flex-row sm:items-start sm:justify-between"
+      className="group flex w-full cursor-pointer flex-col gap-3 border-b border-[var(--stroke)] py-8 text-left transition-colors hover:border-[var(--gold-dim)] sm:flex-row sm:items-start sm:justify-between"
     >
       <div className="flex-1">
         <div className="flex items-baseline gap-4">
@@ -353,7 +359,7 @@ function JobDetailView({ job, onBack }: { job: (typeof JOBS)[0]; onBack: () => v
             href={job.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-mono text-xs text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
+            className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-xs text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
           >
             {job.url.replace("https://", "")}
             <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -369,7 +375,7 @@ function JobDetailView({ job, onBack }: { job: (typeof JOBS)[0]; onBack: () => v
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
         onClick={onBack}
-        className="mx-auto mt-6 block text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
+        className="mx-auto mt-6 block cursor-pointer text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
         aria-label="Close"
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -478,20 +484,32 @@ function CaseStudyCard({
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5 }}
       onClick={onSelect}
-      className="group flex w-full items-center gap-4 border-b border-[var(--stroke)] py-5 text-left transition-colors hover:border-[var(--gold-dim)] last:border-b-0"
+      className="group w-full cursor-pointer border-b border-[#16161E] py-6 text-left transition-colors hover:border-[var(--gold-dim)]"
     >
-      {/* Colored dot instead of badge */}
-      <span
-        className="h-2 w-2 shrink-0 rounded-full"
-        style={{ backgroundColor: story.color }}
-      />
-      <h4 className="flex-1 text-sm text-[var(--cream)] transition-colors group-hover:text-[var(--gold)]">
-        {story.title}
-      </h4>
-      {/* Arrow instead of "Read" */}
-      <span className="text-[var(--text-faint)] transition-all group-hover:text-[var(--gold)] group-hover:translate-x-1">
-        →
-      </span>
+      {/* Category tags at top */}
+      <div className="mb-2 flex items-center gap-2">
+        {story.tags.map((tag, i) => (
+          <span key={tag}>
+            <span className="font-mono text-[9px] uppercase tracking-wider text-[#5A5A50]">{tag}</span>
+            {i < story.tags.length - 1 && <span className="mx-2 text-[#3A3830]">·</span>}
+          </span>
+        ))}
+      </div>
+      
+      {/* Title */}
+      <div className="flex items-start justify-between gap-4">
+        <h4 className="text-base font-medium text-[var(--cream)] transition-colors group-hover:text-[var(--gold)]">
+          {story.title}
+        </h4>
+        <span className="mt-1 shrink-0 text-[var(--text-faint)] transition-all group-hover:text-[var(--gold)] group-hover:translate-x-1">
+          →
+        </span>
+      </div>
+      
+      {/* Teaser excerpt */}
+      <p className="mt-2 text-sm leading-relaxed text-[#8A8478]">
+        {story.teaser}
+      </p>
     </motion.button>
   )
 }
@@ -536,15 +554,14 @@ function CaseStudyDetail({ story, onBack }: { story: (typeof MGMT_STORIES)[0]; o
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="rounded-2xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-8 sm:p-12"
       >
-        {/* Colored dot + title */}
-        <div className="flex items-center gap-3">
-          <span
-            className="h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: story.color }}
-          />
-          <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]">
-            {story.tag}
-          </span>
+        {/* Category tags */}
+        <div className="flex items-center gap-2">
+          {story.tags.map((tag, i) => (
+            <span key={tag}>
+              <span className="font-mono text-[9px] uppercase tracking-wider text-[#5A5A50]">{tag}</span>
+              {i < story.tags.length - 1 && <span className="mx-2 text-[#3A3830]">·</span>}
+            </span>
+          ))}
         </div>
         <h2 className="mt-4 font-serif text-2xl text-[var(--cream)] sm:text-3xl">
           {story.title}
@@ -560,7 +577,7 @@ function CaseStudyDetail({ story, onBack }: { story: (typeof MGMT_STORIES)[0]; o
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
         onClick={onBack}
-        className="mx-auto mt-6 block text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
+        className="mx-auto mt-6 block cursor-pointer text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
         aria-label="Close"
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -570,6 +587,14 @@ function CaseStudyDetail({ story, onBack }: { story: (typeof MGMT_STORIES)[0]; o
     </motion.div>
   )
 }
+
+/* Stats for Leader section */
+const LEADER_STATS = [
+  { value: "8", label: "Engineers managed" },
+  { value: "6→10", label: "Team growth" },
+  { value: "-30%", label: "Bug reduction" },
+  { value: "Weekly", label: "Release cadence" },
+]
 
 function ActIII() {
   const [selectedStory, setSelectedStory] = useState<(typeof MGMT_STORIES)[0] | null>(null)
@@ -623,59 +648,68 @@ function ActIII() {
                   2022 - 2024 · DKB Code Factory, Berlin
                 </p>
               </FadeUp>
+
+              {/* Stats Row - per screenshot */}
+              <FadeUp delay={0.25}>
+                <div className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8">
+                  {LEADER_STATS.map((stat) => (
+                    <div key={stat.label}>
+                      <p className="font-serif text-3xl text-[var(--gold)] sm:text-4xl">{stat.value}</p>
+                      <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </FadeUp>
+
+              {/* Prose paragraph */}
               <FadeUp delay={0.3}>
-                <p className="mt-8 max-w-2xl text-lg leading-[1.7] text-[var(--cream-muted)]">
-                  Engineering management for Germany{"'"}s largest direct bank. Leading teams, shipping products, and learning that the hardest problems aren{"'"}t technical — they{"'"}re human.
+                <p className="mt-12 max-w-2xl text-base leading-[1.9] text-[var(--cream-muted)]">
+                  Eight engineers on one of Germany{"'"}s largest banking apps. Grew the core team from 6 to 10. Drove migration to React/TypeScript and micro-frontends. Monthly releases became weekly. Bugs dropped 30%. Ran weekly 1:1s. Coached engineers into senior roles. Navigated a regulated banking environment while staying hands-on with code — because I believe the best engineering managers still understand what they{"'"}re managing.
                 </p>
               </FadeUp>
 
-              {/* Case Studies Toggle */}
-              <FadeUp delay={0.4}>
-                <div className="mt-12">
-                  <button
-                    onClick={() => setShowCaseStudies(!showCaseStudies)}
-                    className="group flex items-center gap-3 font-mono text-sm text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
-                  >
-                    <motion.span
-                      animate={{ rotate: showCaseStudies ? 90 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      →
-                    </motion.span>
-                    {showCaseStudies ? "Hide case studies" : "View case studies"}
-                  </button>
-
-                  <AnimatePresence>
-                    {showCaseStudies && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                        className="overflow-hidden"
-                      >
-                        <div className="mt-6 rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-6">
-                          {MGMT_STORIES.map((story) => (
-                            <CaseStudyCard
-                              key={story.id}
-                              story={story}
-                              onSelect={() => setSelectedStory(story)}
-                            />
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </FadeUp>
-
-              {/* Takeaway */}
-              <FadeUp delay={0.5}>
-                <div className="mt-12 border-l-2 border-[rgba(201,168,76,0.3)] py-2 pl-6">
-                  <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">
+              {/* Quote with gold border */}
+              <FadeUp delay={0.35}>
+                <div className="mt-10 border-l-2 border-[var(--gold)]/40 py-2 pl-6">
+                  <p className="font-serif text-lg italic leading-relaxed text-[var(--cream-muted)]">
                     Management isn{"'"}t about being in charge. It{"'"}s about creating the conditions where other people can do their best work.
                   </p>
                 </div>
+              </FadeUp>
+
+              {/* VIEW CASE STUDIES link */}
+              <FadeUp delay={0.4}>
+                <button
+                  onClick={() => setShowCaseStudies(!showCaseStudies)}
+                  className="mt-8 cursor-pointer font-mono text-xs uppercase tracking-wider text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
+                >
+                  → {showCaseStudies ? "Hide case studies" : "View case studies"}
+                </button>
+
+                <AnimatePresence>
+                  {showCaseStudies && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-8">
+                        <p className="mb-6 font-mono text-[9px] uppercase tracking-[0.2em] text-[#3A3830]">
+                          Case Studies
+                        </p>
+                        {MGMT_STORIES.map((story) => (
+                          <CaseStudyCard
+                            key={story.id}
+                            story={story}
+                            onSelect={() => setSelectedStory(story)}
+                          />
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </FadeUp>
             </motion.div>
           )}
