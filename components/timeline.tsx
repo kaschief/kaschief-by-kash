@@ -1,94 +1,10 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
-import { X } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { FadeUp, FadeIn, RevealLine } from "./motion"
-import { createPortal } from "react-dom"
 import { TradingArsenal } from "./trading-system"
-
-/* ------------------------------------------------------------------ */
-/*  Modal Component - renders via portal, no layout shifts             */
-/* ------------------------------------------------------------------ */
-
-function Modal({ 
-  isOpen, 
-  onClose, 
-  children, 
-  color 
-}: { 
-  isOpen: boolean
-  onClose: () => void
-  children: React.ReactNode
-  color: string
-}) {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
-    return () => { document.body.style.overflow = "" }
-  }, [isOpen])
-
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
-    }
-    if (isOpen) window.addEventListener("keydown", handleEsc)
-    return () => window.removeEventListener("keydown", handleEsc)
-  }, [isOpen, onClose])
-
-  if (!mounted) return null
-
-  return createPortal(
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[200] bg-[#07070A]/80"
-            style={{ backdropFilter: "blur(12px)" }}
-          />
-          {/* Modal content */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-4 z-[201] overflow-y-auto sm:inset-8 md:inset-16 lg:inset-24"
-          >
-            <div 
-              className="relative min-h-full rounded-2xl border bg-[#0B0B0F] p-6 sm:p-8"
-              style={{ borderColor: `${color}20` }}
-            >
-              {/* Close button */}
-              <button
-                onClick={onClose}
-                className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-[var(--stroke)] text-[var(--text-dim)] transition-all hover:border-[rgba(255,255,255,0.1)] hover:text-[var(--cream)]"
-              >
-                <X size={18} />
-              </button>
-              {children}
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>,
-    document.body
-  )
-}
 
 /* ------------------------------------------------------------------ */
 /*  ACT II - Job Data                                                  */
@@ -96,6 +12,7 @@ function Modal({
 
 const JOBS = [
   {
+    id: "amboss",
     company: "AMBOSS",
     role: "Frontend Engineer",
     period: "2018 - 2019",
@@ -111,6 +28,7 @@ const JOBS = [
     },
   },
   {
+    id: "compado",
     company: "Compado",
     role: "Frontend Engineer → Senior",
     period: "2019 - 2021",
@@ -126,6 +44,7 @@ const JOBS = [
     },
   },
   {
+    id: "capinside",
     company: "CAPinside",
     role: "Senior Frontend Engineer",
     period: "2021",
@@ -141,6 +60,7 @@ const JOBS = [
     },
   },
   {
+    id: "dkb",
     company: "DKB Code Factory",
     role: "Senior → Engineering Manager",
     period: "2021 - 2022",
@@ -163,210 +83,48 @@ const JOBS = [
 
 const MGMT_STORIES = [
   {
+    id: "silence",
     tag: "CULTURE",
     color: "#C9A84C",
     title: "Fighting the culture of silence",
-    summary: "Changed how the team surfaces uncertainty",
     text: "Developers were staying passive during refinements, then claiming confusion during planning. I changed the approach: instead of 'any questions?' I started asking specific people 'what's the first edge case you'd test here?' Forced engagement. Made it safe to surface uncertainty. The team went from passive receivers to active participants.",
   },
   {
+    id: "communication",
     tag: "MENTORSHIP",
     color: "#5EBB73",
     title: "Coaching communication style",
-    summary: "Fixed a perceived performance issue through communication",
     text: "Our Product Owner was frustrated a developer seemed slow. I pointed out it might be the message, not the person. She was asking 'Would you mind finishing by tomorrow?' I shared my version: 'We're deploying tomorrow. Will your changes be included?' Same intent, different directness. She tried it. His responsiveness changed immediately.",
   },
   {
+    id: "releases",
     tag: "PROCESS",
     color: "#5B9EC2",
     title: "Monthly to weekly releases",
-    summary: "30% fewer bugs through systematic change",
     text: "Releases kept breaking. I coordinated readiness across multiple developers per release, assessed what was ready vs what would block the whole pipeline, and pushed for post-deployment debriefs. Found that support teams weren't testing their infrastructure connections until deploy day. Made pre-deploy verification standard. Monthly became weekly. 30% fewer bugs.",
   },
   {
+    id: "scope",
     tag: "TECHNICAL",
     color: "#E05252",
     title: "Catching scope creep in real time",
-    summary: "Prevented a feature ticket from becoming a hidden refactor",
     text: "A developer mentioned he was 'just fixing a small eslint issue.' Turned out the fix had expanded into a large refactor touching dozens of files, all inside a feature ticket. I caught it, moved the refactor to its own ticket, and refocused him on the feature. The broader issue became a team discussion, not one person's side quest buried in an unrelated PR.",
   },
   {
+    id: "culture",
     tag: "CULTURE",
     color: "#C9A84C",
     title: "Protecting team culture across stacks",
-    summary: "Addressed dismissiveness that was creating a two-tier team",
     text: "Some engineers were openly dismissive of colleagues working on a platform they considered inferior. I raised it directly with the engineering lead. The risk wasn't hurt feelings. It was creating a two-tier team where one group felt like second-class citizens. We agreed that leaders needed to be conscious of how their opinions about tech choices affected the humans working on those technologies.",
   },
   {
+    id: "hiring",
     tag: "HIRING",
     color: "#5EBB73",
     title: "Hiring for fit, not speed",
-    summary: "Pushed back on HR to get the right candidate",
     text: "Two candidates in the pipeline. HR wanted to close whichever finished first. I pushed back: run both in parallel, give the team a comparison. Delegated code reviews to the engineers who would actually work with the hire. Set a clear timeline: one week for submission, 7-day follow-up. Hired the better candidate, not the faster one.",
   },
 ]
-
-/* ------------------------------------------------------------------ */
-/*  Job Card - opens modal on click                                    */
-/* ------------------------------------------------------------------ */
-
-function JobCard({ job, onClick }: { job: (typeof JOBS)[0]; onClick: () => void }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-40px" })
-
-  return (
-    <motion.button
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      onClick={onClick}
-      className="group relative w-full text-left"
-    >
-      <div className="relative overflow-hidden rounded-2xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-6 transition-all duration-500 hover:border-[rgba(91,158,194,0.15)]">
-        {/* Hover glow */}
-        <div
-          className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-          style={{ background: `radial-gradient(ellipse at 50% 0%, ${job.color}08 0%, transparent 70%)` }}
-        />
-
-        <div className="relative z-10">
-          <div className="mb-1 flex items-center justify-between">
-            <h4 className="text-base font-semibold text-[var(--cream)]">{job.company}</h4>
-            <span className="font-mono text-[10px] text-[var(--text-faint)]">{job.period}</span>
-          </div>
-          <p className="text-sm text-[var(--cream-muted)]">{job.role}</p>
-          <p className="mt-3 text-sm leading-relaxed text-[var(--text-dim)]">{job.summary}</p>
-
-          {/* Tech tags */}
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {job.tech.map((t) => (
-              <span key={t} className="rounded-md bg-[rgba(91,158,194,0.06)] px-2 py-0.5 font-mono text-[9px] text-[var(--act-blue)]">{t}</span>
-            ))}
-          </div>
-
-          {/* Subtle CTA */}
-          <p className="mt-4 text-[11px] text-[var(--text-faint)] opacity-0 transition-opacity group-hover:opacity-100">
-            Click to read the full story
-          </p>
-        </div>
-      </div>
-    </motion.button>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Job Modal Content                                                  */
-/* ------------------------------------------------------------------ */
-
-function JobModalContent({ job }: { job: (typeof JOBS)[0] }) {
-  return (
-    <div className="pr-8">
-      {/* Header */}
-      <div className="mb-8 border-b border-[var(--stroke)] pb-8">
-        <div className="mb-2 flex items-center gap-3">
-          <span className="font-mono text-[10px] text-[var(--text-faint)]">{job.period}</span>
-          <span className="text-[var(--text-faint)]">·</span>
-          <span className="font-mono text-[10px] text-[var(--text-faint)]">{job.location}</span>
-        </div>
-        <h2 className="text-3xl font-bold text-[var(--cream)] sm:text-4xl">{job.company}</h2>
-        <p className="mt-2 text-lg text-[var(--cream-muted)]">{job.role}</p>
-      </div>
-
-      {/* Deep dive sections */}
-      <div className="space-y-8">
-        <div>
-          <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Context</h3>
-          <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.context}</p>
-        </div>
-        <div>
-          <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">What I Did</h3>
-          <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.contribution}</p>
-        </div>
-        <div>
-          <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Outcome</h3>
-          <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.outcome}</p>
-        </div>
-        <div>
-          <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Skills Demonstrated</h3>
-          <div className="flex flex-wrap gap-2">
-            {job.deepDive.skills.map((skill) => (
-              <span key={skill} className="rounded-lg border border-[var(--stroke)] bg-[var(--bg-elevated)] px-3 py-1.5 text-sm text-[var(--cream-muted)]">
-                {skill}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Management Story Card - opens modal on click                       */
-/* ------------------------------------------------------------------ */
-
-function MgmtStoryCard({ story, onClick }: { story: (typeof MGMT_STORIES)[0]; onClick: () => void }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-30px" })
-
-  return (
-    <motion.button
-      ref={ref}
-      initial={{ opacity: 0, y: 16 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      onClick={onClick}
-      className="group relative w-full text-left"
-    >
-      <div className="relative overflow-hidden rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] transition-all duration-400 hover:border-[rgba(255,255,255,0.06)]">
-        {/* Left accent bar */}
-        <div
-          className="absolute left-0 top-0 bottom-0 w-[3px] transition-all duration-300 group-hover:w-1"
-          style={{ backgroundColor: story.color }}
-        />
-
-        <div className="p-5 pl-6">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-              <span
-                className="w-fit rounded-md px-2 py-0.5 font-mono text-[9px] font-medium uppercase tracking-wider"
-                style={{ backgroundColor: `${story.color}10`, color: story.color }}
-              >
-                {story.tag}
-              </span>
-              <span className="text-sm font-medium text-[var(--cream)] transition-colors group-hover:text-[var(--gold)]">
-                {story.title}
-              </span>
-            </div>
-          </div>
-          <p className="mt-2 text-xs text-[var(--text-dim)]">{story.summary}</p>
-        </div>
-      </div>
-    </motion.button>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Management Story Modal Content                                     */
-/* ------------------------------------------------------------------ */
-
-function MgmtStoryModalContent({ story }: { story: (typeof MGMT_STORIES)[0] }) {
-  return (
-    <div className="pr-8">
-      <div className="mb-6">
-        <span
-          className="mb-4 inline-block rounded-md px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-wider"
-          style={{ backgroundColor: `${story.color}15`, color: story.color }}
-        >
-          {story.tag}
-        </span>
-        <h2 className="text-2xl font-bold text-[var(--cream)] sm:text-3xl">{story.title}</h2>
-      </div>
-      <p className="text-base leading-[1.9] text-[var(--cream-muted)]">{story.text}</p>
-    </div>
-  )
-}
 
 /* ------------------------------------------------------------------ */
 /*  Shared Act Header                                                  */
@@ -375,7 +133,13 @@ function MgmtStoryModalContent({ story }: { story: (typeof MGMT_STORIES)[0] }) {
 function ActHeader({
   act, title, period, location, color, takeaway, children
 }: {
-  act: string; title: string; period: string; location: string; color: string; takeaway: string; children?: React.ReactNode
+  act: string
+  title: string
+  period: string
+  location: string
+  color: string
+  takeaway: string
+  children?: React.ReactNode
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
@@ -422,14 +186,12 @@ function ActHeader({
         </FadeUp>
 
         {/* Content */}
-        <div className="mt-10">{children}</div>
+        <div className="mt-12">{children}</div>
 
         {/* Takeaway */}
         <FadeUp delay={0.4}>
-          <div className="mt-14 border-l-2 pl-5" style={{ borderColor: `${color}30` }}>
-            <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]" style={{ fontFamily: "var(--font-serif)" }}>
-              {takeaway}
-            </p>
+          <div className="mt-16 border-l-2 py-2 pl-6" style={{ borderColor: `${color}30` }}>
+            <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">{takeaway}</p>
           </div>
         </FadeUp>
       </div>
@@ -446,47 +208,30 @@ function ActI() {
     <ActHeader
       act="ACT I"
       title="The Nurse"
-      period="2015 - 2018"
-      location="NYU Langone, New York"
+      period="2012 - 2017"
+      location="Houston, TX"
       color="#E05252"
-      takeaway="This is where I learned that systems fail in silence, and that the person who notices first carries the weight. I learned to debug under pressure, long before I ever touched code."
+      takeaway="The ICU taught me that under pressure, process matters more than heroics. You can't panic. You assess, prioritize, and execute — or people die. That discipline never left me."
     >
-      <div className="flex flex-col gap-10 lg:flex-row lg:gap-16">
-        <FadeUp delay={0.2} className="lg:w-1/2">
+      <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+        <FadeUp delay={0.2}>
           <p className="text-lg leading-[1.7] text-[var(--cream-muted)]">
-            Neuro ICU. Surgical ICU. Cardiothoracic ICU. Three to four critical patients per shift. Ventilators, IV drips, medication protocols that had to be exact.
+            I spent five years as a critical care nurse in Houston{"'"}s Texas Medical Center — the largest medical complex in the world. Neuro ICU, Cardiac ICU, ER trauma.
           </p>
           <p className="mt-4 text-sm leading-[1.9] text-[var(--text-dim)]">
-            A cough doesn{"'"}t mean a cold. It could be pulmonary effusion, a ventilator issue, a medication reaction. Every shift was differential diagnosis under pressure — rapid pattern recognition with incomplete information.
+            This wasn{"'"}t a stepping stone. It was where I learned to read complex systems under pressure, communicate with precision, and make decisions when the cost of being wrong was someone{"'"}s life.
           </p>
         </FadeUp>
-        <FadeUp delay={0.3} className="lg:w-1/2">
-          <div className="rounded-2xl bg-[var(--bg-elevated)] p-6">
-            <p className="mb-4 font-mono text-[9px] font-medium uppercase tracking-[0.2em] text-[#E05252]">
-              What this built
-            </p>
-            <ul className="space-y-3 text-sm text-[var(--cream-muted)]">
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#E05252]" />
-                Thinking quickly under pressure
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#E05252]" />
-                Diagnosing with incomplete information
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#E05252]" />
-                Cross-disciplinary communication
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#E05252]" />
-                Systems management under constraints
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#E05252]" />
-                Patient advocacy — educating for important issues
-              </li>
-            </ul>
+        <FadeUp delay={0.3}>
+          <div className="space-y-4">
+            <div className="rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-5">
+              <p className="mb-2 font-mono text-[9px] font-medium uppercase tracking-[0.2em] text-[#E05252]">Pattern Recognition</p>
+              <p className="text-sm text-[var(--cream-muted)]">Reading 12-lead EKGs, catching early signs of deterioration, understanding that vital signs tell a story before the patient can.</p>
+            </div>
+            <div className="rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-5">
+              <p className="mb-2 font-mono text-[9px] font-medium uppercase tracking-[0.2em] text-[#E05252]">Systems Thinking</p>
+              <p className="text-sm text-[var(--cream-muted)]">The human body is the original complex system. Every intervention has downstream effects. You learn to think in feedback loops.</p>
+            </div>
           </div>
         </FadeUp>
       </div>
@@ -495,83 +240,354 @@ function ActI() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  ACT II - The Engineer                                              */
+/*  ACT II - The Engineer (with Maya Chen-style detail view)          */
 /* ------------------------------------------------------------------ */
+
+function JobRow({ job, onSelect }: { job: (typeof JOBS)[0]; onSelect: () => void }) {
+  const ref = useRef<HTMLButtonElement>(null)
+  const inView = useInView(ref, { once: true, margin: "-40px" })
+
+  return (
+    <motion.button
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={inView ? { opacity: 1 } : {}}
+      transition={{ duration: 0.5 }}
+      onClick={onSelect}
+      className="group flex w-full items-baseline justify-between border-b border-[var(--stroke)] py-6 text-left transition-colors hover:border-[var(--gold-dim)]"
+    >
+      <div>
+        <h4 className="font-serif text-2xl text-[var(--cream)] transition-colors group-hover:text-[var(--gold)] sm:text-3xl">
+          {job.company}
+        </h4>
+        <p className="mt-1 font-mono text-xs text-[var(--text-faint)]">
+          {job.period} · {job.role}
+        </p>
+      </div>
+      <span className="font-mono text-xs text-[var(--text-faint)] opacity-0 transition-opacity group-hover:opacity-100">
+        View →
+      </span>
+    </motion.button>
+  )
+}
+
+function JobDetailView({ job, onBack }: { job: (typeof JOBS)[0]; onBack: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="py-12"
+    >
+      {/* Back button */}
+      <button
+        onClick={onBack}
+        className="mb-12 flex items-center gap-2 font-mono text-xs text-[var(--text-faint)] transition-colors hover:text-[var(--gold)]"
+      >
+        <ArrowLeft size={14} />
+        Back to timeline
+      </button>
+
+      {/* Header */}
+      <div className="mb-12 border-b border-[var(--stroke)] pb-8">
+        <p className="mb-3 font-mono text-xs text-[var(--text-faint)]">
+          {job.period} · {job.location}
+        </p>
+        <h2 className="font-serif text-4xl text-[var(--cream)] sm:text-5xl lg:text-6xl">
+          {job.company}
+        </h2>
+        <p className="mt-3 text-lg text-[var(--cream-muted)]">{job.role}</p>
+        <div className="mt-6 flex flex-wrap gap-2">
+          {job.tech.map((t) => (
+            <span key={t} className="rounded-md border border-[var(--stroke)] px-3 py-1 font-mono text-[10px] text-[var(--act-blue)]">{t}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+        <div className="space-y-8">
+          <div>
+            <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Context</h3>
+            <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.context}</p>
+          </div>
+          <div>
+            <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">What I Did</h3>
+            <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.contribution}</p>
+          </div>
+        </div>
+        <div className="space-y-8">
+          <div>
+            <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Outcome</h3>
+            <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.outcome}</p>
+          </div>
+          <div>
+            <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Skills Demonstrated</h3>
+            <div className="flex flex-wrap gap-2">
+              {job.deepDive.skills.map((skill) => (
+                <span key={skill} className="rounded-lg border border-[var(--stroke)] bg-[var(--bg-elevated)] px-3 py-1.5 text-sm text-[var(--cream-muted)]">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
 
 function ActII() {
   const [selectedJob, setSelectedJob] = useState<(typeof JOBS)[0] | null>(null)
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
+  const glowOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.5, 0.5, 0])
 
   return (
-    <>
-      <ActHeader
-        act="ACT II"
-        title="The Engineer"
-        period="2018 - 2022"
-        location="Berlin & Hamburg"
-        color="#5B9EC2"
-        takeaway="I learned that syntax is cheap. What matters is whether you can ship something that works, measure whether it helped, and have the judgment to know when to rebuild vs patch."
-      >
-        <FadeUp delay={0.2}>
-          <p className="mb-10 max-w-2xl text-lg leading-[1.7] text-[var(--cream-muted)]">
-            Four companies in four years. Each one pushed me deeper technically while keeping me close to users and product.
-          </p>
-        </FadeUp>
+    <div ref={ref} className="relative py-20 sm:py-28">
+      {/* Glow */}
+      <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
+        <div
+          className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(91,158,194,0.04) 0%, transparent 60%)" }}
+        />
+      </motion.div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {JOBS.map((job) => (
-            <JobCard key={job.company} job={job} onClick={() => setSelectedJob(job)} />
-          ))}
-        </div>
-      </ActHeader>
+      <div className="relative z-10 mx-auto max-w-5xl px-6">
+        <AnimatePresence mode="wait">
+          {selectedJob ? (
+            <JobDetailView key="detail" job={selectedJob} onBack={() => setSelectedJob(null)} />
+          ) : (
+            <motion.div
+              key="list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Header */}
+              <FadeIn>
+                <div className="mb-4 flex items-center gap-3">
+                  <motion.span
+                    className="inline-block h-1.5 w-1.5 rounded-full bg-[#5B9EC2]"
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  />
+                  <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[#5B9EC2]">
+                    ACT II
+                  </span>
+                </div>
+              </FadeIn>
+              <RevealLine>
+                <h3 className="text-4xl font-bold tracking-[-0.03em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
+                  The Engineer
+                </h3>
+              </RevealLine>
+              <FadeUp delay={0.2}>
+                <p className="mt-4 font-mono text-xs text-[var(--text-faint)]">
+                  2018 - 2022 · Berlin, Germany
+                </p>
+              </FadeUp>
 
-      {/* Job modal - renders via portal, no layout shift */}
-      <Modal isOpen={!!selectedJob} onClose={() => setSelectedJob(null)} color="#5B9EC2">
-        {selectedJob && <JobModalContent job={selectedJob} />}
-      </Modal>
-    </>
+              {/* Job list - Maya Chen style */}
+              <div className="mt-16">
+                {JOBS.map((job) => (
+                  <JobRow key={job.id} job={job} onSelect={() => setSelectedJob(job)} />
+                ))}
+              </div>
+
+              {/* Takeaway */}
+              <FadeUp delay={0.4}>
+                <div className="mt-16 border-l-2 border-[rgba(91,158,194,0.3)] py-2 pl-6">
+                  <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">
+                    Four companies in four years wasn{"'"}t job-hopping. It was following the signal: find the hardest problem, solve it, and when you{"'"}ve learned what you came to learn, move to where you can learn more.
+                  </p>
+                </div>
+              </FadeUp>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   )
 }
 
 /* ------------------------------------------------------------------ */
-/*  ACT III - The Leader                                               */
+/*  ACT III - The Leader (with horizontal scroll stories)             */
 /* ------------------------------------------------------------------ */
+
+function StoryCard({ story, isActive, onClick }: { 
+  story: (typeof MGMT_STORIES)[0]
+  isActive: boolean
+  onClick: () => void 
+}) {
+  return (
+    <motion.button
+      onClick={onClick}
+      className="group relative shrink-0 text-left"
+      whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div 
+        className={`relative h-[280px] w-[260px] overflow-hidden rounded-2xl border bg-[var(--bg-elevated)] p-6 transition-all duration-300 sm:h-[320px] sm:w-[300px] ${
+          isActive ? "border-[var(--gold)]" : "border-[var(--stroke)] hover:border-[rgba(255,255,255,0.08)]"
+        }`}
+      >
+        {/* Top accent */}
+        <div className="absolute left-0 right-0 top-0 h-1" style={{ backgroundColor: story.color }} />
+        
+        {/* Tag */}
+        <span
+          className="inline-block rounded-md px-2 py-0.5 font-mono text-[9px] font-medium uppercase tracking-wider"
+          style={{ backgroundColor: `${story.color}15`, color: story.color }}
+        >
+          {story.tag}
+        </span>
+        
+        {/* Title */}
+        <h4 className="mt-4 text-base font-semibold leading-snug text-[var(--cream)] sm:text-lg">
+          {story.title}
+        </h4>
+        
+        {/* Preview text */}
+        <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-[var(--text-dim)]">
+          {story.text}
+        </p>
+        
+        {/* Read indicator */}
+        <div className="absolute bottom-6 left-6 right-6">
+          <span className="font-mono text-[10px] text-[var(--text-faint)] opacity-0 transition-opacity group-hover:opacity-100">
+            Click to read full story
+          </span>
+        </div>
+      </div>
+    </motion.button>
+  )
+}
 
 function ActIII() {
-  const [selectedStory, setSelectedStory] = useState<(typeof MGMT_STORIES)[0] | null>(null)
+  const [activeStory, setActiveStory] = useState<(typeof MGMT_STORIES)[0] | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
+  const glowOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0.5, 0.5, 0])
 
   return (
-    <>
-      <ActHeader
-        act="ACT III"
-        title="The Leader"
-        period="2021 - 2022"
-        location="DKB Code Factory, Berlin"
-        color="#C9A84C"
-        takeaway="Leadership is the work you do when no one is watching. It's in how you handle uncertainty, how you protect your team's focus, and how you make it safe to surface problems early."
-      >
-        <FadeUp delay={0.2}>
-          <p className="mb-10 max-w-2xl text-lg leading-[1.7] text-[var(--cream-muted)]">
-            Promoted to Engineering Manager not because I asked — because I was already doing the work. These are the moments that defined what kind of leader I became.
-          </p>
+    <div ref={ref} className="relative py-20 sm:py-28">
+      {/* Glow */}
+      <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
+        <div
+          className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 60%)" }}
+        />
+      </motion.div>
+
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="mx-auto max-w-5xl px-6">
+          <FadeIn>
+            <div className="mb-4 flex items-center gap-3">
+              <motion.span
+                className="inline-block h-1.5 w-1.5 rounded-full bg-[#C9A84C]"
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              />
+              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[#C9A84C]">
+                ACT III
+              </span>
+            </div>
+          </FadeIn>
+          <RevealLine>
+            <h3 className="text-4xl font-bold tracking-[-0.03em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
+              The Leader
+            </h3>
+          </RevealLine>
+          <FadeUp delay={0.2}>
+            <p className="mt-4 font-mono text-xs text-[var(--text-faint)]">
+              2022 - 2024 · Berlin, Germany
+            </p>
+          </FadeUp>
+          <FadeUp delay={0.3}>
+            <p className="mt-8 max-w-2xl text-lg leading-[1.7] text-[var(--cream-muted)]">
+              Engineering management at DKB Code Factory. Leading teams, shipping products, and learning that the hardest problems aren{"'"}t technical — they{"'"}re human.
+            </p>
+          </FadeUp>
+        </div>
+
+        {/* Horizontal scroll carousel */}
+        <FadeUp delay={0.4}>
+          <div className="mt-12">
+            <div 
+              ref={scrollRef}
+              className="flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide sm:gap-6 lg:px-[calc((100vw-64rem)/2+1.5rem)]"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {MGMT_STORIES.map((story) => (
+                <StoryCard 
+                  key={story.id} 
+                  story={story} 
+                  isActive={activeStory?.id === story.id}
+                  onClick={() => setActiveStory(activeStory?.id === story.id ? null : story)}
+                />
+              ))}
+            </div>
+          </div>
         </FadeUp>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {MGMT_STORIES.map((story) => (
-            <MgmtStoryCard key={story.title} story={story} onClick={() => setSelectedStory(story)} />
-          ))}
-        </div>
-      </ActHeader>
+        {/* Expanded story view */}
+        <AnimatePresence>
+          {activeStory && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="mx-auto max-w-3xl px-6 py-12">
+                <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-8">
+                  <span
+                    className="inline-block rounded-md px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-wider"
+                    style={{ backgroundColor: `${activeStory.color}15`, color: activeStory.color }}
+                  >
+                    {activeStory.tag}
+                  </span>
+                  <h4 className="mt-4 text-xl font-semibold text-[var(--cream)] sm:text-2xl">
+                    {activeStory.title}
+                  </h4>
+                  <p className="mt-6 text-base leading-[1.9] text-[var(--cream-muted)]">
+                    {activeStory.text}
+                  </p>
+                  <button
+                    onClick={() => setActiveStory(null)}
+                    className="mt-8 font-mono text-xs text-[var(--text-faint)] transition-colors hover:text-[var(--gold)]"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* Story modal - renders via portal, no layout shift */}
-      <Modal isOpen={!!selectedStory} onClose={() => setSelectedStory(null)} color={selectedStory?.color || "#C9A84C"}>
-        {selectedStory && <MgmtStoryModalContent story={selectedStory} />}
-      </Modal>
-    </>
+        {/* Takeaway */}
+        <div className="mx-auto max-w-5xl px-6">
+          <FadeUp delay={0.5}>
+            <div className="mt-12 border-l-2 border-[rgba(201,168,76,0.3)] py-2 pl-6">
+              <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">
+                Management isn{"'"}t about being in charge. It{"'"}s about creating the conditions where other people can do their best work. Every story here is about removing friction, not adding process.
+              </p>
+            </div>
+          </FadeUp>
+        </div>
+      </div>
+    </div>
   )
 }
 
 /* ------------------------------------------------------------------ */
-/*  ACT IV - The Builder (Trading)                                     */
+/*  ACT IV - The Builder                                               */
 /* ------------------------------------------------------------------ */
 
 function ActIV() {
@@ -584,8 +600,8 @@ function ActIV() {
       color="#5EBB73"
       takeaway="This is where everything converges. ICU pattern recognition, engineering discipline, leadership under pressure. The market doesn't care what you've done before. It only cares if you can read it correctly, right now."
     >
-      <div className="flex flex-col gap-10 lg:flex-row lg:gap-16">
-        <FadeUp delay={0.2} className="lg:w-1/2">
+      <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+        <FadeUp delay={0.2}>
           <p className="text-lg leading-[1.7] text-[var(--cream-muted)]">
             An algorithmic futures trading system. 14 custom indicators. 13,500 lines of Pine Script v6, written from scratch with AI-assisted development as a daily workflow.
           </p>
@@ -593,7 +609,7 @@ function ActIV() {
             No libraries, no wrappers. The market gives feedback instantly, and it doesn{"'"}t care about your feelings. Managing funded accounts with real money on the line.
           </p>
         </FadeUp>
-        <FadeUp delay={0.3} className="lg:w-1/2">
+        <FadeUp delay={0.3}>
           <div className="rounded-2xl bg-[var(--bg-elevated)] p-6">
             <p className="mb-4 font-mono text-[9px] font-medium uppercase tracking-[0.2em] text-[#5EBB73]">
               What this requires
@@ -641,7 +657,7 @@ export function Timeline() {
       <ActIII />
       <div className="mx-auto h-px max-w-5xl bg-gradient-to-r from-transparent via-[var(--stroke)] to-transparent" />
       <ActIV />
-      {/* Arsenal integrated into journey as part of Act IV */}
+      {/* Arsenal integrated as part of Act IV story */}
       <TradingArsenal />
     </section>
   )
