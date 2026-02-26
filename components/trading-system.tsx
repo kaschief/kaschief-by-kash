@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
-import { FadeUp, FadeIn, RevealLine, ScaleOnScroll, StaggerContainer, StaggerItem, Counter } from "./motion"
+import { FadeUp, FadeIn, RevealLine, ScaleOnScroll, StaggerContainer, StaggerItem } from "./motion"
 import Image from "next/image"
 
 /* ------------------------------------------------------------------ */
@@ -15,7 +15,7 @@ const LAYERS = [
     label: "Naked",
     shortLabel: "01",
     image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked-VMuu7dsvaVlzWtw8lmDMmS7mVX17V2.png",
-    text: "NQ1 futures, 5-minute. Just candles. Where does price want to go, and what\u2019s in its way? Without structure, this is just noise.",
+    text: "NQ1 futures, 5-minute. Just candles. Where does price want to go, and what's in its way? Without structure, this is just noise.",
   },
   {
     id: "adr",
@@ -83,10 +83,10 @@ const INDICATORS = [
   { name: "MBZ SIF Relay", lines: "900", desc: "Auto HTF pairing. Broadcasts zones to any LTF chart." },
 ]
 
-const ENG_PATTERNS = [
-  { title: "IQR over averages", desc: "Outlier sessions don\u2019t inflate expected range. Interquartile range used across all statistical tools." },
+const CODE_PATTERNS = [
+  { title: "IQR over averages", desc: "Outlier sessions don't inflate expected range. Interquartile range used across all statistical tools." },
   { title: "Tick-based precision", desc: "All price comparisons in tick units, not floats. Kills phantom duplicates on forex and crypto." },
-  { title: "Provisional mitigation", desc: "Overnight touches flagged provisional until NY session confirms. 2am spikes don\u2019t kill live levels." },
+  { title: "Provisional mitigation", desc: "Overnight touches flagged provisional until NY session confirms. 2am spikes don't kill live levels." },
   { title: "Input change hashing", desc: "Settings hashed every bar. Anything changes, state clears instantly. Zero stale data." },
   { title: "Dynamic capacity", desc: "Boost 4x, Ultra 8x, Ultra Pro 12x. Users pick depth vs performance. Nothing dropped silently." },
   { title: "DRY parameterization", desc: "13,500 lines, zero duplicated detection logic. Functions take parameters. State is isolated." },
@@ -144,71 +144,74 @@ export function TradingSystem() {
   const bgGlowOpacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0])
 
   return (
-    <section id="trading" ref={sectionRef} className="relative py-20 sm:py-28">
+    <section id="trading" ref={sectionRef} className="relative py-24 sm:py-32">
       {/* Full-section atmospheric glow */}
       <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: bgGlowOpacity }}>
         <div
           className="absolute left-1/2 top-[30%] h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(94,187,115,0.035) 0%, transparent 55%)" }}
+          style={{ background: "radial-gradient(circle, rgba(94,187,115,0.03) 0%, transparent 55%)" }}
         />
       </motion.div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-6">
         {/* ------------------------------------------------------------ */}
-        {/*  Act IV header                                                */}
+        {/*  Act IV header - matches other acts' styling                  */}
         {/* ------------------------------------------------------------ */}
         <div className="mb-16">
           <FadeIn>
-            <div className="mb-5 flex items-center gap-3">
+            <div className="mb-4 flex items-center gap-3">
               <motion.span
-                className="inline-block h-2 w-2 rounded-full bg-[#5EBB73]"
-                animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
+                className="inline-block h-1.5 w-1.5 rounded-full bg-[#5EBB73]"
+                animate={{ opacity: [0.4, 1, 0.4] }}
                 transition={{ duration: 3, repeat: Infinity }}
               />
-              <span className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#5EBB73]">
+              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[#5EBB73]">
                 ACT IV
               </span>
-              <span className="h-px w-6 bg-[var(--stroke)]" />
-              <span className="font-mono text-[10px] text-[var(--text-faint)]">2024 &mdash; Present &middot; Self-Employed, Berlin</span>
             </div>
           </FadeIn>
 
           <RevealLine>
             <h2 className="text-4xl font-bold tracking-[-0.03em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
-              THE BUILD
+              The Builder
             </h2>
           </RevealLine>
 
-          <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:gap-16">
-            <FadeUp delay={0.3} className="lg:w-2/5">
-              <p className="text-lg text-[var(--cream-muted)]" style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.5 }}>
-                {"\u201CI built a production system alone, with real money on the line, and shipped it.\u201D"}
-              </p>
-              {/* Quick stats */}
-              <div className="mt-6 flex flex-wrap gap-6">
-                {[
-                  { value: 14, suffix: "", label: "Indicators" },
-                  { value: 13, suffix: ".5K", label: "Lines Pine Script" },
-                  { value: 60, suffix: "%+", label: "Win Rate" },
-                  { value: 50, suffix: "K", label: "Funded" },
-                ].map((s) => (
-                  <div key={s.label} className="flex flex-col gap-0.5">
-                    <span className="font-mono text-lg font-semibold text-[#5EBB73]">
-                      <Counter value={s.value} suffix={s.suffix} />
-                    </span>
-                    <span className="text-[9px] uppercase tracking-wider text-[var(--text-faint)]">{s.label}</span>
-                  </div>
-                ))}
-              </div>
-            </FadeUp>
+          <FadeUp delay={0.2}>
+            <p className="mt-4 font-mono text-xs text-[var(--text-faint)]">
+              2024 - Present · Self-Employed, Berlin
+            </p>
+          </FadeUp>
 
-            <FadeUp delay={0.4} className="lg:w-3/5">
-              <p className="text-sm leading-[1.9] text-[var(--cream-muted)]">
-                An algorithmic futures trading system. 14 custom indicators. 13,500 lines of Pine Script v6, all from scratch. No libraries, no wrappers. AI-assisted development as a daily workflow.
+          <div className="mt-10 flex flex-col gap-10 lg:flex-row lg:gap-16">
+            <FadeUp delay={0.3} className="lg:w-1/2">
+              <p className="text-lg leading-[1.7] text-[var(--cream-muted)]">
+                An algorithmic futures trading system. 14 custom indicators. 13,500 lines of Pine Script v6, written from scratch with AI-assisted development as a daily workflow.
               </p>
-              <p className="mt-3 text-sm leading-[1.9] text-[var(--text-dim)]">
-                Managing $50K funded accounts with 60%+ win rate. The market gives feedback instantly, and it doesn{"'"}t care about your feelings.
+              <p className="mt-4 text-sm leading-[1.9] text-[var(--text-dim)]">
+                No libraries, no wrappers. The market gives feedback instantly, and it doesn{"'"}t care about your feelings. Managing funded accounts with real money on the line.
               </p>
+            </FadeUp>
+            <FadeUp delay={0.4} className="lg:w-1/2">
+              <div className="rounded-2xl bg-[var(--bg-elevated)] p-6">
+                <p className="mb-4 font-mono text-[9px] font-medium uppercase tracking-[0.2em] text-[#5EBB73]">
+                  The numbers
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-baseline justify-between border-b border-[var(--stroke)] pb-3">
+                    <span className="text-sm text-[var(--cream-muted)]">Custom indicators built</span>
+                    <span className="font-mono text-lg font-semibold text-[#5EBB73]">14</span>
+                  </div>
+                  <div className="flex items-baseline justify-between border-b border-[var(--stroke)] pb-3">
+                    <span className="text-sm text-[var(--cream-muted)]">Lines of Pine Script</span>
+                    <span className="font-mono text-lg font-semibold text-[#5EBB73]">13.5K</span>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-sm text-[var(--cream-muted)]">Funded account</span>
+                    <span className="font-mono text-lg font-semibold text-[#5EBB73]">$50K</span>
+                  </div>
+                </div>
+              </div>
             </FadeUp>
           </div>
         </div>
@@ -336,7 +339,7 @@ export function TradingSystem() {
               Indicator Showcase
             </p>
             <p className="mb-6 max-w-lg text-sm text-[var(--text-dim)]">
-              Each indicator is a self-contained piece of engineering. Scroll through the full collection.
+              Each indicator is a self-contained piece of engineering. Scroll through the collection.
             </p>
           </FadeUp>
 
@@ -385,20 +388,20 @@ export function TradingSystem() {
         </div>
 
         {/* ------------------------------------------------------------ */}
-        {/*  Engineering Patterns                                         */}
+        {/*  Code Patterns (renamed from Engineering Philosophy)          */}
         {/* ------------------------------------------------------------ */}
-        <div>
+        <div className="mb-16">
           <FadeUp>
             <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--gold)]">
-              Engineering Philosophy
+              How it stays maintainable
             </p>
             <p className="mb-8 text-sm text-[var(--text-dim)]">
-              Patterns that keep 13,500 lines maintainable and fast.
+              Patterns that keep 13,500 lines readable and fast.
             </p>
           </FadeUp>
 
           <StaggerContainer className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" staggerDelay={0.04}>
-            {ENG_PATTERNS.map((pat) => (
+            {CODE_PATTERNS.map((pat) => (
               <StaggerItem key={pat.title}>
                 <div className="rounded-xl border border-[var(--stroke)] bg-[var(--bg)] p-5">
                   <span className="mb-2 block font-mono text-xs font-semibold text-[var(--gold)]">{pat.title}</span>
@@ -408,6 +411,15 @@ export function TradingSystem() {
             ))}
           </StaggerContainer>
         </div>
+
+        {/* Thematic takeaway - connects to the arc */}
+        <FadeUp delay={0.2}>
+          <div className="border-l-2 pl-5" style={{ borderColor: "rgba(94,187,115,0.3)" }}>
+            <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]" style={{ fontFamily: "var(--font-serif)" }}>
+              This is where everything converges. ICU pattern recognition, engineering discipline, leadership under pressure. The market doesn{"'"}t care what you{"'"}ve done before. It only cares if you can read it correctly, right now.
+            </p>
+          </div>
+        </FadeUp>
       </div>
     </section>
   )
