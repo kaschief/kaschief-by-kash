@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
-import { ArrowLeft } from "lucide-react"
 import { FadeUp, FadeIn, RevealLine } from "./motion"
 import { TradingArsenal } from "./trading-system"
 
@@ -282,12 +281,29 @@ function JobRow({ job, onSelect }: { job: (typeof JOBS)[0]; onSelect: () => void
 function JobDetailView({ job, onBack }: { job: (typeof JOBS)[0]; onBack: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null)
   
-  // Close on click outside the content area
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onBack()
+  // Close on click outside or Escape key
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        onBack()
+      }
     }
-  }
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onBack()
+    }
+    
+    // Delay adding listeners to prevent immediate close
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside)
+      document.addEventListener("keydown", handleEscape)
+    }, 100)
+    
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("keydown", handleEscape)
+    }
+  }, [onBack])
 
   return (
     <motion.div
@@ -296,74 +312,52 @@ function JobDetailView({ job, onBack }: { job: (typeof JOBS)[0]; onBack: () => v
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
       className="relative"
-      onClick={handleBackdropClick}
     >
-      {/* Subtle close hint at top */}
-      <motion.button
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        onClick={onBack}
-        className="group mb-8 flex items-center gap-2 text-[var(--text-faint)] transition-colors hover:text-[var(--cream)]"
-      >
-        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-        <span className="text-sm">All roles</span>
-      </motion.button>
-
-      {/* Content card */}
+      {/* Content card - clicking outside this closes */}
       <motion.div
         ref={containerRef}
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="rounded-2xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-8 sm:p-12"
       >
         {/* Header */}
-        <div className="mb-10">
-          <p className="mb-3 font-mono text-xs text-[var(--text-faint)]">
+        <div className="mb-8 border-b border-[var(--stroke)] pb-8">
+          <p className="mb-2 font-mono text-xs text-[var(--text-faint)]">
             {job.period} · {job.location}
           </p>
-          <h2 className="font-serif text-3xl text-[var(--cream)] sm:text-4xl lg:text-5xl">
+          <h2 className="font-serif text-3xl text-[var(--cream)] sm:text-4xl">
             {job.company}
           </h2>
-          <p className="mt-3 text-lg text-[var(--cream-muted)]">{job.role}</p>
-          <div className="mt-6 flex flex-wrap gap-2">
+          <p className="mt-2 text-lg text-[var(--cream-muted)]">{job.role}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
             {job.tech.map((t) => (
               <span key={t} className="rounded-full border border-[var(--stroke)] px-3 py-1 font-mono text-[10px] text-[var(--act-blue)]">{t}</span>
             ))}
           </div>
         </div>
 
-        {/* Content */}
-        <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
-          <div className="space-y-8">
-            <div>
-              <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Context</h3>
-              <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.context}</p>
-            </div>
-            <div>
-              <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">What I Did</h3>
-              <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.contribution}</p>
-            </div>
-          </div>
-          <div className="space-y-8">
-            <div>
-              <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Outcome</h3>
-              <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.outcome}</p>
-            </div>
-            <div>
-              <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Skills</h3>
-              <div className="flex flex-wrap gap-2">
-                {job.deepDive.skills.map((skill) => (
-                  <span key={skill} className="rounded-full border border-[var(--stroke)] px-3 py-1.5 text-sm text-[var(--cream-muted)]">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
+        {/* Flowing narrative - no repetitive headings */}
+        <div className="space-y-6 text-base leading-[1.9] text-[var(--cream-muted)]">
+          <p>{job.deepDive.context}</p>
+          <p>{job.deepDive.contribution}</p>
+          <p className="text-[var(--cream)]">{job.deepDive.outcome}</p>
+        </div>
+
+        {/* Skills as subtle tags at bottom */}
+        <div className="mt-8 flex flex-wrap gap-2 border-t border-[var(--stroke)] pt-6">
+          {job.deepDive.skills.map((skill) => (
+            <span key={skill} className="rounded-full bg-[var(--bg-card)] px-3 py-1.5 text-xs text-[var(--text-dim)]">
+              {skill}
+            </span>
+          ))}
         </div>
       </motion.div>
+      
+      {/* Subtle hint */}
+      <p className="mt-4 text-center text-xs text-[var(--text-faint)]">
+        Click outside or press Esc to close
+      </p>
     </motion.div>
   )
 }
