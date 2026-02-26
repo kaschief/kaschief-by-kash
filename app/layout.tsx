@@ -1,13 +1,19 @@
 import type { Metadata, Viewport } from 'next'
-import { Sora, JetBrains_Mono } from 'next/font/google'
+import { Inter, Playfair_Display, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const sora = Sora({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-sora',
+  variable: '--font-inter',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
+})
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+  weight: ['400', '500', '600'],
 })
 
 const jetBrainsMono = JetBrains_Mono({
@@ -42,14 +48,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${sora.variable} ${jetBrainsMono.variable}`}>
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="font-sans antialiased film-grain">
+    <html lang="en" className={`${inter.variable} ${playfair.variable} ${jetBrainsMono.variable}`}>
+      <body className="font-sans antialiased">
         {children}
         <Analytics />
       </body>
