@@ -6,94 +6,26 @@ import { FadeUp, FadeIn, RevealLine } from "./motion"
 import Image from "next/image"
 
 /* ------------------------------------------------------------------ */
-/*  Tools - organized like Apple spec lists                            */
+/*  Skill capabilities - simple flowing text, not grid boxes           */
 /* ------------------------------------------------------------------ */
 
-const TOOL_SECTIONS = [
-  {
-    category: "Frontend Engineering",
-    items: [
-      { name: "React", note: "Primary framework since 2018" },
-      { name: "Vue", note: "Production experience at Compado & CAPinside" },
-      { name: "TypeScript", note: "Default for all new projects" },
-      { name: "Next.js", note: "Full-stack when needed" },
-    ],
-  },
-  {
-    category: "Testing & Quality",
-    items: [
-      { name: "Playwright", note: "E2E infrastructure I built at DKB" },
-      { name: "Jest", note: "Unit testing patterns and coaching" },
-      { name: "CI/CD", note: "GitHub Actions, pre-deploy verification" },
-    ],
-  },
-  {
-    category: "Specialized",
-    items: [
-      { name: "Pine Script v6", note: "14 indicators, 13.5K lines" },
-      { name: "AI/LLM Workflows", note: "Daily development practice" },
-      { name: "TradingView", note: "Platform and ecosystem" },
-    ],
-  },
-  {
-    category: "Languages",
-    items: [
-      { name: "English", note: "Native" },
-      { name: "French", note: "Conversational" },
-      { name: "Spanish", note: "Conversational" },
-      { name: "German", note: "B2 working proficiency" },
-    ],
-  },
+const CAPABILITIES = [
+  { label: "React", detail: "Primary since 2018" },
+  { label: "Vue", detail: "Compado, CAPinside" },
+  { label: "TypeScript", detail: "Default" },
+  { label: "Next.js", detail: "Full-stack" },
+  { label: "Playwright", detail: "Built at DKB" },
+  { label: "Jest", detail: "Testing patterns" },
+  { label: "Pine Script v6", detail: "14 indicators" },
+  { label: "AI/LLM", detail: "Daily practice" },
 ]
 
-/* ------------------------------------------------------------------ */
-/*  Tool Row Component                                                 */
-/* ------------------------------------------------------------------ */
-
-function ToolRow({ item, index }: { item: { name: string; note: string }; index: number }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-20px" })
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, x: -10 }}
-      animate={inView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.4, delay: index * 0.05 }}
-      className="flex items-baseline justify-between border-b border-[var(--stroke)] py-3 last:border-b-0"
-    >
-      <span className="text-sm text-[var(--cream)]">{item.name}</span>
-      <span className="text-xs text-[var(--text-faint)]">{item.note}</span>
-    </motion.div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Tool Section Component                                             */
-/* ------------------------------------------------------------------ */
-
-function ToolSection({ section, index }: { section: (typeof TOOL_SECTIONS)[0]; index: number }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-40px" })
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-    >
-      <h4 className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--gold)]">
-        {section.category}
-      </h4>
-      <div className="rounded-xl border border-[var(--stroke)] bg-[var(--bg-card)] px-5">
-        {section.items.map((item, i) => (
-          <ToolRow key={item.name} item={item} index={i} />
-        ))}
-      </div>
-    </motion.div>
-  )
-}
+const LANGUAGES = [
+  { lang: "English", level: "Native" },
+  { lang: "French", level: "Conversational" },
+  { lang: "Spanish", level: "Conversational" },
+  { lang: "German", level: "B2" },
+]
 
 /* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
@@ -106,6 +38,8 @@ export function Skills() {
     offset: ["start end", "end start"],
   })
   const glowOpacity = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0, 0.4, 0.4, 0])
+  const capabilitiesRef = useRef<HTMLDivElement>(null)
+  const capabilitiesInView = useInView(capabilitiesRef, { once: true, margin: "-50px" })
 
   return (
     <section id="skills" ref={sectionRef} className="relative px-6 py-24 sm:py-32">
@@ -117,10 +51,25 @@ export function Skills() {
       </motion.div>
 
       <div className="relative z-10 mx-auto max-w-5xl">
-        {/* Header with profile photo */}
-        <div className="mb-16 grid gap-12 lg:grid-cols-2 lg:items-center">
-          {/* Left: Text */}
-          <div>
+        {/* Profile photo + intro text side by side */}
+        <div className="mb-20 grid items-center gap-12 lg:grid-cols-5">
+          {/* Photo - smaller, accent border */}
+          <FadeUp delay={0.1} className="lg:col-span-2">
+            <div className="relative mx-auto aspect-[4/5] w-full max-w-xs overflow-hidden rounded-2xl lg:mx-0">
+              <Image
+                src="/images/kaschief.jpg"
+                alt="Kaschief Johnson"
+                fill
+                className="object-cover object-top"
+                sizes="(max-width: 1024px) 280px, 320px"
+              />
+              {/* Gold accent line on left */}
+              <div className="absolute bottom-0 left-0 top-0 w-1 bg-gradient-to-b from-transparent via-[var(--gold)]/40 to-transparent" />
+            </div>
+          </FadeUp>
+
+          {/* Text */}
+          <div className="lg:col-span-3">
             <FadeIn>
               <div className="mb-4 flex items-center gap-3">
                 <motion.span
@@ -135,7 +84,7 @@ export function Skills() {
             </FadeIn>
             <RevealLine delay={0.1}>
               <h2 className="font-serif text-4xl text-[var(--cream)] sm:text-5xl">
-                What I bring
+                What I Bring
               </h2>
             </RevealLine>
             <FadeUp delay={0.2}>
@@ -145,35 +94,54 @@ export function Skills() {
             </FadeUp>
             <FadeUp delay={0.3}>
               <p className="mt-4 text-sm leading-[1.8] text-[var(--text-dim)]">
-                I{"'"}ve worked in ICU wards, core banking systems, and live financial markets. These are environments where being careless is expensive. My value isn{"'"}t tied to a title — it{"'"}s in the judgment I use to prevent systems from breaking.
+                I{"'"}ve worked in ICU wards, core banking systems, and live financial markets. These are environments where being careless is expensive.
               </p>
             </FadeUp>
           </div>
+        </div>
 
-          {/* Right: Profile photo */}
-          <FadeUp delay={0.3}>
-            <div className="relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-2xl lg:mx-0">
-              <Image
-                src="/images/kaschief.jpg"
-                alt="Kaschief Johnson"
-                fill
-                className="object-cover object-top"
-                sizes="(max-width: 1024px) 100vw, 400px"
-              />
-              {/* Subtle gold border accent */}
-              <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-[var(--gold)]/10" />
+        {/* Capabilities - flowing inline tags, not boxes */}
+        <div ref={capabilitiesRef} className="border-t border-[var(--stroke)] pt-12">
+          <FadeIn>
+            <p className="mb-6 font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[var(--gold)]">
+              Tools
+            </p>
+          </FadeIn>
+          <div className="flex flex-wrap gap-x-8 gap-y-4">
+            {CAPABILITIES.map((cap, i) => (
+              <motion.div
+                key={cap.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={capabilitiesInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.4, delay: i * 0.05 }}
+                className="group"
+              >
+                <span className="text-base text-[var(--cream)] transition-colors group-hover:text-[var(--gold)]">
+                  {cap.label}
+                </span>
+                <span className="ml-2 text-xs text-[var(--text-faint)]">
+                  {cap.detail}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Languages - simple inline */}
+          <FadeUp delay={0.4}>
+            <div className="mt-12 flex flex-wrap items-center gap-6">
+              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[var(--text-faint)]">
+                Languages
+              </span>
+              {LANGUAGES.map((l, i) => (
+                <span key={l.lang} className="text-sm text-[var(--cream-muted)]">
+                  {l.lang}
+                  <span className="ml-1.5 text-xs text-[var(--text-faint)]">{l.level}</span>
+                  {i < LANGUAGES.length - 1 && <span className="ml-6 text-[var(--stroke)]">·</span>}
+                </span>
+              ))}
             </div>
           </FadeUp>
         </div>
-
-        {/* Tools Grid - Apple spec style */}
-        <FadeUp delay={0.4}>
-          <div className="grid gap-8 sm:grid-cols-2">
-            {TOOL_SECTIONS.map((section, i) => (
-              <ToolSection key={section.category} section={section} index={i} />
-            ))}
-          </div>
-        </FadeUp>
       </div>
     </section>
   )
