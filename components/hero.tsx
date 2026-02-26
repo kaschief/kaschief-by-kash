@@ -12,7 +12,12 @@ const STATS = [
   { value: 4, suffix: "", label: "Careers" },
 ]
 
-const ROLES = ["Nurse", "Engineer", "Leader", "Builder"]
+const ROLES = [
+  { label: "Nurse", color: "#E05252" },
+  { label: "Engineer", color: "#5B9EC2" },
+  { label: "Leader", color: "#C9A84C" },
+  { label: "Builder", color: "#5EBB73" },
+]
 
 function AnimatedRoles() {
   const [index, setIndex] = useState(0)
@@ -20,22 +25,21 @@ function AnimatedRoles() {
     const t = setInterval(() => setIndex((i) => (i + 1) % ROLES.length), 2800)
     return () => clearInterval(t)
   }, [])
-  const colors = ["#E05252", "#5B9EC2", "#C9A84C", "#5EBB73"]
   return (
-    <span className="relative inline-block h-[1.15em] w-[5ch] overflow-hidden align-bottom sm:w-[7ch]">
+    <span className="relative inline-flex h-[1.2em] w-[7ch] items-center overflow-hidden">
       {ROLES.map((role, i) => (
         <motion.span
-          key={role}
-          className="absolute inset-0 font-sans font-bold"
-          style={{ color: colors[i] }}
+          key={role.label}
+          className="absolute left-0 font-sans font-bold"
+          style={{ color: role.color }}
           initial={false}
           animate={{
-            y: i === index ? 0 : i < index ? "-110%" : "110%",
+            y: i === index ? 0 : i < index || (index === 0 && i === ROLES.length - 1) ? "-120%" : "120%",
             opacity: i === index ? 1 : 0,
           }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
-          {role}
+          {role.label}
         </motion.span>
       ))}
     </span>
@@ -62,13 +66,13 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0">
         {/* Primary gold glow */}
         <div
-          className="absolute left-1/2 top-[35%] h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-100"
+          className="absolute left-1/2 top-[35%] h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
             background: "radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 65%)",
             animation: "glow-pulse 6s ease-in-out infinite",
           }}
         />
-        {/* Secondary blue glow - left */}
+        {/* Secondary blue glow */}
         <div
           className="absolute left-[15%] bottom-[20%] h-[400px] w-[400px] rounded-full"
           style={{
@@ -76,7 +80,7 @@ export function Hero() {
             animation: "glow-pulse 9s ease-in-out 3s infinite",
           }}
         />
-        {/* Red glow - right */}
+        {/* Red glow */}
         <div
           className="absolute right-[15%] top-[25%] h-[350px] w-[350px] rounded-full"
           style={{
@@ -84,20 +88,7 @@ export function Hero() {
             animation: "glow-pulse 11s ease-in-out 5s infinite",
           }}
         />
-        {/* Horizontal accent lines */}
-        <motion.div
-          className="absolute left-0 right-0 top-[28%] h-px"
-          style={{ background: "linear-gradient(90deg, transparent 5%, rgba(201,168,76,0.04) 50%, transparent 95%)" }}
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 6, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute left-0 right-0 top-[72%] h-px"
-          style={{ background: "linear-gradient(90deg, transparent 10%, rgba(201,168,76,0.03) 50%, transparent 90%)" }}
-          animate={{ opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 8, repeat: Infinity, delay: 2 }}
-        />
-        {/* Subtle grid lines for depth */}
+        {/* Subtle grid */}
         <div
           className="absolute inset-0 opacity-[0.015]"
           style={{
@@ -122,19 +113,17 @@ export function Hero() {
           A Portfolio in Four Acts
         </motion.p>
 
-        {/* Name */}
+        {/* Name - static gold gradient, no shimmer */}
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="font-sans text-[clamp(3rem,8vw,7rem)] font-bold leading-[0.95] tracking-[-0.04em]"
           style={{
-            background: "linear-gradient(135deg, #F0E6D0 0%, #C9A84C 35%, #F0E6D0 55%, #C9A84C 100%)",
-            backgroundSize: "200% 100%",
+            background: "linear-gradient(135deg, #F0E6D0 0%, #C9A84C 50%, #F0E6D0 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
-            animation: "shimmer 8s linear infinite",
           }}
         >
           KASCHIEF
@@ -151,12 +140,12 @@ export function Hero() {
           style={{ background: "linear-gradient(90deg, transparent, #C9A84C, transparent)" }}
         />
 
-        {/* Animated role cycling subtitle */}
+        {/* Role cycling subtitle - properly centered */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.9 }}
-          className="mb-3 flex items-center justify-center gap-2 text-[clamp(1rem,2.5vw,1.35rem)] font-light"
+          className="mb-3 flex items-center justify-center gap-3 text-[clamp(1rem,2.5vw,1.35rem)] font-light"
         >
           <span className="text-[var(--cream-muted)]">Currently a</span>
           <AnimatedRoles />
@@ -182,9 +171,7 @@ export function Hero() {
         className="relative z-10 mt-16 w-full sm:mt-20"
         style={{ y: statsY }}
       >
-        <div
-          className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-6 border-t border-[var(--stroke)] px-6 pt-8 sm:gap-10"
-        >
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-6 border-t border-[var(--stroke)] px-6 pt-8 sm:gap-10">
           {STATS.map((stat) => (
             <div key={stat.label} className="flex flex-col items-center gap-1.5">
               <span className="font-mono text-lg font-semibold text-[var(--gold)] sm:text-xl">
@@ -194,23 +181,6 @@ export function Hero() {
             </div>
           ))}
         </div>
-      </motion.div>
-
-      {/* Scroll cue */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2.2 }}
-        className="absolute bottom-6 left-1/2 -translate-x-1/2"
-      >
-        <motion.div
-          className="flex flex-col items-center gap-2"
-          animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--text-faint)]">Scroll</span>
-          <div className="h-8 w-px bg-gradient-to-b from-[var(--gold)] to-transparent opacity-40" />
-        </motion.div>
       </motion.div>
     </section>
   )
