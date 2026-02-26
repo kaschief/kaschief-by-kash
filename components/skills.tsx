@@ -70,36 +70,31 @@ const TECH = [
 function SkillCard({ skill, index }: { skill: (typeof SKILLS)[0]; index: number }) {
   const Icon = skill.icon
   const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-40px" })
+  const inView = useInView(ref, { once: true, margin: "-30px" })
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 50, scale: 0.95 }}
-      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.7, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative overflow-hidden rounded-xl border border-[#16161E] bg-[#0E0E14] p-6 transition-all duration-500 hover:border-[#ffffff10]"
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative overflow-hidden rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-5 transition-all duration-500 hover:border-[rgba(255,255,255,0.06)]"
     >
       {/* Top accent line */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+      <div className="absolute inset-x-0 top-0 h-px opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{ background: `linear-gradient(90deg, transparent, ${skill.color}, transparent)` }}
       />
       {/* Hover glow */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        style={{ background: `radial-gradient(ellipse at 50% 0%, ${skill.color}08 0%, transparent 70%)` }}
+      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{ background: `radial-gradient(ellipse at 50% 0%, ${skill.color}06 0%, transparent 70%)` }}
       />
 
       <div className="relative z-10">
-        <div
-          className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg"
-          style={{ backgroundColor: `${skill.color}10` }}
-        >
-          <Icon size={18} style={{ color: skill.color }} />
+        <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: `${skill.color}0D` }}>
+          <Icon size={16} style={{ color: skill.color }} />
         </div>
-        <h3 className="mb-2 text-sm font-semibold text-[#F0E6D0]">{skill.name}</h3>
-        <p className="text-xs leading-relaxed text-[#8A8478] transition-colors duration-300 group-hover:text-[#B0A890]">
+        <h3 className="mb-1.5 text-sm font-semibold text-[var(--cream)]">{skill.name}</h3>
+        <p className="text-xs leading-relaxed text-[var(--text-dim)] transition-colors duration-300 group-hover:text-[var(--cream-muted)]">
           {skill.description}
         </p>
       </div>
@@ -113,80 +108,73 @@ export function Skills() {
     target: sectionRef,
     offset: ["start end", "end start"],
   })
-  const glowOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 0.6, 0.6, 0])
+  const glowOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 0.5, 0.5, 0])
 
   return (
-    <section id="skills" ref={sectionRef} className="relative px-6 py-28 sm:py-36">
+    <section id="skills" ref={sectionRef} className="relative px-6 py-20 sm:py-28">
       {/* Atmospheric glow */}
       <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
-        <div
-          className="atmospheric-glow"
-          style={{
-            width: 900, height: 900,
-            top: "30%", left: "50%", transform: "translate(-50%, -50%)",
-            background: "radial-gradient(circle, rgba(201,168,76,0.035) 0%, transparent 60%)",
-          }}
+        <div className="absolute left-1/2 top-[30%] h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(201,168,76,0.03) 0%, transparent 55%)" }}
         />
       </motion.div>
 
       <div className="relative z-10 mx-auto max-w-6xl">
-        {/* Meta-skills */}
-        <div className="mb-16 text-center">
+        {/* Header */}
+        <div className="mb-12 text-center">
           <FadeUp>
-            <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.4em] text-[#8B7A3A]">
+            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.4em] text-[var(--gold-dim)]">
               Core Capabilities
             </p>
           </FadeUp>
           <RevealLine delay={0.1}>
-            <h2
-              className="mb-4 text-4xl text-[#F0E6D0] sm:text-5xl lg:text-6xl"
-              style={{ fontFamily: "var(--font-serif)" }}
-            >
+            <h2 className="mb-3 text-3xl text-[var(--cream)] sm:text-4xl lg:text-5xl" style={{ fontFamily: "var(--font-serif)" }}>
               8 meta-skills, 4 careers
             </h2>
           </RevealLine>
           <FadeUp delay={0.3}>
-            <p className="mx-auto max-w-lg text-sm font-light text-[#8A8478]">
+            <p className="mx-auto max-w-lg text-sm text-[var(--text-dim)]">
               These aren{"'"}t tied to job titles. They{"'"}re capabilities I{"'"}ve built and pressure-tested across every chapter.
             </p>
           </FadeUp>
         </div>
 
-        <div className="mb-28 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Skills grid */}
+        <div className="mb-20 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {SKILLS.map((skill, i) => (
             <SkillCard key={skill.name} skill={skill} index={i} />
           ))}
         </div>
 
+        {/* Divider */}
+        <div className="mx-auto mb-16 h-px max-w-sm" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.12), transparent)" }} />
+
         {/* Tech stack */}
         <FadeUp>
-          <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[#C9A84C]">
+          <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--gold)]">
             Tools & Technologies
           </p>
-          <h3
-            className="mb-14 text-3xl text-[#F0E6D0] sm:text-4xl"
-            style={{ fontFamily: "var(--font-serif)" }}
-          >
+          <h3 className="mb-10 text-2xl text-[var(--cream)] sm:text-3xl" style={{ fontFamily: "var(--font-serif)" }}>
             What I work with
           </h3>
         </FadeUp>
 
-        <StaggerContainer className="flex flex-col gap-8" staggerDelay={0.06}>
+        <StaggerContainer className="flex flex-col gap-6" staggerDelay={0.05}>
           {TECH.map((cat) => (
             <StaggerItem key={cat.category}>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-10">
-                <span className="w-28 shrink-0 font-mono text-[10px] font-medium uppercase tracking-[0.15em] text-[#4A4640]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
+                <span className="w-24 shrink-0 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--text-faint)]">
                   {cat.category}
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {cat.items.map((item) => (
                     <span
                       key={item}
-                      className="group relative overflow-hidden rounded-lg border border-[#16161E] bg-[#0E0E14] px-4 py-2 text-xs text-[#B0A890] transition-all duration-300 hover:border-[#C9A84C33] hover:text-[#F0E6D0]"
+                      className="group relative overflow-hidden rounded-lg border border-[var(--stroke)] bg-[var(--bg-elevated)] px-3.5 py-1.5 text-xs text-[var(--cream-muted)] transition-all duration-300 hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--cream)]"
                     >
                       <span className="relative z-10">{item}</span>
                       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
-                        style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.05), transparent)" }}
+                        style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.04), transparent)" }}
                       />
                     </span>
                   ))}
