@@ -1,11 +1,9 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
-import { motion, AnimatePresence, useInView } from "framer-motion"
-import { X } from "lucide-react"
+import { useState, useRef } from "react"
+import { motion, AnimatePresence, useInView, useMotionValue, useSpring, useTransform } from "framer-motion"
 import { FadeUp } from "./motion"
 import Image from "next/image"
-import { createPortal } from "react-dom"
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
@@ -118,141 +116,172 @@ const GALLERY = [
 ]
 
 /* ------------------------------------------------------------------ */
-/*  Modal for indicator detail                                         */
+/*  Mac Dock-style Indicator Item                                      */
 /* ------------------------------------------------------------------ */
 
-function IndicatorModal({ 
+function DockItem({ 
   indicator, 
-  onClose 
-}: { 
-  indicator: (typeof INDICATORS)[0] | null
-  onClose: () => void 
-}) {
-  const [mounted, setMounted] = useState(false)
-
-  useState(() => {
-    setMounted(true)
-  })
-
-  if (!mounted || !indicator) return null
-
-  return createPortal(
-    <AnimatePresence>
-      {indicator && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[200] bg-[#07070A]/85"
-            style={{ backdropFilter: "blur(16px)" }}
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed left-1/2 top-1/2 z-[201] w-[90vw] max-w-lg -translate-x-1/2 -translate-y-1/2"
-          >
-            <div className="rounded-2xl border border-[rgba(94,187,115,0.2)] bg-[#0B0B0F] p-6 sm:p-8">
-              <button
-                onClick={onClose}
-                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-[var(--stroke)] text-[var(--text-dim)] transition-all hover:text-[var(--cream)]"
-              >
-                <X size={16} />
-              </button>
-
-              <span className="mb-3 inline-block rounded-md bg-[rgba(94,187,115,0.1)] px-2 py-0.5 font-mono text-[9px] font-medium text-[#5EBB73]">
-                {indicator.category}
-              </span>
-
-              <h3 className="mb-2 text-2xl font-bold text-[var(--cream)]">{indicator.name}</h3>
-              <p className="mb-4 font-mono text-xs text-[#5EBB73]">{indicator.lines} lines of Pine Script</p>
-              
-              <p className="mb-4 text-sm leading-relaxed text-[var(--cream-muted)]">{indicator.desc}</p>
-              <p className="text-sm leading-[1.8] text-[var(--text-dim)]">{indicator.detail}</p>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>,
-    document.body
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Bento Grid Item                                                    */
-/* ------------------------------------------------------------------ */
-
-function BentoItem({ 
-  indicator, 
-  onClick,
-  size = "normal"
+  mouseX,
+  onSelect,
+  isSelected
 }: { 
   indicator: (typeof INDICATORS)[0]
-  onClick: () => void
-  size?: "normal" | "large" | "wide"
+  mouseX: ReturnType<typeof useMotionValue<number>>
+  onSelect: () => void
+  isSelected: boolean
 }) {
   const ref = useRef<HTMLButtonElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-30px" })
+  
+  // Calculate distance from mouse for magnification
+  const distance = useTransform(mouseX, (val) => {
+    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 }
+    return val - bounds.x - bounds.width / 2
+  })
+  
+  // Scale based on distance (closer = larger)
+  const scale = useTransform(distance, [-150, 0, 150], [1, 1.25, 1])
+  const springScale = useSpring(scale, { stiffness: 300, damping: 30 })
+  
+  // Y position (lift up when magnified)
+  const y = useTransform(springScale, [1, 1.25], [0, -12])
 
-  const sizeClasses = {
-    normal: "col-span-1 row-span-1",
-    large: "col-span-1 row-span-2 sm:col-span-1",
-    wide: "col-span-1 sm:col-span-2 row-span-1",
+  const categoryColors: Record<string, string> = {
+    ZONES: "#5EBB73",
+    STATS: "#E05252",
+    SWEEPS: "#5B9EC2",
+    SESSIONS: "#C9A84C",
+    TRAPS: "#E05252",
+    RANGE: "#5B9EC2",
   }
+
+  const color = categoryColors[indicator.category] || "#5EBB73"
 
   return (
     <motion.button
       ref={ref}
-      initial={{ opacity: 0, y: 20, scale: 0.97 }}
-      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      onClick={onClick}
-      className={`group relative text-left ${sizeClasses[size]}`}
+      onClick={onSelect}
+      style={{ scale: springScale, y }}
+      className={`group relative shrink-0 transition-all duration-200 ${
+        isSelected ? "z-20" : "z-10"
+      }`}
     >
-      <div className="relative h-full overflow-hidden rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-5 transition-all duration-500 hover:border-[rgba(94,187,115,0.2)] hover:scale-[1.02]">
-        {/* Hover glow effect */}
-        <motion.div
-          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-          style={{
-            background: indicator.importance === "critical" 
-              ? "radial-gradient(ellipse at 50% 50%, rgba(94,187,115,0.08) 0%, transparent 70%)"
-              : "radial-gradient(ellipse at 50% 50%, rgba(94,187,115,0.04) 0%, transparent 70%)"
-          }}
+      <div 
+        className={`relative h-20 w-20 overflow-hidden rounded-2xl border-2 bg-[var(--bg-elevated)] p-2 transition-all duration-300 sm:h-24 sm:w-24 ${
+          isSelected 
+            ? "border-[var(--gold)] shadow-lg shadow-[var(--gold)]/10" 
+            : "border-[var(--stroke)] hover:border-[rgba(255,255,255,0.1)]"
+        }`}
+      >
+        {/* Category color indicator */}
+        <div 
+          className="absolute left-0 right-0 top-0 h-1 rounded-t-xl" 
+          style={{ backgroundColor: color }} 
         />
-
-        <div className="relative z-10 flex h-full flex-col">
-          <div className="mb-3 flex items-start justify-between">
-            <span className="rounded-md bg-[rgba(94,187,115,0.08)] px-2 py-0.5 font-mono text-[8px] font-medium uppercase tracking-wider text-[#5EBB73]">
-              {indicator.category}
-            </span>
-            {indicator.importance === "critical" && (
-              <span className="rounded-full bg-[rgba(94,187,115,0.15)] px-2 py-0.5 font-mono text-[8px] font-semibold text-[#5EBB73]">
-                CORE
-              </span>
-            )}
-          </div>
-
-          <h4 className="mb-1 text-base font-semibold text-[var(--cream)] transition-colors group-hover:text-[#5EBB73]">
-            {indicator.name}
-          </h4>
-          
-          <p className="mb-3 flex-1 text-xs leading-relaxed text-[var(--text-dim)] transition-colors group-hover:text-[var(--cream-muted)]">
-            {indicator.desc}
-          </p>
-
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] text-[#5EBB73]">{indicator.lines} lines</span>
-            <span className="text-[10px] text-[var(--text-faint)] opacity-0 transition-opacity group-hover:opacity-100">
-              Click to explore
-            </span>
-          </div>
+        
+        {/* Icon/Lines count */}
+        <div className="flex h-full flex-col items-center justify-center">
+          <span className="font-mono text-lg font-bold text-[var(--cream)] sm:text-xl">{indicator.lines.replace(",", "")}</span>
+          <span className="font-mono text-[7px] uppercase tracking-wider text-[var(--text-faint)]">lines</span>
         </div>
+
+        {/* Critical badge */}
+        {indicator.importance === "critical" && (
+          <div className="absolute right-1 top-3 h-2 w-2 rounded-full bg-[#E05252] animate-pulse" />
+        )}
+      </div>
+
+      {/* Tooltip on hover */}
+      <div className="pointer-events-none absolute -top-16 left-1/2 z-30 -translate-x-1/2 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="whitespace-nowrap rounded-lg border border-[var(--stroke)] bg-[var(--bg-elevated)] px-3 py-2 text-center shadow-xl">
+          <p className="text-xs font-semibold text-[var(--cream)]">{indicator.name}</p>
+          <p className="mt-0.5 font-mono text-[9px]" style={{ color }}>{indicator.category}</p>
+        </div>
+        <div className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-b border-r border-[var(--stroke)] bg-[var(--bg-elevated)]" />
       </div>
     </motion.button>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Indicator Dock                                                     */
+/* ------------------------------------------------------------------ */
+
+function IndicatorDock({ 
+  onSelect, 
+  selected 
+}: { 
+  onSelect: (indicator: (typeof INDICATORS)[0] | null) => void
+  selected: (typeof INDICATORS)[0] | null
+}) {
+  const mouseX = useMotionValue(Infinity)
+  const dockRef = useRef<HTMLDivElement>(null)
+
+  return (
+    <motion.div
+      ref={dockRef}
+      onMouseMove={(e) => mouseX.set(e.pageX)}
+      onMouseLeave={() => mouseX.set(Infinity)}
+      className="flex items-end justify-start gap-3 overflow-x-auto px-6 pb-4 scrollbar-hide lg:justify-center lg:px-0"
+      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+    >
+      {INDICATORS.map((indicator) => (
+        <DockItem
+          key={indicator.name}
+          indicator={indicator}
+          mouseX={mouseX}
+          onSelect={() => onSelect(selected?.name === indicator.name ? null : indicator)}
+          isSelected={selected?.name === indicator.name}
+        />
+      ))}
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Selected Indicator Detail Panel                                    */
+/* ------------------------------------------------------------------ */
+
+function IndicatorDetail({ indicator }: { indicator: (typeof INDICATORS)[0] }) {
+  const categoryColors: Record<string, string> = {
+    ZONES: "#5EBB73",
+    STATS: "#E05252",
+    SWEEPS: "#5B9EC2",
+    SESSIONS: "#C9A84C",
+    TRAPS: "#E05252",
+    RANGE: "#5B9EC2",
+  }
+
+  const color = categoryColors[indicator.category] || "#5EBB73"
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -10, scale: 0.98 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="mx-auto mt-8 max-w-2xl rounded-2xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-6 sm:p-8"
+    >
+      <div className="flex items-start justify-between">
+        <div>
+          <span 
+            className="inline-block rounded-md px-2 py-0.5 font-mono text-[9px] font-medium uppercase tracking-wider"
+            style={{ backgroundColor: `${color}15`, color }}
+          >
+            {indicator.category}
+          </span>
+          <h4 className="mt-3 text-2xl font-bold text-[var(--cream)]">{indicator.name}</h4>
+          <p className="mt-1 font-mono text-xs" style={{ color }}>{indicator.lines} lines of Pine Script</p>
+        </div>
+        {indicator.importance === "critical" && (
+          <span className="rounded-full border border-[#E05252]/30 bg-[#E05252]/10 px-3 py-1 font-mono text-[9px] font-semibold text-[#E05252]">
+            CORE
+          </span>
+        )}
+      </div>
+
+      <p className="mt-6 text-sm leading-relaxed text-[var(--cream-muted)]">{indicator.desc}</p>
+      <p className="mt-4 text-sm leading-[1.8] text-[var(--text-dim)]">{indicator.detail}</p>
+    </motion.div>
   )
 }
 
@@ -344,14 +373,7 @@ function GalleryReel() {
 /* ------------------------------------------------------------------ */
 
 export function TradingArsenal() {
-  const [selectedIndicator, setSelectedIndicator] = useState<(typeof INDICATORS)[0] | null>(null)
-
-  const handleClose = useCallback(() => setSelectedIndicator(null), [])
-
-  // Split indicators into bento layout
-  const criticalIndicators = INDICATORS.filter(i => i.importance === "critical")
-  const highIndicators = INDICATORS.filter(i => i.importance === "high")
-  const mediumIndicators = INDICATORS.filter(i => i.importance === "medium")
+  const [selected, setSelected] = useState<(typeof INDICATORS)[0] | null>(null)
 
   return (
     <section className="relative px-6 py-16 sm:py-24">
@@ -365,49 +387,29 @@ export function TradingArsenal() {
             14 indicators. 13,500 lines. Zero duplicated logic.
           </h3>
           <p className="mb-10 max-w-xl text-sm leading-relaxed text-[var(--text-dim)]">
-            Each indicator is a self-contained piece of engineering. Click any to explore what it does and why it matters.
+            Each indicator is a self-contained piece of engineering. Hover to preview, click to explore.
           </p>
         </FadeUp>
 
         {/* Visual preview */}
-        <div className="mb-12">
+        <div className="mb-16">
           <GalleryReel />
         </div>
 
-        {/* Bento grid - dynamic sizes based on importance */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Critical indicators get prominence */}
-          {criticalIndicators.map((ind) => (
-            <BentoItem
-              key={ind.name}
-              indicator={ind}
-              onClick={() => setSelectedIndicator(ind)}
-              size="wide"
-            />
-          ))}
-          {/* High importance */}
-          {highIndicators.map((ind) => (
-            <BentoItem
-              key={ind.name}
-              indicator={ind}
-              onClick={() => setSelectedIndicator(ind)}
-              size="normal"
-            />
-          ))}
-          {/* Medium importance */}
-          {mediumIndicators.map((ind) => (
-            <BentoItem
-              key={ind.name}
-              indicator={ind}
-              onClick={() => setSelectedIndicator(ind)}
-              size="normal"
-            />
-          ))}
-        </div>
-      </div>
+        {/* Dock-style indicator selector */}
+        <FadeUp delay={0.2}>
+          <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--bg-elevated)]/50 p-4 backdrop-blur-sm">
+            <IndicatorDock onSelect={setSelected} selected={selected} />
+          </div>
+        </FadeUp>
 
-      {/* Modal */}
-      <IndicatorModal indicator={selectedIndicator} onClose={handleClose} />
+        {/* Selected indicator detail */}
+        <AnimatePresence mode="wait">
+          {selected && (
+            <IndicatorDetail key={selected.name} indicator={selected} />
+          )}
+        </AnimatePresence>
+      </div>
     </section>
   )
 }
