@@ -173,7 +173,7 @@ function ActHeader({
 
         {/* Title */}
         <RevealLine>
-          <h3 className="text-4xl font-bold tracking-[-0.03em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
+          <h3 className="font-serif text-4xl font-normal tracking-[-0.02em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
             {title}
           </h3>
         </RevealLine>
@@ -250,90 +250,120 @@ function JobRow({ job, onSelect }: { job: (typeof JOBS)[0]; onSelect: () => void
   return (
     <motion.button
       ref={ref}
-      initial={{ opacity: 0 }}
-      animate={inView ? { opacity: 1 } : {}}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5 }}
       onClick={onSelect}
-      className="group flex w-full items-baseline justify-between border-b border-[var(--stroke)] py-6 text-left transition-colors hover:border-[var(--gold-dim)]"
+      className="group flex w-full flex-col gap-3 border-b border-[var(--stroke)] py-8 text-left transition-colors hover:border-[var(--gold-dim)] sm:flex-row sm:items-start sm:justify-between"
     >
-      <div>
-        <h4 className="font-serif text-2xl text-[var(--cream)] transition-colors group-hover:text-[var(--gold)] sm:text-3xl">
-          {job.company}
-        </h4>
-        <p className="mt-1 font-mono text-xs text-[var(--text-faint)]">
-          {job.period} · {job.role}
+      <div className="flex-1">
+        <div className="flex items-baseline gap-4">
+          <h4 className="font-serif text-2xl text-[var(--cream)] transition-colors group-hover:text-[var(--gold)] sm:text-3xl">
+            {job.company}
+          </h4>
+          <span className="hidden font-mono text-xs text-[var(--text-faint)] sm:inline">
+            {job.period}
+          </span>
+        </div>
+        <p className="mt-2 text-sm text-[var(--cream-muted)]">
+          {job.role}
+        </p>
+        <p className="mt-1 text-sm text-[var(--text-dim)]">
+          {job.summary}
         </p>
       </div>
-      <span className="font-mono text-xs text-[var(--text-faint)] opacity-0 transition-opacity group-hover:opacity-100">
-        View →
+      <span className="shrink-0 font-mono text-xs text-[var(--text-faint)] transition-all group-hover:text-[var(--gold)] group-hover:translate-x-1 sm:mt-2">
+        Read more
       </span>
     </motion.button>
   )
 }
 
 function JobDetailView({ job, onBack }: { job: (typeof JOBS)[0]; onBack: () => void }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  
+  // Close on click outside the content area
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onBack()
+    }
+  }
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="py-12"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="relative"
+      onClick={handleBackdropClick}
     >
-      {/* Back button */}
-      <button
+      {/* Subtle close hint at top */}
+      <motion.button
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
         onClick={onBack}
-        className="mb-12 flex items-center gap-2 font-mono text-xs text-[var(--text-faint)] transition-colors hover:text-[var(--gold)]"
+        className="group mb-8 flex items-center gap-2 text-[var(--text-faint)] transition-colors hover:text-[var(--cream)]"
       >
-        <ArrowLeft size={14} />
-        Back to timeline
-      </button>
+        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+        <span className="text-sm">All roles</span>
+      </motion.button>
 
-      {/* Header */}
-      <div className="mb-12 border-b border-[var(--stroke)] pb-8">
-        <p className="mb-3 font-mono text-xs text-[var(--text-faint)]">
-          {job.period} · {job.location}
-        </p>
-        <h2 className="font-serif text-4xl text-[var(--cream)] sm:text-5xl lg:text-6xl">
-          {job.company}
-        </h2>
-        <p className="mt-3 text-lg text-[var(--cream-muted)]">{job.role}</p>
-        <div className="mt-6 flex flex-wrap gap-2">
-          {job.tech.map((t) => (
-            <span key={t} className="rounded-md border border-[var(--stroke)] px-3 py-1 font-mono text-[10px] text-[var(--act-blue)]">{t}</span>
-          ))}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-        <div className="space-y-8">
-          <div>
-            <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Context</h3>
-            <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.context}</p>
-          </div>
-          <div>
-            <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">What I Did</h3>
-            <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.contribution}</p>
+      {/* Content card */}
+      <motion.div
+        ref={containerRef}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+        className="rounded-2xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-8 sm:p-12"
+      >
+        {/* Header */}
+        <div className="mb-10">
+          <p className="mb-3 font-mono text-xs text-[var(--text-faint)]">
+            {job.period} · {job.location}
+          </p>
+          <h2 className="font-serif text-3xl text-[var(--cream)] sm:text-4xl lg:text-5xl">
+            {job.company}
+          </h2>
+          <p className="mt-3 text-lg text-[var(--cream-muted)]">{job.role}</p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {job.tech.map((t) => (
+              <span key={t} className="rounded-full border border-[var(--stroke)] px-3 py-1 font-mono text-[10px] text-[var(--act-blue)]">{t}</span>
+            ))}
           </div>
         </div>
-        <div className="space-y-8">
-          <div>
-            <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Outcome</h3>
-            <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.outcome}</p>
+
+        {/* Content */}
+        <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
+          <div className="space-y-8">
+            <div>
+              <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Context</h3>
+              <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.context}</p>
+            </div>
+            <div>
+              <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">What I Did</h3>
+              <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.contribution}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Skills Demonstrated</h3>
-            <div className="flex flex-wrap gap-2">
-              {job.deepDive.skills.map((skill) => (
-                <span key={skill} className="rounded-lg border border-[var(--stroke)] bg-[var(--bg-elevated)] px-3 py-1.5 text-sm text-[var(--cream-muted)]">
-                  {skill}
-                </span>
-              ))}
+          <div className="space-y-8">
+            <div>
+              <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Outcome</h3>
+              <p className="text-base leading-[1.8] text-[var(--cream-muted)]">{job.deepDive.outcome}</p>
+            </div>
+            <div>
+              <h3 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--act-blue)]">Skills</h3>
+              <div className="flex flex-wrap gap-2">
+                {job.deepDive.skills.map((skill) => (
+                  <span key={skill} className="rounded-full border border-[var(--stroke)] px-3 py-1.5 text-sm text-[var(--cream-muted)]">
+                    {skill}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   )
 }
@@ -380,7 +410,7 @@ function ActII() {
                 </div>
               </FadeIn>
               <RevealLine>
-                <h3 className="text-4xl font-bold tracking-[-0.03em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
+                <h3 className="font-serif text-4xl font-normal tracking-[-0.02em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
                   The Engineer
                 </h3>
               </RevealLine>
@@ -426,48 +456,37 @@ function StoryCard({ story, isActive, onClick }: {
     <motion.button
       onClick={onClick}
       className="group relative shrink-0 text-left"
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.2 }}
     >
       <div 
-        className={`relative h-[280px] w-[260px] overflow-hidden rounded-2xl border bg-[var(--bg-elevated)] p-6 transition-all duration-300 sm:h-[320px] sm:w-[300px] ${
-          isActive ? "border-[var(--gold)]" : "border-[var(--stroke)] hover:border-[rgba(255,255,255,0.08)]"
+        className={`relative w-[280px] overflow-hidden rounded-2xl border bg-[var(--bg-elevated)] p-6 transition-all duration-300 sm:w-[320px] ${
+          isActive ? "border-[var(--gold)] ring-1 ring-[var(--gold)]" : "border-[var(--stroke)] hover:border-[rgba(255,255,255,0.1)]"
         }`}
       >
-        {/* Top accent */}
-        <div className="absolute left-0 right-0 top-0 h-1" style={{ backgroundColor: story.color }} />
-        
         {/* Tag */}
         <span
-          className="inline-block rounded-md px-2 py-0.5 font-mono text-[9px] font-medium uppercase tracking-wider"
-          style={{ backgroundColor: `${story.color}15`, color: story.color }}
+          className="inline-block rounded-full px-2.5 py-0.5 font-mono text-[9px] font-medium uppercase tracking-wider"
+          style={{ backgroundColor: `${story.color}12`, color: story.color }}
         >
           {story.tag}
         </span>
         
         {/* Title */}
-        <h4 className="mt-4 text-base font-semibold leading-snug text-[var(--cream)] sm:text-lg">
+        <h4 className="mt-4 text-base font-medium leading-snug text-[var(--cream)]">
           {story.title}
         </h4>
         
-        {/* Preview text */}
-        <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-[var(--text-dim)]">
+        {/* Full text - show it all, no hiding */}
+        <p className="mt-3 text-sm leading-[1.7] text-[var(--text-dim)]">
           {story.text}
         </p>
-        
-        {/* Read indicator */}
-        <div className="absolute bottom-6 left-6 right-6">
-          <span className="font-mono text-[10px] text-[var(--text-faint)] opacity-0 transition-opacity group-hover:opacity-100">
-            Click to read full story
-          </span>
-        </div>
       </div>
     </motion.button>
   )
 }
 
 function ActIII() {
-  const [activeStory, setActiveStory] = useState<(typeof MGMT_STORIES)[0] | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const ref = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
@@ -499,13 +518,13 @@ function ActIII() {
             </div>
           </FadeIn>
           <RevealLine>
-            <h3 className="text-4xl font-bold tracking-[-0.03em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
+            <h3 className="font-serif text-4xl font-normal tracking-[-0.02em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
               The Leader
             </h3>
           </RevealLine>
           <FadeUp delay={0.2}>
             <p className="mt-4 font-mono text-xs text-[var(--text-faint)]">
-              2022 - 2024 · Berlin, Germany
+              2022 - 2024 · Berlin
             </p>
           </FadeUp>
           <FadeUp delay={0.3}>
@@ -515,68 +534,32 @@ function ActIII() {
           </FadeUp>
         </div>
 
-        {/* Horizontal scroll carousel */}
+        {/* Horizontal scroll carousel - stories show full text, no expansion needed */}
         <FadeUp delay={0.4}>
           <div className="mt-12">
             <div 
               ref={scrollRef}
-              className="flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide sm:gap-6 lg:px-[calc((100vw-64rem)/2+1.5rem)]"
+              className="flex gap-4 overflow-x-auto px-6 pb-4 sm:gap-6 lg:px-[calc((100vw-64rem)/2+1.5rem)]"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {MGMT_STORIES.map((story) => (
                 <StoryCard 
                   key={story.id} 
                   story={story} 
-                  isActive={activeStory?.id === story.id}
-                  onClick={() => setActiveStory(activeStory?.id === story.id ? null : story)}
+                  isActive={false}
+                  onClick={() => {}}
                 />
               ))}
             </div>
           </div>
         </FadeUp>
 
-        {/* Expanded story view */}
-        <AnimatePresence>
-          {activeStory && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="mx-auto max-w-3xl px-6 py-12">
-                <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-8">
-                  <span
-                    className="inline-block rounded-md px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-wider"
-                    style={{ backgroundColor: `${activeStory.color}15`, color: activeStory.color }}
-                  >
-                    {activeStory.tag}
-                  </span>
-                  <h4 className="mt-4 text-xl font-semibold text-[var(--cream)] sm:text-2xl">
-                    {activeStory.title}
-                  </h4>
-                  <p className="mt-6 text-base leading-[1.9] text-[var(--cream-muted)]">
-                    {activeStory.text}
-                  </p>
-                  <button
-                    onClick={() => setActiveStory(null)}
-                    className="mt-8 font-mono text-xs text-[var(--text-faint)] transition-colors hover:text-[var(--gold)]"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Takeaway */}
         <div className="mx-auto max-w-5xl px-6">
           <FadeUp delay={0.5}>
             <div className="mt-12 border-l-2 border-[rgba(201,168,76,0.3)] py-2 pl-6">
               <p className="text-sm italic leading-relaxed text-[var(--cream-muted)]">
-                Management isn{"'"}t about being in charge. It{"'"}s about creating the conditions where other people can do their best work. Every story here is about removing friction, not adding process.
+                Management isn{"'"}t about being in charge. It{"'"}s about creating the conditions where other people can do their best work.
               </p>
             </div>
           </FadeUp>
