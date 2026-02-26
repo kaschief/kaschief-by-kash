@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
 import { FadeUp, FadeIn, RevealLine, ScaleOnScroll, StaggerContainer, StaggerItem, Counter } from "./motion"
 import Image from "next/image"
@@ -93,40 +93,35 @@ const ENG_PATTERNS = [
 ]
 
 /* ------------------------------------------------------------------ */
-/*  Evasion-style Gallery Item                                         */
+/*  Gallery Card                                                       */
 /* ------------------------------------------------------------------ */
 
 function GalleryCard({ item, index }: { item: (typeof GALLERY)[0]; index: number }) {
   const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-40px" })
+  const inView = useInView(ref, { once: true, margin: "-30px" })
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 40, scale: 0.95 }}
+      initial={{ opacity: 0, y: 30, scale: 0.97 }}
       animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.7, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.6, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
       className="group shrink-0"
     >
-      <div className="relative w-[480px] overflow-hidden rounded-xl border border-[#16161E] transition-all duration-500 hover:border-[#C9A84C33]">
-        {/* Glow on hover */}
-        <div
-          className="pointer-events-none absolute inset-0 z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-          style={{
-            background: "radial-gradient(ellipse at center, rgba(201,168,76,0.05) 0%, transparent 70%)",
-          }}
+      <div className="relative w-[420px] overflow-hidden rounded-xl border border-[var(--stroke)] transition-all duration-500 hover:border-[rgba(201,168,76,0.15)]">
+        <div className="pointer-events-none absolute inset-0 z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{ background: "radial-gradient(ellipse at center, rgba(201,168,76,0.04) 0%, transparent 70%)" }}
         />
         <Image
           src={item.src}
           alt={item.label}
-          width={960}
-          height={540}
+          width={840}
+          height={472}
           className="w-full transition-transform duration-700 group-hover:scale-[1.03]"
         />
-        {/* Bottom overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#07070A]/90 to-transparent p-5 pt-10">
-          <p className="font-sans text-sm font-semibold text-[#F0E6D0]">{item.label}</p>
-          <p className="mt-0.5 font-mono text-[10px] text-[#8A8478]">{item.desc}</p>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#07070A]/90 to-transparent p-4 pt-8">
+          <p className="text-sm font-semibold text-[var(--cream)]">{item.label}</p>
+          <p className="mt-0.5 font-mono text-[10px] text-[var(--text-dim)]">{item.desc}</p>
         </div>
       </div>
     </motion.div>
@@ -149,103 +144,93 @@ export function TradingSystem() {
   const bgGlowOpacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0])
 
   return (
-    <section id="trading" ref={sectionRef} className="relative py-24 sm:py-32">
-      {/* Full-section green atmospheric glow */}
-      <motion.div
-        className="pointer-events-none absolute inset-0"
-        style={{ opacity: bgGlowOpacity }}
-      >
+    <section id="trading" ref={sectionRef} className="relative py-20 sm:py-28">
+      {/* Full-section atmospheric glow */}
+      <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: bgGlowOpacity }}>
         <div
-          className="atmospheric-glow"
-          style={{
-            width: 1200, height: 1200,
-            top: "30%", left: "50%", transform: "translate(-50%, -50%)",
-            background: "radial-gradient(circle, rgba(94,187,115,0.04) 0%, transparent 60%)",
-          }}
+          className="absolute left-1/2 top-[30%] h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(94,187,115,0.035) 0%, transparent 55%)" }}
         />
       </motion.div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-6">
-        {/* Act IV header */}
-        <div className="mb-20">
+        {/* ------------------------------------------------------------ */}
+        {/*  Act IV header                                                */}
+        {/* ------------------------------------------------------------ */}
+        <div className="mb-16">
           <FadeIn>
-            <div className="mb-6 flex items-center gap-3">
+            <div className="mb-5 flex items-center gap-3">
               <motion.span
                 className="inline-block h-2 w-2 rounded-full bg-[#5EBB73]"
-                animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
-                transition={{ duration: 2.5, repeat: Infinity }}
+                animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 3, repeat: Infinity }}
               />
               <span className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#5EBB73]">
                 ACT IV
               </span>
-              <span className="h-px w-8 bg-[#16161E]" />
-              <span className="font-mono text-[11px] text-[#4A4640]">2024 &mdash; Present</span>
+              <span className="h-px w-6 bg-[var(--stroke)]" />
+              <span className="font-mono text-[10px] text-[var(--text-faint)]">2024 &mdash; Present &middot; Self-Employed, Berlin</span>
             </div>
           </FadeIn>
 
           <RevealLine>
-            <h2 className="text-5xl font-bold tracking-[-0.03em] text-[#F0E6D0] sm:text-6xl lg:text-7xl">
+            <h2 className="text-4xl font-bold tracking-[-0.03em] text-[var(--cream)] sm:text-5xl lg:text-6xl">
               THE BUILD
             </h2>
           </RevealLine>
 
-          <FadeUp delay={0.3}>
-            <p className="mt-2 text-xs text-[#8A8478]">Self-Employed, Berlin</p>
-          </FadeUp>
+          <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:gap-16">
+            <FadeUp delay={0.3} className="lg:w-2/5">
+              <p className="text-lg text-[var(--cream-muted)]" style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.5 }}>
+                {"\u201CI built a production system alone, with real money on the line, and shipped it.\u201D"}
+              </p>
+              {/* Quick stats */}
+              <div className="mt-6 flex flex-wrap gap-6">
+                {[
+                  { value: 14, suffix: "", label: "Indicators" },
+                  { value: 13, suffix: ".5K", label: "Lines Pine Script" },
+                  { value: 60, suffix: "%+", label: "Win Rate" },
+                  { value: 50, suffix: "K", label: "Funded" },
+                ].map((s) => (
+                  <div key={s.label} className="flex flex-col gap-0.5">
+                    <span className="font-mono text-lg font-semibold text-[#5EBB73]">
+                      <Counter value={s.value} suffix={s.suffix} />
+                    </span>
+                    <span className="text-[9px] uppercase tracking-wider text-[var(--text-faint)]">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            </FadeUp>
 
-          <FadeUp delay={0.4}>
-            <p
-              className="mt-6 max-w-xl text-lg text-[#B0A890]"
-              style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.5 }}
-            >
-              {"\u201CI built a production system alone, with real money on the line, and shipped it.\u201D"}
-            </p>
-          </FadeUp>
-
-          <FadeUp delay={0.5}>
-            <p className="mt-6 max-w-2xl text-sm font-light leading-relaxed text-[#B0A890]" style={{ lineHeight: 1.9 }}>
-              An algorithmic futures trading system. 14 custom indicators. 13,500 lines of Pine Script v6, all from scratch. No libraries, no wrappers. AI-assisted development as a daily workflow. Managing $50K funded accounts with 60%+ win rate. The market gives feedback instantly, and it doesn{"'"}t care about your feelings.
-            </p>
-          </FadeUp>
-
-          {/* Quick stats */}
-          <FadeUp delay={0.6}>
-            <div className="mt-10 flex flex-wrap gap-8">
-              {[
-                { value: 14, suffix: "", label: "Indicators" },
-                { value: 13, suffix: ".5K", label: "Lines Pine Script" },
-                { value: 60, suffix: "%+", label: "Win Rate" },
-                { value: 50, suffix: "K", label: "Funded" },
-              ].map((s) => (
-                <div key={s.label} className="flex flex-col">
-                  <span className="font-mono text-2xl font-semibold text-[#5EBB73]">
-                    <Counter value={s.value} suffix={s.suffix} />
-                  </span>
-                  <span className="mt-1 text-[10px] uppercase tracking-widest text-[#4A4640]">{s.label}</span>
-                </div>
-              ))}
-            </div>
-          </FadeUp>
+            <FadeUp delay={0.4} className="lg:w-3/5">
+              <p className="text-sm leading-[1.9] text-[var(--cream-muted)]">
+                An algorithmic futures trading system. 14 custom indicators. 13,500 lines of Pine Script v6, all from scratch. No libraries, no wrappers. AI-assisted development as a daily workflow.
+              </p>
+              <p className="mt-3 text-sm leading-[1.9] text-[var(--text-dim)]">
+                Managing $50K funded accounts with 60%+ win rate. The market gives feedback instantly, and it doesn{"'"}t care about your feelings.
+              </p>
+            </FadeUp>
+          </div>
         </div>
 
         {/* ------------------------------------------------------------ */}
         {/*  Layering Section                                             */}
         {/* ------------------------------------------------------------ */}
-        <div className="mb-28">
+        <div className="mb-20">
           <FadeUp>
-            <div className="mb-8">
-              <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[#C9A84C]">
+            <div className="mb-6">
+              <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--gold)]">
                 The Layering Concept
               </p>
-              <p className="max-w-lg text-sm font-light text-[#8A8478]">
+              <p className="max-w-lg text-sm text-[var(--text-dim)]">
                 Raw price action is noise. Each layer reveals structure that was always there.
               </p>
             </div>
           </FadeUp>
 
-          {/* Layer selector - numbered steps */}
+          {/* Layer selector */}
           <FadeUp delay={0.1}>
-            <div className="mb-10 flex items-center gap-1">
+            <div className="mb-6 flex flex-wrap items-center gap-1">
               {LAYERS.map((layer, i) => (
                 <button
                   key={layer.id}
@@ -253,21 +238,18 @@ export function TradingSystem() {
                   className="group relative flex items-center"
                 >
                   <div
-                    className="flex h-10 items-center gap-2 rounded-lg px-4 font-mono text-xs transition-all duration-300"
+                    className="flex h-9 items-center gap-1.5 rounded-lg px-3 font-mono text-[11px] transition-all duration-300"
                     style={{
                       backgroundColor: activeLayer === i ? "#C9A84C" : activeLayer > i ? "#16161E" : "#0E0E14",
                       color: activeLayer === i ? "#07070A" : activeLayer > i ? "#5EBB73" : "#4A4640",
                       fontWeight: activeLayer === i ? 600 : 400,
                     }}
                   >
-                    <span className="text-[10px]">{layer.shortLabel}</span>
+                    <span className="text-[9px]">{layer.shortLabel}</span>
                     <span className="hidden sm:inline">{layer.label}</span>
                   </div>
                   {i < LAYERS.length - 1 && (
-                    <div
-                      className="mx-0.5 h-px w-3 transition-colors duration-300"
-                      style={{ backgroundColor: i < activeLayer ? "#5EBB7340" : "#16161E" }}
-                    />
+                    <div className="mx-0.5 h-px w-2" style={{ backgroundColor: i < activeLayer ? "#5EBB7340" : "#16161E" }} />
                   )}
                 </button>
               ))}
@@ -276,7 +258,7 @@ export function TradingSystem() {
 
           {/* Split screen: image + text */}
           <ScaleOnScroll>
-            <div className="overflow-hidden rounded-2xl border border-[#16161E] bg-[#0A0A0F]">
+            <div className="overflow-hidden rounded-xl border border-[var(--stroke)] bg-[#0A0A0F]">
               <div className="flex flex-col lg:flex-row">
                 {/* Image area */}
                 <div className="relative lg:w-2/3">
@@ -286,16 +268,8 @@ export function TradingSystem() {
                       initial={{ opacity: 0, scale: 1.02 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.98 }}
-                      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                      className="relative"
+                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      {/* Glow overlay on image matching layer progress */}
-                      <div
-                        className="pointer-events-none absolute inset-0 z-10"
-                        style={{
-                          background: `radial-gradient(ellipse at 50% 50%, ${activeLayer > 3 ? "rgba(94,187,115,0.04)" : "rgba(201,168,76,0.03)"} 0%, transparent 70%)`,
-                        }}
-                      />
                       <Image
                         src={LAYERS[activeLayer].image}
                         alt={`Trading chart: ${LAYERS[activeLayer].label}`}
@@ -309,38 +283,40 @@ export function TradingSystem() {
                 </div>
 
                 {/* Text panel */}
-                <div className="flex flex-col justify-center border-t border-[#16161E] p-8 lg:w-1/3 lg:border-t-0 lg:border-l">
+                <div className="flex flex-col justify-center border-t border-[var(--stroke)] p-6 lg:w-1/3 lg:border-l lg:border-t-0">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeLayer}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.35 }}
                     >
-                      <span className="mb-3 block font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[#5EBB73]">
+                      <span className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[#5EBB73]">
                         Layer {activeLayer + 1} of {LAYERS.length}
                       </span>
-                      <h4 className="mb-4 text-xl font-bold text-[#F0E6D0]">{LAYERS[activeLayer].label}</h4>
-                      <p className="text-sm leading-relaxed font-light text-[#B0A890]" style={{ lineHeight: 1.8 }}>
+                      <h4 className="mb-3 text-lg font-bold text-[var(--cream)]">{LAYERS[activeLayer].label}</h4>
+                      <p className="text-sm leading-[1.8] text-[var(--cream-muted)]">
                         {LAYERS[activeLayer].text}
                       </p>
                     </motion.div>
                   </AnimatePresence>
 
                   {/* Navigation arrows */}
-                  <div className="mt-8 flex gap-2">
+                  <div className="mt-6 flex gap-2">
                     <button
                       onClick={() => setActiveLayer(Math.max(0, activeLayer - 1))}
                       disabled={activeLayer === 0}
-                      className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#16161E] text-[#8A8478] transition-all hover:border-[#C9A84C33] hover:text-[#C9A84C] disabled:opacity-30"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--stroke)] text-[var(--text-dim)] transition-all hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--gold)] disabled:opacity-25"
+                      aria-label="Previous layer"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
                     <button
                       onClick={() => setActiveLayer(Math.min(LAYERS.length - 1, activeLayer + 1))}
                       disabled={activeLayer === LAYERS.length - 1}
-                      className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#16161E] text-[#8A8478] transition-all hover:border-[#C9A84C33] hover:text-[#C9A84C] disabled:opacity-30"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--stroke)] text-[var(--text-dim)] transition-all hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--gold)] disabled:opacity-25"
+                      aria-label="Next layer"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                     </button>
@@ -352,21 +328,21 @@ export function TradingSystem() {
         </div>
 
         {/* ------------------------------------------------------------ */}
-        {/*  Evasion-Style Gallery                                        */}
+        {/*  Gallery                                                      */}
         {/* ------------------------------------------------------------ */}
-        <div className="mb-28">
+        <div className="mb-20">
           <FadeUp>
-            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[#C9A84C]">
+            <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--gold)]">
               Indicator Showcase
             </p>
-            <p className="mb-8 max-w-lg text-sm font-light text-[#8A8478]">
+            <p className="mb-6 max-w-lg text-sm text-[var(--text-dim)]">
               Each indicator is a self-contained piece of engineering. Scroll through the full collection.
             </p>
           </FadeUp>
 
           <div
             ref={galleryRef}
-            className="-mx-6 flex gap-5 overflow-x-auto px-6 pb-6"
+            className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-4"
             style={{ scrollbarWidth: "none" }}
           >
             {GALLERY.map((img, i) => (
@@ -378,28 +354,27 @@ export function TradingSystem() {
         {/* ------------------------------------------------------------ */}
         {/*  Indicator Grid                                               */}
         {/* ------------------------------------------------------------ */}
-        <div className="mb-28">
+        <div className="mb-20">
           <FadeUp>
-            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[#C9A84C]">
+            <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--gold)]">
               The Arsenal
             </p>
-            <p className="mb-10 text-sm font-light text-[#8A8478]">14 indicators. Zero duplicated detection logic.</p>
+            <p className="mb-8 text-sm text-[var(--text-dim)]">14 indicators. Zero duplicated detection logic.</p>
           </FadeUp>
 
           <StaggerContainer className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" staggerDelay={0.04}>
             {INDICATORS.map((ind) => (
               <StaggerItem key={ind.name}>
-                <div className="group relative overflow-hidden rounded-xl border border-[#16161E] bg-[#0E0E14] p-6 transition-all duration-400 hover:border-[#C9A84C22]">
-                  {/* Hover glow */}
+                <div className="group relative overflow-hidden rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)] p-5 transition-all duration-400 hover:border-[rgba(201,168,76,0.12)]">
                   <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-400 group-hover:opacity-100"
-                    style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.04) 0%, transparent 70%)" }}
+                    style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.03) 0%, transparent 70%)" }}
                   />
                   <div className="relative z-10">
-                    <div className="mb-3 flex items-baseline justify-between">
-                      <span className="text-sm font-semibold text-[#F0E6D0]">{ind.name}</span>
+                    <div className="mb-2 flex items-baseline justify-between">
+                      <span className="text-sm font-semibold text-[var(--cream)]">{ind.name}</span>
                       <span className="font-mono text-[10px] text-[#5EBB73]">{ind.lines} lines</span>
                     </div>
-                    <p className="text-xs leading-relaxed text-[#8A8478] transition-colors group-hover:text-[#B0A890]">
+                    <p className="text-xs leading-relaxed text-[var(--text-dim)] transition-colors group-hover:text-[var(--cream-muted)]">
                       {ind.desc}
                     </p>
                   </div>
@@ -414,20 +389,20 @@ export function TradingSystem() {
         {/* ------------------------------------------------------------ */}
         <div>
           <FadeUp>
-            <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[#C9A84C]">
+            <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--gold)]">
               Engineering Philosophy
             </p>
-            <p className="mb-10 text-sm font-light text-[#8A8478]">
+            <p className="mb-8 text-sm text-[var(--text-dim)]">
               Patterns that keep 13,500 lines maintainable and fast.
             </p>
           </FadeUp>
 
-          <StaggerContainer className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" staggerDelay={0.04}>
+          <StaggerContainer className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" staggerDelay={0.04}>
             {ENG_PATTERNS.map((pat) => (
               <StaggerItem key={pat.title}>
-                <div className="rounded-xl border border-[#16161E] bg-[#07070A] p-6">
-                  <span className="mb-3 block font-mono text-xs font-semibold text-[#C9A84C]">{pat.title}</span>
-                  <p className="text-xs leading-relaxed text-[#8A8478]">{pat.desc}</p>
+                <div className="rounded-xl border border-[var(--stroke)] bg-[var(--bg)] p-5">
+                  <span className="mb-2 block font-mono text-xs font-semibold text-[var(--gold)]">{pat.title}</span>
+                  <p className="text-xs leading-relaxed text-[var(--text-dim)]">{pat.desc}</p>
                 </div>
               </StaggerItem>
             ))}

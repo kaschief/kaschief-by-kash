@@ -13,76 +13,60 @@ export function Philosophy() {
   const lineWidth = useTransform(scrollYProgress, [0.1, 0.5], ["0%", "100%"])
 
   return (
-    <section ref={ref} className="relative overflow-hidden px-6 py-32 sm:py-44">
+    <section ref={ref} className="relative overflow-hidden px-6 py-20 sm:py-28">
       {/* Ambient background */}
-      <div
-        className="atmospheric-glow"
-        style={{
-          width: 700, height: 700,
-          top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-          background: "radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 60%)",
-        }}
+      <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(201,168,76,0.03) 0%, transparent 55%)" }}
       />
 
-      <div className="relative z-10 mx-auto max-w-4xl">
+      <div className="relative z-10 mx-auto max-w-3xl">
         <FadeIn>
-          <span
-            className="mb-6 block text-7xl leading-none text-[#C9A84C] sm:text-8xl"
-            style={{ fontFamily: "var(--font-serif)" }}
-          >
+          <span className="mb-4 block text-6xl leading-none text-[var(--gold)] sm:text-7xl" style={{ fontFamily: "var(--font-serif)" }}>
             {"\u201C"}
           </span>
         </FadeIn>
 
-        <RevealLine delay={0.15}>
-          <blockquote
-            className="text-2xl leading-snug text-[#F0E6D0] sm:text-4xl lg:text-5xl"
-            style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.3 }}
-          >
-            Water can be a river.
-          </blockquote>
-        </RevealLine>
+        <div className="flex flex-col gap-0">
+          <RevealLine delay={0.1}>
+            <blockquote className="text-xl leading-snug text-[var(--cream)] sm:text-3xl lg:text-4xl"
+              style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.35 }}>
+              Water can be a river.
+            </blockquote>
+          </RevealLine>
 
-        <RevealLine delay={0.3}>
-          <blockquote
-            className="text-2xl leading-snug text-[#F0E6D0] sm:text-4xl lg:text-5xl"
-            style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.3 }}
-          >
-            It can be ice. It can be the ocean.
-          </blockquote>
-        </RevealLine>
+          <RevealLine delay={0.2}>
+            <blockquote className="text-xl leading-snug text-[var(--cream)] sm:text-3xl lg:text-4xl"
+              style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.35 }}>
+              It can be ice. It can be the ocean.
+            </blockquote>
+          </RevealLine>
 
-        <RevealLine delay={0.45}>
-          <blockquote
-            className="mt-2 text-2xl leading-snug text-[#B0A890] sm:text-4xl lg:text-5xl"
-            style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.3 }}
-          >
-            My skills don{"'"}t belong to any one title.
-          </blockquote>
-        </RevealLine>
+          <RevealLine delay={0.35}>
+            <blockquote className="mt-2 text-xl leading-snug text-[var(--cream-muted)] sm:text-3xl lg:text-4xl"
+              style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.35 }}>
+              My skills don{"'"}t belong to any one title.
+            </blockquote>
+          </RevealLine>
 
-        <RevealLine delay={0.6}>
-          <blockquote
-            className="text-2xl leading-snug text-[#B0A890] sm:text-4xl lg:text-5xl"
-            style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.3 }}
-          >
-            They adapt to whatever container
-          </blockquote>
-        </RevealLine>
+          <RevealLine delay={0.45}>
+            <blockquote className="text-xl leading-snug text-[var(--cream-muted)] sm:text-3xl lg:text-4xl"
+              style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.35 }}>
+              They adapt to whatever container
+            </blockquote>
+          </RevealLine>
 
-        <RevealLine delay={0.75}>
-          <blockquote
-            className="text-2xl leading-snug text-[#8A8478] sm:text-4xl lg:text-5xl"
-            style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.3 }}
-          >
-            the work demands.
-          </blockquote>
-        </RevealLine>
+          <RevealLine delay={0.55}>
+            <blockquote className="text-xl leading-snug text-[var(--text-dim)] sm:text-3xl lg:text-4xl"
+              style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", lineHeight: 1.35 }}>
+              the work demands.
+            </blockquote>
+          </RevealLine>
+        </div>
 
         {/* Animated underline */}
         <motion.div
-          className="mt-10 h-px bg-[#C9A84C]"
-          style={{ width: lineWidth, opacity: 0.3 }}
+          className="mt-8 h-px bg-[var(--gold)]"
+          style={{ width: lineWidth, opacity: 0.25 }}
         />
       </div>
     </section>
