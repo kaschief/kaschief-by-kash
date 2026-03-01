@@ -3,6 +3,7 @@
 import { useRef } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { RevealLine, FadeIn } from "./motion"
+import { SectionGlow } from "./ui/section-glow"
 
 export function Philosophy() {
   const ref = useRef<HTMLDivElement>(null)
@@ -14,12 +15,9 @@ export function Philosophy() {
 
   return (
     <section ref={ref} className="relative overflow-hidden px-6 py-20 sm:py-28">
-      {/* Ambient background */}
-      <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(201,168,76,0.03) 0%, transparent 55%)" }}
-      />
+      <SectionGlow color="var(--act-gold)" size="sm" />
 
-      <div className="relative z-10 mx-auto max-w-3xl">
+      <div className="relative z-10 mx-auto max-w-5xl">
         <FadeIn>
           <span className="mb-4 block text-6xl leading-none text-[var(--gold)] sm:text-7xl" style={{ fontFamily: "var(--font-serif)" }}>
             {"\u201C"}
