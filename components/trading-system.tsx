@@ -1,244 +1,56 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import { motion, AnimatePresence, useInView } from "framer-motion"
 import { FadeUp, FadeIn } from "./motion"
+import { DetailModal, ModalCloseButton } from "./ui/detail-modal"
+import { MonoLabel } from "./ui/mono-label"
+import { INDICATORS, PROGRESSION, CATEGORIES, type Indicator } from "@/data/trading"
 import Image from "next/image"
-
-/* ------------------------------------------------------------------ */
-/*  Indicators with images - organized by category                     */
-/* ------------------------------------------------------------------ */
-
-const INDICATORS = [
-  {
-    name: "MBZ Core",
-    category: "Liquidity",
-    color: "#5B9EC2",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mbz-core-uM9NWDZi4KLZqvVvT0dqRSIKkSNfJV.png",
-    desc: "5 gap types as tradable zones",
-    lines: "1,400",
-  },
-  {
-    name: "SIF Core",
-    category: "Liquidity",
-    color: "#5B9EC2",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/sif-core-WckR4OEaHZE5H43lLswpXo6kCxOvhp.png",
-    desc: "Institutional trap detection",
-    lines: "950",
-  },
-  {
-    name: "Gaps",
-    category: "Liquidity",
-    color: "#5B9EC2",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/gaps-EgRvSfB3NJhPW14tPVbJH1GZBIQZFA.png",
-    desc: "NWOG, NDOG, RTH mapping",
-    lines: "1,890",
-  },
-  {
-    name: "Pulse",
-    category: "Liquidity",
-    color: "#5B9EC2",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/pulse-l6NqVxnL6oPDYNdDpbqchMJTXYTANM.png",
-    desc: "Multi-timeframe sweep levels",
-    lines: "1,200",
-  },
-  {
-    name: "HTF Algo",
-    category: "Liquidity",
-    color: "#5B9EC2",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/htf-algo-WV3WYNaBTqSF8kpxzUgUQxIAn5EjbY.png",
-    desc: "Higher timeframe liquidity levels",
-    lines: "780",
-  },
-  {
-    name: "LTF Algo",
-    category: "Liquidity",
-    color: "#5B9EC2",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ltf-algo-RoIY3SkuFP9bEaRSCO6Xni65DkVJTb.png",
-    desc: "Execution tool for entries",
-    lines: "650",
-  },
-  {
-    name: "DTT Weekly",
-    category: "Session",
-    color: "#C9A84C",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dtt-weekly-cHXKyAwK6Sg4fI1HHlfGhNRgqualNj.png",
-    desc: "4 named sessions with Fibonacci",
-    lines: "1,100",
-  },
-  {
-    name: "DTT Intraday",
-    category: "Session",
-    color: "#C9A84C",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dtt-intraday-2ldNORG9f0rmjvGmqXPKg0cR5JxFgP.png",
-    desc: "15-session model with IQR",
-    lines: "1,350",
-  },
-  {
-    name: "Deviations",
-    category: "Range",
-    color: "#5EBB73",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/deviations-close-sn7E1oBJX36F3N3UkDiE9ea9fb1RxZ.png",
-    desc: "Statistical session expansion using IQR",
-    lines: "890",
-  },
-  {
-    name: "ADR",
-    category: "Range",
-    color: "#5EBB73",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/adr-K5HcqKaW2wZOjwCt5WY6BQR6h8PzZB.png",
-    desc: "Average Daily Range with ceiling/floor",
-    lines: "420",
-  },
-  {
-    name: "MBZ Prime",
-    category: "Range",
-    color: "#5EBB73",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mbz-prime-Yyp04JDi4e2bwQ7xZI0Y95AJkwbAEU.png",
-    desc: "Session liquidity pools aggregated",
-    lines: "1,050",
-  },
-  {
-    name: "MBZ Relay",
-    category: "Range",
-    color: "#5EBB73",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/mbz-relay-4hYhKT2dJzLJWz5jTrcRLz6oZPNrFV.png",
-    desc: "Auto HTF pairing and zone broadcasting",
-    lines: "520",
-  },
-]
-
-const CATEGORIES = ["Liquidity", "Session", "Range"]
-
-/* ------------------------------------------------------------------ */
-/*  Progression - shows evolution from naked to full stack             */
-/* ------------------------------------------------------------------ */
-
-const PROGRESSION = [
-  { 
-    step: "01", 
-    title: "Naked Price",
-    desc: "Where everyone starts. Candlesticks tell a story, but not enough of one.",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked-VMuu7dsvaVlzWtw8lmDMmS7mVX17V2.png",
-  },
-  { 
-    step: "02", 
-    title: "+ Statistical Context",
-    desc: "Deviations show where price is relative to session norms.",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/deviations-close-sn7E1oBJX36F3N3UkDiE9ea9fb1RxZ.png",
-  },
-  { 
-    step: "03", 
-    title: "+ Session Structure",
-    desc: "DTT adds the weekly rhythm. Different sessions behave differently.",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dtt-weekly-cHXKyAwK6Sg4fI1HHlfGhNRgqualNj.png",
-  },
-  { 
-    step: "04", 
-    title: "+ Full Stack",
-    desc: "Zones, sweeps, traps — the complete picture.",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/naked%2Bpulse-0VIC5O2b1WbouOo8CZIitJgVU7KDqG.png",
-  },
-]
 
 /* ------------------------------------------------------------------ */
 /*  Indicator Detail Modal                                             */
 /* ------------------------------------------------------------------ */
 
-function IndicatorDetail({ 
-  indicator, 
-  onClose 
-}: { 
-  indicator: (typeof INDICATORS)[0]
-  onClose: () => void 
+function IndicatorDetail({
+  indicator,
+  onClose
+}: {
+  indicator: Indicator
+  onClose: () => void
 }) {
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        onClose()
-      }
-    }
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
-    }
-    
-    const timer = setTimeout(() => {
-      document.addEventListener("mousedown", handleClickOutside)
-      document.addEventListener("keydown", handleEscape)
-    }, 100)
-    
-    return () => {
-      clearTimeout(timer)
-      document.removeEventListener("mousedown", handleClickOutside)
-      document.removeEventListener("keydown", handleEscape)
-    }
-  }, [onClose])
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-deep)]/80 p-6 backdrop-blur-sm"
-    >
-      <motion.div
-        ref={containerRef}
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="relative max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-[var(--stroke)] bg-[var(--bg-elevated)]"
-      >
-        {/* Large image */}
-        <div className="relative aspect-video w-full">
-          <Image
-            src={indicator.image}
-            alt={indicator.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 800px"
+    <DetailModal variant="overlay" color={indicator.color} onClose={onClose}>
+      <div className="relative aspect-video w-full">
+        <Image
+          src={indicator.image}
+          alt={indicator.name}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 800px"
+        />
+      </div>
+      <div className="p-6">
+        <div className="flex items-center gap-3">
+          <span
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ backgroundColor: indicator.color }}
           />
+          <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]">
+            {indicator.category}
+          </span>
         </div>
-        
-        {/* Info */}
-        <div className="p-6">
-          <div className="flex items-center gap-3">
-            <span 
-              className="h-2.5 w-2.5 rounded-full"
-              style={{ backgroundColor: indicator.color }}
-            />
-            <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]">
-              {indicator.category}
-            </span>
-          </div>
-          <h3 className="mt-3 font-serif text-2xl text-[var(--cream)]">
-            {indicator.name}
-          </h3>
-          <p className="mt-3 text-base leading-relaxed text-[var(--cream-muted)]">
-            {indicator.desc}
-          </p>
-          <p className="mt-2 font-mono text-xs text-[var(--gold)]">
-            {indicator.lines} lines
-          </p>
-        </div>
-      </motion.div>
-
-      {/* Floating X below - bare gold */}
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        onClick={onClose}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
-        aria-label="Close"
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M6 6l12 12M18 6L6 18" />
-        </svg>
-      </motion.button>
-    </motion.div>
+        <h3 className="mt-3 font-serif text-2xl text-[var(--cream)]">
+          {indicator.name}
+        </h3>
+        <p className="mt-3 text-base leading-relaxed text-[var(--cream-muted)]">
+          {indicator.desc}
+        </p>
+        <p className="mt-2 font-mono text-xs" style={{ color: indicator.color }}>
+          {indicator.lines} lines
+        </p>
+      </div>
+    </DetailModal>
   )
 }
 
@@ -247,7 +59,7 @@ function IndicatorDetail({
 /* ------------------------------------------------------------------ */
 
 export function TradingArsenal() {
-  const [selectedIndicator, setSelectedIndicator] = useState<(typeof INDICATORS)[0] | null>(null)
+  const [selectedIndicator, setSelectedIndicator] = useState<Indicator | null>(null)
   const [activeCategory, setActiveCategory] = useState("Liquidity")
   const [activeProgression, setActiveProgression] = useState(0)
   const [lightboxImage, setLightboxImage] = useState<string | null>(null)
@@ -261,12 +73,10 @@ export function TradingArsenal() {
     <div className="relative pb-24">
       <div className="mx-auto max-w-5xl px-6">
         {/* Visual nesting under Act IV */}
-        <div className="border-l-2 border-[#5EBB73]/20 pl-8 sm:pl-12">
+        <div className="border-l-2 border-[var(--act-green)]/20 pl-8 sm:pl-12">
           {/* Sub-section header */}
           <FadeUp>
-            <p className="mb-2 font-mono text-[9px] font-medium uppercase tracking-[0.3em] text-[#5EBB73]/60">
-              The Arsenal
-            </p>
+            <MonoLabel label="The Arsenal" color="var(--act-green)" className="mb-2 opacity-60" />
             <h4 className="mb-3 font-serif text-2xl text-[var(--cream)] sm:text-3xl">
               The Tools I Built
             </h4>
@@ -278,9 +88,7 @@ export function TradingArsenal() {
           {/* Progression - clickable to enlarge */}
           <div ref={progressionRef} className="mb-20">
             <FadeIn>
-              <p className="mb-6 font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-[#5EBB73]">
-                The Progression
-              </p>
+              <MonoLabel label="The Progression" color="var(--act-green)" className="mb-6" />
             </FadeIn>
 
             <div className="grid gap-6 lg:grid-cols-2">
@@ -293,17 +101,21 @@ export function TradingArsenal() {
                     animate={progressionInView ? { opacity: 1, x: 0 } : {}}
                     transition={{ duration: 0.4, delay: i * 0.1 }}
                     onClick={() => setActiveProgression(i)}
-                    className={`group w-full cursor-pointer text-left transition-all duration-300 ${
-                      activeProgression === i 
-                        ? "rounded-lg border border-[#5EBB73]/30 bg-[var(--bg-elevated)] p-4" 
-                        : "rounded-lg border border-transparent p-4 hover:bg-[var(--bg-card)]"
+                    style={{
+                      borderColor: activeProgression === i
+                        ? "color-mix(in srgb, var(--act-green) 30%, transparent)"
+                        : "transparent",
+                    }}
+                    className={`group w-full cursor-pointer rounded-lg border p-4 text-left transition-all duration-300 ${
+                      activeProgression === i
+                        ? "bg-[var(--bg-elevated)]"
+                        : "hover:bg-[var(--bg-elevated)]"
                     }`}
                   >
                     <div className="flex items-start gap-4">
-                      <span 
-                        className={`shrink-0 font-mono text-xs transition-colors ${
-                          activeProgression === i ? "text-[#5EBB73]" : "text-[var(--text-faint)]"
-                        }`}
+                      <span
+                        className="shrink-0 font-mono text-xs transition-colors"
+                        style={{ color: activeProgression === i ? "var(--act-green)" : "var(--text-faint)" }}
                       >
                         {step.step}
                       </span>
@@ -328,7 +140,7 @@ export function TradingArsenal() {
                 animate={progressionInView ? { opacity: 1 } : {}}
                 transition={{ duration: 0.5, delay: 0.3 }}
                 onClick={() => setLightboxImage(PROGRESSION[activeProgression].image)}
-                className="group relative aspect-[16/10] w-full cursor-pointer overflow-hidden rounded-xl border border-[var(--stroke)] transition-all hover:border-[var(--gold)]/30"
+                className="group relative aspect-[16/10] w-full cursor-pointer overflow-hidden rounded-xl border border-[var(--stroke)] transition-all hover:border-[var(--act-green)]/30"
               >
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -349,7 +161,7 @@ export function TradingArsenal() {
                   </motion.div>
                 </AnimatePresence>
                 {/* Expand hint */}
-                <div className="absolute bottom-3 right-3 rounded-full bg-[var(--bg-deep)]/70 px-2 py-1 text-[10px] text-[var(--text-faint)] opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute bottom-3 right-3 rounded-full bg-[var(--bg)]/70 px-2 py-1 text-[10px] text-[var(--text-faint)] opacity-0 transition-opacity group-hover:opacity-100">
                   Click to expand
                 </div>
               </motion.button>
@@ -366,14 +178,15 @@ export function TradingArsenal() {
           </FadeUp>
 
           {/* Category Tabs */}
-          <div className="mb-6 flex gap-6 border-b border-[#16161E]">
+          <div className="mb-6 flex gap-6 border-b border-[var(--stroke)]">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
+                style={activeCategory === cat ? { borderColor: "var(--act-green)" } : undefined}
                 className={`cursor-pointer pb-3 font-mono text-xs uppercase tracking-wider transition-colors ${
-                  activeCategory === cat 
-                    ? "border-b-2 border-[var(--gold)] text-[var(--cream)]" 
+                  activeCategory === cat
+                    ? "border-b-2 text-[var(--cream)]"
                     : "text-[var(--text-faint)] hover:text-[var(--cream-muted)]"
                 }`}
               >
@@ -400,7 +213,7 @@ export function TradingArsenal() {
                   className="group w-64 shrink-0 cursor-pointer text-left"
                 >
                   {/* Image card - no border */}
-                  <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[var(--bg-card)] transition-all">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[var(--bg-elevated)] transition-all">
                     <Image
                       src={indicator.image}
                       alt={indicator.name}
@@ -412,13 +225,13 @@ export function TradingArsenal() {
                   
                   {/* Info below */}
                   <div className="mt-3">
-                    <h5 className="text-sm font-medium text-[var(--cream)] transition-colors group-hover:text-[var(--gold)]">
+                    <h5 className="text-sm font-medium text-[var(--cream)] transition-colors group-hover:text-[var(--act-green)]">
                       {indicator.name}
                     </h5>
                     <p className="mt-1 text-xs text-[var(--text-dim)]">
                       {indicator.desc}
                     </p>
-                    <p className="mt-1 font-mono text-[10px] text-[var(--gold)]">
+                    <p className="mt-1 font-mono text-[10px]" style={{ color: indicator.color }}>
                       {indicator.lines} lines
                     </p>
                   </div>
@@ -446,7 +259,7 @@ export function TradingArsenal() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-[var(--bg-deep)]/90 p-6 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-[var(--bg)]/90 p-6 backdrop-blur-sm"
             onClick={() => setLightboxImage(null)}
           >
             <motion.div
@@ -463,18 +276,10 @@ export function TradingArsenal() {
                 className="h-auto max-h-[85vh] w-auto rounded-lg object-contain"
               />
             </motion.div>
-            {/* Floating X */}
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer text-[var(--gold)] transition-colors hover:text-[var(--cream)]"
-              aria-label="Close"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M6 6l12 12M18 6L6 18" />
-              </svg>
-            </motion.button>
+            <ModalCloseButton
+              onClose={() => setLightboxImage(null)}
+              className="absolute bottom-8 left-1/2 -translate-x-1/2"
+            />
           </motion.div>
         )}
       </AnimatePresence>

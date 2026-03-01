@@ -3,6 +3,27 @@
 import { motion, useInView, useScroll, useTransform } from "framer-motion"
 import { useRef, useEffect, useState, type ReactNode } from "react"
 
+/* ------------------------------------------------------------------ */
+/*  Animation constants — single source of truth                       */
+/* ------------------------------------------------------------------ */
+
+export const EASE = [0.22, 1, 0.36, 1] as const
+
+export const TRANSITION = {
+  snap:    { duration: 0.15, ease: "easeOut" as const }, // backdrop / near-instant covers
+  fast:    { duration: 0.25, ease: EASE },
+  base:    { duration: 0.45, ease: EASE },
+  slow:    { duration: 0.7,  ease: EASE },
+  page:    { duration: 0.9,  ease: EASE },
+} as const
+
+/** String form for use in CSS `transition` properties */
+export const CSS_EASE = "cubic-bezier(0.22, 1, 0.36, 1)"
+
+/* ------------------------------------------------------------------ */
+/*  Components                                                          */
+/* ------------------------------------------------------------------ */
+
 export function FadeUp({
   children,
   delay = 0,
@@ -22,7 +43,7 @@ export function FadeUp({
       ref={ref}
       initial={{ opacity: 0, y: distance }}
       animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: distance }}
-      transition={{ duration: 0.9, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ ...TRANSITION.page, delay }}
       className={className}
     >
       {children}
@@ -47,7 +68,7 @@ export function FadeIn({
       ref={ref}
       initial={{ opacity: 0 }}
       animate={inView ? { opacity: 1 } : { opacity: 0 }}
-      transition={{ duration: 1.0, delay, ease: "easeOut" }}
+      transition={{ duration: TRANSITION.page.duration, delay, ease: "easeOut" }}
       className={className}
     >
       {children}
@@ -75,7 +96,7 @@ export function RevealLine({
       <motion.div
         initial={{ y: "110%" }}
         animate={inView ? { y: 0 } : { y: "110%" }}
-        transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ ...TRANSITION.page, delay }}
       >
         {children}
       </motion.div>
@@ -159,18 +180,20 @@ export function StaggerContainer({
 export function StaggerItem({
   children,
   className = "",
+  distance = 40,
 }: {
   children: ReactNode
   className?: string
+  distance?: number
 }) {
   return (
     <motion.div
       variants={{
-        hidden: { opacity: 0, y: 40 },
+        hidden: { opacity: 0, y: distance },
         visible: {
           opacity: 1,
           y: 0,
-          transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+          transition: TRANSITION.slow,
         },
       }}
       className={className}
@@ -210,7 +233,6 @@ export function Counter({ value, suffix = "" }: { value: number; suffix?: string
     </span>
   )
 }
-
 
 
 export { motion, useScroll, useTransform, useInView }

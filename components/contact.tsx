@@ -4,6 +4,7 @@ import { useRef } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { FadeUp, RevealLine, FadeIn } from "./motion"
 import { Mail, ArrowUpRight } from "lucide-react"
+import { PERSONAL } from "@/data/site"
 
 export function Contact() {
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -55,7 +56,7 @@ export function Contact() {
         <FadeUp delay={0.5}>
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
-              href="mailto:kaschiefj@gmail.com"
+              href={`mailto:${PERSONAL.email}`}
               className="group relative inline-flex cursor-pointer items-center gap-2 overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold text-[var(--bg)] transition-all duration-300"
               style={{ background: "linear-gradient(135deg, #C9A84C, #A8893D)" }}
             >
@@ -63,10 +64,10 @@ export function Contact() {
                 style={{ background: "linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%)", backgroundSize: "200% 100%", animation: "shimmer 2s linear infinite" }}
               />
               <Mail size={14} className="relative z-10" />
-              <span className="relative z-10">kaschiefj@gmail.com</span>
+              <span className="relative z-10">{PERSONAL.email}</span>
             </a>
             <a
-              href="https://linkedin.com/in/kaschief-johnson"
+              href={PERSONAL.linkedin}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--stroke)] px-6 py-3 text-sm font-medium text-[var(--cream-muted)] transition-all duration-300 hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--cream)]"
@@ -74,7 +75,7 @@ export function Contact() {
               LinkedIn <ArrowUpRight size={14} />
             </a>
             <a
-              href="https://github.com/kaschief/kash-indicators"
+              href={PERSONAL.github}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--stroke)] px-6 py-3 text-sm font-medium text-[var(--cream-muted)] transition-all duration-300 hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--cream)]"
@@ -86,7 +87,7 @@ export function Contact() {
 
         <FadeUp delay={0.7}>
           <p className="mt-12 text-xs text-[var(--text-faint)]">
-            +49 176 204 19325 &middot; Berlin, Germany
+            {PERSONAL.phone} &middot; {PERSONAL.location}
           </p>
         </FadeUp>
 
