@@ -6,7 +6,7 @@ import { Menu, X } from "lucide-react"
 import { NAV_LINKS, ROLES, PERSONAL } from "@/data/site"
 import { TRANSITION } from "@/components/motion"
 
-const SECTION_IDS = ["act-nurse", "act-engineer", "act-leader", "act-builder", "skills", "contact"]
+const SECTION_IDS = ["act-nurse", "act-engineer", "act-leader", "act-builder", "philosophy", "capabilities", "contact"] as const
 
 const ACT_NAV = ROLES.map((r) => ({
   label: r.label,
@@ -48,11 +48,30 @@ export function Navigation() {
     return () => { document.body.style.overflow = "" }
   }, [mobileOpen])
 
+  // Handle browser back/forward — scroll to the section in the URL hash
+  useEffect(() => {
+    const handlePop = () => {
+      const hash = window.location.hash
+      if (!hash) return
+      const id = hash.slice(1)
+      const el = document.getElementById(id)
+      if (!el) return
+      setActiveSection(id)
+      const top = el.getBoundingClientRect().top + window.scrollY - 80
+      window.scrollTo({ top, behavior: "smooth" })
+    }
+    window.addEventListener("popstate", handlePop)
+    return () => window.removeEventListener("popstate", handlePop)
+  }, [])
+
   const scrollTo = (href: string) => {
     setMobileOpen(false)
     const id = href.replace("#", "")
     const el = document.getElementById(id)
     if (!el) return
+
+    // Push to browser history so back button returns here
+    history.pushState(null, "", href)
 
     // Set active immediately — suppress scroll-based detection until scroll settles
     setActiveSection(id)
@@ -62,7 +81,7 @@ export function Navigation() {
       suppressScrollRef.current = false
     }, 1200)
 
-    const offset = 80
+    const offset = id === "capabilities" ? 0 : 80
     const top = el.getBoundingClientRect().top + window.scrollY - offset
     window.scrollTo({ top, behavior: "smooth" })
   }
@@ -80,7 +99,10 @@ export function Navigation() {
         >
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
             <button
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              onClick={() => {
+                history.pushState(null, "", "/")
+                window.scrollTo({ top: 0, behavior: "smooth" })
+              }}
               className="cursor-pointer font-serif text-2xl italic text-[var(--gold)] transition-opacity hover:opacity-70"
             >
               {PERSONAL.initials}

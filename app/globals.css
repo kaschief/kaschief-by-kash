@@ -42,6 +42,9 @@
   --act-blue: #5B9EC2;
   --act-gold: #C9A84C;
   --act-green: #5EBB73;
+
+  --cursor-highlight: #F5E080;
+  --cursor-shadow: #5C4015;
 }
 
 @theme inline {
@@ -84,6 +87,11 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Custom cursor — hide the system cursor sitewide */
+html, body, *, *::before, *::after {
+  cursor: none !important;
 }
 
 
@@ -133,5 +141,6 @@ html {
   filter: blur(120px);
   pointer-events: none;
 }
+
 
 

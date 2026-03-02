@@ -38,6 +38,11 @@ export interface Stat {
   label: string
 }
 
+export interface SkillRef {
+  id: string
+  label: string
+}
+
 export interface ActContent {
   act: string
   title: string
@@ -50,6 +55,7 @@ export interface ActContent {
   takeawaySerif?: boolean
   stats: Stat[]
   statsColor?: string
+  skills: SkillRef[]
 }
 
 export interface NurseFeature {
@@ -67,6 +73,7 @@ export interface ActINurseContent {
   intro: string
   detail: string
   features: NurseFeature[]
+  skills: SkillRef[]
 }
 
 /* ------------------------------------------------------------------ */
@@ -94,6 +101,13 @@ export const ACT_I: ActINurseContent = {
       label: "Systems Thinking",
       text: "The human body is the original complex system. Every intervention has downstream effects. You learn to think in feedback loops.",
     },
+  ],
+  skills: [
+    { id: "s1", label: "Systems Thinking" },
+    { id: "s2", label: "Crisis Communication" },
+    { id: "s3", label: "High-Stakes Decisions" },
+    { id: "s4", label: "Precision Under Pressure" },
+    { id: "s5", label: "Cross-Domain Translation" },
   ],
 }
 
@@ -200,6 +214,18 @@ export const ACT_II: ActContent = {
     { value: "50%", label: "Faster load times" },
     { value: "10K+", label: "Financial advisors" },
   ],
+  skills: [
+    { id: "s6",  label: "React" },
+    { id: "s7",  label: "TypeScript" },
+    { id: "s8",  label: "Vue" },
+    { id: "s9",  label: "Next.js" },
+    { id: "s10", label: "Performance Optimization" },
+    { id: "s11", label: "A/B Testing" },
+    { id: "s12", label: "Playwright" },
+    { id: "s13", label: "E2E Testing" },
+    { id: "s14", label: "Fintech" },
+    { id: "s15", label: "Agile Delivery" },
+  ],
 }
 
 /* ------------------------------------------------------------------ */
@@ -280,6 +306,16 @@ export const ACT_III: ActContent = {
     { value: "-30%", label: "Bug reduction" },
     { value: "Weekly", label: "Release cadence" },
   ],
+  skills: [
+    { id: "s16", label: "Engineering Management" },
+    { id: "s17", label: "Team Building" },
+    { id: "s18", label: "Technical Mentoring" },
+    { id: "s19", label: "Process Design" },
+    { id: "s20", label: "Stakeholder Communication" },
+    { id: "s21", label: "Hiring" },
+    { id: "s22", label: "Culture Protection" },
+    { id: "s23", label: "Roadmapping" },
+  ],
 }
 
 /* ------------------------------------------------------------------ */
@@ -301,5 +337,14 @@ export const ACT_IV: ActContent = {
     { value: "14", label: "Custom indicators" },
     { value: "13.5K", label: "Lines of Pine Script" },
     { value: "Live", label: "Funded accounts" },
+  ],
+  skills: [
+    { id: "s24", label: "Pine Script v6" },
+    { id: "s25", label: "Systems Architecture" },
+    { id: "s26", label: "AI/LLM Workflows" },
+    { id: "s27", label: "Risk Engineering" },
+    { id: "s28", label: "Solo Delivery" },
+    { id: "s29", label: "Algorithmic Trading" },
+    { id: "s30", label: "Statistical Analysis" },
   ],
 }

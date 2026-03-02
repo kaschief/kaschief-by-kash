@@ -372,10 +372,9 @@ function CaseStudyCard({
 }
 
 function ActIII() {
-  const [selectedStory, setSelectedStory] = useState<ManagementStory | null>(
-    null,
-  );
-  const [showCaseStudies, setShowCaseStudies] = useState(false);
+  const [selectedStory, setSelectedStory] = useState<ManagementStory | null>(null)
+  const [showCaseStudies, setShowCaseStudies] = useState(false)
+  const [caseStudiesHovered, setCaseStudiesHovered] = useState(false)
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -395,8 +394,10 @@ function ActIII() {
         <ActSectionContent {...ACT_III}>
           <button
             onClick={() => setShowCaseStudies(!showCaseStudies)}
-            style={{ color: ACT_III.color }}
-            className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-xs uppercase tracking-wider transition-colors hover:text-[var(--cream)]">
+            onMouseEnter={() => setCaseStudiesHovered(true)}
+            onMouseLeave={() => setCaseStudiesHovered(false)}
+            style={{ color: caseStudiesHovered ? "var(--cream)" : ACT_III.color }}
+            className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-xs uppercase tracking-wider transition-colors">
             <ChevronDown
               size={12}
               className={`transition-transform duration-300 ${showCaseStudies ? "-rotate-180" : ""}`}

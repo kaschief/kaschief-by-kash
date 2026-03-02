@@ -29,7 +29,7 @@ export const PERSONAL: PersonalInfo = {
 };
 
 export const NAV_LINKS: NavLink[] = [
-  { label: "About", href: "#skills" },
+  { label: "Skills", href: "#capabilities" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -41,3 +41,14 @@ export const ROLES: Role[] = [
   { label: "Leader", color: "var(--act-gold)" },
   { label: "Builder", color: "var(--act-green)" },
 ];
+
+export const PHILOSOPHY = {
+  label: "How I Think",
+  lines: [
+    "Water can be a river.",
+    "It can be ice. It can be the ocean.",
+    "My skills don\u2019t belong to any one title.",
+    "They adapt to whatever container",
+    "the work demands.",
+  ],
+} as const;
