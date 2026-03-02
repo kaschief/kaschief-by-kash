@@ -12,7 +12,7 @@ export interface TakeawayBlockProps {
 
 export function TakeawayBlock({
   text,
-  color = "#C9A84C",
+  color = "var(--gold)",
   delay = 0.4,
   serif = false,
   className,

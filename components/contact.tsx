@@ -3,8 +3,48 @@
 import { useRef } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { FadeUp, RevealLine, FadeIn } from "./motion"
-import { Mail, ArrowUpRight } from "lucide-react"
 import { PERSONAL } from "@/data/site"
+
+/* ------------------------------------------------------------------ */
+/*  Contact link row — ruled, no fills, consistent with skill rows     */
+/* ------------------------------------------------------------------ */
+
+function ContactLink({
+  label,
+  detail,
+  href,
+  external = false,
+}: {
+  label: string
+  detail: string
+  href: string
+  external?: boolean
+}) {
+  return (
+    <a
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      className="group flex w-full items-center justify-between border-b border-[var(--stroke)] py-5 transition-opacity hover:opacity-60"
+    >
+      <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-faint)] transition-colors group-hover:text-[var(--cream-muted)]">
+        {label}
+      </span>
+      <span className="flex items-center gap-3">
+        <span className="hidden text-sm text-[var(--text-dim)] transition-colors group-hover:text-[var(--cream-muted)] sm:inline">
+          {detail}
+        </span>
+        <span className="text-sm text-[var(--text-faint)] transition-all group-hover:text-[var(--cream-muted)] group-hover:translate-x-0.5">
+          {external ? "↗" : "→"}
+        </span>
+      </span>
+    </a>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Section                                                             */
+/* ------------------------------------------------------------------ */
 
 export function Contact() {
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -26,10 +66,12 @@ export function Contact() {
             scale: glowScale,
           }}
         />
-        <div className="absolute left-[25%] top-[35%] h-[350px] w-[350px] rounded-full"
+        <div
+          className="absolute left-[25%] top-[35%] h-[350px] w-[350px] rounded-full"
           style={{ background: "radial-gradient(circle, rgba(91,158,194,0.025) 0%, transparent 55%)", animation: "glow-drift 20s linear infinite" }}
         />
-        <div className="absolute right-[20%] bottom-[25%] h-[350px] w-[350px] rounded-full"
+        <div
+          className="absolute right-[20%] bottom-[25%] h-[350px] w-[350px] rounded-full"
           style={{ background: "radial-gradient(circle, rgba(94,187,115,0.025) 0%, transparent 55%)", animation: "glow-drift 25s linear 5s infinite" }}
         />
       </motion.div>
@@ -42,57 +84,56 @@ export function Contact() {
         </FadeIn>
 
         <RevealLine delay={0.15}>
-          <h2 className="mb-3 text-4xl text-[var(--cream)] sm:text-5xl lg:text-6xl" style={{ fontFamily: "var(--font-serif)" }}>
+          <h2
+            className="mb-3 text-4xl text-[var(--cream)] sm:text-5xl lg:text-6xl"
+            style={{ fontFamily: "var(--font-serif)" }}
+          >
             Yours to write.
           </h2>
         </RevealLine>
 
         <FadeUp delay={0.4}>
-          <p className="mx-auto mb-10 max-w-md text-pretty text-sm leading-relaxed text-[var(--text-dim)]" style={{ lineHeight: 1.8 }}>
+          <p
+            className="mx-auto mb-10 max-w-md text-sm text-[var(--text-dim)]"
+            style={{ lineHeight: 1.8 }}
+          >
             Open to engineering, leadership, and roles where range is a feature, not a footnote.
           </p>
         </FadeUp>
 
+        {/* Contact links — ruled rows, no fills, no accent highlight */}
         <FadeUp delay={0.5}>
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a
+          <div className="border-t border-[var(--stroke)] text-left">
+            <ContactLink
+              label="Email"
+              detail={PERSONAL.email}
               href={`mailto:${PERSONAL.email}`}
-              className="group relative inline-flex cursor-pointer items-center gap-2 overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold text-[var(--bg)] transition-all duration-300"
-              style={{ background: "linear-gradient(135deg, #C9A84C, #A8893D)" }}
-            >
-              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                style={{ background: "linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%)", backgroundSize: "200% 100%", animation: "shimmer 2s linear infinite" }}
-              />
-              <Mail size={14} className="relative z-10" />
-              <span className="relative z-10">{PERSONAL.email}</span>
-            </a>
-            <a
+            />
+            <ContactLink
+              label="LinkedIn"
+              detail={PERSONAL.linkedin.replace("https://", "")}
               href={PERSONAL.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--stroke)] px-6 py-3 text-sm font-medium text-[var(--cream-muted)] transition-all duration-300 hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--cream)]"
-            >
-              LinkedIn <ArrowUpRight size={14} />
-            </a>
-            <a
+              external
+            />
+            <ContactLink
+              label="GitHub"
+              detail={PERSONAL.github.replace("https://", "")}
               href={PERSONAL.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--stroke)] px-6 py-3 text-sm font-medium text-[var(--cream-muted)] transition-all duration-300 hover:border-[rgba(201,168,76,0.2)] hover:text-[var(--cream)]"
-            >
-              GitHub <ArrowUpRight size={14} />
-            </a>
+              external
+            />
+            <ContactLink
+              label="Phone"
+              detail={PERSONAL.phone}
+              href={`tel:${PERSONAL.phone}`}
+            />
           </div>
         </FadeUp>
 
-        <FadeUp delay={0.7}>
-          <p className="mt-12 text-xs text-[var(--text-faint)]">
-            {PERSONAL.phone} &middot; {PERSONAL.location}
-          </p>
-        </FadeUp>
-
-        <FadeIn delay={0.9}>
-          <div className="mx-auto mt-14 h-px w-14" style={{ background: "linear-gradient(90deg, transparent, #C9A84C, transparent)" }} />
+        <FadeIn delay={0.7}>
+          <div
+            className="mx-auto mt-14 h-px w-14"
+            style={{ background: "linear-gradient(90deg, transparent, var(--gold), transparent)" }}
+          />
         </FadeIn>
       </div>
     </section>

@@ -14,7 +14,7 @@ export interface SectionGlowProps {
   size?: "sm" | "md" | "lg"
 }
 
-export function SectionGlow({ opacity, color = "#C9A84C", size = "md" }: SectionGlowProps) {
+export function SectionGlow({ opacity, color = "var(--gold)", size = "md" }: SectionGlowProps) {
   const inner = (
     <div
       className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full ${sizes[size]}`}
