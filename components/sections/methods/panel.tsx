@@ -104,7 +104,7 @@ export function Panel({
               <div key={skill.id} style={fadeIn(0.2 + i * 0.05)}>
                 <SkillRow
                   label={skill.label}
-                  onSelect={() => onSkillSelect(skill, group.label)}
+                  onSelect={() => onSkillSelect(skill, group.label, index, i)}
                 />
               </div>
             ))}

@@ -5,6 +5,10 @@ export interface JobTakeoverProps {
   actLabel: string;
   color: string;
   onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+  canGoPrev: boolean;
+  canGoNext: boolean;
 }
 
 export interface JobRowProps {

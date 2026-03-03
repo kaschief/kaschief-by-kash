@@ -13,7 +13,7 @@ import {
 } from "@/data/trading";
 import { TOKENS } from "@/lib/tokens";
 import Image from "next/image";
-import { IndicatorDetail } from "@/components/trading-system/indicator-detail";
+import { IndicatorDetail } from "./indicator-detail";
 
 /* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
@@ -50,14 +50,14 @@ export function TradingArsenal() {
           {/* Sub-section header */}
           <FadeUp>
             <MonoLabel
-              label="The Arsenal"
+              label="Act IV Extension"
               color={TOKENS.actGreen}
               className="mb-2 opacity-60"
             />
-            <h4 className="mb-3 font-serif text-2xl text-[var(--cream)] sm:text-3xl">
-              The Tools I Built
-            </h4>
-            <p className="mb-16 max-w-xl text-sm leading-relaxed text-[var(--text-dim)]">
+            <h3 className="mb-3 font-serif text-3xl text-[var(--cream)] sm:text-4xl">
+              Trading Arsenal
+            </h3>
+            <p className="mb-16 max-w-xl text-base leading-relaxed text-[var(--text-dim)]">
               14 custom indicators. Each one solves a specific problem in
               reading price action.
             </p>
@@ -66,11 +66,9 @@ export function TradingArsenal() {
           {/* Progression - clickable to enlarge */}
           <div ref={progressionRef} className="mb-20">
             <FadeIn>
-              <MonoLabel
-                label="The Progression"
-                color={TOKENS.actGreen}
-                className="mb-6"
-              />
+              <h4 className="mb-6 font-serif text-2xl text-[var(--cream)] sm:text-3xl">
+                Progression
+              </h4>
             </FadeIn>
 
             <div className="grid gap-6 lg:grid-cols-2">
@@ -162,8 +160,8 @@ export function TradingArsenal() {
           {/* ============================================================ */}
           <div ref={indicatorsRef}>
             <FadeUp delay={0.2}>
-              <h4 className="mb-6 font-serif text-xl text-[var(--cream)]">
-                The Indicators
+              <h4 className="mb-6 font-serif text-2xl text-[var(--cream)] sm:text-3xl">
+                Indicators
               </h4>
             </FadeUp>
 

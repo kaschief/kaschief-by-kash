@@ -1,10 +1,5 @@
-import { Navigation } from "@/components/navigation";
-import { Hero } from "@/components/hero";
-import { Philosophy } from "@/components/philosophy";
-import { Timeline } from "@/components/timeline";
-import { Methods } from "@/components/methods";
-import { Contact } from "@/components/contact";
-import { CursorArrow } from "@/components/cursor";
+import { CursorArrow, Navigation } from "@/components/layout";
+import { Contact, Hero, Methods, Philosophy, Timeline } from "@/components/sections";
 
 export default function Page() {
   return (

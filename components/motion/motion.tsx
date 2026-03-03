@@ -2,6 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import { useState, useEffect, useRef, type CSSProperties } from "react";
+import { HISTORY_EVENT, KEYBOARD_EVENT } from "@/lib/interaction";
 import type { FadeInProps, FadeUpProps, RevealLineProps } from "./motion.types";
 
 /* ------------------------------------------------------------------ */
@@ -61,11 +62,7 @@ export function FadeUp({
   );
 }
 
-export function FadeIn({
-  children,
-  delay = 0,
-  className = "",
-}: FadeInProps) {
+export function FadeIn({ children, delay = 0, className = "" }: FadeInProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
@@ -126,18 +123,18 @@ export function useTakeover(onClose: () => void) {
     history.pushState({ takeover: true }, "", location.href);
     const t = setTimeout(() => setVisible(true), 20);
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") history.back();
+      if (e.key === KEYBOARD_EVENT.KEY.ESCAPE) history.back();
     };
-    document.addEventListener("keydown", handleKey);
+    document.addEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleKey);
     const handlePop = () => onClose();
-    window.addEventListener("popstate", handlePop, {
+    window.addEventListener(HISTORY_EVENT.POP_STATE, handlePop, {
       once: true,
     } as AddEventListenerOptions);
     return () => {
       document.body.style.overflow = prevOverflow;
       clearTimeout(t);
-      document.removeEventListener("keydown", handleKey);
-      window.removeEventListener("popstate", handlePop);
+      document.removeEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleKey);
+      window.removeEventListener(HISTORY_EVENT.POP_STATE, handlePop);
     };
   }, [onClose]);
 

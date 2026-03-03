@@ -7,6 +7,7 @@ import { NAV_LINKS, ROLES, PERSONAL } from "@/data/site";
 import { TRANSITION } from "@/components/motion";
 import { TOKENS } from "@/lib/tokens";
 import { Z_INDEX } from "@/lib/constants";
+import { HISTORY_EVENT } from "@/lib/interaction";
 import {
   SECTION_IDS_ORDERED,
   SECTION_SCROLL_OFFSET,
@@ -100,8 +101,9 @@ export function Navigation() {
         el.getBoundingClientRect().top + window.scrollY - DEFAULT_SCROLL_OFFSET;
       window.scrollTo({ top, behavior: "smooth" });
     };
-    window.addEventListener("popstate", handlePop);
-    return () => window.removeEventListener("popstate", handlePop);
+    window.addEventListener(HISTORY_EVENT.POP_STATE, handlePop);
+    return () =>
+      window.removeEventListener(HISTORY_EVENT.POP_STATE, handlePop);
   }, []);
 
   const scrollTo = (href: string) => {

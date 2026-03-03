@@ -1,16 +1,40 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTakeover } from "@/components/motion";
 import { TOKENS } from "@/lib/tokens";
 import { Z_INDEX } from "@/lib/constants";
+import { KEYBOARD_EVENT, TAKEOVER_NAV_LABEL } from "@/lib/interaction";
+import { TakeoverNavigation } from "@/components/ui/takeover-navigation";
 import type { SkillTakeoverProps } from "./methods.types";
 
 export function SkillTakeover({
   skill,
   groupLabel,
   onClose,
+  onPrev,
+  onNext,
+  canGoPrev,
+  canGoNext,
 }: SkillTakeoverProps) {
   const { item } = useTakeover(onClose);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === KEYBOARD_EVENT.KEY.ARROW_LEFT && canGoPrev) {
+        e.preventDefault();
+        onPrev();
+      }
+      if (e.key === KEYBOARD_EVENT.KEY.ARROW_RIGHT && canGoNext) {
+        e.preventDefault();
+        onNext();
+      }
+    };
+
+    document.addEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleKey);
+    return () =>
+      document.removeEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleKey);
+  }, [canGoNext, canGoPrev, onNext, onPrev]);
 
   return (
     <div
@@ -24,6 +48,15 @@ export function SkillTakeover({
         flexDirection: "column",
         justifyContent: "center",
       }}>
+      <TakeoverNavigation
+        canGoPrev={canGoPrev}
+        canGoNext={canGoNext}
+        onPrev={onPrev}
+        onNext={onNext}
+        prevLabel={TAKEOVER_NAV_LABEL.PREVIOUS_METHOD}
+        nextLabel={TAKEOVER_NAV_LABEL.NEXT_METHOD}
+        zIndex={Z_INDEX.takeover + 1}
+      />
       <div
         onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: 1024, margin: "0 auto", padding: "0 24px", width: "100%" }}>

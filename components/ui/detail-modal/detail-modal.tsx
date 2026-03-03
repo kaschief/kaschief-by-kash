@@ -4,6 +4,7 @@ import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TRANSITION } from "@/components/motion";
 import { TOKENS } from "@/lib/tokens";
+import { KEYBOARD_EVENT, POINTER_EVENT } from "@/lib/interaction";
 import {
   DETAIL_MODAL_VARIANT,
   type DetailModalProps,
@@ -37,18 +38,21 @@ export function DetailModal({
       }
     };
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === KEYBOARD_EVENT.KEY.ESCAPE) onClose();
     };
 
     const timer = setTimeout(() => {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleEscape);
+      document.addEventListener(POINTER_EVENT.MOUSE_DOWN, handleClickOutside);
+      document.addEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleEscape);
     }, 100);
 
     return () => {
       clearTimeout(timer);
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener(
+        POINTER_EVENT.MOUSE_DOWN,
+        handleClickOutside,
+      );
+      document.removeEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleEscape);
       if (variant === DETAIL_MODAL_VARIANT.OVERLAY) {
         document.body.style.overflow = "";
         document.body.style.paddingRight = "";
