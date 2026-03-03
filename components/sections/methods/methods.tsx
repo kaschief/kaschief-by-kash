@@ -19,6 +19,14 @@ export function Methods() {
   const [activeSkill, setActiveSkill] = useState<ActiveSkill | null>(null);
 
   const inView = useInView(outerRef, { once: true, amount: 0.05 });
+  const activeGroup = activeSkill
+    ? METHOD_GROUPS[activeSkill.groupIndex]
+    : undefined;
+  const activeGroupSkills = activeGroup?.skills ?? [];
+  const activeSkillIndex = activeSkill?.skillIndex ?? -1;
+  const canGoPrevSkill = activeSkillIndex > 0;
+  const canGoNextSkill =
+    activeSkillIndex !== -1 && activeSkillIndex < activeGroupSkills.length - 1;
 
   const scrollToPanel = (panelIndex: number) => {
     if (!outerRef.current) return;
@@ -98,8 +106,13 @@ export function Methods() {
               index={i}
               panelProgress={panelProgress}
               activePanelIndex={activePanelIndex}
-              onSkillSelect={(skill, groupLabel) =>
-                setActiveSkill({ skill, groupLabel })
+              onSkillSelect={(skill, groupLabel, groupIndex, skillIndex) =>
+                setActiveSkill({
+                  skill,
+                  groupLabel,
+                  groupIndex,
+                  skillIndex,
+                })
               }
               onScrollToPanel={scrollToPanel}
             />
@@ -112,6 +125,28 @@ export function Methods() {
           skill={activeSkill.skill}
           groupLabel={activeSkill.groupLabel}
           onClose={() => setActiveSkill(null)}
+          onPrev={() => {
+            if (!canGoPrevSkill || !activeGroup) return;
+            const skillIndex = activeSkill.skillIndex - 1;
+            setActiveSkill({
+              skill: activeGroup.skills[skillIndex],
+              groupLabel: activeGroup.label,
+              groupIndex: activeSkill.groupIndex,
+              skillIndex,
+            });
+          }}
+          onNext={() => {
+            if (!canGoNextSkill || !activeGroup) return;
+            const skillIndex = activeSkill.skillIndex + 1;
+            setActiveSkill({
+              skill: activeGroup.skills[skillIndex],
+              groupLabel: activeGroup.label,
+              groupIndex: activeSkill.groupIndex,
+              skillIndex,
+            });
+          }}
+          canGoPrev={canGoPrevSkill}
+          canGoNext={canGoNextSkill}
         />
       )}
     </div>

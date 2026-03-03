@@ -1,7 +1,7 @@
 "use client";
 
-import { ActI, ActII, ActIII, ActIV } from "@/components/acts";
-import { TradingArsenal } from "@/components/trading-system";
+import { ActI, ActII, ActIII, ActIV } from "./acts";
+import { TradingArsenal } from "./trading-system";
 
 export function Timeline() {
   return (

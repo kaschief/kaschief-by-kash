@@ -14,7 +14,7 @@ import { TOKENS } from "@/lib/tokens";
 import { Z_INDEX } from "@/lib/constants";
 import { SectionGlow } from "@/components/ui/section-glow";
 import { CategoryTags } from "@/components/ui/category-tags";
-import { ActSectionContent } from "@/components/acts/act-section-content";
+import { ActSectionContent } from "@/components/sections/timeline/acts/act-section-content";
 import { ACT_III, MGMT_STORIES, type ManagementStory } from "@/data/timeline";
 import { SECTION_ID } from "@/lib/sections";
 import type { CaseStudyCardProps, StoryTakeoverProps } from "./act-iii.types";

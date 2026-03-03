@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useScroll, useTransform } from "framer-motion";
 import { SCROLL_RANGE, GLOW_OPACITY } from "@/components/motion";
-import { ActSectionContent } from "@/components/acts/act-section-content";
+import { ActSectionContent } from "@/components/sections/timeline/acts/act-section-content";
 import { SectionGlow } from "@/components/ui/section-glow";
 import { ACT_IV } from "@/data/timeline";
 import { SECTION_ID } from "@/lib/sections";
