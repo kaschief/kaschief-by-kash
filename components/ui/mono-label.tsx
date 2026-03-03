@@ -4,7 +4,9 @@ export interface MonoLabelProps {
   className?: string
 }
 
-export function MonoLabel({ label, color = "var(--text-faint)", className }: MonoLabelProps) {
+import { TOKENS } from "@/lib/tokens"
+
+export function MonoLabel({ label, color = TOKENS.textFaint, className }: MonoLabelProps) {
   return (
     <p
       className={`font-mono text-[9px] font-medium uppercase tracking-[0.25em] ${className ?? ""}`}

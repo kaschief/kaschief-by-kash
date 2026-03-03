@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { PERSONAL, ROLES } from "@/data/site";
+import { EASE } from "@/components/motion";
 
 export function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -40,7 +41,7 @@ export function Hero() {
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
           className="font-serif text-[clamp(3.5rem,10vw,8rem)] font-normal leading-[0.9] tracking-[-0.02em] text-[var(--cream)]">
           {PERSONAL.name}
         </motion.h1>

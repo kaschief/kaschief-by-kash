@@ -6,13 +6,14 @@ import { FadeUp, RevealLine } from "./motion"
 import { SectionGlow } from "./ui/section-glow"
 import { SectionLabel } from "./ui/section-label"
 import { SectionProse } from "./ui/section-prose"
+import { TOKENS } from "@/lib/tokens"
 import Image from "next/image"
 
 /* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
 /* ------------------------------------------------------------------ */
 
-export function Skills() {
+export function MethodsProfile() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -22,7 +23,7 @@ export function Skills() {
 
   return (
     <section id="skills" ref={sectionRef} className="relative px-6 py-32 sm:py-40">
-      <SectionGlow opacity={glowOpacity} color="var(--act-gold)" size="md" />
+      <SectionGlow opacity={glowOpacity} color={TOKENS.actGold} size="md" />
 
       <div className="relative z-10 mx-auto max-w-5xl">
         <div className="grid items-center gap-12 lg:grid-cols-5 lg:gap-16">
@@ -40,7 +41,7 @@ export function Skills() {
           </FadeUp>
 
           <div className="lg:col-span-3">
-            <SectionLabel label="The Throughline" color="var(--gold)" />
+            <SectionLabel label="The Throughline" color={TOKENS.gold} />
             <RevealLine delay={0.1}>
               <h2 className="font-serif text-4xl text-[var(--cream)] sm:text-5xl">
                 What I Bring

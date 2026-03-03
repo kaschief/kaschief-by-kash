@@ -2,7 +2,7 @@ import { Navigation } from "@/components/navigation"
 import { Hero } from "@/components/hero"
 import { Philosophy } from "@/components/philosophy"
 import { Timeline } from "@/components/timeline"
-import { Capabilities } from "@/components/capabilities"
+import { Methods } from "@/components/methods"
 import { Contact } from "@/components/contact"
 import { CursorArrow } from "@/components/cursor"
 
@@ -15,7 +15,7 @@ export default function Page() {
         <Hero />
         <Philosophy />
         <Timeline />
-        <Capabilities />
+        <Methods />
         <Contact />
       </main>
     </>
