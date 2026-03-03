@@ -1,5 +1,5 @@
 export interface CategoryTagsProps {
-  tags: string[]
+  tags: string[];
 }
 
 export function CategoryTags({ tags }: CategoryTagsProps) {
@@ -16,5 +16,5 @@ export function CategoryTags({ tags }: CategoryTagsProps) {
         </span>
       ))}
     </div>
-  )
+  );
 }

@@ -9,7 +9,15 @@ import {
   useInView,
 } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { FadeUp, FadeIn, RevealLine, TRANSITION, CSS_EASE, SCROLL_RANGE, GLOW_OPACITY } from "./motion";
+import {
+  FadeUp,
+  FadeIn,
+  RevealLine,
+  TRANSITION,
+  CSS_EASE,
+  SCROLL_RANGE,
+  GLOW_OPACITY,
+} from "./motion";
 import { TOKENS } from "@/lib/tokens";
 import { TradingArsenal } from "./trading-system";
 import { SectionGlow } from "./ui/section-glow";
@@ -104,7 +112,11 @@ function ActI() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  const glowOpacity = useTransform(scrollYProgress, SCROLL_RANGE.glow, GLOW_OPACITY);
+  const glowOpacity = useTransform(
+    scrollYProgress,
+    SCROLL_RANGE.glow,
+    GLOW_OPACITY,
+  );
 
   const {
     act,
@@ -119,7 +131,10 @@ function ActI() {
   } = ACT_I;
 
   return (
-    <div id={SECTION_ID.ACT_NURSE} ref={ref} className="relative py-24 sm:py-32">
+    <div
+      id={SECTION_ID.ACT_NURSE}
+      ref={ref}
+      className="relative py-24 sm:py-32">
       <SectionGlow opacity={glowOpacity} color={color} size="lg" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-6">
@@ -228,10 +243,17 @@ function ActII() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  const glowOpacity = useTransform(scrollYProgress, SCROLL_RANGE.glow, GLOW_OPACITY);
+  const glowOpacity = useTransform(
+    scrollYProgress,
+    SCROLL_RANGE.glow,
+    GLOW_OPACITY,
+  );
 
   return (
-    <div id={SECTION_ID.ACT_ENGINEER} ref={ref} className="relative py-24 sm:py-32">
+    <div
+      id={SECTION_ID.ACT_ENGINEER}
+      ref={ref}
+      className="relative py-24 sm:py-32">
       <SectionGlow opacity={glowOpacity} color={ACT_II.color} size="lg" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-6">
@@ -370,18 +392,27 @@ function CaseStudyCard({
 }
 
 function ActIII() {
-  const [selectedStory, setSelectedStory] = useState<ManagementStory | null>(null)
-  const [showCaseStudies, setShowCaseStudies] = useState(false)
-  const [caseStudiesHovered, setCaseStudiesHovered] = useState(false)
+  const [selectedStory, setSelectedStory] = useState<ManagementStory | null>(
+    null,
+  );
+  const [showCaseStudies, setShowCaseStudies] = useState(false);
+  const [caseStudiesHovered, setCaseStudiesHovered] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
   });
-  const glowOpacity = useTransform(scrollYProgress, SCROLL_RANGE.glow, GLOW_OPACITY);
+  const glowOpacity = useTransform(
+    scrollYProgress,
+    SCROLL_RANGE.glow,
+    GLOW_OPACITY,
+  );
 
   return (
-    <div id={SECTION_ID.ACT_LEADER} ref={ref} className="relative py-24 sm:py-32">
+    <div
+      id={SECTION_ID.ACT_LEADER}
+      ref={ref}
+      className="relative py-24 sm:py-32">
       <SectionGlow opacity={glowOpacity} color={ACT_III.color} size="lg" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-6">
@@ -459,10 +490,17 @@ function ActIV() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  const glowOpacity = useTransform(scrollYProgress, SCROLL_RANGE.glow, GLOW_OPACITY);
+  const glowOpacity = useTransform(
+    scrollYProgress,
+    SCROLL_RANGE.glow,
+    GLOW_OPACITY,
+  );
 
   return (
-    <div id={SECTION_ID.ACT_BUILDER} ref={ref} className="relative py-24 sm:py-32">
+    <div
+      id={SECTION_ID.ACT_BUILDER}
+      ref={ref}
+      className="relative py-24 sm:py-32">
       <SectionGlow opacity={glowOpacity} color={ACT_IV.color} size="lg" />
       <div className="relative z-10 mx-auto max-w-5xl px-6">
         <ActSectionContent {...ACT_IV} />

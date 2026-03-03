@@ -1,13 +1,18 @@
-"use client"
+"use client";
 
-import { useState, useRef } from "react"
-import { motion, AnimatePresence, useInView } from "framer-motion"
-import { FadeUp, FadeIn } from "./motion"
-import { DetailModal, ModalCloseButton } from "./ui/detail-modal"
-import { MonoLabel } from "./ui/mono-label"
-import { INDICATORS, PROGRESSION, CATEGORIES, type Indicator } from "@/data/trading"
-import { TOKENS } from "@/lib/tokens"
-import Image from "next/image"
+import { useState, useRef } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
+import { FadeUp, FadeIn } from "./motion";
+import { DetailModal, ModalCloseButton } from "./ui/detail-modal";
+import { MonoLabel } from "./ui/mono-label";
+import {
+  INDICATORS,
+  PROGRESSION,
+  CATEGORIES,
+  type Indicator,
+} from "@/data/trading";
+import { TOKENS } from "@/lib/tokens";
+import Image from "next/image";
 
 /* ------------------------------------------------------------------ */
 /*  Indicator Detail Modal                                             */
@@ -15,10 +20,10 @@ import Image from "next/image"
 
 function IndicatorDetail({
   indicator,
-  onClose
+  onClose,
 }: {
-  indicator: Indicator
-  onClose: () => void
+  indicator: Indicator;
+  onClose: () => void;
 }) {
   return (
     <DetailModal variant="overlay" color={indicator.color} onClose={onClose}>
@@ -47,12 +52,14 @@ function IndicatorDetail({
         <p className="mt-3 text-base leading-relaxed text-[var(--cream-muted)]">
           {indicator.desc}
         </p>
-        <p className="mt-2 font-mono text-xs" style={{ color: indicator.color }}>
+        <p
+          className="mt-2 font-mono text-xs"
+          style={{ color: indicator.color }}>
           {indicator.lines} lines
         </p>
       </div>
     </DetailModal>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -60,17 +67,27 @@ function IndicatorDetail({
 /* ------------------------------------------------------------------ */
 
 export function TradingArsenal() {
-  const [selectedIndicator, setSelectedIndicator] = useState<Indicator | null>(null)
-  const [activeCategory, setActiveCategory] = useState("Liquidity")
-  const [activeProgression, setActiveProgression] = useState(0)
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null)
-  const progressionRef = useRef<HTMLDivElement>(null)
-  const progressionInView = useInView(progressionRef, { once: true, margin: "-50px" })
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const indicatorsRef = useRef<HTMLDivElement>(null)
-  const indicatorsInView = useInView(indicatorsRef, { once: true, margin: "-50px" })
+  const [selectedIndicator, setSelectedIndicator] = useState<Indicator | null>(
+    null,
+  );
+  const [activeCategory, setActiveCategory] = useState("Liquidity");
+  const [activeProgression, setActiveProgression] = useState(0);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const progressionRef = useRef<HTMLDivElement>(null);
+  const progressionInView = useInView(progressionRef, {
+    once: true,
+    margin: "-50px",
+  });
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const indicatorsRef = useRef<HTMLDivElement>(null);
+  const indicatorsInView = useInView(indicatorsRef, {
+    once: true,
+    margin: "-50px",
+  });
 
-  const filteredIndicators = INDICATORS.filter(ind => ind.category === activeCategory)
+  const filteredIndicators = INDICATORS.filter(
+    (ind) => ind.category === activeCategory,
+  );
 
   return (
     <div className="relative pb-24">
@@ -79,19 +96,28 @@ export function TradingArsenal() {
         <div className="border-l-2 border-[var(--act-green)]/20 pl-8 sm:pl-12">
           {/* Sub-section header */}
           <FadeUp>
-            <MonoLabel label="The Arsenal" color={TOKENS.actGreen} className="mb-2 opacity-60" />
+            <MonoLabel
+              label="The Arsenal"
+              color={TOKENS.actGreen}
+              className="mb-2 opacity-60"
+            />
             <h4 className="mb-3 font-serif text-2xl text-[var(--cream)] sm:text-3xl">
               The Tools I Built
             </h4>
             <p className="mb-16 max-w-xl text-sm leading-relaxed text-[var(--text-dim)]">
-              14 custom indicators. Each one solves a specific problem in reading price action.
+              14 custom indicators. Each one solves a specific problem in
+              reading price action.
             </p>
           </FadeUp>
 
           {/* Progression - clickable to enlarge */}
           <div ref={progressionRef} className="mb-20">
             <FadeIn>
-              <MonoLabel label="The Progression" color={TOKENS.actGreen} className="mb-6" />
+              <MonoLabel
+                label="The Progression"
+                color={TOKENS.actGreen}
+                className="mb-6"
+              />
             </FadeIn>
 
             <div className="grid gap-6 lg:grid-cols-2">
@@ -105,27 +131,34 @@ export function TradingArsenal() {
                     transition={{ duration: 0.4, delay: i * 0.1 }}
                     onClick={() => setActiveProgression(i)}
                     style={{
-                      borderColor: activeProgression === i
-                        ? `color-mix(in srgb, ${TOKENS.actGreen} 30%, transparent)`
-                        : "transparent",
+                      borderColor:
+                        activeProgression === i
+                          ? `color-mix(in srgb, ${TOKENS.actGreen} 30%, transparent)`
+                          : "transparent",
                     }}
                     className={`group w-full cursor-pointer rounded-lg border p-4 text-left transition-all duration-300 ${
                       activeProgression === i
                         ? "bg-[var(--bg-elevated)]"
                         : "hover:bg-[var(--bg-elevated)]"
-                    }`}
-                  >
+                    }`}>
                     <div className="flex items-start gap-4">
                       <span
                         className="shrink-0 font-mono text-xs transition-colors"
-                        style={{ color: activeProgression === i ? TOKENS.actGreen : TOKENS.textFaint }}
-                      >
+                        style={{
+                          color:
+                            activeProgression === i
+                              ? TOKENS.actGreen
+                              : TOKENS.textFaint,
+                        }}>
                         {step.step}
                       </span>
                       <div>
-                        <h5 className={`text-sm font-medium transition-colors ${
-                          activeProgression === i ? "text-[var(--cream)]" : "text-[var(--cream-muted)] group-hover:text-[var(--cream)]"
-                        }`}>
+                        <h5
+                          className={`text-sm font-medium transition-colors ${
+                            activeProgression === i
+                              ? "text-[var(--cream)]"
+                              : "text-[var(--cream-muted)] group-hover:text-[var(--cream)]"
+                          }`}>
                           {step.title}
                         </h5>
                         <p className="mt-1 text-xs leading-relaxed text-[var(--text-dim)]">
@@ -142,9 +175,10 @@ export function TradingArsenal() {
                 initial={{ opacity: 0 }}
                 animate={progressionInView ? { opacity: 1 } : {}}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                onClick={() => setLightboxImage(PROGRESSION[activeProgression].image)}
-                className="group relative aspect-[16/10] w-full cursor-pointer overflow-hidden rounded-xl border border-[var(--stroke)] transition-all hover:border-[var(--act-green)]/30"
-              >
+                onClick={() =>
+                  setLightboxImage(PROGRESSION[activeProgression].image)
+                }
+                className="group relative aspect-[16/10] w-full cursor-pointer overflow-hidden rounded-xl border border-[var(--stroke)] transition-all hover:border-[var(--act-green)]/30">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeProgression}
@@ -152,8 +186,7 @@ export function TradingArsenal() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="relative h-full w-full"
-                  >
+                    className="relative h-full w-full">
                     <Image
                       src={PROGRESSION[activeProgression].image}
                       alt={PROGRESSION[activeProgression].title}
@@ -186,19 +219,21 @@ export function TradingArsenal() {
               initial={{ opacity: 0, y: 16 }}
               animate={indicatorsInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.25 }}
-              className="mb-6 flex gap-6 border-b border-[var(--stroke)]"
-            >
+              className="mb-6 flex gap-6 border-b border-[var(--stroke)]">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  style={activeCategory === cat ? { borderColor: TOKENS.actGreen } : undefined}
+                  style={
+                    activeCategory === cat
+                      ? { borderColor: TOKENS.actGreen }
+                      : undefined
+                  }
                   className={`cursor-pointer pb-3 font-mono text-xs uppercase tracking-wider transition-colors ${
                     activeCategory === cat
                       ? "border-b-2 text-[var(--cream)]"
                       : "text-[var(--text-faint)] hover:text-[var(--cream-muted)]"
-                  }`}
-                >
+                  }`}>
                   {cat}
                 </button>
               ))}
@@ -208,51 +243,50 @@ export function TradingArsenal() {
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={indicatorsInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.35 }}
-            >
-          <div
-            ref={scrollContainerRef}
-            className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            <AnimatePresence mode="wait">
-              {filteredIndicators.map((indicator, i) => (
-                <motion.button
-                  key={indicator.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, delay: i * 0.05 }}
-                  onClick={() => setSelectedIndicator(indicator)}
-                  className="group w-64 shrink-0 cursor-pointer text-left"
-                >
-                  {/* Image card - no border */}
-                  <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[var(--bg-elevated)] transition-all">
-                    <Image
-                      src={indicator.image}
-                      alt={indicator.name}
-                      fill
-                      className="object-cover transition-all duration-300 grayscale group-hover:grayscale-0"
-                      sizes="256px"
-                    />
-                  </div>
-                  
-                  {/* Info below */}
-                  <div className="mt-3">
-                    <h5 className="text-sm font-medium text-[var(--cream)] transition-colors group-hover:text-[var(--act-green)]">
-                      {indicator.name}
-                    </h5>
-                    <p className="mt-1 text-xs text-[var(--text-dim)]">
-                      {indicator.desc}
-                    </p>
-                    <p className="mt-1 font-mono text-[10px]" style={{ color: indicator.color }}>
-                      {indicator.lines} lines
-                    </p>
-                  </div>
-                </motion.button>
-              ))}
-            </AnimatePresence>
-          </div>
+              transition={{ duration: 0.5, delay: 0.35 }}>
+              <div
+                ref={scrollContainerRef}
+                className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                <AnimatePresence mode="wait">
+                  {filteredIndicators.map((indicator, i) => (
+                    <motion.button
+                      key={indicator.name}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3, delay: i * 0.05 }}
+                      onClick={() => setSelectedIndicator(indicator)}
+                      className="group w-64 shrink-0 cursor-pointer text-left">
+                      {/* Image card - no border */}
+                      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[var(--bg-elevated)] transition-all">
+                        <Image
+                          src={indicator.image}
+                          alt={indicator.name}
+                          fill
+                          className="object-cover transition-all duration-300 grayscale group-hover:grayscale-0"
+                          sizes="256px"
+                        />
+                      </div>
+
+                      {/* Info below */}
+                      <div className="mt-3">
+                        <h5 className="text-sm font-medium text-[var(--cream)] transition-colors group-hover:text-[var(--act-green)]">
+                          {indicator.name}
+                        </h5>
+                        <p className="mt-1 text-xs text-[var(--text-dim)]">
+                          {indicator.desc}
+                        </p>
+                        <p
+                          className="mt-1 font-mono text-[10px]"
+                          style={{ color: indicator.color }}>
+                          {indicator.lines} lines
+                        </p>
+                      </div>
+                    </motion.button>
+                  ))}
+                </AnimatePresence>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -276,14 +310,12 @@ export function TradingArsenal() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-[var(--bg)]/90 p-6 backdrop-blur-sm"
-            onClick={() => setLightboxImage(null)}
-          >
+            onClick={() => setLightboxImage(null)}>
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="relative max-h-[90vh] max-w-[90vw]"
-            >
+              className="relative max-h-[90vh] max-w-[90vw]">
               <Image
                 src={lightboxImage}
                 alt="Progression step"
@@ -300,7 +332,7 @@ export function TradingArsenal() {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
-export { TradingArsenal as TradingSystem }
+export { TradingArsenal as TradingSystem };

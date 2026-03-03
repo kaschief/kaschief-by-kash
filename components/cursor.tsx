@@ -25,19 +25,19 @@ const INTERACTIVE_SELECTOR =
   'a, button, input, select, textarea, label, [role="button"], [tabindex]:not([tabindex="-1"])';
 
 export function CursorArrow() {
-  const outerRef   = useRef<HTMLDivElement>(null);
+  const outerRef = useRef<HTMLDivElement>(null);
   const opacityRef = useRef<HTMLDivElement>(null);
-  const arrowRef   = useRef<HTMLDivElement>(null);
-  const ringRef    = useRef<HTMLDivElement>(null);
+  const arrowRef = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const outer   = outerRef.current;
+    const outer = outerRef.current;
     const opacity = opacityRef.current;
-    const arrow   = arrowRef.current;
-    const ring    = ringRef.current;
+    const arrow = arrowRef.current;
+    const ring = ringRef.current;
     if (!outer || !opacity || !arrow || !ring) return;
 
-    let shown     = false;
+    let shown = false;
     let isPointer = false;
 
     const handleMove = (e: MouseEvent) => {
@@ -51,13 +51,17 @@ export function CursorArrow() {
     const handleOver = (e: MouseEvent) => {
       const next = !!(e.target as Element).closest(INTERACTIVE_SELECTOR);
       if (next === isPointer) return;
-      isPointer           = next;
-      arrow.style.display = isPointer ? "none"  : "block";
-      ring.style.display  = isPointer ? "block" : "none";
+      isPointer = next;
+      arrow.style.display = isPointer ? "none" : "block";
+      ring.style.display = isPointer ? "block" : "none";
     };
 
-    const handleLeave = () => { opacity.style.opacity = "0"; };
-    const handleEnter = () => { if (shown) opacity.style.opacity = "1"; };
+    const handleLeave = () => {
+      opacity.style.opacity = "0";
+    };
+    const handleEnter = () => {
+      if (shown) opacity.style.opacity = "1";
+    };
 
     document.addEventListener("mousemove", handleMove, { passive: true });
     document.addEventListener("mouseover", handleOver, { passive: true });
@@ -84,25 +88,31 @@ export function CursorArrow() {
         zIndex: Z_INDEX.cursor,
         willChange: "transform",
         transform: "translate(-100px, -100px)",
-      }}
-    >
+      }}>
       {/* Opacity wrapper: fade transition isolated from position */}
       <div
         ref={opacityRef}
-        style={{ opacity: 0, transition: "opacity 0.35s ease" }}
-      >
+        style={{ opacity: 0, transition: "opacity 0.35s ease" }}>
         {/* ── Arrow (default) ────────────────────────────────────── */}
         <div ref={arrowRef}>
           <svg width="21" height="31" viewBox="0 0 21 31" fill="none">
             <defs>
               <linearGradient
                 id="cursorArrowGrad"
-                x1="0" y1="0" x2="21" y2="31"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop offset="0%"   style={{ stopColor: TOKENS.cursorHighlight }} />
-                <stop offset="45%"  style={{ stopColor: TOKENS.gold }} />
-                <stop offset="100%" style={{ stopColor: TOKENS.cursorShadow }} />
+                x1="0"
+                y1="0"
+                x2="21"
+                y2="31"
+                gradientUnits="userSpaceOnUse">
+                <stop
+                  offset="0%"
+                  style={{ stopColor: TOKENS.cursorHighlight }}
+                />
+                <stop offset="45%" style={{ stopColor: TOKENS.gold }} />
+                <stop
+                  offset="100%"
+                  style={{ stopColor: TOKENS.cursorShadow }}
+                />
               </linearGradient>
             </defs>
             <path
@@ -137,12 +147,11 @@ export function CursorArrow() {
           style={{
             display: "none",
             transform: "translate(-11px, -11px)",
-          }}
-        >
+          }}>
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             <defs>
               <radialGradient id="cursorRingGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%"   stopColor={TOKENS.gold} stopOpacity="0.18" />
+                <stop offset="0%" stopColor={TOKENS.gold} stopOpacity="0.18" />
                 <stop offset="100%" stopColor={TOKENS.gold} stopOpacity="0" />
               </radialGradient>
             </defs>
@@ -150,14 +159,22 @@ export function CursorArrow() {
             <circle cx="11" cy="11" r="11" fill="url(#cursorRingGlow)" />
             {/* Main ring */}
             <circle
-              cx="11" cy="11" r="8.5"
+              cx="11"
+              cy="11"
+              r="8.5"
               stroke={TOKENS.gold}
               strokeWidth="1.25"
               fill="none"
               strokeOpacity="0.9"
             />
             {/* Inner dot */}
-            <circle cx="11" cy="11" r="1.5" fill={TOKENS.gold} fillOpacity="0.7" />
+            <circle
+              cx="11"
+              cy="11"
+              r="1.5"
+              fill={TOKENS.gold}
+              fillOpacity="0.7"
+            />
           </svg>
         </div>
       </div>
