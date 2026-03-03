@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useRef } from "react"
-import { motion, useScroll, useTransform } from "framer-motion"
-import { FadeUp, RevealLine, FadeIn } from "./motion"
-import { TOKENS } from "@/lib/tokens"
-import { PERSONAL } from "@/data/site"
-import { SECTION_ID } from "@/lib/sections"
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { FadeUp, RevealLine, FadeIn } from "./motion";
+import { TOKENS } from "@/lib/tokens";
+import { PERSONAL } from "@/data/site";
+import { SECTION_ID } from "@/lib/sections";
 
 /* ------------------------------------------------------------------ */
 /*  Contact link row — ruled, no fills, consistent with skill rows     */
@@ -17,18 +17,17 @@ function ContactLink({
   href,
   external = false,
 }: {
-  label: string
-  detail: string
-  href: string
-  external?: boolean
+  label: string;
+  detail: string;
+  href: string;
+  external?: boolean;
 }) {
   return (
     <a
       href={href}
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
-      className="group flex w-full items-center justify-between border-b border-[var(--stroke)] py-5 transition-opacity hover:opacity-60"
-    >
+      className="group flex w-full items-center justify-between border-b border-[var(--stroke)] py-5 transition-opacity hover:opacity-60">
       <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-faint)] transition-colors group-hover:text-[var(--cream-muted)]">
         {label}
       </span>
@@ -41,7 +40,7 @@ function ContactLink({
         </span>
       </span>
     </a>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -49,32 +48,50 @@ function ContactLink({
 /* ------------------------------------------------------------------ */
 
 export function Contact() {
-  const sectionRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"],
-  })
-  const glowScale = useTransform(scrollYProgress, [0.2, 0.7], [0.7, 1.1])
-  const glowOpacity = useTransform(scrollYProgress, [0.1, 0.4, 0.9], [0, 0.5, 0])
+  });
+  const glowScale = useTransform(scrollYProgress, [0.2, 0.7], [0.7, 1.1]);
+  const glowOpacity = useTransform(
+    scrollYProgress,
+    [0.1, 0.4, 0.9],
+    [0, 0.5, 0],
+  );
 
   return (
-    <section id={SECTION_ID.CONTACT} ref={sectionRef} className="relative overflow-hidden px-6 py-24 sm:py-32">
+    <section
+      id={SECTION_ID.CONTACT}
+      ref={sectionRef}
+      className="relative overflow-hidden px-6 py-24 sm:py-32">
       {/* Atmospheric glows */}
-      <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
+      <motion.div
+        className="pointer-events-none absolute inset-0"
+        style={{ opacity: glowOpacity }}>
         <motion.div
           className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
-            background: "radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 55%)",
+            background:
+              "radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 55%)",
             scale: glowScale,
           }}
         />
         <div
           className="absolute left-[25%] top-[35%] h-[350px] w-[350px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(91,158,194,0.025) 0%, transparent 55%)", animation: "glow-drift 20s linear infinite" }}
+          style={{
+            background:
+              "radial-gradient(circle, rgba(91,158,194,0.025) 0%, transparent 55%)",
+            animation: "glow-drift 20s linear infinite",
+          }}
         />
         <div
           className="absolute right-[20%] bottom-[25%] h-[350px] w-[350px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(94,187,115,0.025) 0%, transparent 55%)", animation: "glow-drift 25s linear 5s infinite" }}
+          style={{
+            background:
+              "radial-gradient(circle, rgba(94,187,115,0.025) 0%, transparent 55%)",
+            animation: "glow-drift 25s linear 5s infinite",
+          }}
         />
       </motion.div>
 
@@ -88,8 +105,7 @@ export function Contact() {
         <RevealLine delay={0.15}>
           <h2
             className="mb-3 text-4xl text-[var(--cream)] sm:text-5xl lg:text-6xl"
-            style={{ fontFamily: TOKENS.fontSerif }}
-          >
+            style={{ fontFamily: TOKENS.fontSerif }}>
             Yours to write.
           </h2>
         </RevealLine>
@@ -97,9 +113,9 @@ export function Contact() {
         <FadeUp delay={0.4}>
           <p
             className="mx-auto mb-10 max-w-md text-sm text-[var(--text-dim)]"
-            style={{ lineHeight: 1.8 }}
-          >
-            Open to engineering, leadership, and roles where range is a feature, not a footnote.
+            style={{ lineHeight: 1.8 }}>
+            Open to engineering, leadership, and roles where range is a feature,
+            not a footnote.
           </p>
         </FadeUp>
 
@@ -134,10 +150,13 @@ export function Contact() {
         <FadeIn delay={0.7}>
           <div
             className="mx-auto mt-14 h-px w-14"
-            style={{ background: "linear-gradient(90deg, transparent, var(--gold), transparent)" }}
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, var(--gold), transparent)",
+            }}
           />
         </FadeIn>
       </div>
     </section>
-  )
+  );
 }

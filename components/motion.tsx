@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import { motion, useInView } from "framer-motion"
-import { useRef, type ReactNode } from "react"
+import { motion, useInView } from "framer-motion";
+import { useRef, type ReactNode } from "react";
 
 /* ------------------------------------------------------------------ */
 /*  Animation constants — single source of truth                       */
 /* ------------------------------------------------------------------ */
 
-export const EASE = [0.22, 1, 0.36, 1] as const
+export const EASE = [0.22, 1, 0.36, 1] as const;
 
 export const TRANSITION = {
-  snap:    { duration: 0.15, ease: "easeOut" as const }, // backdrop / near-instant covers
-  fast:    { duration: 0.25, ease: EASE },
-  base:    { duration: 0.45, ease: EASE },
-  slow:    { duration: 0.7,  ease: EASE },
-  page:    { duration: 0.9,  ease: EASE },
-} as const
+  snap: { duration: 0.15, ease: "easeOut" as const }, // backdrop / near-instant covers
+  fast: { duration: 0.25, ease: EASE },
+  base: { duration: 0.45, ease: EASE },
+  slow: { duration: 0.7, ease: EASE },
+  page: { duration: 0.9, ease: EASE },
+} as const;
 
 /** String form for use in CSS `transition` properties */
-export const CSS_EASE = "cubic-bezier(0.22, 1, 0.36, 1)"
+export const CSS_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 /**
  * Scroll progress input range shared by every act section's glow animation.
@@ -27,13 +27,13 @@ export const CSS_EASE = "cubic-bezier(0.22, 1, 0.36, 1)"
  */
 export const SCROLL_RANGE: { glow: number[] } = {
   glow: [0, 0.3, 0.7, 1],
-}
+};
 
 /** Output opacity values for section glows (paired with SCROLL_RANGE.glow). */
-export const GLOW_OPACITY: number[] = [0, 0.5, 0.5, 0]
+export const GLOW_OPACITY: number[] = [0, 0.5, 0.5, 0];
 
 /** Transition for infinitely repeating pulse animations (dots, eyebrows). */
-export const PULSE_TRANSITION = { duration: 3, repeat: Infinity } as const
+export const PULSE_TRANSITION = { duration: 3, repeat: Infinity } as const;
 
 /* ------------------------------------------------------------------ */
 /*  Components                                                          */
@@ -45,13 +45,13 @@ export function FadeUp({
   className = "",
   distance = 60,
 }: {
-  children: ReactNode
-  delay?: number
-  className?: string
-  distance?: number
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+  distance?: number;
 }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-80px" })
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
     <motion.div
@@ -59,11 +59,10 @@ export function FadeUp({
       initial={{ opacity: 0, y: distance }}
       animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: distance }}
       transition={{ ...TRANSITION.page, delay }}
-      className={className}
-    >
+      className={className}>
       {children}
     </motion.div>
-  )
+  );
 }
 
 export function FadeIn({
@@ -71,24 +70,27 @@ export function FadeIn({
   delay = 0,
   className = "",
 }: {
-  children: ReactNode
-  delay?: number
-  className?: string
+  children: ReactNode;
+  delay?: number;
+  className?: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-80px" })
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
     <motion.div
       ref={ref}
       initial={{ opacity: 0 }}
       animate={inView ? { opacity: 1 } : { opacity: 0 }}
-      transition={{ duration: TRANSITION.page.duration, delay, ease: "easeOut" }}
-      className={className}
-    >
+      transition={{
+        duration: TRANSITION.page.duration,
+        delay,
+        ease: "easeOut",
+      }}
+      className={className}>
       {children}
     </motion.div>
-  )
+  );
 }
 
 export function RevealLine({
@@ -96,26 +98,21 @@ export function RevealLine({
   delay = 0,
   className = "",
 }: {
-  children: ReactNode
-  delay?: number
-  className?: string
+  children: ReactNode;
+  delay?: number;
+  className?: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-60px" })
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
 
   return (
-    <motion.div
-      ref={ref}
-      className={`overflow-hidden ${className}`}
-    >
+    <motion.div ref={ref} className={`overflow-hidden ${className}`}>
       <motion.div
         initial={{ y: "110%" }}
         animate={inView ? { y: 0 } : { y: "110%" }}
-        transition={{ ...TRANSITION.page, delay }}
-      >
+        transition={{ ...TRANSITION.page, delay }}>
         {children}
       </motion.div>
     </motion.div>
-  )
+  );
 }
-

@@ -1,26 +1,26 @@
 export interface Indicator {
-  name: string
-  category: string
-  color: string
-  image: string
-  desc: string
-  lines: string
+  name: string;
+  category: string;
+  color: string;
+  image: string;
+  desc: string;
+  lines: string;
 }
 
 export interface ProgressionStep {
-  step: string
-  title: string
-  desc: string
-  image: string
+  step: string;
+  title: string;
+  desc: string;
+  image: string;
 }
 
-export const CATEGORIES = ["Liquidity", "Session", "Range"] as const
+export const CATEGORIES = ["Liquidity", "Session", "Range"] as const;
 
-export const CATEGORY_COLORS: Record<typeof CATEGORIES[number], string> = {
+export const CATEGORY_COLORS: Record<(typeof CATEGORIES)[number], string> = {
   Liquidity: "var(--act-blue)",
-  Session:   "var(--act-gold)",
-  Range:     "var(--act-green)",
-}
+  Session: "var(--act-gold)",
+  Range: "var(--act-green)",
+};
 
 export const INDICATORS: Indicator[] = [
   {
@@ -119,7 +119,7 @@ export const INDICATORS: Indicator[] = [
     desc: "Auto HTF pairing and zone broadcasting",
     lines: "520",
   },
-]
+];
 
 export const PROGRESSION: ProgressionStep[] = [
   {
@@ -146,4 +146,4 @@ export const PROGRESSION: ProgressionStep[] = [
     desc: "Zones, sweeps, traps — the complete picture.",
     image: "/images/indicators/naked-pulse.png",
   },
-]
+];

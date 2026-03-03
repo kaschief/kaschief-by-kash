@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { FadeIn, PULSE_TRANSITION } from "../motion"
+import { motion } from "framer-motion";
+import { FadeIn, PULSE_TRANSITION } from "../motion";
 
 export interface SectionLabelProps {
-  label: string
-  color: string
+  label: string;
+  color: string;
 }
 
 export function SectionLabel({ label, color }: SectionLabelProps) {
@@ -20,11 +20,10 @@ export function SectionLabel({ label, color }: SectionLabelProps) {
         />
         <span
           className="font-mono text-[10px] font-medium uppercase tracking-[0.25em]"
-          style={{ color }}
-        >
+          style={{ color }}>
           {label}
         </span>
       </div>
     </FadeIn>
-  )
+  );
 }

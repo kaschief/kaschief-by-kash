@@ -1,50 +1,50 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #07070A;
-  --foreground: #F0E6D0;
-  --card: #0E0E14;
-  --card-foreground: #F0E6D0;
-  --popover: #0E0E14;
-  --popover-foreground: #F0E6D0;
-  --primary: #C9A84C;
-  --primary-foreground: #07070A;
-  --secondary: #0C0C12;
-  --secondary-foreground: #F0E6D0;
-  --muted: #0C0C12;
-  --muted-foreground: #8A8478;
-  --accent: #C9A84C;
-  --accent-foreground: #07070A;
-  --destructive: #C75050;
-  --destructive-foreground: #F0E6D0;
-  --border: #16161E;
-  --input: #16161E;
-  --ring: #C9A84C;
+  --background: #07070a;
+  --foreground: #f0e6d0;
+  --card: #0e0e14;
+  --card-foreground: #f0e6d0;
+  --popover: #0e0e14;
+  --popover-foreground: #f0e6d0;
+  --primary: #c9a84c;
+  --primary-foreground: #07070a;
+  --secondary: #0c0c12;
+  --secondary-foreground: #f0e6d0;
+  --muted: #0c0c12;
+  --muted-foreground: #8a8478;
+  --accent: #c9a84c;
+  --accent-foreground: #07070a;
+  --destructive: #c75050;
+  --destructive-foreground: #f0e6d0;
+  --border: #16161e;
+  --input: #16161e;
+  --ring: #c9a84c;
   --radius: 0.5rem;
 
-  --bg: #07070A;
-  --bg-elevated: #0E0E14;
+  --bg: #07070a;
+  --bg-elevated: #0e0e14;
   --bg-surface: #131319;
-  --gold: #C9A84C;
-  --gold-dim: #8B7A3A;
-  --gold-faint: rgba(201,168,76,0.05);
-  --cream: #F0E6D0;
-  --cream-muted: #B0A890;
-  --text-dim: #8A8478;
-  --text-faint: #4A4640;
-  --stroke: #16161E;
-  --stroke-hover: #C9A84C33;
+  --gold: #c9a84c;
+  --gold-dim: #8b7a3a;
+  --gold-faint: rgba(201, 168, 76, 0.05);
+  --cream: #f0e6d0;
+  --cream-muted: #b0a890;
+  --text-dim: #8a8478;
+  --text-faint: #4a4640;
+  --stroke: #16161e;
+  --stroke-hover: #c9a84c33;
 
-  --act-red: #E05252;
-  --act-blue: #5B9EC2;
-  --act-gold: #C9A84C;
-  --act-green: #5EBB73;
+  --act-red: #e05252;
+  --act-blue: #5b9ec2;
+  --act-gold: #c9a84c;
+  --act-green: #5ebb73;
 
-  --cursor-highlight: #F5E080;
-  --cursor-shadow: #5C4015;
+  --cursor-highlight: #f5e080;
+  --cursor-shadow: #5c4015;
 }
 
 @theme inline {
@@ -90,47 +90,86 @@ html {
 }
 
 /* Custom cursor — hide the system cursor sitewide */
-html, body, *, *::before, *::after {
+html,
+body,
+*,
+*::before,
+*::after {
   cursor: none !important;
 }
 
-
-
 /* Glow pulse keyframes */
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.15; transform: scale(1); }
-  50% { opacity: 0.3; transform: scale(1.05); }
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
 }
 
 @keyframes glow-drift {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  33% { transform: translate(30px, -20px) rotate(120deg); }
-  66% { transform: translate(-20px, 10px) rotate(240deg); }
-  100% { transform: translate(0, 0) rotate(360deg); }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  33% {
+    transform: translate(30px, -20px) rotate(120deg);
+  }
+  66% {
+    transform: translate(-20px, 10px) rotate(240deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg);
+  }
 }
 
-
-
 @keyframes breathe {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes float-up {
-  0% { transform: translateY(100%) scale(0.8); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+  0% {
+    transform: translateY(100%) scale(0.8);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) scale(1);
+    opacity: 0;
+  }
 }
 
 /* Custom scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--stroke); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--stroke);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
 
 ::selection {
-  background: rgba(201,168,76,0.25);
+  background: rgba(201, 168, 76, 0.25);
   color: var(--cream);
 }
 
@@ -141,6 +180,3 @@ html, body, *, *::before, *::after {
   filter: blur(120px);
   pointer-events: none;
 }
-
-
-

@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { FadeUp } from "../motion"
-import { TOKENS } from "@/lib/tokens"
+import { FadeUp } from "../motion";
+import { TOKENS } from "@/lib/tokens";
 
 export interface TakeawayBlockProps {
-  text: string
-  color?: string
-  delay?: number
-  serif?: boolean
-  className?: string
+  text: string;
+  color?: string;
+  delay?: number;
+  serif?: boolean;
+  className?: string;
 }
 
 export function TakeawayBlock({
@@ -22,14 +22,14 @@ export function TakeawayBlock({
     <FadeUp delay={delay}>
       <div
         className={`border-l-2 py-2 pl-6 ${className ?? ""}`}
-        style={{ borderColor: `color-mix(in srgb, ${color} 19%, transparent)` }}
-      >
+        style={{
+          borderColor: `color-mix(in srgb, ${color} 19%, transparent)`,
+        }}>
         <p
-          className={`${serif ? "font-serif text-base" : "text-sm"} italic leading-relaxed text-[var(--cream-muted)]`}
-        >
+          className={`${serif ? "font-serif text-base" : "text-sm"} italic leading-relaxed text-[var(--cream-muted)]`}>
           {text}
         </p>
       </div>
     </FadeUp>
-  )
+  );
 }

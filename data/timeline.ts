@@ -1,79 +1,79 @@
-import { ROLES } from "@/data/site"
+import { ROLES } from "@/data/site";
 
-const [nurseRole, engineerRole, leaderRole, builderRole] = ROLES
+const [nurseRole, engineerRole, leaderRole, builderRole] = ROLES;
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
 export interface Job {
-  id: string
-  company: string
-  role: string
-  period: string
-  location: string
-  color: string
-  tech: string[]
-  summary: string
-  url: string
+  id: string;
+  company: string;
+  role: string;
+  period: string;
+  location: string;
+  color: string;
+  tech: string[];
+  summary: string;
+  url: string;
   deepDive: {
-    context: string
-    contribution: string
-    outcome: string
-    skills: string[]
-  }
+    context: string;
+    contribution: string;
+    outcome: string;
+    skills: string[];
+  };
 }
 
 export interface ManagementStory {
-  id: string
-  tags: string[]
-  color: string
-  title: string
-  teaser: string
-  text: string
+  id: string;
+  tags: string[];
+  color: string;
+  title: string;
+  teaser: string;
+  text: string;
 }
 
 export interface Stat {
-  value: string
-  label: string
+  value: string;
+  label: string;
 }
 
 export interface SkillRef {
-  id: string
-  label: string
+  id: string;
+  label: string;
 }
 
 export interface ActContent {
-  act: string
-  title: string
-  period: string
-  location: string
-  color: string
-  lead: string
-  body: string
-  takeaway: string
-  takeawaySerif?: boolean
-  stats: Stat[]
-  statsColor?: string
-  skills: SkillRef[]
+  act: string;
+  title: string;
+  period: string;
+  location: string;
+  color: string;
+  lead: string;
+  body: string;
+  takeaway: string;
+  takeawaySerif?: boolean;
+  stats: Stat[];
+  statsColor?: string;
+  skills: SkillRef[];
 }
 
 export interface NurseFeature {
-  label: string
-  text: string
+  label: string;
+  text: string;
 }
 
 export interface ActINurseContent {
-  act: string
-  title: string
-  period: string
-  location: string
-  color: string
-  takeaway: string
-  intro: string
-  detail: string
-  features: NurseFeature[]
-  skills: SkillRef[]
+  act: string;
+  title: string;
+  period: string;
+  location: string;
+  color: string;
+  takeaway: string;
+  intro: string;
+  detail: string;
+  features: NurseFeature[];
+  skills: SkillRef[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -109,7 +109,7 @@ export const ACT_I: ActINurseContent = {
     { id: "s4", label: "Precision Under Pressure" },
     { id: "s5", label: "Cross-Domain Translation" },
   ],
-}
+};
 
 /* ------------------------------------------------------------------ */
 /*  ACT II — The Engineer                                              */
@@ -133,7 +133,11 @@ export const JOBS: Job[] = [
         "I wasn't just writing React components; I was validating whether features actually helped people learn faster. The A/B testing culture here shaped how I think about product decisions: not opinions, but evidence.",
       outcome:
         "We shipped features, measured them, and killed what didn't work. That discipline has stayed with me ever since.",
-      skills: ["Rapid prototyping", "Evidence-based decisions", "User empathy from domain knowledge"],
+      skills: [
+        "Rapid prototyping",
+        "Evidence-based decisions",
+        "User empathy from domain knowledge",
+      ],
     },
   },
   {
@@ -153,7 +157,11 @@ export const JOBS: Job[] = [
         "I went deep on Core Web Vitals, lazy loading strategies, and how to architect Vue apps that score well on Lighthouse while still being rich and interactive.",
       outcome:
         "The promotion to Senior wasn't about tenure — it came because I took ownership of the entire frontend performance story and delivered measurable business results: 50% faster load times, 25% more organic traffic.",
-      skills: ["Performance optimization", "SEO engineering", "Ownership mentality"],
+      skills: [
+        "Performance optimization",
+        "SEO engineering",
+        "Ownership mentality",
+      ],
     },
   },
   {
@@ -173,7 +181,11 @@ export const JOBS: Job[] = [
         "The challenge wasn't just technical — it was convincing a fintech company serving 10,000 financial advisors that a full rewrite was safer than continuing to patch. I mapped every feature, built migration paths, and delivered a Vue + TypeScript application that loaded 35% faster.",
       outcome:
         "The lesson: sometimes the most senior thing you can do is have the conviction to say 'this needs to be rebuilt' and then prove it.",
-      skills: ["Technical conviction", "Migration planning", "Stakeholder alignment"],
+      skills: [
+        "Technical conviction",
+        "Migration planning",
+        "Stakeholder alignment",
+      ],
     },
   },
   {
@@ -193,10 +205,14 @@ export const JOBS: Job[] = [
         "What set me apart wasn't the code. I introduced testing culture: Jest for units, Playwright for e2e. The team had been shipping without automated tests. I built the testing infrastructure, wrote the patterns, and coached others to adopt them.",
       outcome:
         "Within 12 months, I was promoted to Engineering Manager — not because I asked, but because I was already doing the work: unblocking people, improving processes, and taking responsibility for outcomes beyond my own PRs.",
-      skills: ["Testing infrastructure", "Process improvement", "Leadership through action"],
+      skills: [
+        "Testing infrastructure",
+        "Process improvement",
+        "Leadership through action",
+      ],
     },
   },
-]
+];
 
 export const ACT_II: ActContent = {
   act: "ACT II",
@@ -215,10 +231,10 @@ export const ACT_II: ActContent = {
     { value: "10K+", label: "Financial advisors" },
   ],
   skills: [
-    { id: "s6",  label: "React" },
-    { id: "s7",  label: "TypeScript" },
-    { id: "s8",  label: "Vue" },
-    { id: "s9",  label: "Next.js" },
+    { id: "s6", label: "React" },
+    { id: "s7", label: "TypeScript" },
+    { id: "s8", label: "Vue" },
+    { id: "s9", label: "Next.js" },
     { id: "s10", label: "Performance Optimization" },
     { id: "s11", label: "A/B Testing" },
     { id: "s12", label: "Playwright" },
@@ -226,7 +242,7 @@ export const ACT_II: ActContent = {
     { id: "s14", label: "Fintech" },
     { id: "s15", label: "Agile Delivery" },
   ],
-}
+};
 
 /* ------------------------------------------------------------------ */
 /*  ACT III — The Leader                                               */
@@ -287,7 +303,7 @@ export const MGMT_STORIES: ManagementStory[] = [
       "HR wanted to close whichever candidate finished first. I pushed back: run both in parallel, give the team a real comparison.",
     text: "Two candidates in the pipeline. HR wanted to close whichever finished first. I pushed back: run both in parallel, give the team a comparison. Delegated code reviews to the engineers who would actually work with the hire. Set a clear timeline: one week for submission, 7-day follow-up. Hired the better candidate, not the faster one.",
   },
-]
+];
 
 export const ACT_III: ActContent = {
   act: "ACT III",
@@ -316,7 +332,7 @@ export const ACT_III: ActContent = {
     { id: "s22", label: "Culture Protection" },
     { id: "s23", label: "Roadmapping" },
   ],
-}
+};
 
 /* ------------------------------------------------------------------ */
 /*  ACT IV — The Builder                                               */
@@ -347,4 +363,4 @@ export const ACT_IV: ActContent = {
     { id: "s29", label: "Algorithmic Trading" },
     { id: "s30", label: "Statistical Analysis" },
   ],
-}
+};
