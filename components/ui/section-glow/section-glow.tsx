@@ -1,19 +1,14 @@
 "use client";
 
-import { motion, type MotionValue } from "framer-motion";
+import { motion } from "framer-motion";
 import { TOKENS } from "@/lib/tokens";
+import type { SectionGlowProps } from "./section-glow.types";
 
 const sizes = {
   sm: "h-[500px] w-[500px]",
   md: "h-[600px] w-[600px]",
   lg: "h-[700px] w-[700px]",
 };
-
-export interface SectionGlowProps {
-  opacity?: MotionValue<number>;
-  color?: string;
-  size?: "sm" | "md" | "lg";
-}
 
 export function SectionGlow({
   opacity,

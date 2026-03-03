@@ -1,14 +1,5 @@
-export interface Stat {
-  value: string;
-  label: string;
-}
-
-interface StatsGridProps {
-  stats: Stat[];
-  color?: string;
-}
-
 import { TOKENS } from "@/lib/tokens";
+import type { StatsGridProps } from "./stats-grid.types";
 
 export function StatsGrid({ stats, color = TOKENS.gold }: StatsGridProps) {
   return (

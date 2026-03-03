@@ -2,9 +2,9 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { FadeUp, FadeIn } from "./motion";
-import { DetailModal, ModalCloseButton } from "./ui/detail-modal";
-import { MonoLabel } from "./ui/mono-label";
+import { FadeUp, FadeIn } from "@/components/motion";
+import { ModalCloseButton } from "@/components/ui/detail-modal";
+import { MonoLabel } from "@/components/ui/mono-label";
 import {
   INDICATORS,
   PROGRESSION,
@@ -13,54 +13,7 @@ import {
 } from "@/data/trading";
 import { TOKENS } from "@/lib/tokens";
 import Image from "next/image";
-
-/* ------------------------------------------------------------------ */
-/*  Indicator Detail Modal                                             */
-/* ------------------------------------------------------------------ */
-
-function IndicatorDetail({
-  indicator,
-  onClose,
-}: {
-  indicator: Indicator;
-  onClose: () => void;
-}) {
-  return (
-    <DetailModal variant="overlay" color={indicator.color} onClose={onClose}>
-      <div className="relative aspect-video w-full">
-        <Image
-          src={indicator.image}
-          alt={indicator.name}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 800px"
-        />
-      </div>
-      <div className="p-6">
-        <div className="flex items-center gap-3">
-          <span
-            className="h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: indicator.color }}
-          />
-          <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]">
-            {indicator.category}
-          </span>
-        </div>
-        <h3 className="mt-3 font-serif text-2xl text-[var(--cream)]">
-          {indicator.name}
-        </h3>
-        <p className="mt-3 text-base leading-relaxed text-[var(--cream-muted)]">
-          {indicator.desc}
-        </p>
-        <p
-          className="mt-2 font-mono text-xs"
-          style={{ color: indicator.color }}>
-          {indicator.lines} lines
-        </p>
-      </div>
-    </DetailModal>
-  );
-}
+import { IndicatorDetail } from "@/components/trading-system/indicator-detail";
 
 /* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
@@ -277,11 +230,6 @@ export function TradingArsenal() {
                         <p className="mt-1 text-xs text-[var(--text-dim)]">
                           {indicator.desc}
                         </p>
-                        <p
-                          className="mt-1 font-mono text-[10px]"
-                          style={{ color: indicator.color }}>
-                          {indicator.lines} lines
-                        </p>
                       </div>
                     </motion.button>
                   ))}
@@ -334,5 +282,3 @@ export function TradingArsenal() {
     </div>
   );
 }
-
-export { TradingArsenal as TradingSystem };

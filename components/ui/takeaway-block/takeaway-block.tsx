@@ -1,15 +1,8 @@
 "use client";
 
-import { FadeUp } from "../motion";
+import { FadeUp } from "@/components/motion";
 import { TOKENS } from "@/lib/tokens";
-
-export interface TakeawayBlockProps {
-  text: string;
-  color?: string;
-  delay?: number;
-  serif?: boolean;
-  className?: string;
-}
+import type { TakeawayBlockProps } from "./takeaway-block.types";
 
 export function TakeawayBlock({
   text,
