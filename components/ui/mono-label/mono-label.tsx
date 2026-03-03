@@ -1,10 +1,5 @@
-export interface MonoLabelProps {
-  label: string;
-  color?: string;
-  className?: string;
-}
-
 import { TOKENS } from "@/lib/tokens";
+import type { MonoLabelProps } from "./mono-label.types";
 
 export function MonoLabel({
   label,

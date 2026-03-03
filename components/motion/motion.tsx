@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useRef, type ReactNode } from "react";
+import { useState, useEffect, useRef, type CSSProperties } from "react";
+import type { FadeInProps, FadeUpProps, RevealLineProps } from "./motion.types";
 
 /* ------------------------------------------------------------------ */
 /*  Animation constants — single source of truth                       */
@@ -44,12 +45,7 @@ export function FadeUp({
   delay = 0,
   className = "",
   distance = 60,
-}: {
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-  distance?: number;
-}) {
+}: FadeUpProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
@@ -69,11 +65,7 @@ export function FadeIn({
   children,
   delay = 0,
   className = "",
-}: {
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-}) {
+}: FadeInProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
@@ -97,11 +89,7 @@ export function RevealLine({
   children,
   delay = 0,
   className = "",
-}: {
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-}) {
+}: RevealLineProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
 
@@ -115,4 +103,50 @@ export function RevealLine({
       </motion.div>
     </motion.div>
   );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Takeover hook                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Shared logic for full-screen takeover components.
+ *
+ * Handles: scroll lock, history push (back button dismisses),
+ * Escape key, and staggered entrance animation via `item(delay)`.
+ *
+ * Usage: const { item } = useTakeover(onClose)
+ */
+export function useTakeover(onClose: () => void) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    history.pushState({ takeover: true }, "", location.href);
+    const t = setTimeout(() => setVisible(true), 20);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") history.back();
+    };
+    document.addEventListener("keydown", handleKey);
+    const handlePop = () => onClose();
+    window.addEventListener("popstate", handlePop, {
+      once: true,
+    } as AddEventListenerOptions);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      clearTimeout(t);
+      document.removeEventListener("keydown", handleKey);
+      window.removeEventListener("popstate", handlePop);
+    };
+  }, [onClose]);
+
+  /** CSS transition helper — staggered entrance by delay (seconds). */
+  const item = (delay: number): CSSProperties => ({
+    opacity: visible ? 1 : 0,
+    transform: `translateY(${visible ? 0 : 16}px)`,
+    transition: `opacity 0.5s ease ${delay}s, transform 0.5s ease ${delay}s`,
+  });
+
+  return { item };
 }

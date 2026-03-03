@@ -1,34 +1,26 @@
 "use client";
 
-import { useRef, useEffect, type ReactNode } from "react";
+import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TRANSITION } from "@/components/motion";
 import { TOKENS } from "@/lib/tokens";
-
-export interface DetailModalProps {
-  onClose: () => void;
-  children: ReactNode;
-  variant?: "inline" | "overlay";
-  color?: string;
-}
-
-export interface ModalCloseButtonProps {
-  onClose: () => void;
-  className?: string;
-  color?: string;
-}
+import {
+  DETAIL_MODAL_VARIANT,
+  type DetailModalProps,
+  type ModalCloseButtonProps,
+} from "./detail-modal.types";
 
 export function DetailModal({
   onClose,
   children,
-  variant = "inline",
+  variant = DETAIL_MODAL_VARIANT.INLINE,
   color = TOKENS.gold,
 }: DetailModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let savedScrollY = 0;
-    if (variant === "overlay") {
+    if (variant === DETAIL_MODAL_VARIANT.OVERLAY) {
       savedScrollY = window.scrollY;
       const scrollbarWidth =
         window.innerWidth - document.documentElement.clientWidth;
@@ -57,7 +49,7 @@ export function DetailModal({
       clearTimeout(timer);
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
-      if (variant === "overlay") {
+      if (variant === DETAIL_MODAL_VARIANT.OVERLAY) {
         document.body.style.overflow = "";
         document.body.style.paddingRight = "";
         window.scrollTo(0, savedScrollY);
@@ -65,7 +57,7 @@ export function DetailModal({
     };
   }, [onClose, variant]);
 
-  if (variant === "overlay") {
+  if (variant === DETAIL_MODAL_VARIANT.OVERLAY) {
     return (
       <motion.div
         initial={{ opacity: 0 }}

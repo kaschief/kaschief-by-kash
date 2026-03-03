@@ -4,7 +4,6 @@ export interface Indicator {
   color: string;
   image: string;
   desc: string;
-  lines: string;
 }
 
 export interface ProgressionStep {
@@ -29,7 +28,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Liquidity,
     image: "/images/indicators/mbz.png",
     desc: "5 gap types as tradable zones",
-    lines: "1,400",
   },
   {
     name: "SIF Core",
@@ -37,7 +35,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Liquidity,
     image: "/images/indicators/sif.png",
     desc: "Institutional trap detection",
-    lines: "950",
   },
   {
     name: "Gaps",
@@ -45,7 +42,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Liquidity,
     image: "/images/indicators/gaps.png",
     desc: "NWOG, NDOG, RTH mapping",
-    lines: "1,890",
   },
   {
     name: "Pulse",
@@ -53,7 +49,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Liquidity,
     image: "/images/indicators/pulse.png",
     desc: "Multi-timeframe sweep levels",
-    lines: "1,200",
   },
   {
     name: "HTF Algo",
@@ -61,7 +56,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Liquidity,
     image: "/images/indicators/pulse-alt.png",
     desc: "Higher timeframe liquidity levels",
-    lines: "780",
   },
   {
     name: "LTF Algo",
@@ -69,7 +63,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Liquidity,
     image: "/images/indicators/pulse.png",
     desc: "Execution tool for entries",
-    lines: "650",
   },
   {
     name: "DTT Weekly",
@@ -77,7 +70,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Session,
     image: "/images/indicators/dtt-weekly.png",
     desc: "4 named sessions with Fibonacci",
-    lines: "1,100",
   },
   {
     name: "DTT Intraday",
@@ -85,7 +77,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Session,
     image: "/images/indicators/dtt-intraday.png",
     desc: "15-session model with IQR",
-    lines: "1,350",
   },
   {
     name: "Deviations",
@@ -93,7 +84,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Range,
     image: "/images/indicators/deviations.png",
     desc: "Statistical session expansion using IQR",
-    lines: "890",
   },
   {
     name: "ADR",
@@ -101,7 +91,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Range,
     image: "/images/indicators/adr.png",
     desc: "Average Daily Range with ceiling/floor",
-    lines: "420",
   },
   {
     name: "MBZ Prime",
@@ -109,7 +98,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Range,
     image: "/images/indicators/mbz-prime.png",
     desc: "Session liquidity pools aggregated",
-    lines: "1,050",
   },
   {
     name: "MBZ Relay",
@@ -117,7 +105,6 @@ export const INDICATORS: Indicator[] = [
     color: CATEGORY_COLORS.Range,
     image: "/images/indicators/mbz.png",
     desc: "Auto HTF pairing and zone broadcasting",
-    lines: "520",
   },
 ];
 

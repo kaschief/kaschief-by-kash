@@ -2,10 +2,11 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { FadeUp, RevealLine, FadeIn } from "./motion";
+import { FadeUp, RevealLine, FadeIn } from "@/components/motion";
 import { TOKENS } from "@/lib/tokens";
 import { PERSONAL } from "@/data/site";
 import { SECTION_ID } from "@/lib/sections";
+import type { ContactLinkProps } from "./contact.types";
 
 /* ------------------------------------------------------------------ */
 /*  Contact link row — ruled, no fills, consistent with skill rows     */
@@ -16,12 +17,7 @@ function ContactLink({
   detail,
   href,
   external = false,
-}: {
-  label: string;
-  detail: string;
-  href: string;
-  external?: boolean;
-}) {
+}: ContactLinkProps) {
   return (
     <a
       href={href}

@@ -1,13 +1,7 @@
 "use client";
 
-import { FadeUp } from "../motion";
-
-export interface SectionProseProps {
-  lead: string;
-  body?: string;
-  delay?: number;
-  className?: string;
-}
+import { FadeUp } from "@/components/motion";
+import type { SectionProseProps } from "./section-prose.types";
 
 export function SectionProse({
   lead,

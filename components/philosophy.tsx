@@ -2,10 +2,10 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { FadeIn, FadeUp, RevealLine } from "./motion";
+import { FadeIn, FadeUp, RevealLine } from "@/components/motion";
 import { TOKENS } from "@/lib/tokens";
-import { SectionGlow } from "./ui/section-glow";
-import { SectionLabel } from "./ui/section-label";
+import { SectionGlow } from "@/components/ui/section-glow";
+import { SectionLabel } from "@/components/ui/section-label";
 import { PHILOSOPHY } from "@/data/site";
 import { SECTION_ID } from "@/lib/sections";
 
