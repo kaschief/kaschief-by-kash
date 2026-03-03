@@ -6,6 +6,7 @@ import { FadeUp, FadeIn } from "./motion"
 import { DetailModal, ModalCloseButton } from "./ui/detail-modal"
 import { MonoLabel } from "./ui/mono-label"
 import { INDICATORS, PROGRESSION, CATEGORIES, type Indicator } from "@/data/trading"
+import { TOKENS } from "@/lib/tokens"
 import Image from "next/image"
 
 /* ------------------------------------------------------------------ */
@@ -66,6 +67,8 @@ export function TradingArsenal() {
   const progressionRef = useRef<HTMLDivElement>(null)
   const progressionInView = useInView(progressionRef, { once: true, margin: "-50px" })
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const indicatorsRef = useRef<HTMLDivElement>(null)
+  const indicatorsInView = useInView(indicatorsRef, { once: true, margin: "-50px" })
 
   const filteredIndicators = INDICATORS.filter(ind => ind.category === activeCategory)
 
@@ -76,7 +79,7 @@ export function TradingArsenal() {
         <div className="border-l-2 border-[var(--act-green)]/20 pl-8 sm:pl-12">
           {/* Sub-section header */}
           <FadeUp>
-            <MonoLabel label="The Arsenal" color="var(--act-green)" className="mb-2 opacity-60" />
+            <MonoLabel label="The Arsenal" color={TOKENS.actGreen} className="mb-2 opacity-60" />
             <h4 className="mb-3 font-serif text-2xl text-[var(--cream)] sm:text-3xl">
               The Tools I Built
             </h4>
@@ -88,7 +91,7 @@ export function TradingArsenal() {
           {/* Progression - clickable to enlarge */}
           <div ref={progressionRef} className="mb-20">
             <FadeIn>
-              <MonoLabel label="The Progression" color="var(--act-green)" className="mb-6" />
+              <MonoLabel label="The Progression" color={TOKENS.actGreen} className="mb-6" />
             </FadeIn>
 
             <div className="grid gap-6 lg:grid-cols-2">
@@ -103,7 +106,7 @@ export function TradingArsenal() {
                     onClick={() => setActiveProgression(i)}
                     style={{
                       borderColor: activeProgression === i
-                        ? "color-mix(in srgb, var(--act-green) 30%, transparent)"
+                        ? `color-mix(in srgb, ${TOKENS.actGreen} 30%, transparent)`
                         : "transparent",
                     }}
                     className={`group w-full cursor-pointer rounded-lg border p-4 text-left transition-all duration-300 ${
@@ -115,7 +118,7 @@ export function TradingArsenal() {
                     <div className="flex items-start gap-4">
                       <span
                         className="shrink-0 font-mono text-xs transition-colors"
-                        style={{ color: activeProgression === i ? "var(--act-green)" : "var(--text-faint)" }}
+                        style={{ color: activeProgression === i ? TOKENS.actGreen : TOKENS.textFaint }}
                       >
                         {step.step}
                       </span>
@@ -171,32 +174,43 @@ export function TradingArsenal() {
           {/* ============================================================ */}
           {/*  INDICATORS - Category tabs + horizontal scroll strip        */}
           {/* ============================================================ */}
-          <FadeUp delay={0.2}>
-            <h4 className="mb-6 font-serif text-xl text-[var(--cream)]">
-              The Indicators
-            </h4>
-          </FadeUp>
+          <div ref={indicatorsRef}>
+            <FadeUp delay={0.2}>
+              <h4 className="mb-6 font-serif text-xl text-[var(--cream)]">
+                The Indicators
+              </h4>
+            </FadeUp>
 
-          {/* Category Tabs */}
-          <div className="mb-6 flex gap-6 border-b border-[var(--stroke)]">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                style={activeCategory === cat ? { borderColor: "var(--act-green)" } : undefined}
-                className={`cursor-pointer pb-3 font-mono text-xs uppercase tracking-wider transition-colors ${
-                  activeCategory === cat
-                    ? "border-b-2 text-[var(--cream)]"
-                    : "text-[var(--text-faint)] hover:text-[var(--cream-muted)]"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+            {/* Category Tabs */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={indicatorsInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="mb-6 flex gap-6 border-b border-[var(--stroke)]"
+            >
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  style={activeCategory === cat ? { borderColor: TOKENS.actGreen } : undefined}
+                  className={`cursor-pointer pb-3 font-mono text-xs uppercase tracking-wider transition-colors ${
+                    activeCategory === cat
+                      ? "border-b-2 text-[var(--cream)]"
+                      : "text-[var(--text-faint)] hover:text-[var(--cream-muted)]"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </motion.div>
 
-          {/* Horizontal Scroll Strip */}
-          <div 
+            {/* Horizontal Scroll Strip */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={indicatorsInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.35 }}
+            >
+          <div
             ref={scrollContainerRef}
             className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
@@ -238,6 +252,8 @@ export function TradingArsenal() {
                 </motion.button>
               ))}
             </AnimatePresence>
+          </div>
+            </motion.div>
           </div>
         </div>
       </div>

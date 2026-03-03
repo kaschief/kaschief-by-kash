@@ -1,6 +1,7 @@
 "use client"
 
 import { motion, type MotionValue } from "framer-motion"
+import { TOKENS } from "@/lib/tokens"
 
 const sizes = {
   sm: "h-[500px] w-[500px]",
@@ -14,7 +15,7 @@ export interface SectionGlowProps {
   size?: "sm" | "md" | "lg"
 }
 
-export function SectionGlow({ opacity, color = "var(--gold)", size = "md" }: SectionGlowProps) {
+export function SectionGlow({ opacity, color = TOKENS.gold, size = "md" }: SectionGlowProps) {
   const inner = (
     <div
       className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full ${sizes[size]}`}

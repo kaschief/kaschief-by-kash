@@ -20,6 +20,21 @@ export const TRANSITION = {
 /** String form for use in CSS `transition` properties */
 export const CSS_EASE = "cubic-bezier(0.22, 1, 0.36, 1)"
 
+/**
+ * Scroll progress input range shared by every act section's glow animation.
+ * Pair with GLOW_OPACITY as the output range in useTransform.
+ * Typed as number[] (not readonly) to satisfy Framer Motion's InputRange.
+ */
+export const SCROLL_RANGE: { glow: number[] } = {
+  glow: [0, 0.3, 0.7, 1],
+}
+
+/** Output opacity values for section glows (paired with SCROLL_RANGE.glow). */
+export const GLOW_OPACITY: number[] = [0, 0.5, 0.5, 0]
+
+/** Transition for infinitely repeating pulse animations (dots, eyebrows). */
+export const PULSE_TRANSITION = { duration: 3, repeat: Infinity } as const
+
 /* ------------------------------------------------------------------ */
 /*  Components                                                          */
 /* ------------------------------------------------------------------ */

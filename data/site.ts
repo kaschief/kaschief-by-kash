@@ -1,3 +1,6 @@
+import { SECTION_ID, type SectionId } from "@/lib/sections";
+import { TOKENS } from "@/lib/tokens";
+
 export interface PersonalInfo {
   name: string;
   initials: string;
@@ -13,8 +16,18 @@ export interface NavLink {
   href: string;
 }
 
+export const ROLE_LABEL = {
+  NURSE: "Nurse",
+  ENGINEER: "Engineer",
+  LEADER: "Leader",
+  BUILDER: "Builder",
+} as const;
+
+export type RoleLabel = (typeof ROLE_LABEL)[keyof typeof ROLE_LABEL];
+
 export interface Role {
-  label: string;
+  label: RoleLabel;
+  sectionId: SectionId;
   color: string;
 }
 
@@ -29,21 +42,37 @@ export const PERSONAL: PersonalInfo = {
 };
 
 export const NAV_LINKS: NavLink[] = [
-  { label: "Skills", href: "#capabilities" },
-  { label: "Contact", href: "#contact" },
+  { label: "Methods", href: `#${SECTION_ID.METHODS}` },
+  { label: "Contact", href: `#${SECTION_ID.CONTACT}` },
 ];
 
-// Single source of truth for role identities and their act colors.
-// Colors reference CSS variables defined in globals.css.
+// Single source of truth for role identities, section IDs, and act colors.
 export const ROLES: Role[] = [
-  { label: "Nurse", color: "var(--act-red)" },
-  { label: "Engineer", color: "var(--act-blue)" },
-  { label: "Leader", color: "var(--act-gold)" },
-  { label: "Builder", color: "var(--act-green)" },
+  {
+    label: ROLE_LABEL.NURSE,
+    sectionId: SECTION_ID.ACT_NURSE,
+    color: TOKENS.actRed,
+  },
+  {
+    label: ROLE_LABEL.ENGINEER,
+    sectionId: SECTION_ID.ACT_ENGINEER,
+    color: TOKENS.actBlue,
+  },
+  {
+    label: ROLE_LABEL.LEADER,
+    sectionId: SECTION_ID.ACT_LEADER,
+    color: TOKENS.actGold,
+  },
+  {
+    label: ROLE_LABEL.BUILDER,
+    sectionId: SECTION_ID.ACT_BUILDER,
+    color: TOKENS.actGreen,
+  },
 ];
 
 export const PHILOSOPHY = {
   label: "How I Think",
+  sectionId: SECTION_ID.PHILOSOPHY,
   lines: [
     "Water can be a river.",
     "It can be ice. It can be the ocean.",

@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { FadeIn } from "../motion"
+import { FadeIn, PULSE_TRANSITION } from "../motion"
 
 export interface SectionLabelProps {
   label: string
@@ -16,7 +16,7 @@ export function SectionLabel({ label, color }: SectionLabelProps) {
           className="inline-block h-1.5 w-1.5 rounded-full"
           style={{ backgroundColor: color }}
           animate={{ opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 3, repeat: Infinity }}
+          transition={PULSE_TRANSITION}
         />
         <span
           className="font-mono text-[10px] font-medium uppercase tracking-[0.25em]"

@@ -8,7 +8,9 @@ interface StatsGridProps {
   color?: string
 }
 
-export function StatsGrid({ stats, color = "var(--gold)" }: StatsGridProps) {
+import { TOKENS } from "@/lib/tokens"
+
+export function StatsGrid({ stats, color = TOKENS.gold }: StatsGridProps) {
   return (
     <div className="space-y-8">
       {stats.map((stat) => (

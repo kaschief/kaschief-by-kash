@@ -5,12 +5,18 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X } from "lucide-react"
 import { NAV_LINKS, ROLES, PERSONAL } from "@/data/site"
 import { TRANSITION } from "@/components/motion"
-
-const SECTION_IDS = ["act-nurse", "act-engineer", "act-leader", "act-builder", "philosophy", "capabilities", "contact"] as const
+import { TOKENS } from "@/lib/tokens"
+import { Z_INDEX } from "@/lib/constants"
+import {
+  SECTION_IDS_ORDERED,
+  SECTION_SCROLL_OFFSET,
+  DEFAULT_SCROLL_OFFSET,
+  type SectionId,
+} from "@/lib/sections"
 
 const ACT_NAV = ROLES.map((r) => ({
   label: r.label,
-  href: `#act-${r.label.toLowerCase()}`,
+  href: `#${r.sectionId}`,
   color: r.color,
 }))
 
@@ -23,10 +29,15 @@ export function Navigation() {
   const suppressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    const findActive = () => {
+    const findActive = (): SectionId | "" => {
+      // If within navScrollOffset of the page bottom, always activate the last section
+      const nearBottom =
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - DEFAULT_SCROLL_OFFSET
+      if (nearBottom) return SECTION_IDS_ORDERED[SECTION_IDS_ORDERED.length - 1]
+
       const threshold = window.innerHeight * 0.4
-      let current = ""
-      for (const id of SECTION_IDS) {
+      let current: SectionId | "" = ""
+      for (const id of SECTION_IDS_ORDERED) {
         const el = document.getElementById(id)
         if (el && el.getBoundingClientRect().top <= threshold) current = id
       }
@@ -40,13 +51,37 @@ export function Navigation() {
     }
 
     window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
+
+    // Initialize from current scroll position — requestAnimationFrame lets the
+    // browser finish its own scroll restoration before we read scrollY
+    const raf = requestAnimationFrame(handleScroll)
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+      cancelAnimationFrame(raf)
+    }
   }, [])
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : ""
     return () => { document.body.style.overflow = "" }
   }, [mobileOpen])
+
+  // On mount: if the URL has a hash, scroll to that section and pre-set active state
+  // so the nav is correct immediately (before the scroll event fires)
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash) return
+    const id = hash.slice(1) as SectionId
+    if (!SECTION_IDS_ORDERED.includes(id)) return
+    setActiveSection(id)
+    const el = document.getElementById(id)
+    if (!el) return
+    const offset = SECTION_SCROLL_OFFSET[id] ?? DEFAULT_SCROLL_OFFSET
+    const top = el.getBoundingClientRect().top + window.scrollY - offset
+    window.scrollTo({ top, behavior: "instant" })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Handle browser back/forward — scroll to the section in the URL hash
   useEffect(() => {
@@ -57,7 +92,7 @@ export function Navigation() {
       const el = document.getElementById(id)
       if (!el) return
       setActiveSection(id)
-      const top = el.getBoundingClientRect().top + window.scrollY - 80
+      const top = el.getBoundingClientRect().top + window.scrollY - DEFAULT_SCROLL_OFFSET
       window.scrollTo({ top, behavior: "smooth" })
     }
     window.addEventListener("popstate", handlePop)
@@ -81,7 +116,7 @@ export function Navigation() {
       suppressScrollRef.current = false
     }, 1200)
 
-    const offset = id === "capabilities" ? 0 : 80
+    const offset = SECTION_SCROLL_OFFSET[id as SectionId] ?? DEFAULT_SCROLL_OFFSET
     const top = el.getBoundingClientRect().top + window.scrollY - offset
     window.scrollTo({ top, behavior: "smooth" })
   }
@@ -94,8 +129,8 @@ export function Navigation() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -80, opacity: 0 }}
           transition={TRANSITION.base}
-          className="fixed top-0 left-0 right-0 z-[100] border-b border-[var(--stroke)]"
-          style={{ backdropFilter: "blur(24px) saturate(1.8)", backgroundColor: "rgba(7,7,10,0.8)" }}
+          className="fixed top-0 left-0 right-0 border-b border-[var(--stroke)]"
+          style={{ zIndex: Z_INDEX.nav, backdropFilter: "blur(24px) saturate(1.8)", backgroundColor: TOKENS.bgNav }}
         >
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
             <button
@@ -113,7 +148,7 @@ export function Navigation() {
               {ACT_NAV.map((link) => {
                 const isActive = activeSection === link.href.slice(1)
                 const isHovered = hoveredLink === link.href
-                const color = (isActive || isHovered) ? link.color : "var(--text-dim)"
+                const color = (isActive || isHovered) ? link.color : TOKENS.textDim
                 return (
                   <button
                     key={link.href}
@@ -148,7 +183,7 @@ export function Navigation() {
                     onMouseEnter={() => setHoveredLink(link.href)}
                     onMouseLeave={() => setHoveredLink(null)}
                     className="relative cursor-pointer py-1 font-mono text-[11px] font-medium uppercase tracking-[0.15em] transition-colors duration-200"
-                    style={{ color: (isActive || isHovered) ? "var(--gold)" : "var(--text-dim)" }}
+                    style={{ color: (isActive || isHovered) ? TOKENS.gold : TOKENS.textDim }}
                   >
                     {link.label}
                     {isActive && (
@@ -190,7 +225,7 @@ export function Navigation() {
                       transition={{ delay: i * 0.05 }}
                       onClick={() => scrollTo(link.href)}
                       className="cursor-pointer text-left font-mono text-sm font-light uppercase tracking-[0.15em] transition-colors"
-                      style={{ color: activeSection === link.href.slice(1) ? link.color : "var(--cream-muted)" }}
+                      style={{ color: activeSection === link.href.slice(1) ? link.color : TOKENS.creamMuted }}
                     >
                       {link.label}
                     </motion.button>

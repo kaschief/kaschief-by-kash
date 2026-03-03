@@ -3,6 +3,7 @@
 import { useRef, useEffect, type ReactNode } from "react"
 import { motion } from "framer-motion"
 import { TRANSITION } from "@/components/motion"
+import { TOKENS } from "@/lib/tokens"
 
 export interface DetailModalProps {
   onClose: () => void
@@ -17,7 +18,7 @@ export interface ModalCloseButtonProps {
   color?: string
 }
 
-export function DetailModal({ onClose, children, variant = "inline", color = "var(--gold)" }: DetailModalProps) {
+export function DetailModal({ onClose, children, variant = "inline", color = TOKENS.gold }: DetailModalProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -101,7 +102,7 @@ export function DetailModal({ onClose, children, variant = "inline", color = "va
   )
 }
 
-export function ModalCloseButton({ onClose, className, color = "var(--gold)" }: ModalCloseButtonProps) {
+export function ModalCloseButton({ onClose, className, color = TOKENS.gold }: ModalCloseButtonProps) {
   return (
     <motion.button
       initial={{ opacity: 0 }}

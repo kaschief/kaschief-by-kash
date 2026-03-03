@@ -3,7 +3,9 @@
 import { useRef } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { FadeUp, RevealLine, FadeIn } from "./motion"
+import { TOKENS } from "@/lib/tokens"
 import { PERSONAL } from "@/data/site"
+import { SECTION_ID } from "@/lib/sections"
 
 /* ------------------------------------------------------------------ */
 /*  Contact link row — ruled, no fills, consistent with skill rows     */
@@ -56,7 +58,7 @@ export function Contact() {
   const glowOpacity = useTransform(scrollYProgress, [0.1, 0.4, 0.9], [0, 0.5, 0])
 
   return (
-    <section id="contact" ref={sectionRef} className="relative overflow-hidden px-6 py-24 sm:py-32">
+    <section id={SECTION_ID.CONTACT} ref={sectionRef} className="relative overflow-hidden px-6 py-24 sm:py-32">
       {/* Atmospheric glows */}
       <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
         <motion.div
@@ -86,7 +88,7 @@ export function Contact() {
         <RevealLine delay={0.15}>
           <h2
             className="mb-3 text-4xl text-[var(--cream)] sm:text-5xl lg:text-6xl"
-            style={{ fontFamily: "var(--font-serif)" }}
+            style={{ fontFamily: TOKENS.fontSerif }}
           >
             Yours to write.
           </h2>

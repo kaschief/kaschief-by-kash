@@ -9,7 +9,8 @@ import {
   useInView,
 } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { FadeUp, FadeIn, RevealLine, TRANSITION, CSS_EASE } from "./motion";
+import { FadeUp, FadeIn, RevealLine, TRANSITION, CSS_EASE, SCROLL_RANGE, GLOW_OPACITY } from "./motion";
+import { TOKENS } from "@/lib/tokens";
 import { TradingArsenal } from "./trading-system";
 import { SectionGlow } from "./ui/section-glow";
 import { SectionLabel } from "./ui/section-label";
@@ -30,6 +31,7 @@ import {
   type Job,
   type ManagementStory,
 } from "@/data/timeline";
+import { SECTION_ID } from "@/lib/sections";
 
 /* ------------------------------------------------------------------ */
 /*  Shared two-column section layout (Acts II, III, IV)               */
@@ -83,7 +85,11 @@ function ActSectionContent({
         </FadeUp>
       </div>
 
-      {children && <div className="mt-16 max-w-2xl mx-auto">{children}</div>}
+      {children && (
+        <FadeUp delay={0.4}>
+          <div className="mt-16 max-w-2xl mx-auto">{children}</div>
+        </FadeUp>
+      )}
     </>
   );
 }
@@ -98,11 +104,7 @@ function ActI() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  const glowOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.7, 1],
-    [0, 0.5, 0.5, 0],
-  );
+  const glowOpacity = useTransform(scrollYProgress, SCROLL_RANGE.glow, GLOW_OPACITY);
 
   const {
     act,
@@ -117,7 +119,7 @@ function ActI() {
   } = ACT_I;
 
   return (
-    <div id="act-nurse" ref={ref} className="relative py-24 sm:py-32">
+    <div id={SECTION_ID.ACT_NURSE} ref={ref} className="relative py-24 sm:py-32">
       <SectionGlow opacity={glowOpacity} color={color} size="lg" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-6">
@@ -171,7 +173,7 @@ function ActI() {
 function JobRow({
   job,
   onSelect,
-  color = "var(--gold)",
+  color = TOKENS.gold,
 }: {
   job: Job;
   onSelect: () => void;
@@ -226,14 +228,10 @@ function ActII() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  const glowOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.7, 1],
-    [0, 0.5, 0.5, 0],
-  );
+  const glowOpacity = useTransform(scrollYProgress, SCROLL_RANGE.glow, GLOW_OPACITY);
 
   return (
-    <div id="act-engineer" ref={ref} className="relative py-24 sm:py-32">
+    <div id={SECTION_ID.ACT_ENGINEER} ref={ref} className="relative py-24 sm:py-32">
       <SectionGlow opacity={glowOpacity} color={ACT_II.color} size="lg" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-6">
@@ -380,14 +378,10 @@ function ActIII() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  const glowOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.7, 1],
-    [0, 0.5, 0.5, 0],
-  );
+  const glowOpacity = useTransform(scrollYProgress, SCROLL_RANGE.glow, GLOW_OPACITY);
 
   return (
-    <div id="act-leader" ref={ref} className="relative py-24 sm:py-32">
+    <div id={SECTION_ID.ACT_LEADER} ref={ref} className="relative py-24 sm:py-32">
       <SectionGlow opacity={glowOpacity} color={ACT_III.color} size="lg" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-6">
@@ -396,7 +390,7 @@ function ActIII() {
             onClick={() => setShowCaseStudies(!showCaseStudies)}
             onMouseEnter={() => setCaseStudiesHovered(true)}
             onMouseLeave={() => setCaseStudiesHovered(false)}
-            style={{ color: caseStudiesHovered ? "var(--cream)" : ACT_III.color }}
+            style={{ color: caseStudiesHovered ? TOKENS.cream : ACT_III.color }}
             className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-xs uppercase tracking-wider transition-colors">
             <ChevronDown
               size={12}
@@ -465,14 +459,10 @@ function ActIV() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  const glowOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.7, 1],
-    [0, 0.5, 0.5, 0],
-  );
+  const glowOpacity = useTransform(scrollYProgress, SCROLL_RANGE.glow, GLOW_OPACITY);
 
   return (
-    <div id="act-builder" ref={ref} className="relative py-24 sm:py-32">
+    <div id={SECTION_ID.ACT_BUILDER} ref={ref} className="relative py-24 sm:py-32">
       <SectionGlow opacity={glowOpacity} color={ACT_IV.color} size="lg" />
       <div className="relative z-10 mx-auto max-w-5xl px-6">
         <ActSectionContent {...ACT_IV} />

@@ -1,11 +1,15 @@
 "use client"
 
 import { useState, useRef, useEffect, type CSSProperties } from "react"
-import { motion } from "framer-motion"
-import { CAPABILITY_GROUPS, type CapabilitySkill } from "@/data/capabilities"
-import { TRANSITION } from "@/components/motion"
+import { SECTION_ID } from "@/lib/sections"
+import { motion, useInView } from "framer-motion"
+import { METHOD_GROUPS, type MethodSkill } from "@/data/methods"
+import { TRANSITION, EASE, CSS_EASE, PULSE_TRANSITION } from "@/components/motion"
+import { TOKENS } from "@/lib/tokens"
+import { Z_INDEX } from "@/lib/constants"
+import { SectionGlow } from "./ui/section-glow"
 
-const N = CAPABILITY_GROUPS.length
+const N = METHOD_GROUPS.length
 
 /* ------------------------------------------------------------------ */
 /*  Skill takeover                                                      */
@@ -16,7 +20,7 @@ function SkillTakeover({
   groupLabel,
   onClose,
 }: {
-  skill: CapabilitySkill
+  skill: MethodSkill
   groupLabel: string
   onClose: () => void
 }) {
@@ -48,19 +52,19 @@ function SkillTakeover({
   return (
     <div
       onClick={(e) => { e.stopPropagation(); history.back() }}
-      style={{ position: "fixed", inset: 0, zIndex: 800, background: "var(--bg)", display: "flex", flexDirection: "column", justifyContent: "center" }}
+      style={{ position: "fixed", inset: 0, zIndex: Z_INDEX.takeover, background: TOKENS.bg, display: "flex", flexDirection: "column", justifyContent: "center" }}
     >
       <div style={{ maxWidth: 1024, margin: "0 auto", padding: "0 24px", width: "100%", position: "relative" }}>
-        <p style={{ position: "absolute", top: -56, fontFamily: "var(--font-mono)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--text-faint)", ...item(0) }}>
+        <p style={{ position: "absolute", top: -56, fontFamily: TOKENS.fontMono, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.18em", color: TOKENS.textFaint, ...item(0) }}>
           ← tap anywhere to return
         </p>
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.28em", color: "var(--gold-dim)", marginBottom: 24, ...item(0.08) }}>
+        <p style={{ fontFamily: TOKENS.fontMono, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.28em", color: TOKENS.goldDim, marginBottom: 24, ...item(0.08) }}>
           {groupLabel}
         </p>
-        <h2 style={{ fontFamily: "var(--font-serif)", fontWeight: 400, fontSize: "clamp(44px, 7vw, 96px)", color: "var(--cream)", lineHeight: 1, marginBottom: 36, ...item(0.04) }}>
+        <h2 style={{ fontFamily: TOKENS.fontSerif, fontWeight: 400, fontSize: "clamp(44px, 7vw, 96px)", color: TOKENS.cream, lineHeight: 1, marginBottom: 36, ...item(0.04) }}>
           {skill.label}
         </h2>
-        <p style={{ fontSize: 17, fontWeight: 300, lineHeight: 1.85, color: "var(--text-dim)", maxWidth: 580, ...item(0.12) }}>
+        <p style={{ fontSize: 17, fontWeight: 300, lineHeight: 1.85, color: TOKENS.textDim, maxWidth: 580, ...item(0.12) }}>
           {skill.detail}
         </p>
       </div>
@@ -75,26 +79,29 @@ function SkillTakeover({
 function SkillRow({ label, onSelect }: { label: string; onSelect: () => void }) {
   const [hovered, setHovered] = useState(false)
   return (
-    <div
+    <button
+      type="button"
       onClick={(e) => { e.stopPropagation(); onSelect() }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        borderBottom: "1px solid var(--stroke)",
         padding: "16px 0",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+        width: "100%",
+        background: "none",
+        border: "none",
+        borderBottom: `1px solid ${TOKENS.stroke}`,
         opacity: hovered ? 0.5 : 1,
         transition: "opacity 0.15s ease",
-        color: "var(--cream-muted)",
+        color: TOKENS.creamMuted,
         fontSize: 15,
-        cursor: "pointer",
       }}
     >
       <span>{label}</span>
-      <span style={{ color: "var(--text-faint)", fontSize: 13 }}>→</span>
-    </div>
+      <span style={{ color: TOKENS.textFaint, fontSize: 13 }}>→</span>
+    </button>
   )
 }
 
@@ -130,11 +137,11 @@ function NavButton({
     >
       <span
         style={{
-          fontFamily: "var(--font-mono)",
+          fontFamily: TOKENS.fontMono,
           fontSize: 9,
           textTransform: "uppercase",
           letterSpacing: "0.18em",
-          color: isActive ? "var(--cream-muted)" : hovered ? "var(--text-dim)" : "var(--text-faint)",
+          color: isActive ? TOKENS.creamMuted : hovered ? TOKENS.textDim : TOKENS.textFaint,
           transition: `color ${TRANSITION.base.duration}s ease`,
         }}
       >
@@ -152,7 +159,7 @@ function NavButton({
             top: 0,
             height: 1,
             width: isActive ? 20 : hovered ? 8 : 4,
-            background: isActive ? "var(--gold)" : hovered ? "var(--text-dim)" : "var(--stroke)",
+            background: isActive ? TOKENS.gold : hovered ? TOKENS.textDim : TOKENS.stroke,
             transition: `all ${TRANSITION.base.duration}s ease`,
           }}
         />
@@ -176,11 +183,11 @@ function Panel({
   onSkillSelect,
   onScrollToPanel,
 }: {
-  group: (typeof CAPABILITY_GROUPS)[number]
+  group: (typeof METHOD_GROUPS)[number]
   index: number
   panelProgress: number
   activePanelIndex: number
-  onSkillSelect: (skill: CapabilitySkill, groupLabel: string) => void
+  onSkillSelect: (skill: MethodSkill, groupLabel: string) => void
   onScrollToPanel: (i: number) => void
 }) {
   const isActive = activePanelIndex === index
@@ -191,7 +198,7 @@ function Panel({
   const fadeIn = (delay: number): CSSProperties => ({
     opacity: isActive ? 1 : 0,
     transition: isActive
-      ? `opacity ${TRANSITION.page.duration}s cubic-bezier(0.22,1,0.36,1) ${delay}s`
+      ? `opacity ${TRANSITION.page.duration}s ${CSS_EASE} ${delay}s`
       : "opacity 0s",
   })
 
@@ -211,12 +218,12 @@ function Panel({
         <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 12, ...fadeIn(0) }}>
           <motion.span
             className="inline-block h-1.5 w-1.5 rounded-full"
-            style={{ backgroundColor: "var(--gold)" }}
+            style={{ backgroundColor: TOKENS.gold }}
             animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 3, repeat: Infinity }}
+            transition={PULSE_TRANSITION}
           />
-          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em]" style={{ color: "var(--gold)" }}>
-            Capabilities
+          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.25em]" style={{ color: TOKENS.gold }}>
+            Methods
           </span>
         </div>
 
@@ -230,14 +237,14 @@ function Panel({
           }}
         >
           {/* Col 1: title + description */}
-          <div style={{ borderRight: "1px solid var(--stroke)", paddingRight: 48 }}>
+          <div style={{ borderRight: `1px solid ${TOKENS.stroke}`, paddingRight: 48 }}>
             <h2
               className="font-serif text-4xl font-normal tracking-[-0.02em] sm:text-5xl lg:text-6xl"
-              style={{ lineHeight: 1.05, marginBottom: 20, color: "var(--cream)", ...fadeIn(0.06) }}
+              style={{ lineHeight: 1.05, marginBottom: 20, color: TOKENS.cream, ...fadeIn(0.06) }}
             >
               {group.label}
             </h2>
-            <p style={{ fontSize: 14, lineHeight: 1.75, color: "var(--text-dim)", ...fadeIn(0.16) }}>
+            <p style={{ fontSize: 14, lineHeight: 1.75, color: TOKENS.textDim, ...fadeIn(0.16) }}>
               {group.description}
             </p>
           </div>
@@ -256,7 +263,7 @@ function Panel({
 
           {/* Col 3: vertical section nav */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 4 }}>
-            {CAPABILITY_GROUPS.map((g, i) => (
+            {METHOD_GROUPS.map((g, i) => (
               <NavButton
                 key={g.id}
                 label={g.label}
@@ -275,13 +282,15 @@ function Panel({
 /*  Main export                                                         */
 /* ------------------------------------------------------------------ */
 
-export function Capabilities() {
+export function Methods() {
   const outerRef = useRef<HTMLDivElement>(null)
   const [progress, setProgress] = useState(0)
   const [activeSkill, setActiveSkill] = useState<{
-    skill: CapabilitySkill
+    skill: MethodSkill
     groupLabel: string
   } | null>(null)
+
+  const inView = useInView(outerRef, { once: true, amount: 0.05 })
 
   const scrollToPanel = (panelIndex: number) => {
     if (!outerRef.current) return
@@ -328,10 +337,16 @@ export function Capabilities() {
   const activePanelIndex = Math.round(panelProgress)
 
   return (
-    <div id="capabilities" ref={outerRef} style={{ height: `${N * 60}vh`, position: "relative" }}>
+    <div id={SECTION_ID.METHODS} ref={outerRef} style={{ height: `${N * 60}vh`, position: "relative" }}>
+      <SectionGlow color={TOKENS.gold} size="lg" />
       <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden" }}>
-        <div style={{ position: "relative", width: "100%", height: "100%" }}>
-          {CAPABILITY_GROUPS.map((group, i) => (
+        <motion.div
+          style={{ position: "relative", width: "100%", height: "100%" }}
+          initial={{ opacity: 0, y: 48 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, ease: EASE }}
+        >
+          {METHOD_GROUPS.map((group, i) => (
             <Panel
               key={group.id}
               group={group}
@@ -342,7 +357,7 @@ export function Capabilities() {
               onScrollToPanel={scrollToPanel}
             />
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {activeSkill && (

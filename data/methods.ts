@@ -1,17 +1,17 @@
-export interface CapabilitySkill {
+export interface MethodSkill {
   id: string
   label: string
   detail: string
 }
 
-export interface CapabilityGroup {
+export interface MethodGroup {
   id: string
   label: string
   description: string
-  skills: CapabilitySkill[]
+  skills: MethodSkill[]
 }
 
-export const CAPABILITY_GROUPS: CapabilityGroup[] = [
+export const METHOD_GROUPS: MethodGroup[] = [
   {
     id: "think",
     label: "How I think",

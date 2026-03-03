@@ -1,6 +1,7 @@
 "use client"
 
 import { FadeUp } from "../motion"
+import { TOKENS } from "@/lib/tokens"
 
 export interface TakeawayBlockProps {
   text: string
@@ -12,7 +13,7 @@ export interface TakeawayBlockProps {
 
 export function TakeawayBlock({
   text,
-  color = "var(--gold)",
+  color = TOKENS.gold,
   delay = 0.4,
   serif = false,
   className,
