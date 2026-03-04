@@ -12,6 +12,7 @@ import {
 } from "@/components/motion";
 import { TOKENS } from "@/lib/tokens";
 import { Z_INDEX } from "@/lib/constants";
+import { TakeoverContent } from "@/components/ui/takeover-content";
 import { SectionGlow } from "@/components/ui/section-glow";
 import { CategoryTags } from "@/components/ui/category-tags";
 import { ActSectionContent } from "@/components/sections/timeline/acts/act-section-content";
@@ -41,14 +42,7 @@ function StoryTakeover({
         background: TOKENS.bg,
         overflowY: "auto",
       }}>
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          maxWidth: 1024,
-          margin: "0 auto",
-          padding: "18vh 24px 10vh",
-          width: "100%",
-        }}>
+      <TakeoverContent onClick={(e) => e.stopPropagation()}>
         <p
           style={{
             fontFamily: TOKENS.fontMono,
@@ -90,7 +84,7 @@ function StoryTakeover({
           }}>
           {story.text}
         </p>
-      </div>
+      </TakeoverContent>
     </div>
   );
 }
@@ -134,7 +128,7 @@ function CaseStudyCard({
         </h4>
         <span
           style={{ color: hovered ? color : undefined }}
-          className="mt-1 shrink-0 text-[var(--text-faint)] transition-all group-hover:translate-x-1">
+          className="mt-1 hidden shrink-0 text-[var(--text-faint)] transition-all group-hover:translate-x-1 sm:block">
           →
         </span>
       </div>

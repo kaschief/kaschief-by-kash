@@ -42,7 +42,7 @@ export function JobRow({ job, onSelect, color = TOKENS.gold }: JobRowProps) {
       </div>
       <span
         style={{ color: hovered ? color : undefined }}
-        className="shrink-0 text-[var(--text-faint)] transition-all group-hover:translate-x-1 sm:mt-2">
+        className="hidden shrink-0 text-[var(--text-faint)] transition-all group-hover:translate-x-1 sm:mt-2 sm:block">
         →
       </span>
     </motion.button>

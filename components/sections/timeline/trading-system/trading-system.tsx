@@ -46,7 +46,7 @@ export function TradingArsenal() {
     <div className="relative pb-24">
       <div className="mx-auto max-w-5xl px-6">
         {/* Visual nesting under Act IV */}
-        <div className="border-l-2 border-[var(--act-green)]/20 pl-8 sm:pl-12">
+        <div className="border-l-2 border-[var(--act-green)]/20 pl-4 sm:pl-8 lg:pl-12">
           {/* Sub-section header */}
           <FadeUp>
             <MonoLabel
@@ -71,7 +71,7 @@ export function TradingArsenal() {
               </h4>
             </FadeIn>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="flex flex-col-reverse gap-6 lg:grid lg:grid-cols-2">
               {/* Steps */}
               <div className="space-y-2">
                 {PROGRESSION.map((step, i) => (
