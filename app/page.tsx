@@ -1,6 +1,4 @@
-import { CursorArrow, Navigation } from "@/components/layout";
-import { Contact, Hero, Methods, Philosophy, Timeline } from "@/components/sections";
-
+import { CursorArrow, Navigation, Contact, Hero, Methods, Philosophy, Timeline } from "@components";
 export default function Page() {
   return (
     <>

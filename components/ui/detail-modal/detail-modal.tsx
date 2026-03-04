@@ -2,26 +2,28 @@
 
 import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { TRANSITION } from "@/components/motion";
-import { TOKENS } from "@/lib/tokens";
-import { KEYBOARD_EVENT, POINTER_EVENT } from "@/lib/interaction";
-import {
-  DETAIL_MODAL_VARIANT,
-  type DetailModalProps,
-  type ModalCloseButtonProps,
-} from "./detail-modal.types";
+import { TRANSITION } from "@components";
+import { TOKENS, KEYBOARD_EVENT, POINTER_EVENT } from "@utilities";
+import { useSectionScroll } from "@hooks";
+import { DETAIL_MODAL_VARIANT, type DetailModalProps, type ModalCloseButtonProps } from "./detail-modal.types";
+
+const { KEY: { ESCAPE }, TYPE: { KEY_DOWN } } = KEYBOARD_EVENT;
+const { gold } = TOKENS;
+const { INLINE, OVERLAY } = DETAIL_MODAL_VARIANT;
+const { MOUSE_DOWN } = POINTER_EVENT;
 
 export function DetailModal({
   onClose,
   children,
-  variant = DETAIL_MODAL_VARIANT.INLINE,
-  color = TOKENS.gold,
+  variant = INLINE,
+  color = gold,
 }: DetailModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollToY } = useSectionScroll();
 
   useEffect(() => {
     let savedScrollY = 0;
-    if (variant === DETAIL_MODAL_VARIANT.OVERLAY) {
+    if (variant === OVERLAY) {
       savedScrollY = window.scrollY;
       const scrollbarWidth =
         window.innerWidth - document.documentElement.clientWidth;
@@ -38,30 +40,30 @@ export function DetailModal({
       }
     };
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === KEYBOARD_EVENT.KEY.ESCAPE) onClose();
+      if (e.key === ESCAPE) onClose();
     };
 
     const timer = setTimeout(() => {
-      document.addEventListener(POINTER_EVENT.MOUSE_DOWN, handleClickOutside);
-      document.addEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleEscape);
+      document.addEventListener(MOUSE_DOWN, handleClickOutside);
+      document.addEventListener(KEY_DOWN, handleEscape);
     }, 100);
 
     return () => {
       clearTimeout(timer);
       document.removeEventListener(
-        POINTER_EVENT.MOUSE_DOWN,
+        MOUSE_DOWN,
         handleClickOutside,
       );
-      document.removeEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleEscape);
-      if (variant === DETAIL_MODAL_VARIANT.OVERLAY) {
+      document.removeEventListener(KEY_DOWN, handleEscape);
+      if (variant === OVERLAY) {
         document.body.style.overflow = "";
         document.body.style.paddingRight = "";
-        window.scrollTo(0, savedScrollY);
+        scrollToY(savedScrollY, { behavior: "auto" });
       }
     };
-  }, [onClose, variant]);
+  }, [onClose, scrollToY, variant]);
 
-  if (variant === DETAIL_MODAL_VARIANT.OVERLAY) {
+  if (variant === OVERLAY) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -114,7 +116,7 @@ export function DetailModal({
 export function ModalCloseButton({
   onClose,
   className,
-  color = TOKENS.gold,
+  color = gold,
 }: ModalCloseButtonProps) {
   return (
     <motion.button

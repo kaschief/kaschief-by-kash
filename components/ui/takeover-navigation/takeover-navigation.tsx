@@ -1,8 +1,9 @@
 "use client";
 
-import { TOKENS } from "@/lib/tokens";
-import { useBreakpoint } from "@/lib/use-breakpoint";
+import { BP, TOKENS } from "@utilities";
+import { useBreakpoint } from "@hooks";
 import type { TakeoverNavigationProps } from "./takeover-navigation.types";
+const { creamMuted, stroke } = TOKENS;
 
 /**
  * Prev/next navigation buttons for all takeover overlays.
@@ -22,7 +23,7 @@ export function TakeoverNavigation({
   nextLabel,
   zIndex,
 }: TakeoverNavigationProps) {
-  const isDesktop = useBreakpoint("sm");
+  const isDesktop = useBreakpoint(BP.sm);
 
   if (!canGoPrev && !canGoNext) return null;
 
@@ -32,9 +33,9 @@ export function TakeoverNavigation({
     width: 38,
     height: 38,
     borderRadius: 999,
-    border: `1px solid ${TOKENS.stroke}`,
+    border: `1px solid ${stroke}`,
     background: "color-mix(in srgb, var(--bg) 70%, transparent)",
-    color: TOKENS.creamMuted,
+    color: creamMuted,
     display: "grid",
     placeItems: "center",
   };

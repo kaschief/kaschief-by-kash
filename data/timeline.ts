@@ -1,5 +1,4 @@
-import { ROLES } from "@/data/site";
-
+import { ROLES } from "./site";
 const [nurseRole, engineerRole, leaderRole, builderRole] = ROLES;
 
 /* ------------------------------------------------------------------ */

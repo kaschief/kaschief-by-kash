@@ -2,11 +2,12 @@
 
 import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { TRANSITION } from "@/components/motion";
-import { TOKENS } from "@/lib/tokens";
+import { TRANSITION } from "@components";
+import { TOKENS } from "@utilities";
 import type { JobRowProps } from "./act-ii.types";
+const { gold } = TOKENS;
 
-export function JobRow({ job, onSelect, color = TOKENS.gold }: JobRowProps) {
+export function JobRow({ job, onSelect, color = gold }: JobRowProps) {
   const ref = useRef<HTMLButtonElement>(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
   const [hovered, setHovered] = useState(false);

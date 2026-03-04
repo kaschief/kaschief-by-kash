@@ -1,12 +1,13 @@
 "use client";
 
-import { FadeUp } from "@/components/motion";
-import { TOKENS } from "@/lib/tokens";
+import { FadeUp } from "@components";
+import { TOKENS } from "@utilities";
 import type { TakeawayBlockProps } from "./takeaway-block.types";
+const { gold } = TOKENS;
 
 export function TakeawayBlock({
   text,
-  color = TOKENS.gold,
+  color = gold,
   delay = 0.4,
   serif = false,
   className,

@@ -3,23 +3,16 @@
 import { useState, useRef } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import {
-  TRANSITION,
-  CSS_EASE,
-  SCROLL_RANGE,
-  GLOW_OPACITY,
-  useTakeover,
-} from "@/components/motion";
-import { TOKENS } from "@/lib/tokens";
-import { Z_INDEX } from "@/lib/constants";
-import { TakeoverContent } from "@/components/ui/takeover-content";
-import { SectionGlow } from "@/components/ui/section-glow";
-import { CategoryTags } from "@/components/ui/category-tags";
-import { ActSectionContent } from "@/components/sections/timeline/acts/act-section-content";
-import { ACT_III, MGMT_STORIES, type ManagementStory } from "@/data/timeline";
-import { SECTION_ID } from "@/lib/sections";
+import { TRANSITION, CSS_EASE, SCROLL_RANGE, GLOW_OPACITY, useTakeover, TakeoverContent, SectionGlow, CategoryTags, ActSectionContent } from "@components";
+import { TOKENS, Z_INDEX, SECTION_ID } from "@utilities";
+import { ACT_III, MGMT_STORIES, type ManagementStory } from "@data";
 import type { CaseStudyCardProps, StoryTakeoverProps } from "./act-iii.types";
 
+const { bg, cream, fontMono, fontSerif, textDim } = TOKENS;
+const { takeover } = Z_INDEX;
+const { ACT_LEADER } = SECTION_ID;
+const { glow } = SCROLL_RANGE;
+const { act, color } = ACT_III;
 /* ------------------------------------------------------------------ */
 /*  Story takeover                                                      */
 /* ------------------------------------------------------------------ */
@@ -38,14 +31,14 @@ function StoryTakeover({
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: Z_INDEX.takeover,
-        background: TOKENS.bg,
+        zIndex: takeover,
+        background: bg,
         overflowY: "auto",
       }}>
       <TakeoverContent onClick={(e) => e.stopPropagation()}>
         <p
           style={{
-            fontFamily: TOKENS.fontMono,
+            fontFamily: fontMono,
             fontSize: 11,
             textTransform: "uppercase",
             letterSpacing: "0.25em",
@@ -58,10 +51,10 @@ function StoryTakeover({
 
         <h2
           style={{
-            fontFamily: TOKENS.fontSerif,
+            fontFamily: fontSerif,
             fontWeight: 400,
             fontSize: "clamp(44px, 7vw, 96px)",
-            color: TOKENS.cream,
+            color: cream,
             lineHeight: 1,
             marginBottom: 32,
             ...item(0.04),
@@ -78,7 +71,7 @@ function StoryTakeover({
             fontSize: 17,
             fontWeight: 300,
             lineHeight: 1.85,
-            color: TOKENS.textDim,
+            color: textDim,
             maxWidth: 580,
             ...item(0.16),
           }}>
@@ -156,16 +149,16 @@ export function ActIII() {
   });
   const glowOpacity = useTransform(
     scrollYProgress,
-    SCROLL_RANGE.glow,
+    glow,
     GLOW_OPACITY,
   );
 
   return (
     <div
-      id={SECTION_ID.ACT_LEADER}
+      id={ACT_LEADER}
       ref={ref}
       className="relative py-24 sm:py-32">
-      <SectionGlow opacity={glowOpacity} color={ACT_III.color} size="lg" />
+      <SectionGlow opacity={glowOpacity} color={color} size="lg" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-6">
         <ActSectionContent {...ACT_III}>
@@ -173,7 +166,7 @@ export function ActIII() {
             onClick={() => setShowCaseStudies(!showCaseStudies)}
             onMouseEnter={() => setCaseStudiesHovered(true)}
             onMouseLeave={() => setCaseStudiesHovered(false)}
-            style={{ color: caseStudiesHovered ? TOKENS.cream : ACT_III.color }}
+            style={{ color: caseStudiesHovered ? cream : color }}
             className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-xs uppercase tracking-wider transition-colors">
             <ChevronDown
               size={12}
@@ -199,7 +192,7 @@ export function ActIII() {
                   <CaseStudyCard
                     key={story.id}
                     story={story}
-                    color={ACT_III.color}
+                    color={color}
                     onSelect={() => setSelectedStory(story)}
                   />
                 ))}
@@ -212,8 +205,8 @@ export function ActIII() {
       {selectedStory && (
         <StoryTakeover
           story={selectedStory}
-          actLabel={ACT_III.act}
-          color={ACT_III.color}
+          actLabel={act}
+          color={color}
           onClose={() => setSelectedStory(null)}
         />
       )}

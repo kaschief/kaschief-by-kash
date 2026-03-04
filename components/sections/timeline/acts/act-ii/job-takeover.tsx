@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { useTakeover } from "@/components/motion";
-import { TOKENS } from "@/lib/tokens";
-import { Z_INDEX } from "@/lib/constants";
-import { KEYBOARD_EVENT, TAKEOVER_NAV_LABEL } from "@/lib/interaction";
-import { TakeoverNavigation } from "@/components/ui/takeover-navigation";
-import { TakeoverContent } from "@/components/ui/takeover-content";
+import { useTakeover, TakeoverNavigation, TakeoverContent } from "@components";
+import { TOKENS, Z_INDEX, KEYBOARD_EVENT, TAKEOVER_NAV_LABEL } from "@utilities";
 import type { JobTakeoverProps } from "./act-ii.types";
+const { KEY: { ARROW_LEFT, ARROW_RIGHT }, TYPE: { KEY_DOWN } } = KEYBOARD_EVENT;
+const { bg, cream, creamMuted, fontMono, fontSerif, textDim, textFaint } = TOKENS;
+const { takeover } = Z_INDEX;
+const { NEXT_JOB, PREVIOUS_JOB } = TAKEOVER_NAV_LABEL;
 
 export function JobTakeover({
   job,
@@ -23,19 +23,19 @@ export function JobTakeover({
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === KEYBOARD_EVENT.KEY.ARROW_LEFT && canGoPrev) {
+      if (e.key === ARROW_LEFT && canGoPrev) {
         e.preventDefault();
         onPrev();
       }
-      if (e.key === KEYBOARD_EVENT.KEY.ARROW_RIGHT && canGoNext) {
+      if (e.key === ARROW_RIGHT && canGoNext) {
         e.preventDefault();
         onNext();
       }
     };
 
-    document.addEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleKey);
+    document.addEventListener(KEY_DOWN, handleKey);
     return () =>
-      document.removeEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleKey);
+      document.removeEventListener(KEY_DOWN, handleKey);
   }, [canGoNext, canGoPrev, onNext, onPrev]);
 
   return (
@@ -44,8 +44,8 @@ export function JobTakeover({
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: Z_INDEX.takeover,
-        background: TOKENS.bg,
+        zIndex: takeover,
+        background: bg,
         overflowY: "auto",
       }}>
       <TakeoverNavigation
@@ -53,14 +53,14 @@ export function JobTakeover({
         canGoNext={canGoNext}
         onPrev={onPrev}
         onNext={onNext}
-        prevLabel={TAKEOVER_NAV_LABEL.PREVIOUS_JOB}
-        nextLabel={TAKEOVER_NAV_LABEL.NEXT_JOB}
-        zIndex={Z_INDEX.takeover + 1}
+        prevLabel={PREVIOUS_JOB}
+        nextLabel={NEXT_JOB}
+        zIndex={takeover + 1}
       />
       <TakeoverContent onClick={(e) => e.stopPropagation()}>
         <p
           style={{
-            fontFamily: TOKENS.fontMono,
+            fontFamily: fontMono,
             fontSize: 11,
             textTransform: "uppercase",
             letterSpacing: "0.25em",
@@ -73,10 +73,10 @@ export function JobTakeover({
 
         <h2
           style={{
-            fontFamily: TOKENS.fontSerif,
+            fontFamily: fontSerif,
             fontWeight: 400,
             fontSize: "clamp(44px, 7vw, 96px)",
-            color: TOKENS.cream,
+            color: cream,
             lineHeight: 1,
             marginBottom: 16,
             ...item(0.04),
@@ -87,7 +87,7 @@ export function JobTakeover({
         <p
           style={{
             fontSize: 17,
-            color: TOKENS.creamMuted,
+            color: creamMuted,
             marginBottom: 8,
             ...item(0.1),
           }}>
@@ -96,9 +96,9 @@ export function JobTakeover({
 
         <p
           style={{
-            fontFamily: TOKENS.fontMono,
+            fontFamily: fontMono,
             fontSize: 10,
-            color: TOKENS.textFaint,
+            color: textFaint,
             marginBottom: 40,
             ...item(0.12),
           }}>
@@ -117,7 +117,7 @@ export function JobTakeover({
             <span
               key={t}
               style={{
-                fontFamily: TOKENS.fontMono,
+                fontFamily: fontMono,
                 fontSize: 10,
                 color,
                 border: `1px solid color-mix(in srgb, ${color} 30%, transparent)`,
@@ -135,7 +135,7 @@ export function JobTakeover({
               fontSize: 17,
               fontWeight: 300,
               lineHeight: 1.85,
-              color: TOKENS.textDim,
+              color: textDim,
               marginBottom: 24,
             }}>
             {job.deepDive.context}
@@ -145,7 +145,7 @@ export function JobTakeover({
               fontSize: 17,
               fontWeight: 300,
               lineHeight: 1.85,
-              color: TOKENS.textDim,
+              color: textDim,
               marginBottom: 24,
             }}>
             {job.deepDive.contribution}
@@ -155,7 +155,7 @@ export function JobTakeover({
               fontSize: 17,
               fontWeight: 300,
               lineHeight: 1.85,
-              color: TOKENS.cream,
+              color: cream,
             }}>
             {job.deepDive.outcome}
           </p>
@@ -167,7 +167,7 @@ export function JobTakeover({
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              fontFamily: TOKENS.fontMono,
+              fontFamily: fontMono,
               fontSize: 11,
               color,
               display: "inline-flex",

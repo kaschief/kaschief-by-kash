@@ -2,8 +2,10 @@
 
 import { motion, useInView } from "framer-motion";
 import { useState, useEffect, useRef, type CSSProperties } from "react";
-import { HISTORY_EVENT, KEYBOARD_EVENT } from "@/lib/interaction";
+import { HISTORY_EVENT, KEYBOARD_EVENT } from "@utilities";
 import type { FadeInProps, FadeUpProps, RevealLineProps } from "./motion.types";
+const { KEY: { ESCAPE }, TYPE: { KEY_DOWN } } = KEYBOARD_EVENT;
+const { POP_STATE } = HISTORY_EVENT;
 
 /* ------------------------------------------------------------------ */
 /*  Animation constants — single source of truth                       */
@@ -123,18 +125,18 @@ export function useTakeover(onClose: () => void) {
     history.pushState({ takeover: true }, "", location.href);
     const t = setTimeout(() => setVisible(true), 20);
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === KEYBOARD_EVENT.KEY.ESCAPE) history.back();
+      if (e.key === ESCAPE) history.back();
     };
-    document.addEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleKey);
+    document.addEventListener(KEY_DOWN, handleKey);
     const handlePop = () => onClose();
-    window.addEventListener(HISTORY_EVENT.POP_STATE, handlePop, {
+    window.addEventListener(POP_STATE, handlePop, {
       once: true,
     } as AddEventListenerOptions);
     return () => {
       document.body.style.overflow = prevOverflow;
       clearTimeout(t);
-      document.removeEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleKey);
-      window.removeEventListener(HISTORY_EVENT.POP_STATE, handlePop);
+      document.removeEventListener(KEY_DOWN, handleKey);
+      window.removeEventListener(POP_STATE, handlePop);
     };
   }, [onClose]);
 

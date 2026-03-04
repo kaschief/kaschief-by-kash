@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { TOKENS } from "@/lib/tokens";
+import { TOKENS } from "@utilities";
 import type { SkillRowProps } from "./methods.types";
+const { creamMuted, stroke, textFaint } = TOKENS;
 
 export function SkillRow({ label, onSelect }: SkillRowProps) {
   const [hovered, setHovered] = useState(false);
@@ -24,14 +25,14 @@ export function SkillRow({ label, onSelect }: SkillRowProps) {
         width: "100%",
         background: "none",
         border: "none",
-        borderBottom: `1px solid ${TOKENS.stroke}`,
+        borderBottom: `1px solid ${stroke}`,
         opacity: hovered ? 0.5 : 1,
         transition: "opacity 0.15s ease",
-        color: TOKENS.creamMuted,
+        color: creamMuted,
         fontSize: 15,
       }}>
       <span>{label}</span>
-      <span className="hidden sm:inline" style={{ color: TOKENS.textFaint, fontSize: 13 }}>→</span>
+      <span className="hidden sm:inline" style={{ color: textFaint, fontSize: 13 }}>→</span>
     </button>
   );
 }

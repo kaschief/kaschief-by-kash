@@ -1,12 +1,7 @@
 "use client";
 
-import { FadeUp, RevealLine } from "@/components/motion";
-import { SectionLabel } from "@/components/ui/section-label";
-import { TakeawayBlock } from "@/components/ui/takeaway-block";
-import { StatsGrid } from "@/components/ui/stats-grid";
-import { SectionProse } from "@/components/ui/section-prose";
+import { FadeUp, RevealLine, SectionLabel, TakeawayBlock, StatsGrid, SectionProse } from "@components";
 import type { ActSectionContentProps } from "./act-section-content.types";
-
 export function ActSectionContent({
   act,
   title,

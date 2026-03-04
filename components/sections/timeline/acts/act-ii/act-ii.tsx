@@ -2,15 +2,14 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useScroll, useTransform } from "framer-motion";
-import { FadeIn, SCROLL_RANGE, GLOW_OPACITY } from "@/components/motion";
-import { SectionGlow } from "@/components/ui/section-glow";
-import { MonoLabel } from "@/components/ui/mono-label";
-import { ActSectionContent } from "@/components/sections/timeline/acts/act-section-content";
-import { ACT_II, JOBS } from "@/data/timeline";
-import { SECTION_ID } from "@/lib/sections";
+import { FadeIn, SCROLL_RANGE, GLOW_OPACITY, SectionGlow, MonoLabel, ActSectionContent } from "@components";
+import { ACT_II, JOBS } from "@data";
+import { SECTION_ID } from "@utilities";
 import { JobRow } from "./job-row";
 import { JobTakeover } from "./job-takeover";
-
+const { ACT_ENGINEER } = SECTION_ID;
+const { glow } = SCROLL_RANGE;
+const { act, color } = ACT_II;
 /* ------------------------------------------------------------------ */
 /*  Act II — The Engineer                                               */
 /* ------------------------------------------------------------------ */
@@ -24,7 +23,7 @@ export function ActII() {
   });
   const glowOpacity = useTransform(
     scrollYProgress,
-    SCROLL_RANGE.glow,
+    glow,
     GLOW_OPACITY,
   );
   const selectedJob =
@@ -53,10 +52,10 @@ export function ActII() {
 
   return (
     <div
-      id={SECTION_ID.ACT_ENGINEER}
+      id={ACT_ENGINEER}
       ref={ref}
       className="relative py-24 sm:py-32">
-      <SectionGlow opacity={glowOpacity} color={ACT_II.color} size="lg" />
+      <SectionGlow opacity={glowOpacity} color={color} size="lg" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-6">
         <ActSectionContent {...ACT_II}>
@@ -67,7 +66,7 @@ export function ActII() {
             <JobRow
               key={job.id}
               job={job}
-              color={ACT_II.color}
+              color={color}
               onSelect={() => setSelectedJobIndex(index)}
             />
           ))}
@@ -77,8 +76,8 @@ export function ActII() {
       {selectedJob && (
         <JobTakeover
           job={selectedJob}
-          actLabel={ACT_II.act}
-          color={ACT_II.color}
+          actLabel={act}
+          color={color}
           onClose={handleCloseTakeover}
           onPrev={handlePrevJob}
           onNext={handleNextJob}

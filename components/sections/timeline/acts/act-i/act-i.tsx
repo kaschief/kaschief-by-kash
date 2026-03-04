@@ -2,18 +2,12 @@
 
 import { useRef } from "react";
 import { useScroll, useTransform } from "framer-motion";
-import {
-  FadeUp,
-  RevealLine,
-  SCROLL_RANGE,
-  GLOW_OPACITY,
-} from "@/components/motion";
-import { SectionGlow } from "@/components/ui/section-glow";
-import { SectionLabel } from "@/components/ui/section-label";
-import { TakeawayBlock } from "@/components/ui/takeaway-block";
-import { SectionProse } from "@/components/ui/section-prose";
-import { ACT_I } from "@/data/timeline";
-import { SECTION_ID } from "@/lib/sections";
+import { FadeUp, RevealLine, SCROLL_RANGE, GLOW_OPACITY, SectionGlow, SectionLabel, TakeawayBlock, SectionProse } from "@components";
+import { ACT_I } from "@data";
+import { SECTION_ID } from "@utilities";
+
+const { ACT_NURSE } = SECTION_ID;
+const { glow } = SCROLL_RANGE;
 
 export function ActI() {
   const ref = useRef<HTMLDivElement>(null);
@@ -23,7 +17,7 @@ export function ActI() {
   });
   const glowOpacity = useTransform(
     scrollYProgress,
-    SCROLL_RANGE.glow,
+    glow,
     GLOW_OPACITY,
   );
 
@@ -32,7 +26,7 @@ export function ActI() {
 
   return (
     <div
-      id={SECTION_ID.ACT_NURSE}
+      id={ACT_NURSE}
       ref={ref}
       className="relative py-24 sm:py-32">
       <SectionGlow opacity={glowOpacity} color={color} size="lg" />

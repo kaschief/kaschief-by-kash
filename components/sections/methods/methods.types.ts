@@ -1,5 +1,4 @@
-import type { MethodGroup, MethodSkill } from "@/data/methods";
-
+import type { MethodGroup, MethodSkill } from "@data";
 export interface SkillTakeoverProps {
   skill: MethodSkill;
   groupLabel: string;

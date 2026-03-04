@@ -22,11 +22,38 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
+      "@app/*": [
+        "./app/*"
+      ],
+      "@components": [
+        "./components/index.ts"
+      ],
+      "@components/*": [
+        "./components/*"
+      ],
+      "@data": [
+        "./data/index.ts"
+      ],
+      "@data/*": [
+        "./data/*"
+      ],
+      "@hooks": [
+        "./hooks/index.ts"
+      ],
+      "@hooks/*": [
+        "./hooks/*"
+      ],
+      "@utilities": [
+        "./utilities/index.ts"
+      ],
+      "@utilities/*": [
+        "./utilities/*"
       ]
-    }
+    },
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": true
   },
   "include": [
     "next-env.d.ts",

@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { DetailModal } from "@/components/ui/detail-modal";
+import { DetailModal } from "@components";
 import type { IndicatorDetailProps } from "./trading-system.types";
-
 export function IndicatorDetail({ indicator, onClose }: IndicatorDetailProps) {
   return (
     <DetailModal variant="overlay" color={indicator.color} onClose={onClose}>

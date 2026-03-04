@@ -2,10 +2,11 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { PERSONAL, ROLES } from "@/data/site";
-import { EASE } from "@/components/motion";
-
+import { PERSONAL, ROLES } from "@data";
+import { EASE } from "@components";
+import { useSectionScroll } from "@hooks";
 export function Hero() {
+  const { name } = PERSONAL;
   const sectionRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -13,6 +14,7 @@ export function Hero() {
   });
   const contentY = useTransform(scrollYProgress, [0, 1], [0, 80]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
+  const { scrollToSection } = useSectionScroll();
 
   return (
     <section
@@ -43,16 +45,16 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
           className="font-serif text-[clamp(3.5rem,10vw,8rem)] font-normal leading-[0.9] tracking-[-0.02em] text-[var(--cream)]">
-          {PERSONAL.name}
+          {name}
         </motion.h1>
 
-        {/* Roles - static horizontal display with staggered fade-in */}
+        {/* Roles - section links with staggered fade-in */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
           className="mt-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-          {ROLES.map(({ label, color }, i) => (
+          {ROLES.map(({ label, color, sectionId }, i) => (
             <motion.span
               key={label}
               initial={{ opacity: 0, y: 10 }}
@@ -60,11 +62,13 @@ export function Hero() {
               transition={{ duration: 0.5, delay: 0.8 + i * 0.1 }}
               className="flex items-center gap-2">
               {i > 0 && <span className="text-[var(--text-faint)]">/</span>}
-              <span
-                className="text-sm font-light tracking-wide sm:text-base"
-                style={{ color: color }}>
+              <button
+                type="button"
+                onClick={() => scrollToSection(sectionId)}
+                className="cursor-pointer text-sm font-light tracking-wide transition-opacity hover:opacity-80 sm:text-base"
+                style={{ color }}>
                 {label}
-              </span>
+              </button>
             </motion.span>
           ))}
         </motion.div>

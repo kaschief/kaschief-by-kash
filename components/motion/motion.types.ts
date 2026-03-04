@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-
 export interface FadeUpProps {
   children: ReactNode;
   delay?: number;

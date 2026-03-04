@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-
 export const DETAIL_MODAL_VARIANT = {
   INLINE: "inline",
   OVERLAY: "overlay",

@@ -6,7 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "check:rules": "node scripts/check-architecture.mjs",
+    "check": "npm run typecheck && npm run check:rules",
+    "predev": "npm run check",
+    "prebuild": "npm run check",
+    "prestart": "npm run check",
+    "prepare": "npm run check"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

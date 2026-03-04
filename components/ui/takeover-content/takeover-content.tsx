@@ -1,5 +1,4 @@
 import type { ReactNode, MouseEventHandler } from "react";
-
 interface TakeoverContentProps {
   children: ReactNode;
   /** Stops click propagation (prevents the backdrop dismiss handler firing). */

@@ -2,11 +2,12 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { FadeUp, RevealLine, FadeIn } from "@/components/motion";
-import { TOKENS } from "@/lib/tokens";
-import { PERSONAL } from "@/data/site";
-import { SECTION_ID } from "@/lib/sections";
+import { FadeUp, RevealLine, FadeIn } from "@components";
+import { TOKENS, SECTION_ID } from "@utilities";
+import { PERSONAL } from "@data";
 import type { ContactLinkProps } from "./contact.types";
+const { fontSerif } = TOKENS;
+const { CONTACT } = SECTION_ID;
 
 /* ------------------------------------------------------------------ */
 /*  Contact link row — ruled, no fills, consistent with skill rows     */
@@ -44,6 +45,7 @@ function ContactLink({
 /* ------------------------------------------------------------------ */
 
 export function Contact() {
+  const { email, linkedin, github, phone } = PERSONAL;
   const sectionRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -58,7 +60,7 @@ export function Contact() {
 
   return (
     <section
-      id={SECTION_ID.CONTACT}
+      id={CONTACT}
       ref={sectionRef}
       className="relative overflow-hidden px-6 py-24 sm:py-32">
       {/* Atmospheric glows */}
@@ -101,7 +103,7 @@ export function Contact() {
         <RevealLine delay={0.15}>
           <h2
             className="mb-3 text-4xl text-[var(--cream)] sm:text-5xl lg:text-6xl"
-            style={{ fontFamily: TOKENS.fontSerif }}>
+            style={{ fontFamily: fontSerif }}>
             Yours to write.
           </h2>
         </RevealLine>
@@ -120,25 +122,25 @@ export function Contact() {
           <div className="border-t border-[var(--stroke)] text-left">
             <ContactLink
               label="Email"
-              detail={PERSONAL.email}
-              href={`mailto:${PERSONAL.email}`}
+              detail={email}
+              href={`mailto:${email}`}
             />
             <ContactLink
               label="LinkedIn"
-              detail={PERSONAL.linkedin.replace("https://", "")}
-              href={PERSONAL.linkedin}
+              detail={linkedin.replace("https://", "")}
+              href={linkedin}
               external
             />
             <ContactLink
               label="GitHub"
-              detail={PERSONAL.github.replace("https://", "")}
-              href={PERSONAL.github}
+              detail={github.replace("https://", "")}
+              href={github}
               external
             />
             <ContactLink
               label="Phone"
-              detail={PERSONAL.phone}
-              href={`tel:${PERSONAL.phone}`}
+              detail={phone}
+              href={`tel:${phone}`}
             />
           </div>
         </FadeUp>
