@@ -3,7 +3,8 @@
 import { useState, useRef } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { TRANSITION, CSS_EASE, SCROLL_RANGE, GLOW_OPACITY, useTakeover, TakeoverContent, SectionGlow, CategoryTags, ActSectionContent } from "@components";
+import { TRANSITION, CSS_EASE, SCROLL_RANGE, GLOW_OPACITY, useTakeover, TakeoverContent, SectionGlow, CategoryTags } from "@components";
+import { ActSectionContent } from "../act-section-content";
 import { TOKENS, Z_INDEX, SECTION_ID } from "@utilities";
 import { ACT_III, MGMT_STORIES, type ManagementStory } from "@data";
 import type { CaseStudyCardProps, StoryTakeoverProps } from "./act-iii.types";
