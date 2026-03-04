@@ -165,6 +165,8 @@ export function Navigation() {
       dispatch({ type: "CLEAR_SUPPRESSION" });
     }, NAVIGATION_TIMING.suppressScrollMs);
 
+    // Ensure body overflow is cleared before scrolling (mobile menu sets it to "hidden")
+    document.body.style.overflow = "";
     scrollToSection(id, { behavior: "smooth", updateHistory: true });
   };
 

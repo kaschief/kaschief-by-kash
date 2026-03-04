@@ -3,8 +3,7 @@
 import { useState, useRef } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { CategoryTags, SectionGlow, TakeoverContent } from "@components";
-import { useTakeover } from "@hooks";
+import { CategoryTags, DetailOverlay, SectionGlow } from "@components";
 import {
   CSS_EASE,
   GLOW_OPACITY,
@@ -12,14 +11,12 @@ import {
   SECTION_ID,
   TOKENS,
   TRANSITION,
-  Z_INDEX,
 } from "@utilities";
 import { ACT_III, MGMT_STORIES, type ManagementStory } from "@data";
 import { ActSectionContent } from "../act-section-content";
 import type { CaseStudyCardProps, StoryTakeoverProps } from "./act-iii.types";
 
-const { bg, cream, fontMono, fontSerif, textDim } = TOKENS;
-const { takeover } = Z_INDEX;
+const { cream, fontMono, fontSerif, textDim } = TOKENS;
 const { ACT_LEADER } = SECTION_ID;
 const { glow } = SCROLL_RANGE;
 const { act, color } = ACT_III;
@@ -33,62 +30,54 @@ function StoryTakeover({
   color,
   onClose,
 }: StoryTakeoverProps) {
-  const { item } = useTakeover(onClose);
-
   return (
-    <div
-      onClick={() => history.back()}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: takeover,
-        background: bg,
-        overflowY: "auto",
-      }}>
-      <TakeoverContent onClick={(e) => e.stopPropagation()}>
-        <p
-          style={{
-            fontFamily: fontMono,
-            fontSize: 11,
-            textTransform: "uppercase",
-            letterSpacing: "0.25em",
-            color,
-            marginBottom: 32,
-            ...item(0.08),
-          }}>
-          {actLabel}
-        </p>
+    <DetailOverlay onClose={onClose}>
+      {({ item }) => (
+        <>
+          <p
+            style={{
+              fontFamily: fontMono,
+              fontSize: 11,
+              textTransform: "uppercase",
+              letterSpacing: "0.25em",
+              color,
+              marginBottom: 32,
+              ...item(0.08),
+            }}>
+            {actLabel}
+          </p>
 
-        <h2
-          style={{
-            fontFamily: fontSerif,
-            fontWeight: 400,
-            fontSize: "clamp(44px, 7vw, 96px)",
-            color: cream,
-            lineHeight: 1,
-            marginBottom: 32,
-            ...item(0.04),
-          }}>
-          {story.title}
-        </h2>
+          <h2
+            style={{
+              fontFamily: fontSerif,
+              fontWeight: 400,
+              fontSize: "clamp(44px, 7vw, 96px)",
+              color: cream,
+              lineHeight: 1,
+              marginBottom: 32,
+              ...item(0.04),
+            }}>
+            {story.title}
+          </h2>
 
-        <div style={{ marginBottom: 48, ...item(0.12) }}>
-          <CategoryTags tags={story.tags} />
-        </div>
+          <div style={{ marginBottom: 48, ...item(0.12) }}>
+            <CategoryTags tags={story.tags} />
+          </div>
 
-        <p
-          style={{
-            fontSize: 17,
-            fontWeight: 300,
-            lineHeight: 1.85,
-            color: textDim,
-            maxWidth: 580,
-            ...item(0.16),
-          }}>
-          {story.text}
-        </p>
-      </TakeoverContent>
-    </div>
+          <p
+            style={{
+              fontSize: 17,
+              fontWeight: 300,
+              lineHeight: 1.85,
+              color: textDim,
+              maxWidth: 580,
+              ...item(0.16),
+            }}>
+            {story.text}
+          </p>
+        </>
+      )}
+    </DetailOverlay>
   );
 }
 

@@ -2,6 +2,7 @@ export * from "./layout";
 export * from "./motion";
 export * from "./ui/category-tags";
 export * from "./ui/detail-modal";
+export * from "./ui/detail-overlay";
 export * from "./ui/mono-label";
 export * from "./ui/section-glow";
 export * from "./ui/section-label";

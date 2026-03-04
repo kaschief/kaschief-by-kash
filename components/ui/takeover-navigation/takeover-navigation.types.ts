@@ -3,6 +3,7 @@ export interface TakeoverNavigationProps {
   canGoNext: boolean;
   onPrev: () => void;
   onNext: () => void;
+  onClose: () => void;
   prevLabel: string;
   nextLabel: string;
   zIndex: number;

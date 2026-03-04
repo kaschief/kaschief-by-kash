@@ -34,16 +34,15 @@ export function Panel({
         inset: 0,
         opacity: panelOpacity,
         pointerEvents: isActive ? "auto" : "none",
-        overflowY: "auto",
+        overflowY: "hidden",
+        paddingTop: "clamp(80px, 18vh, 180px)",
       }}>
       <div
         style={{
           maxWidth: 1024,
           margin: "0 auto",
-          paddingTop: "18vh",
           paddingLeft: 24,
           paddingRight: 24,
-          paddingBottom: "8vh",
           width: "100%",
         }}>
         <div

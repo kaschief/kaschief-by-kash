@@ -118,8 +118,6 @@ export function Methods() {
 
   return (
     <div id={METHODS} style={{ position: "relative" }}>
-      <SectionGlow color={gold} size="lg" />
-
       <div
         ref={outerRef}
         className="hidden lg:block"
@@ -127,10 +125,12 @@ export function Methods() {
         <div
           style={{
             position: "sticky",
+            // ↓ Controls where the panel locks — 0 = top, "10vh" = lower, "20vh" = more centered
             top: 0,
             height: "100vh",
             overflow: "hidden",
           }}>
+          <SectionGlow color={gold} size="lg" />
           <motion.div
             style={{ position: "relative", width: "100%", height: "100%" }}
             initial={{ opacity: 0, y: 48 }}
