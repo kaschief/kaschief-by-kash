@@ -1,5 +1,6 @@
-import { SECTION_ID, type SectionId } from "@/lib/sections";
-import { TOKENS } from "@/lib/tokens";
+import { SECTION_ID, type SectionId, TOKENS } from "@utilities";
+const { actBlue, actGold, actGreen, actRed } = TOKENS;
+const { ACT_BUILDER, ACT_ENGINEER, ACT_LEADER, ACT_NURSE, CONTACT, METHODS, PHILOSOPHY: PHILOSOPHY_SECTION } = SECTION_ID;
 
 export interface PersonalInfo {
   name: string;
@@ -42,37 +43,37 @@ export const PERSONAL: PersonalInfo = {
 };
 
 export const NAV_LINKS: NavLink[] = [
-  { label: "Methods", href: `#${SECTION_ID.METHODS}` },
-  { label: "Contact", href: `#${SECTION_ID.CONTACT}` },
+  { label: "Methods", href: `#${METHODS}` },
+  { label: "Contact", href: `#${CONTACT}` },
 ];
 
 // Single source of truth for role identities, section IDs, and act colors.
 export const ROLES: Role[] = [
   {
     label: ROLE_LABEL.NURSE,
-    sectionId: SECTION_ID.ACT_NURSE,
-    color: TOKENS.actRed,
+    sectionId: ACT_NURSE,
+    color: actRed,
   },
   {
     label: ROLE_LABEL.ENGINEER,
-    sectionId: SECTION_ID.ACT_ENGINEER,
-    color: TOKENS.actBlue,
+    sectionId: ACT_ENGINEER,
+    color: actBlue,
   },
   {
     label: ROLE_LABEL.LEADER,
-    sectionId: SECTION_ID.ACT_LEADER,
-    color: TOKENS.actGold,
+    sectionId: ACT_LEADER,
+    color: actGold,
   },
   {
     label: ROLE_LABEL.BUILDER,
-    sectionId: SECTION_ID.ACT_BUILDER,
-    color: TOKENS.actGreen,
+    sectionId: ACT_BUILDER,
+    color: actGreen,
   },
 ];
 
 export const PHILOSOPHY = {
   label: "How I Think",
-  sectionId: SECTION_ID.PHILOSOPHY,
+  sectionId: PHILOSOPHY_SECTION,
   lines: [
     "Water can be a river.",
     "It can be ice. It can be the ocean.",

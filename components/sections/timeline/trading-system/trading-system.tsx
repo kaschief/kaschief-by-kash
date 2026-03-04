@@ -2,19 +2,13 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { FadeUp, FadeIn } from "@/components/motion";
-import { ModalCloseButton } from "@/components/ui/detail-modal";
-import { MonoLabel } from "@/components/ui/mono-label";
-import {
-  INDICATORS,
-  PROGRESSION,
-  CATEGORIES,
-  type Indicator,
-} from "@/data/trading";
-import { TOKENS } from "@/lib/tokens";
+import { FadeUp, FadeIn, ModalCloseButton, MonoLabel } from "@components";
+import { INDICATORS, PROGRESSION, CATEGORIES, type Indicator } from "@data";
+import { TOKENS } from "@utilities";
 import Image from "next/image";
 import { IndicatorDetail } from "./indicator-detail";
 
+const { actGreen, textFaint } = TOKENS;
 /* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
 /* ------------------------------------------------------------------ */
@@ -51,7 +45,7 @@ export function TradingArsenal() {
           <FadeUp>
             <MonoLabel
               label="Act IV Extension"
-              color={TOKENS.actGreen}
+              color={actGreen}
               className="mb-2 opacity-60"
             />
             <h3 className="mb-3 font-serif text-3xl text-[var(--cream)] sm:text-4xl">
@@ -84,7 +78,7 @@ export function TradingArsenal() {
                     style={{
                       borderColor:
                         activeProgression === i
-                          ? `color-mix(in srgb, ${TOKENS.actGreen} 30%, transparent)`
+                          ? `color-mix(in srgb, ${actGreen} 30%, transparent)`
                           : "transparent",
                     }}
                     className={`group w-full cursor-pointer rounded-lg border p-4 text-left transition-all duration-300 ${
@@ -98,8 +92,8 @@ export function TradingArsenal() {
                         style={{
                           color:
                             activeProgression === i
-                              ? TOKENS.actGreen
-                              : TOKENS.textFaint,
+                              ? actGreen
+                              : textFaint,
                         }}>
                         {step.step}
                       </span>
@@ -177,7 +171,7 @@ export function TradingArsenal() {
                   onClick={() => setActiveCategory(cat)}
                   style={
                     activeCategory === cat
-                      ? { borderColor: TOKENS.actGreen }
+                      ? { borderColor: actGreen }
                       : undefined
                   }
                   className={`cursor-pointer pb-3 font-mono text-xs uppercase tracking-wider transition-colors ${

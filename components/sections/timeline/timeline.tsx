@@ -2,7 +2,6 @@
 
 import { ActI, ActII, ActIII, ActIV } from "./acts";
 import { TradingArsenal } from "./trading-system";
-
 export function Timeline() {
   return (
     <section id="journey" className="relative">

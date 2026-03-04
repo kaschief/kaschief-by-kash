@@ -1,5 +1,4 @@
 import type { CategoryTagsProps } from "./category-tags.types";
-
 export function CategoryTags({ tags }: CategoryTagsProps) {
   return (
     <div className="flex items-center gap-2">

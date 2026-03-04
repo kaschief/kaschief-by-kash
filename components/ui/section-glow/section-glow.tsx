@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { TOKENS } from "@/lib/tokens";
+import { TOKENS } from "@utilities";
 import type { SectionGlowProps } from "./section-glow.types";
+const { gold } = TOKENS;
 
 const sizes = {
   sm: "h-[500px] w-[500px]",
@@ -12,7 +13,7 @@ const sizes = {
 
 export function SectionGlow({
   opacity,
-  color = TOKENS.gold,
+  color = gold,
   size = "md",
 }: SectionGlowProps) {
   const inner = (
@@ -27,12 +28,16 @@ export function SectionGlow({
   if (opacity) {
     return (
       <motion.div
-        className="pointer-events-none absolute inset-0"
+        className="pointer-events-none absolute inset-0 overflow-hidden"
         style={{ opacity }}>
         {inner}
       </motion.div>
     );
   }
 
-  return <div className="pointer-events-none absolute inset-0">{inner}</div>;
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {inner}
+    </div>
+  );
 }

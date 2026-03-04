@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { TRANSITION } from "@/components/motion";
-import { TOKENS } from "@/lib/tokens";
+import { TRANSITION } from "@components";
+import { TOKENS } from "@utilities";
 import type { NavButtonProps } from "./methods.types";
+const { creamMuted, fontMono, gold, stroke, textDim, textFaint } = TOKENS;
 
 export function NavButton({ label, isActive, onClick }: NavButtonProps) {
   const [hovered, setHovered] = useState(false);
@@ -28,15 +29,15 @@ export function NavButton({ label, isActive, onClick }: NavButtonProps) {
       }}>
       <span
         style={{
-          fontFamily: TOKENS.fontMono,
+          fontFamily: fontMono,
           fontSize: 9,
           textTransform: "uppercase",
           letterSpacing: "0.18em",
           color: isActive
-            ? TOKENS.creamMuted
+            ? creamMuted
             : hovered
-              ? TOKENS.textDim
-              : TOKENS.textFaint,
+              ? textDim
+              : textFaint,
           transition: `color ${TRANSITION.base.duration}s ease`,
         }}>
         {label}
@@ -57,10 +58,10 @@ export function NavButton({ label, isActive, onClick }: NavButtonProps) {
             height: 1,
             width: isActive ? 20 : hovered ? 8 : 4,
             background: isActive
-              ? TOKENS.gold
+              ? gold
               : hovered
-                ? TOKENS.textDim
-                : TOKENS.stroke,
+                ? textDim
+                : stroke,
             transition: `all ${TRANSITION.base.duration}s ease`,
           }}
         />

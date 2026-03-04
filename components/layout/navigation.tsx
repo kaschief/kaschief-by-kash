@@ -3,17 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { NAV_LINKS, ROLES, PERSONAL } from "@/data/site";
-import { TRANSITION } from "@/components/motion";
-import { TOKENS } from "@/lib/tokens";
-import { Z_INDEX } from "@/lib/constants";
-import { HISTORY_EVENT } from "@/lib/interaction";
-import {
-  SECTION_IDS_ORDERED,
-  SECTION_SCROLL_OFFSET,
-  DEFAULT_SCROLL_OFFSET,
-  type SectionId,
-} from "@/lib/sections";
+import { NAV_LINKS, ROLES, PERSONAL } from "@data";
+import { TRANSITION } from "@components";
+import { TOKENS, Z_INDEX, HISTORY_EVENT, SECTION_IDS_ORDERED, type SectionId, DEFAULT_SCROLL_OFFSET } from "@utilities";
+import { useSectionScroll } from "@hooks";
+const { bgNav, creamMuted, gold, textDim } = TOKENS;
+const { nav } = Z_INDEX;
+const { POP_STATE } = HISTORY_EVENT;
 
 const ACT_NAV = ROLES.map((r) => ({
   label: r.label,
@@ -21,13 +17,18 @@ const ACT_NAV = ROLES.map((r) => ({
   color: r.color,
 }));
 
+const isSectionId = (id: string): id is SectionId =>
+  SECTION_IDS_ORDERED.includes(id as SectionId);
+
 export function Navigation() {
+  const { initials } = PERSONAL;
   const [visible, setVisible] = useState(false);
   const [activeSection, setActiveSection] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
   const suppressScrollRef = useRef(false);
   const suppressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { scrollToSection, scrollToTop } = useSectionScroll();
 
   useEffect(() => {
     const findActive = (): SectionId | "" => {
@@ -35,8 +36,9 @@ export function Navigation() {
       const nearBottom =
         window.scrollY + window.innerHeight >=
         document.documentElement.scrollHeight - DEFAULT_SCROLL_OFFSET;
-      if (nearBottom)
+      if (nearBottom) {
         return SECTION_IDS_ORDERED[SECTION_IDS_ORDERED.length - 1];
+      }
 
       const threshold = window.innerHeight * 0.4;
       let current: SectionId | "" = "";
@@ -77,43 +79,37 @@ export function Navigation() {
   useEffect(() => {
     const hash = window.location.hash;
     if (!hash) return;
-    const id = hash.slice(1) as SectionId;
-    if (!SECTION_IDS_ORDERED.includes(id)) return;
+
+    const id = hash.slice(1);
+    if (!isSectionId(id)) return;
+
     setActiveSection(id);
-    const el = document.getElementById(id);
-    if (!el) return;
-    const offset = SECTION_SCROLL_OFFSET[id] ?? DEFAULT_SCROLL_OFFSET;
-    const top = el.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top, behavior: "instant" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    scrollToSection(id, { behavior: "instant", updateHistory: false });
+  }, [scrollToSection]);
 
   // Handle browser back/forward — scroll to the section in the URL hash
   useEffect(() => {
     const handlePop = () => {
       const hash = window.location.hash;
       if (!hash) return;
+
       const id = hash.slice(1);
-      const el = document.getElementById(id);
-      if (!el) return;
+      if (!isSectionId(id)) return;
+
       setActiveSection(id);
-      const top =
-        el.getBoundingClientRect().top + window.scrollY - DEFAULT_SCROLL_OFFSET;
-      window.scrollTo({ top, behavior: "smooth" });
+      scrollToSection(id, { behavior: "smooth", updateHistory: false });
     };
-    window.addEventListener(HISTORY_EVENT.POP_STATE, handlePop);
+
+    window.addEventListener(POP_STATE, handlePop);
     return () =>
-      window.removeEventListener(HISTORY_EVENT.POP_STATE, handlePop);
-  }, []);
+      window.removeEventListener(POP_STATE, handlePop);
+  }, [scrollToSection]);
 
-  const scrollTo = (href: string) => {
+  const handleSectionClick = (href: string) => {
     setMobileOpen(false);
-    const id = href.replace("#", "");
-    const el = document.getElementById(id);
-    if (!el) return;
 
-    // Push to browser history so back button returns here
-    history.pushState(null, "", href);
+    const id = href.replace("#", "");
+    if (!isSectionId(id)) return;
 
     // Set active immediately — suppress scroll-based detection until scroll settles
     setActiveSection(id);
@@ -123,10 +119,7 @@ export function Navigation() {
       suppressScrollRef.current = false;
     }, 1200);
 
-    const offset =
-      SECTION_SCROLL_OFFSET[id as SectionId] ?? DEFAULT_SCROLL_OFFSET;
-    const top = el.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top, behavior: "smooth" });
+    scrollToSection(id, { behavior: "smooth", updateHistory: true });
   };
 
   return (
@@ -139,18 +132,15 @@ export function Navigation() {
           transition={TRANSITION.base}
           className="fixed top-0 left-0 right-0 border-b border-[var(--stroke)]"
           style={{
-            zIndex: Z_INDEX.nav,
+            zIndex: nav,
             backdropFilter: "blur(24px) saturate(1.8)",
-            backgroundColor: TOKENS.bgNav,
+            backgroundColor: bgNav,
           }}>
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
             <button
-              onClick={() => {
-                history.pushState(null, "", "/");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
+              onClick={() => scrollToTop()}
               className="cursor-pointer font-serif text-2xl italic text-[var(--gold)] transition-opacity hover:opacity-70">
-              {PERSONAL.initials}
+              {initials}
             </button>
 
             {/* Desktop nav */}
@@ -159,11 +149,11 @@ export function Navigation() {
                 const isActive = activeSection === link.href.slice(1);
                 const isHovered = hoveredLink === link.href;
                 const color =
-                  isActive || isHovered ? link.color : TOKENS.textDim;
+                  isActive || isHovered ? link.color : textDim;
                 return (
                   <button
                     key={link.href}
-                    onClick={() => scrollTo(link.href)}
+                    onClick={() => handleSectionClick(link.href)}
                     onMouseEnter={() => setHoveredLink(link.href)}
                     onMouseLeave={() => setHoveredLink(null)}
                     className="relative cursor-pointer py-1 font-mono text-[11px] font-medium uppercase tracking-[0.15em] transition-colors duration-200"
@@ -189,13 +179,13 @@ export function Navigation() {
                 return (
                   <button
                     key={link.href}
-                    onClick={() => scrollTo(link.href)}
+                    onClick={() => handleSectionClick(link.href)}
                     onMouseEnter={() => setHoveredLink(link.href)}
                     onMouseLeave={() => setHoveredLink(null)}
                     className="relative cursor-pointer py-1 font-mono text-[11px] font-medium uppercase tracking-[0.15em] transition-colors duration-200"
                     style={{
                       color:
-                        isActive || isHovered ? TOKENS.gold : TOKENS.textDim,
+                        isActive || isHovered ? gold : textDim,
                     }}>
                     {link.label}
                     {isActive && (
@@ -233,13 +223,13 @@ export function Navigation() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      onClick={() => scrollTo(link.href)}
+                      onClick={() => handleSectionClick(link.href)}
                       className="cursor-pointer text-left font-mono text-sm font-light uppercase tracking-[0.15em] transition-colors"
                       style={{
                         color:
                           activeSection === link.href.slice(1)
                             ? link.color
-                            : TOKENS.creamMuted,
+                            : creamMuted,
                       }}>
                       {link.label}
                     </motion.button>
@@ -251,7 +241,7 @@ export function Navigation() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: (ACT_NAV.length + i) * 0.05 }}
-                      onClick={() => scrollTo(link.href)}
+                      onClick={() => handleSectionClick(link.href)}
                       className="cursor-pointer text-left font-mono text-sm font-light uppercase tracking-[0.15em] text-[var(--cream-muted)] transition-colors hover:text-[var(--gold)]">
                       {link.label}
                     </motion.button>

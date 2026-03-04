@@ -87,14 +87,21 @@
 
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
-/* Custom cursor — hide the system cursor sitewide */
-html,
-body,
-*,
-*::before,
-*::after {
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Custom cursor: only hide system cursor when custom cursor is enabled */
+html[data-custom-cursor="on"],
+html[data-custom-cursor="on"] body,
+html[data-custom-cursor="on"] *,
+html[data-custom-cursor="on"] *::before,
+html[data-custom-cursor="on"] *::after {
   cursor: none !important;
 }
 
@@ -182,7 +189,7 @@ body,
 }
 
 /* ─── Responsive breakpoints reference ─────────────────────────────────────
-   Breakpoint values are the canonical source of truth in lib/breakpoints.ts.
-   Component-level responsive behaviour lives in lib/use-breakpoint.ts (hook)
+   Breakpoint values are the canonical source of truth in utilities/breakpoints.ts.
+   Component-level responsive behaviour lives in hooks/use-breakpoint.ts and hooks/use-media-query.ts
    and in dedicated wrapper components (e.g. components/ui/takeover-content).
    ──────────────────────────────────────────────────────────────────────── */

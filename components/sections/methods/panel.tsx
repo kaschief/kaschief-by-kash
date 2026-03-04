@@ -1,14 +1,14 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { motion } from "framer-motion";
-import { METHOD_GROUPS } from "@/data/methods";
-import { TRANSITION, CSS_EASE, PULSE_TRANSITION } from "@/components/motion";
-import { TOKENS } from "@/lib/tokens";
+import { METHOD_GROUPS } from "@data";
+import { TRANSITION, CSS_EASE, PULSE_TRANSITION } from "@components";
+import { TOKENS } from "@utilities";
 import { NavButton } from "./nav-button";
 import { SkillRow } from "./skill-row";
+import type { CSSProperties } from "react";
 import type { PanelProps } from "./methods.types";
-
+const { cream, gold, textDim } = TOKENS;
 export function Panel({
   group,
   index,
@@ -57,13 +57,13 @@ export function Panel({
           }}>
           <motion.span
             className="inline-block h-1.5 w-1.5 rounded-full"
-            style={{ backgroundColor: TOKENS.gold }}
+            style={{ backgroundColor: gold }}
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={PULSE_TRANSITION}
           />
           <span
             className="font-mono text-[10px] font-medium uppercase tracking-[0.25em]"
-            style={{ color: TOKENS.gold }}>
+            style={{ color: gold }}>
             Methods
           </span>
         </div>
@@ -77,7 +77,7 @@ export function Panel({
               style={{
                 lineHeight: 1.05,
                 marginBottom: 20,
-                color: TOKENS.cream,
+                color: cream,
                 ...fadeIn(0.06),
               }}>
               {group.label}
@@ -86,7 +86,7 @@ export function Panel({
               style={{
                 fontSize: 14,
                 lineHeight: 1.75,
-                color: TOKENS.textDim,
+                color: textDim,
                 ...fadeIn(0.16),
               }}>
               {group.description}

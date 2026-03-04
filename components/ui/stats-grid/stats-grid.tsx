@@ -1,7 +1,8 @@
-import { TOKENS } from "@/lib/tokens";
+import { TOKENS } from "@utilities";
 import type { StatsGridProps } from "./stats-grid.types";
+const { gold } = TOKENS;
 
-export function StatsGrid({ stats, color = TOKENS.gold }: StatsGridProps) {
+export function StatsGrid({ stats, color = gold }: StatsGridProps) {
   return (
     <div className="grid grid-cols-2 gap-x-8 gap-y-6 lg:grid-cols-1 lg:gap-y-8">
       {stats.map((stat) => (

@@ -1,5 +1,4 @@
-import type { ManagementStory } from "@/data/timeline";
-
+import type { ManagementStory } from "@data";
 export interface StoryTakeoverProps {
   story: ManagementStory;
   actLabel: string;

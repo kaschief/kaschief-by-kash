@@ -1,5 +1,4 @@
-import type { Job } from "@/data/timeline";
-
+import type { Job } from "@data";
 export interface JobTakeoverProps {
   job: Job;
   actLabel: string;

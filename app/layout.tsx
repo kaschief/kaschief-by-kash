@@ -1,8 +1,10 @@
-import type { Metadata, Viewport } from "next";
+import "./globals.css";
 import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { Z_INDEX, LAYOUT } from "@/lib/constants";
-import "./globals.css";
+import { Z_INDEX, LAYOUT } from "@utilities";
+import type { Metadata, Viewport } from "next";
+const { scrollFade } = Z_INDEX;
+const { scrollFadeHeight } = LAYOUT;
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,7 +27,7 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kaschief Johnson — Nurse, Engineer, Leader, Builder",
+  title: "Kaschief Johnson | Portfolio",
   description:
     "Four careers. One adaptable mind. Portfolio of Kaschief Johnson — critical care nurse, software engineer, engineering manager, and independent product builder.",
   icons: {
@@ -66,11 +68,11 @@ export default function RootLayout({
             top: 0,
             left: 0,
             right: 0,
-            height: LAYOUT.scrollFadeHeight,
+            height: scrollFadeHeight,
             background:
               "linear-gradient(to bottom, var(--bg) 0%, transparent 100%)",
             pointerEvents: "none",
-            zIndex: Z_INDEX.scrollFade,
+            zIndex: scrollFade,
           }}
         />
         {children}

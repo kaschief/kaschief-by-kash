@@ -1,9 +1,10 @@
-import { TOKENS } from "@/lib/tokens";
+import { TOKENS } from "@utilities";
 import type { MonoLabelProps } from "./mono-label.types";
+const { textFaint } = TOKENS;
 
 export function MonoLabel({
   label,
-  color = TOKENS.textFaint,
+  color = textFaint,
   className,
 }: MonoLabelProps) {
   return (

@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { useTakeover } from "@/components/motion";
-import { TOKENS } from "@/lib/tokens";
-import { Z_INDEX } from "@/lib/constants";
-import { KEYBOARD_EVENT, TAKEOVER_NAV_LABEL } from "@/lib/interaction";
-import { TakeoverNavigation } from "@/components/ui/takeover-navigation";
-import { TakeoverContent } from "@/components/ui/takeover-content";
+import { useTakeover, TakeoverNavigation, TakeoverContent } from "@components";
+import { TOKENS, Z_INDEX, KEYBOARD_EVENT, TAKEOVER_NAV_LABEL } from "@utilities";
 import type { SkillTakeoverProps } from "./methods.types";
+const { KEY: { ARROW_LEFT, ARROW_RIGHT }, TYPE: { KEY_DOWN } } = KEYBOARD_EVENT;
+const { bg, cream, fontMono, fontSerif, gold, textDim } = TOKENS;
+const { takeover } = Z_INDEX;
+const { NEXT_METHOD, PREVIOUS_METHOD } = TAKEOVER_NAV_LABEL;
 
 export function SkillTakeover({
   skill,
@@ -22,19 +22,19 @@ export function SkillTakeover({
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === KEYBOARD_EVENT.KEY.ARROW_LEFT && canGoPrev) {
+      if (e.key === ARROW_LEFT && canGoPrev) {
         e.preventDefault();
         onPrev();
       }
-      if (e.key === KEYBOARD_EVENT.KEY.ARROW_RIGHT && canGoNext) {
+      if (e.key === ARROW_RIGHT && canGoNext) {
         e.preventDefault();
         onNext();
       }
     };
 
-    document.addEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleKey);
+    document.addEventListener(KEY_DOWN, handleKey);
     return () =>
-      document.removeEventListener(KEYBOARD_EVENT.TYPE.KEY_DOWN, handleKey);
+      document.removeEventListener(KEY_DOWN, handleKey);
   }, [canGoNext, canGoPrev, onNext, onPrev]);
 
   return (
@@ -43,8 +43,8 @@ export function SkillTakeover({
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: Z_INDEX.takeover,
-        background: TOKENS.bg,
+        zIndex: takeover,
+        background: bg,
         overflowY: "auto",
       }}>
       <TakeoverNavigation
@@ -52,18 +52,18 @@ export function SkillTakeover({
         canGoNext={canGoNext}
         onPrev={onPrev}
         onNext={onNext}
-        prevLabel={TAKEOVER_NAV_LABEL.PREVIOUS_METHOD}
-        nextLabel={TAKEOVER_NAV_LABEL.NEXT_METHOD}
-        zIndex={Z_INDEX.takeover + 1}
+        prevLabel={PREVIOUS_METHOD}
+        nextLabel={NEXT_METHOD}
+        zIndex={takeover + 1}
       />
       <TakeoverContent onClick={(e) => e.stopPropagation()}>
         <p
           style={{
-            fontFamily: TOKENS.fontMono,
+            fontFamily: fontMono,
             fontSize: 11,
             textTransform: "uppercase",
             letterSpacing: "0.25em",
-            color: TOKENS.gold,
+            color: gold,
             marginBottom: 32,
             ...item(0.08),
           }}>
@@ -71,10 +71,10 @@ export function SkillTakeover({
         </p>
         <h2
           style={{
-            fontFamily: TOKENS.fontSerif,
+            fontFamily: fontSerif,
             fontWeight: 400,
             fontSize: "clamp(36px, 7vw, 96px)",
-            color: TOKENS.cream,
+            color: cream,
             lineHeight: 1,
             marginBottom: 36,
             ...item(0.04),
@@ -86,7 +86,7 @@ export function SkillTakeover({
             fontSize: 17,
             fontWeight: 300,
             lineHeight: 1.85,
-            color: TOKENS.textDim,
+            color: textDim,
             maxWidth: 580,
             ...item(0.12),
           }}>

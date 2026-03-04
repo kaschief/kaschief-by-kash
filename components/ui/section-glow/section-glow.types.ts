@@ -1,5 +1,4 @@
 import type { MotionValue } from "framer-motion";
-
 export type SectionGlowSize = "sm" | "md" | "lg";
 
 export interface SectionGlowProps {

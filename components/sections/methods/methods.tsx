@@ -2,16 +2,16 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { METHOD_GROUPS } from "@/data/methods";
-import { EASE } from "@/components/motion";
-import { SectionGlow } from "@/components/ui/section-glow";
-import { TOKENS } from "@/lib/tokens";
-import { SECTION_ID } from "@/lib/sections";
+import { METHOD_GROUPS } from "@data";
+import { EASE, SectionGlow } from "@components";
+import { TOKENS, SECTION_ID } from "@utilities";
+import { useSectionScroll } from "@hooks";
 import { Panel } from "./panel";
 import { SkillRow } from "./skill-row";
 import { SkillTakeover } from "./skill-takeover";
 import type { ActiveSkill } from "./methods.types";
-
+const { cream, gold, textDim, textFaint } = TOKENS;
+const { METHODS } = SECTION_ID;
 const N = METHOD_GROUPS.length;
 
 export function Methods() {
@@ -29,6 +29,7 @@ export function Methods() {
   const canGoPrevSkill = activeSkillIndex > 0;
   const canGoNextSkill =
     activeSkillIndex !== -1 && activeSkillIndex < activeGroupSkills.length - 1;
+  const { scrollToY } = useSectionScroll();
 
   const scrollToPanel = (panelIndex: number) => {
     if (!outerRef.current) return;
@@ -36,10 +37,7 @@ export function Methods() {
       window.scrollY + outerRef.current.getBoundingClientRect().top;
     const scrollable = outerRef.current.offsetHeight - window.innerHeight;
     const panelScrollHeight = scrollable / (N - 1);
-    window.scrollTo({
-      top: outerTop + panelIndex * panelScrollHeight,
-      behavior: "smooth",
-    });
+    scrollToY(outerTop + panelIndex * panelScrollHeight, { behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -64,10 +62,7 @@ export function Methods() {
           const scrollable2 =
             outerRef.current.offsetHeight - window.innerHeight;
           const panelScrollHeight = scrollable2 / (N - 1);
-          window.scrollTo({
-            top: outerTop + targetPanel * panelScrollHeight,
-            behavior: "smooth",
-          });
+          scrollToY(outerTop + targetPanel * panelScrollHeight, { behavior: "smooth" });
         }, 150);
       }
     };
@@ -78,7 +73,7 @@ export function Methods() {
       window.removeEventListener("scroll", handleScroll);
       clearTimeout(snapTimeout);
     };
-  }, []);
+  }, [scrollToY]);
 
   const panelProgress = progress * (N - 1);
   const activePanelIndex = Math.round(panelProgress);
@@ -114,8 +109,8 @@ export function Methods() {
   );
 
   return (
-    <div id={SECTION_ID.METHODS} style={{ position: "relative" }}>
-      <SectionGlow color={TOKENS.gold} size="lg" />
+    <div id={METHODS} style={{ position: "relative" }}>
+      <SectionGlow color={gold} size="lg" />
 
       {/* ── Desktop: sticky scroll experience ──────────────────────────── */}
       <div
@@ -158,11 +153,11 @@ export function Methods() {
           <div className="mb-6 flex items-center gap-3">
             <span
               className="inline-block h-1.5 w-1.5 rounded-full"
-              style={{ backgroundColor: TOKENS.gold }}
+              style={{ backgroundColor: gold }}
             />
             <span
               className="font-mono text-[10px] font-medium uppercase tracking-[0.25em]"
-              style={{ color: TOKENS.gold }}>
+              style={{ color: gold }}>
               Methods
             </span>
           </div>
@@ -178,10 +173,10 @@ export function Methods() {
                 onClick={() => setMobilePanel(i)}
                 className="mr-6 shrink-0 whitespace-nowrap pb-3 font-mono text-xs uppercase tracking-wider transition-colors"
                 style={{
-                  color: i === mobilePanel ? TOKENS.cream : TOKENS.textFaint,
+                  color: i === mobilePanel ? cream : textFaint,
                   borderBottom:
                     i === mobilePanel
-                      ? `2px solid ${TOKENS.gold}`
+                      ? `2px solid ${gold}`
                       : "2px solid transparent",
                 }}>
                 {g.label}
@@ -200,7 +195,7 @@ export function Methods() {
               <h2
                 className="font-serif text-4xl font-normal tracking-[-0.02em]"
                 style={{
-                  color: TOKENS.cream,
+                  color: cream,
                   lineHeight: 1.05,
                   marginBottom: 20,
                 }}>
@@ -208,7 +203,7 @@ export function Methods() {
               </h2>
               <p
                 className="mb-8 text-sm leading-relaxed"
-                style={{ color: TOKENS.textDim }}>
+                style={{ color: textDim }}>
                 {METHOD_GROUPS[mobilePanel].description}
               </p>
               {METHOD_GROUPS[mobilePanel].skills.map((skill, i) => (
