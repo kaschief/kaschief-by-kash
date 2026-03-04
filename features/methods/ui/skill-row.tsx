@@ -1,47 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import {
+  ListRow,
+  ListRowArrow,
+  LIST_ROW_ARROW_STYLE,
+  LIST_ROW_DENSITY,
+} from "@components";
 import { TOKENS } from "@utilities";
 import type { SkillRowProps } from "./methods.types";
-const { cream, creamMuted, gold, stroke, textFaint } = TOKENS;
+
+const { cream, creamMuted, gold } = TOKENS;
 
 export function SkillRow({ label, onSelect }: SkillRowProps) {
-  const [hovered, setHovered] = useState(false);
-
   return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect();
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        padding: "16px 0",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
-        background: "none",
-        border: "none",
-        borderBottom: `1px solid ${hovered ? `color-mix(in srgb, ${gold} 35%, transparent)` : stroke}`,
-        transition: "border-color 0.15s ease, color 0.15s ease",
-        color: hovered ? cream : creamMuted,
-        fontSize: 15,
-      }}>
-      <span>{label}</span>
-      <span
-        className="hidden sm:inline"
-        style={{
-          color: hovered ? gold : textFaint,
-          fontSize: 13,
-          transform: hovered ? "translateX(3px)" : "translateX(0)",
-          transition: "transform 0.15s ease, color 0.15s ease",
-          display: "inline-block",
-        }}>
-        →
-      </span>
-    </button>
+    <ListRow
+      color={gold}
+      onClick={onSelect}
+      animated={false}
+      density={LIST_ROW_DENSITY.COMPACT}
+      className="flex items-center justify-between gap-4">
+      {({ hovered }) => (
+        <>
+          <span
+            style={{
+              fontSize: 15,
+              color: hovered ? cream : creamMuted,
+              transition: "color 0.15s ease",
+            }}>
+            {label}
+          </span>
+          <ListRowArrow
+            hovered={hovered}
+            color={gold}
+            variant={LIST_ROW_ARROW_STYLE.LINE}
+          />
+        </>
+      )}
+    </ListRow>
   );
 }

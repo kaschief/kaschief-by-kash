@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence, useInView } from "framer-motion";
-import { METHOD_GROUPS } from "@data";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useInView } from "framer-motion";
 import { SectionGlow } from "@components";
-import { useSectionScroll } from "@hooks";
+import { METHOD_GROUPS } from "@data";
+import { usePreserveScrollAnchor, useSectionScroll } from "@hooks";
 import { EASE, SECTION_ID, TOKENS } from "@utilities";
 import {
-  closeSkillTakeoverState,
-  createOpenSkillTakeoverState,
-  deriveSkillTakeoverNavigation,
-  moveSkillTakeoverSelection,
-  SKILL_TAKEOVER_INITIAL_STATE,
-  type SkillTakeoverState,
-} from "../model/skill-takeover";
+  closeSkillDetailOverlayState,
+  createOpenSkillDetailOverlayState,
+  deriveSkillDetailOverlayNavigation,
+  moveSkillDetailOverlaySelection,
+  SKILL_DETAIL_OVERLAY_INITIAL_STATE,
+  type SkillDetailOverlayState,
+} from "../model/skill-detail-overlay";
 import { Panel } from "./panel";
+import { SkillDetailOverlay } from "./skill-detail-overlay";
 import { SkillRow } from "./skill-row";
-import { SkillTakeover } from "./skill-takeover";
 
 const { cream, gold, textDim, textFaint } = TOKENS;
 const { METHODS } = SECTION_ID;
@@ -25,16 +25,19 @@ const groupLength = METHOD_GROUPS.length;
 export function Methods() {
   const outerRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
-  const [takeoverState, setTakeoverState] = useState<SkillTakeoverState>(SKILL_TAKEOVER_INITIAL_STATE);
+  const [detailOverlayState, setDetailOverlayState] =
+    useState<SkillDetailOverlayState>(SKILL_DETAIL_OVERLAY_INITIAL_STATE);
   const [mobilePanel, setMobilePanel] = useState(0);
+  const {
+    anchorRef: mobileContentRef,
+    captureAnchor: captureMobileContentAnchor,
+  } = usePreserveScrollAnchor<HTMLDivElement>(mobilePanel);
 
-  // Discriminated-union snapshot prevents impossible combinations
-  // like "no active skill but prev/next enabled".
   const {
     activeSkill,
     canGoPrev: canGoPrevSkill,
     canGoNext: canGoNextSkill,
-  } = deriveSkillTakeoverNavigation(takeoverState, METHOD_GROUPS);
+  } = deriveSkillDetailOverlayNavigation(detailOverlayState, METHOD_GROUPS);
 
   const inView = useInView(outerRef, { once: true, amount: 0.05 });
   const { scrollToY } = useSectionScroll();
@@ -96,19 +99,19 @@ export function Methods() {
   const panelProgress = progress * (groupLength - 1);
   const activePanelIndex = Math.round(panelProgress);
 
-  const skillTakeover = activeSkill && (
-    <SkillTakeover
+  const skillDetailOverlay = activeSkill && (
+    <SkillDetailOverlay
       skill={activeSkill.skill}
       groupLabel={activeSkill.groupLabel}
-      onClose={() => setTakeoverState(closeSkillTakeoverState())}
+      onClose={() => setDetailOverlayState(closeSkillDetailOverlayState())}
       onPrev={() =>
-        setTakeoverState((previous) =>
-          moveSkillTakeoverSelection(previous, METHOD_GROUPS, "prev"),
+        setDetailOverlayState((previous) =>
+          moveSkillDetailOverlaySelection(previous, METHOD_GROUPS, "prev"),
         )
       }
       onNext={() =>
-        setTakeoverState((previous) =>
-          moveSkillTakeoverSelection(previous, METHOD_GROUPS, "next"),
+        setDetailOverlayState((previous) =>
+          moveSkillDetailOverlaySelection(previous, METHOD_GROUPS, "next"),
         )
       }
       canGoPrev={canGoPrevSkill}
@@ -125,7 +128,6 @@ export function Methods() {
         <div
           style={{
             position: "sticky",
-            // ↓ Controls where the panel locks — 0 = top, "10vh" = lower, "20vh" = more centered
             top: 0,
             height: "100vh",
             overflow: "hidden",
@@ -144,8 +146,8 @@ export function Methods() {
                 panelProgress={panelProgress}
                 activePanelIndex={activePanelIndex}
                 onSkillSelect={(skill, groupLabel, groupIndex, skillIndex) =>
-                  setTakeoverState(
-                    createOpenSkillTakeoverState({
+                  setDetailOverlayState(
+                    createOpenSkillDetailOverlayState({
                       skill,
                       groupLabel,
                       groupIndex,
@@ -181,7 +183,11 @@ export function Methods() {
               <button
                 key={group.id}
                 type="button"
-                onClick={() => setMobilePanel(i)}
+                onClick={() => {
+                  if (i === mobilePanel) return;
+                  captureMobileContentAnchor();
+                  setMobilePanel(i);
+                }}
                 className="mr-6 shrink-0 whitespace-nowrap pb-3 font-mono text-xs uppercase tracking-wider transition-colors"
                 style={{
                   color: i === mobilePanel ? cream : textFaint,
@@ -195,13 +201,14 @@ export function Methods() {
             ))}
           </div>
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence initial={false} mode="wait">
             <motion.div
+              ref={mobileContentRef}
               key={mobilePanel}
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}>
+              transition={{ duration: 0.2, ease: EASE }}>
               <h2
                 className="font-serif text-4xl font-normal tracking-[-0.02em]"
                 style={{
@@ -219,8 +226,8 @@ export function Methods() {
                   key={skill.id}
                   label={skill.label}
                   onSelect={() =>
-                    setTakeoverState(
-                      createOpenSkillTakeoverState({
+                    setDetailOverlayState(
+                      createOpenSkillDetailOverlayState({
                         skill,
                         groupLabel: METHOD_GROUPS[mobilePanel].label,
                         groupIndex: mobilePanel,
@@ -235,7 +242,7 @@ export function Methods() {
         </div>
       </div>
 
-      {skillTakeover}
+      {skillDetailOverlay}
     </div>
   );
 }

@@ -3,6 +3,6 @@ export type {
   ActiveSkill,
   NavButtonProps,
   PanelProps,
+  SkillDetailOverlayProps,
   SkillRowProps,
-  SkillTakeoverProps,
 } from "./ui/methods.types";

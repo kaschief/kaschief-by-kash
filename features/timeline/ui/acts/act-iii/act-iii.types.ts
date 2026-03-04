@@ -1,5 +1,5 @@
 import type { ManagementStory } from "@data";
-export interface StoryTakeoverProps {
+export interface StoryDetailOverlayProps {
   story: ManagementStory;
   actLabel: string;
   color: string;

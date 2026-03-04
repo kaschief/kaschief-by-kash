@@ -20,7 +20,7 @@ export type MobileMenuState =
 
 interface NavigationContext {
   activeSection: SectionId | "";
-  hoveredLink: string | null;
+  hoveredLink: SectionId | null;
   suppression: ScrollSuppressionState;
   mobileMenu: MobileMenuState;
 }
@@ -47,7 +47,7 @@ export type NavigationAction =
   | {
       type: "SET_HOVERED_LINK";
       payload: {
-        href: string | null;
+        sectionId: SectionId | null;
       };
     }
   | { type: "TOGGLE_MOBILE_MENU" }
@@ -114,7 +114,7 @@ export function navigationReducer(
     case "SET_HOVERED_LINK": {
       return {
         ...state,
-        hoveredLink: action.payload.href,
+        hoveredLink: action.payload.sectionId,
       };
     }
 

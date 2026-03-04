@@ -1,5 +1,5 @@
 /**
- * Interaction constants shared across keyboard, DOM event, and takeover UI
+ * Interaction constants shared across keyboard, DOM event, and detail overlay
  * behavior. Keeps string literals out of component logic.
  */
 
@@ -22,7 +22,7 @@ export const HISTORY_EVENT = {
   POP_STATE: "popstate",
 } as const;
 
-export const TAKEOVER_NAV_LABEL = {
+export const DETAIL_OVERLAY_NAV_LABEL = {
   PREVIOUS_METHOD: "Previous method",
   NEXT_METHOD: "Next method",
   PREVIOUS_JOB: "Previous job",

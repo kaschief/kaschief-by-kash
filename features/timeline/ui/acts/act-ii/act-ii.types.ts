@@ -1,5 +1,6 @@
 import type { Job } from "@data";
-export interface JobTakeoverProps {
+
+export interface JobDetailOverlayProps {
   job: Job;
   actLabel: string;
   color: string;

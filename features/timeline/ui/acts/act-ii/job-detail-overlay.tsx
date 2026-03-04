@@ -1,13 +1,13 @@
 "use client";
 
 import { DetailOverlay } from "@components";
-import { TOKENS, TAKEOVER_NAV_LABEL } from "@utilities";
-import type { JobTakeoverProps } from "./act-ii.types";
+import { DETAIL_OVERLAY_NAV_LABEL, TOKENS } from "@utilities";
+import type { JobDetailOverlayProps } from "./act-ii.types";
 
 const { cream, creamMuted, fontMono, fontSerif, textDim, textFaint } = TOKENS;
-const { NEXT_JOB, PREVIOUS_JOB } = TAKEOVER_NAV_LABEL;
+const { NEXT_JOB, PREVIOUS_JOB } = DETAIL_OVERLAY_NAV_LABEL;
 
-export function JobTakeover({
+export function JobDetailOverlay({
   job,
   actLabel,
   color,
@@ -16,7 +16,7 @@ export function JobTakeover({
   onNext,
   canGoPrev,
   canGoNext,
-}: JobTakeoverProps) {
+}: JobDetailOverlayProps) {
   return (
     <DetailOverlay
       onClose={onClose}
@@ -83,9 +83,9 @@ export function JobTakeover({
               marginBottom: 52,
               ...item(0.16),
             }}>
-            {job.tech.map((t) => (
+            {job.tech.map((tech) => (
               <span
-                key={t}
+                key={tech}
                 style={{
                   fontFamily: fontMono,
                   fontSize: 10,
@@ -94,7 +94,7 @@ export function JobTakeover({
                   borderRadius: 999,
                   padding: "4px 12px",
                 }}>
-                {t}
+                {tech}
               </span>
             ))}
           </div>

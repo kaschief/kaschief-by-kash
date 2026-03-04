@@ -1,2 +1,2 @@
 export { ActIII } from "./act-iii";
-export type { CaseStudyCardProps, StoryTakeoverProps } from "./act-iii.types";
+export type { CaseStudyCardProps, StoryDetailOverlayProps } from "./act-iii.types";

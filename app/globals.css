@@ -191,5 +191,5 @@ html[data-custom-cursor="on"] *::after {
 /* ─── Responsive breakpoints reference ─────────────────────────────────────
    Breakpoint values are the canonical source of truth in utilities/breakpoints.ts.
    Component-level responsive behaviour lives in hooks/use-breakpoint.ts and hooks/use-media-query.ts
-   and in dedicated wrapper components (e.g. components/ui/takeover-content).
+   and in dedicated wrapper components (e.g. components/ui/detail-overlay-content).
    ──────────────────────────────────────────────────────────────────────── */

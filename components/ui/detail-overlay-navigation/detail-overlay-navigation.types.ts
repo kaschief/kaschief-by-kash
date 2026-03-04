@@ -1,4 +1,4 @@
-export interface TakeoverNavigationProps {
+export interface DetailOverlayNavigationProps {
   canGoPrev: boolean;
   canGoNext: boolean;
   onPrev: () => void;
