@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TRANSITION } from "@components";
-import { TOKENS } from "@utilities";
+import { TOKENS, TRANSITION } from "@utilities";
 import type { NavButtonProps } from "./methods.types";
 const { creamMuted, fontMono, gold, stroke, textDim, textFaint } = TOKENS;
 

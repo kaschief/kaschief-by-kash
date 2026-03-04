@@ -1,1 +1,1 @@
-export { Philosophy } from "./ui";
+export { Philosophy } from "./ui/philosophy";

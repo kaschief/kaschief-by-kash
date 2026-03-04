@@ -1,3 +1,4 @@
+export * from "./animation";
 export * from "./breakpoints";
 export * from "./constants";
 export * from "./interaction";

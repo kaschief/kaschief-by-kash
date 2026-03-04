@@ -2,8 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { TRANSITION } from "@components";
-import { TOKENS, KEYBOARD_EVENT, POINTER_EVENT } from "@utilities";
+import { KEYBOARD_EVENT, POINTER_EVENT, TOKENS, TRANSITION } from "@utilities";
 import { useSectionScroll } from "@hooks";
 import { DETAIL_MODAL_VARIANT, type DetailModalProps, type ModalCloseButtonProps } from "./detail-modal.types";
 

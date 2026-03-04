@@ -53,9 +53,6 @@
       ],
       "@features/*": [
         "./features/*/public-api.ts"
-      ],
-      "@motion": [
-        "./components/motion/index.ts"
       ]
     },
     "forceConsistentCasingInFileNames": true,

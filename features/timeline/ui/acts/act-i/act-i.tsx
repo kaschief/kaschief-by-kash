@@ -2,9 +2,9 @@
 
 import { useRef } from "react";
 import { useScroll, useTransform } from "framer-motion";
-import { FadeUp, RevealLine, SCROLL_RANGE, GLOW_OPACITY, SectionGlow, SectionLabel, TakeawayBlock, SectionProse } from "@components";
+import { FadeUp, RevealLine, SectionGlow, SectionLabel, TakeawayBlock, SectionProse } from "@components";
 import { ACT_I } from "@data";
-import { SECTION_ID } from "@utilities";
+import { GLOW_OPACITY, SCROLL_RANGE, SECTION_ID } from "@utilities";
 
 const { ACT_NURSE } = SECTION_ID;
 const { glow } = SCROLL_RANGE;

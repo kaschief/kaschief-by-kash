@@ -5,11 +5,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { NAV_LINKS, PERSONAL, ROLES } from "@data";
 import { useSectionScroll } from "@hooks";
-import { TRANSITION } from "@motion";
 import {
   HISTORY_EVENT,
   SECTION_IDS_ORDERED,
   TOKENS,
+  TRANSITION,
   type SectionId,
   Z_INDEX,
 } from "@utilities";

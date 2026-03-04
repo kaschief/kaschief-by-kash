@@ -2,10 +2,10 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useScroll, useTransform } from "framer-motion";
-import { FadeIn, SCROLL_RANGE, GLOW_OPACITY, SectionGlow, MonoLabel } from "@components";
+import { FadeIn, SectionGlow, MonoLabel } from "@components";
 import { ActSectionContent } from "../act-section-content";
 import { ACT_II, JOBS } from "@data";
-import { SECTION_ID } from "@utilities";
+import { GLOW_OPACITY, SCROLL_RANGE, SECTION_ID } from "@utilities";
 import { JobRow } from "./job-row";
 import { JobTakeover } from "./job-takeover";
 const { ACT_ENGINEER } = SECTION_ID;

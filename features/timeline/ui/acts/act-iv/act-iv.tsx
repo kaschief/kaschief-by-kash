@@ -2,10 +2,10 @@
 
 import { useRef } from "react";
 import { useScroll, useTransform } from "framer-motion";
-import { SCROLL_RANGE, GLOW_OPACITY, SectionGlow } from "@components";
+import { SectionGlow } from "@components";
 import { ActSectionContent } from "../act-section-content";
 import { ACT_IV } from "@data";
-import { SECTION_ID } from "@utilities";
+import { GLOW_OPACITY, SCROLL_RANGE, SECTION_ID } from "@utilities";
 const { ACT_BUILDER } = SECTION_ID;
 const { glow } = SCROLL_RANGE;
 const { color } = ACT_IV;
