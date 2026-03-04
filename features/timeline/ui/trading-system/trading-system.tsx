@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { FadeUp, FadeIn, ModalCloseButton, MonoLabel } from "@components";
 import { INDICATORS, PROGRESSION, CATEGORIES, type Indicator } from "@data";
+import { usePreserveScrollAnchor } from "@hooks";
 import { TOKENS } from "@utilities";
 import Image from "next/image";
 import { IndicatorDetail } from "./indicator-detail";
@@ -17,17 +18,21 @@ export function TradingArsenal() {
   const [selectedIndicator, setSelectedIndicator] = useState<Indicator | null>(
     null,
   );
-  const [activeCategory, setActiveCategory] = useState("Liquidity");
+  const [activeCategory, setActiveCategory] = useState<(typeof CATEGORIES)[number]>(CATEGORIES[0]);
   const [activeProgression, setActiveProgression] = useState(0);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
   const progressionRef = useRef<HTMLDivElement>(null);
   const progressionInView = useInView(progressionRef, {
     once: true,
     margin: "-50px",
   });
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const indicatorsRef = useRef<HTMLDivElement>(null);
-  const indicatorsInView = useInView(indicatorsRef, {
+
+  const {
+    anchorRef: indicatorsSectionRef,
+    captureAnchor: captureIndicatorsSectionAnchor,
+  } = usePreserveScrollAnchor<HTMLDivElement>(activeCategory);
+  const indicatorsInView = useInView(indicatorsSectionRef, {
     once: true,
     margin: "-50px",
   });
@@ -124,7 +129,7 @@ export function TradingArsenal() {
                   setLightboxImage(PROGRESSION[activeProgression].image)
                 }
                 className="group relative aspect-[16/10] w-full cursor-pointer overflow-hidden rounded-xl border border-[var(--stroke)] transition-all hover:border-[var(--act-green)]/30">
-                <AnimatePresence mode="wait">
+                <AnimatePresence>
                   <motion.div
                     key={activeProgression}
                     initial={{ opacity: 0 }}
@@ -152,7 +157,7 @@ export function TradingArsenal() {
           {/* ============================================================ */}
           {/*  INDICATORS - Category tabs + horizontal scroll strip        */}
           {/* ============================================================ */}
-          <div ref={indicatorsRef}>
+          <div ref={indicatorsSectionRef}>
             <FadeUp delay={0.2}>
               <h4 className="mb-6 font-serif text-2xl text-[var(--cream)] sm:text-3xl">
                 Indicators
@@ -168,7 +173,11 @@ export function TradingArsenal() {
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => setActiveCategory(cat)}
+                  onClick={() => {
+                    if (cat === activeCategory) return;
+                    captureIndicatorsSectionAnchor();
+                    setActiveCategory(cat);
+                  }}
                   style={
                     activeCategory === cat
                       ? { borderColor: actGreen }
@@ -190,7 +199,6 @@ export function TradingArsenal() {
               animate={indicatorsInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.35 }}>
               <div
-                ref={scrollContainerRef}
                 className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 <AnimatePresence mode="popLayout">

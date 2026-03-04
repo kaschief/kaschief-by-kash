@@ -1,19 +1,17 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useScroll, useTransform } from "framer-motion";
-import { FadeIn, SectionGlow, MonoLabel } from "@components";
-import { ActSectionContent } from "../act-section-content";
+import { FadeIn, MonoLabel, SectionGlow } from "@components";
 import { ACT_II, JOBS } from "@data";
 import { GLOW_OPACITY, SCROLL_RANGE, SECTION_ID } from "@utilities";
+import { ActSectionContent } from "../act-section-content";
+import { JobDetailOverlay } from "./job-detail-overlay";
 import { JobRow } from "./job-row";
-import { JobTakeover } from "./job-takeover";
+
 const { ACT_ENGINEER } = SECTION_ID;
 const { glow } = SCROLL_RANGE;
 const { act, color } = ACT_II;
-/* ------------------------------------------------------------------ */
-/*  Act II — The Engineer                                               */
-/* ------------------------------------------------------------------ */
 
 export function ActII() {
   const [selectedJobIndex, setSelectedJobIndex] = useState<number | null>(null);
@@ -22,18 +20,15 @@ export function ActII() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  const glowOpacity = useTransform(
-    scrollYProgress,
-    glow,
-    GLOW_OPACITY,
-  );
+  const glowOpacity = useTransform(scrollYProgress, glow, GLOW_OPACITY);
+
   const selectedJob =
     selectedJobIndex !== null ? JOBS[selectedJobIndex] ?? null : null;
   const canGoPrevJob = selectedJobIndex !== null && selectedJobIndex > 0;
   const canGoNextJob =
     selectedJobIndex !== null && selectedJobIndex < JOBS.length - 1;
 
-  const handleCloseTakeover = useCallback(() => {
+  const handleCloseDetailOverlay = useCallback(() => {
     setSelectedJobIndex(null);
   }, []);
 
@@ -52,10 +47,7 @@ export function ActII() {
   }, []);
 
   return (
-    <div
-      id={ACT_ENGINEER}
-      ref={ref}
-      className="relative py-24 sm:py-32">
+    <div id={ACT_ENGINEER} ref={ref} className="relative py-24 sm:py-32">
       <SectionGlow opacity={glowOpacity} color={color} size="lg" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-6">
@@ -74,18 +66,18 @@ export function ActII() {
         </ActSectionContent>
       </div>
 
-      {selectedJob && (
-        <JobTakeover
+      {selectedJob ? (
+        <JobDetailOverlay
           job={selectedJob}
           actLabel={act}
           color={color}
-          onClose={handleCloseTakeover}
+          onClose={handleCloseDetailOverlay}
           onPrev={handlePrevJob}
           onNext={handleNextJob}
           canGoPrev={canGoPrevJob}
           canGoNext={canGoNextJob}
         />
-      )}
+      ) : null}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
-const ROOT = __dirname;
+const ROOT = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   resolve: {
@@ -21,6 +22,8 @@ export default defineConfig({
     environment: "node",
     include: [
       "features/**/*.test.ts",
+      "components/**/*.test.ts",
+      "components/**/*.test.tsx",
       "data/**/*.test.ts",
       "utilities/**/*.test.ts",
     ],

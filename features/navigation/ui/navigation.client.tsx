@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { NAV_LINKS, PERSONAL, ROLES } from "@data";
+import {
+  PERSONAL,
+  ROLE_NAV_LINKS,
+  SECTION_NAV_LINKS,
+  type NavLink,
+} from "@data";
 import { useSectionScroll } from "@hooks";
 import {
   HISTORY_EVENT,
@@ -13,31 +19,87 @@ import {
   type SectionId,
   Z_INDEX,
 } from "@utilities";
-import { isSectionId, resolveActiveSection } from "../model/active-section";
+import { isSectionId } from "../model/active-section";
+import { resolveNavLinkColor } from "../model/nav-link-state";
+import { resolveObservedActiveSection } from "../model/observed-section";
 import {
   INITIAL_NAVIGATION_STATE,
   NAVIGATION_TIMING,
   navigationReducer,
 } from "../model/navigation-machine";
 
-const { bgNav, creamMuted, gold, textDim } = TOKENS;
+const { bgNav, textDim } = TOKENS;
 const { nav } = Z_INDEX;
 const { POP_STATE } = HISTORY_EVENT;
 
-const ACT_NAV = ROLES.map(({ color, label, sectionId }) => ({
-  label,
-  href: `#${sectionId}`,
-  color,
-}));
+const ACT_NAV = ROLE_NAV_LINKS;
+const SECTION_NAV = SECTION_NAV_LINKS;
+const OBSERVER_THRESHOLDS = [0, 0.1, 0.2, 0.35, 0.5, 0.7, 1];
 
-function getSectionTopById(): Record<SectionId, number | null> {
-  return SECTION_IDS_ORDERED.reduce<Record<SectionId, number | null>>(
-    (acc, sectionId) => {
-      const section = document.getElementById(sectionId);
-      acc[sectionId] = section ? section.getBoundingClientRect().top : null;
-      return acc;
-    },
-    {} as Record<SectionId, number | null>,
+const NavigationMobileMenu = dynamic(
+  () =>
+    import("./navigation-mobile-menu.client").then(
+      ({ NavigationMobileMenu: Component }) => Component,
+    ),
+  {
+    ssr: false,
+    loading: () => null,
+  },
+);
+
+function getSectionIdFromHash(hash: string): SectionId | null {
+  if (!hash.startsWith("#")) return null;
+  const id = hash.slice(1);
+  return isSectionId(id) ? id : null;
+}
+
+interface DesktopNavLinkProps {
+  link: NavLink;
+  activeSection: SectionId | "";
+  hoveredSection: SectionId | null;
+  idleColor: string;
+  onNavigate: (sectionId: SectionId) => void;
+  onHoverSection: (sectionId: SectionId | null) => void;
+}
+
+function DesktopNavLink({
+  link,
+  activeSection,
+  hoveredSection,
+  idleColor,
+  onNavigate,
+  onHoverSection,
+}: DesktopNavLinkProps) {
+  const isActive = activeSection === link.sectionId;
+  const color = resolveNavLinkColor({
+    activeSection,
+    hoveredSection,
+    linkSection: link.sectionId,
+    activeColor: link.color,
+    idleColor,
+  });
+
+  return (
+    <a
+      href={`#${link.sectionId}`}
+      onClick={(event) => {
+        event.preventDefault();
+        onNavigate(link.sectionId);
+      }}
+      onMouseEnter={() => onHoverSection(link.sectionId)}
+      onMouseLeave={() => onHoverSection(null)}
+      className="relative cursor-pointer py-1 font-mono text-[11px] font-medium uppercase tracking-[0.15em] transition-colors duration-200"
+      style={{ color }}>
+      {link.label}
+      {isActive && (
+        <motion.span
+          layoutId="nav-dot"
+          className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full"
+          style={{ backgroundColor: link.color }}
+          transition={TRANSITION.fast}
+        />
+      )}
+    </a>
   );
 }
 
@@ -55,22 +117,98 @@ export function Navigation() {
     navigationReducer,
     INITIAL_NAVIGATION_STATE,
   );
+  const navRef = useRef<HTMLElement | null>(null);
   const suppressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingMobileSectionRef = useRef<SectionId | null>(null);
+  const ratioBySectionRef = useRef<Partial<Record<SectionId, number>>>({});
+  const activeSectionRef = useRef<SectionId | "">("");
+  const [mobileMenuLoaded, setMobileMenuLoaded] = useState(false);
   const { scrollToSection, scrollToTop } = useSectionScroll();
 
   const activeSection = state.activeSection;
+  const currentActiveSection = activeSectionRef.current || activeSection;
   const hoveredLink = state.hoveredLink;
   const mobileOpen = state.mobileMenu.kind === "open";
   const visible = state.kind === "visible";
 
   useEffect(() => {
-    const handleScroll = () => {
-      const sectionTopById = getSectionTopById();
-      const resolvedActive = resolveActiveSection({
+    if (mobileOpen) {
+      setMobileMenuLoaded(true);
+    }
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    const updateActiveSection = () => {
+      const nextActive = resolveObservedActiveSection({
+        ratioBySection: ratioBySectionRef.current,
         scrollY: window.scrollY,
         viewportHeight: window.innerHeight,
         documentHeight: document.documentElement.scrollHeight,
-        sectionTopById,
+        previousActiveSection: activeSectionRef.current,
+      });
+
+      activeSectionRef.current = nextActive;
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const id = entry.target.id;
+          if (!isSectionId(id)) continue;
+
+          ratioBySectionRef.current[id] = entry.isIntersecting
+            ? entry.intersectionRatio
+            : 0;
+        }
+
+        updateActiveSection();
+      },
+      {
+        root: null,
+        rootMargin: "-35% 0px -55% 0px",
+        threshold: OBSERVER_THRESHOLDS,
+      },
+    );
+
+    const observed = new Set<SectionId>();
+
+    const observeSections = () => {
+      for (const sectionId of SECTION_IDS_ORDERED) {
+        if (observed.has(sectionId)) continue;
+
+        const section = document.getElementById(sectionId);
+        if (!section) continue;
+
+        observer.observe(section);
+        observed.add(sectionId);
+      }
+
+      updateActiveSection();
+    };
+
+    observeSections();
+
+    // Timeline is lazy-loaded; observe section nodes when they mount later.
+    const mutationObserver = new MutationObserver(observeSections);
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      mutationObserver.disconnect();
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      activeSectionRef.current = resolveObservedActiveSection({
+        ratioBySection: ratioBySectionRef.current,
+        scrollY: window.scrollY,
+        viewportHeight: window.innerHeight,
+        documentHeight: document.documentElement.scrollHeight,
+        previousActiveSection: activeSectionRef.current,
       });
 
       dispatch({
@@ -80,7 +218,7 @@ export function Navigation() {
           isVisible:
             window.scrollY >
             window.innerHeight * NAVIGATION_TIMING.navVisibleViewportRatio,
-          activeSection: resolvedActive,
+          activeSection: activeSectionRef.current,
         },
       });
     };
@@ -96,18 +234,52 @@ export function Navigation() {
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
+    let raf = 0;
+
+    if (!mobileOpen && pendingMobileSectionRef.current) {
+      const sectionId = pendingMobileSectionRef.current;
+      pendingMobileSectionRef.current = null;
+
+      // Wait one frame after menu close so mobile browsers apply restored scrolling.
+      raf = requestAnimationFrame(() => {
+        scrollToSection(sectionId, { behavior: "smooth", updateHistory: true });
+      });
+    }
+
     return () => {
       document.body.style.overflow = "";
+      if (raf) {
+        cancelAnimationFrame(raf);
+      }
+    };
+  }, [mobileOpen, scrollToSection]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const navElement = navRef.current;
+      if (!navElement) return;
+
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+
+      if (!navElement.contains(target)) {
+        dispatch({ type: "CLOSE_MOBILE_MENU" });
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [mobileOpen]);
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (!hash) return;
+    const id = getSectionIdFromHash(window.location.hash);
+    if (!id) return;
 
-    const id = hash.slice(1);
-    if (!isSectionId(id)) return;
-
+    activeSectionRef.current = id;
     dispatch({
       type: "SET_ACTIVE_SECTION",
       payload: { activeSection: id },
@@ -117,12 +289,10 @@ export function Navigation() {
 
   useEffect(() => {
     const handlePop = () => {
-      const hash = window.location.hash;
-      if (!hash) return;
+      const id = getSectionIdFromHash(window.location.hash);
+      if (!id) return;
 
-      const id = hash.slice(1);
-      if (!isSectionId(id)) return;
-
+      activeSectionRef.current = id;
       dispatch({
         type: "SET_ACTIVE_SECTION",
         payload: { activeSection: id },
@@ -144,14 +314,12 @@ export function Navigation() {
     };
   }, []);
 
-  const handleSectionClick = (href: string) => {
-    const id = href.replace("#", "");
-    if (!isSectionId(id)) return;
-
+  const handleSectionClick = (sectionId: SectionId) => {
+    activeSectionRef.current = sectionId;
     dispatch({ type: "CLOSE_MOBILE_MENU" });
     dispatch({
       type: "SET_ACTIVE_SECTION",
-      payload: { activeSection: id },
+      payload: { activeSection: sectionId },
     });
 
     const untilMs = Date.now() + NAVIGATION_TIMING.suppressScrollMs;
@@ -165,15 +333,20 @@ export function Navigation() {
       dispatch({ type: "CLEAR_SUPPRESSION" });
     }, NAVIGATION_TIMING.suppressScrollMs);
 
-    // Ensure body overflow is cleared before scrolling (mobile menu sets it to "hidden")
     document.body.style.overflow = "";
-    scrollToSection(id, { behavior: "smooth", updateHistory: true });
+    if (mobileOpen) {
+      pendingMobileSectionRef.current = sectionId;
+      return;
+    }
+
+    scrollToSection(sectionId, { behavior: "smooth", updateHistory: true });
   };
 
   return (
     <AnimatePresence>
       {visible && (
         <motion.nav
+          ref={navRef}
           initial={{ y: -80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -80, opacity: 0 }}
@@ -192,77 +365,41 @@ export function Navigation() {
             </button>
 
             <div className="hidden items-center gap-8 md:flex">
-              {ACT_NAV.map((link) => {
-                const isActive = activeSection === link.href.slice(1);
-                const isHovered = hoveredLink === link.href;
-                const color = isActive || isHovered ? link.color : textDim;
-
-                return (
-                  <button
-                    key={link.href}
-                    onClick={() => handleSectionClick(link.href)}
-                    onMouseEnter={() =>
-                      dispatch({
-                        type: "SET_HOVERED_LINK",
-                        payload: { href: link.href },
-                      })
-                    }
-                    onMouseLeave={() =>
-                      dispatch({
-                        type: "SET_HOVERED_LINK",
-                        payload: { href: null },
-                      })
-                    }
-                    className="relative cursor-pointer py-1 font-mono text-[11px] font-medium uppercase tracking-[0.15em] transition-colors duration-200"
-                    style={{ color }}>
-                    {link.label}
-                    {isActive && (
-                      <motion.span
-                        layoutId="nav-dot"
-                        className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full"
-                        style={{ backgroundColor: link.color }}
-                        transition={TRANSITION.fast}
-                      />
-                    )}
-                  </button>
-                );
-              })}
+              {ACT_NAV.map((link) => (
+                <DesktopNavLink
+                  key={link.sectionId}
+                  link={link}
+                  activeSection={currentActiveSection}
+                  hoveredSection={hoveredLink}
+                  idleColor={textDim}
+                  onNavigate={handleSectionClick}
+                  onHoverSection={(sectionId) =>
+                    dispatch({
+                      type: "SET_HOVERED_LINK",
+                      payload: { sectionId },
+                    })
+                  }
+                />
+              ))}
 
               <span className="h-3 w-px bg-[var(--stroke)]" />
 
-              {NAV_LINKS.map((link) => {
-                const isActive = activeSection === link.href.slice(1);
-                const isHovered = hoveredLink === link.href;
-
-                return (
-                  <button
-                    key={link.href}
-                    onClick={() => handleSectionClick(link.href)}
-                    onMouseEnter={() =>
-                      dispatch({
-                        type: "SET_HOVERED_LINK",
-                        payload: { href: link.href },
-                      })
-                    }
-                    onMouseLeave={() =>
-                      dispatch({
-                        type: "SET_HOVERED_LINK",
-                        payload: { href: null },
-                      })
-                    }
-                    className="relative cursor-pointer py-1 font-mono text-[11px] font-medium uppercase tracking-[0.15em] transition-colors duration-200"
-                    style={{ color: isActive || isHovered ? gold : textDim }}>
-                    {link.label}
-                    {isActive && (
-                      <motion.span
-                        layoutId="nav-dot"
-                        className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[var(--gold)]"
-                        transition={TRANSITION.fast}
-                      />
-                    )}
-                  </button>
-                );
-              })}
+              {SECTION_NAV.map((link) => (
+                <DesktopNavLink
+                  key={link.sectionId}
+                  link={link}
+                  activeSection={currentActiveSection}
+                  hoveredSection={hoveredLink}
+                  idleColor={textDim}
+                  onNavigate={handleSectionClick}
+                  onHoverSection={(sectionId) =>
+                    dispatch({
+                      type: "SET_HOVERED_LINK",
+                      payload: { sectionId },
+                    })
+                  }
+                />
+              ))}
             </div>
 
             <button
@@ -273,50 +410,16 @@ export function Navigation() {
             </button>
           </div>
 
-          <AnimatePresence>
-            {mobileOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: TRANSITION.fast.duration }}
-                className="overflow-hidden border-t border-[var(--stroke)] md:hidden">
-                <div className="flex flex-col gap-5 px-6 py-8">
-                  {ACT_NAV.map((link, index) => (
-                    <motion.button
-                      key={link.href}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      onClick={() => handleSectionClick(link.href)}
-                      className="cursor-pointer text-left font-mono text-sm font-light uppercase tracking-[0.15em] transition-colors"
-                      style={{
-                        color:
-                          activeSection === link.href.slice(1)
-                            ? link.color
-                            : creamMuted,
-                      }}>
-                      {link.label}
-                    </motion.button>
-                  ))}
-
-                  <div className="h-px bg-[var(--stroke)]" />
-
-                  {NAV_LINKS.map((link, index) => (
-                    <motion.button
-                      key={link.href}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: (ACT_NAV.length + index) * 0.05 }}
-                      onClick={() => handleSectionClick(link.href)}
-                      className="cursor-pointer text-left font-mono text-sm font-light uppercase tracking-[0.15em] text-[var(--cream-muted)] transition-colors hover:text-[var(--gold)]">
-                      {link.label}
-                    </motion.button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {mobileMenuLoaded ? (
+            <NavigationMobileMenu
+              mobileOpen={mobileOpen}
+              activeSection={currentActiveSection}
+              actNav={ACT_NAV}
+              sectionNav={SECTION_NAV}
+              onNavigate={handleSectionClick}
+              onClose={() => dispatch({ type: "CLOSE_MOBILE_MENU" })}
+            />
+          ) : null}
         </motion.nav>
       )}
     </AnimatePresence>

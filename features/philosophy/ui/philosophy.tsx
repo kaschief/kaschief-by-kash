@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { FadeIn, FadeUp, RevealLine, SectionGlow, SectionLabel } from "@components";
+import { FadeIn, FadeUp, RevealLine, SectionGlow } from "@components";
 import { TOKENS, SECTION_ID } from "@utilities";
 import { PHILOSOPHY } from "@data";
 const { cream, creamMuted, fontSerif, gold, textDim } = TOKENS;

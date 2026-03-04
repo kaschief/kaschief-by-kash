@@ -10,7 +10,7 @@
 export const Z_INDEX = {
   scrollFade: 40, // fixed top-fade overlay (below nav, above page content)
   nav: 100, // navigation bar
-  takeover: 800, // full-screen skill/detail takeovers
+  detailOverlay: 800, // full-screen detail overlays
   cursor: 9999, // custom cursor (always on top)
 } as const;
 

@@ -1,13 +1,13 @@
 "use client";
 
 import { DetailOverlay } from "@components";
-import { TOKENS, TAKEOVER_NAV_LABEL } from "@utilities";
-import type { SkillTakeoverProps } from "./methods.types";
+import { DETAIL_OVERLAY_NAV_LABEL, TOKENS } from "@utilities";
+import type { SkillDetailOverlayProps } from "./methods.types";
 
 const { cream, fontMono, fontSerif, gold, textDim } = TOKENS;
-const { NEXT_METHOD, PREVIOUS_METHOD } = TAKEOVER_NAV_LABEL;
+const { NEXT_METHOD, PREVIOUS_METHOD } = DETAIL_OVERLAY_NAV_LABEL;
 
-export function SkillTakeover({
+export function SkillDetailOverlay({
   skill,
   groupLabel,
   onClose,
@@ -15,7 +15,7 @@ export function SkillTakeover({
   onNext,
   canGoPrev,
   canGoNext,
-}: SkillTakeoverProps) {
+}: SkillDetailOverlayProps) {
   return (
     <DetailOverlay
       onClose={onClose}

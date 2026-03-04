@@ -7,41 +7,43 @@ export interface ActiveSkill {
   skillIndex: number;
 }
 
-export type SkillTakeoverState =
+export type SkillDetailOverlayState =
   | { kind: "closed" }
   | { kind: "open"; active: ActiveSkill };
 
-export const SKILL_TAKEOVER_INITIAL_STATE = {
+export const SKILL_DETAIL_OVERLAY_INITIAL_STATE = {
   kind: "closed",
-} as const satisfies SkillTakeoverState;
+} as const satisfies SkillDetailOverlayState;
 
 /**
- * Opens takeover with an explicit cursor into the method graph.
+ * Opens detail overlay with an explicit cursor into the method graph.
  *
  * Trade-off: this keeps UI state minimal (one discriminated union)
  * while still carrying enough context to render and navigate.
  */
-export function createOpenSkillTakeoverState(active: ActiveSkill): SkillTakeoverState {
+export function createOpenSkillDetailOverlayState(
+  active: ActiveSkill,
+): SkillDetailOverlayState {
   return {
     kind: "open",
     active,
   };
 }
 
-export function closeSkillTakeoverState(): SkillTakeoverState {
-  return SKILL_TAKEOVER_INITIAL_STATE;
+export function closeSkillDetailOverlayState(): SkillDetailOverlayState {
+  return SKILL_DETAIL_OVERLAY_INITIAL_STATE;
 }
 
-export interface SkillTakeoverNavigationSnapshot {
+export interface SkillDetailOverlayNavigationSnapshot {
   activeSkill: ActiveSkill | null;
   canGoPrev: boolean;
   canGoNext: boolean;
 }
 
-export function deriveSkillTakeoverNavigation(
-  state: SkillTakeoverState,
+export function deriveSkillDetailOverlayNavigation(
+  state: SkillDetailOverlayState,
   methodGroups: readonly MethodGroup[],
-): SkillTakeoverNavigationSnapshot {
+): SkillDetailOverlayNavigationSnapshot {
   if (state.kind === "closed") {
     return {
       activeSkill: null,
@@ -72,13 +74,13 @@ export function deriveSkillTakeoverNavigation(
   };
 }
 
-export type SkillTakeoverDirection = "prev" | "next";
+export type SkillDetailOverlayDirection = "prev" | "next";
 
-export function moveSkillTakeoverSelection(
-  state: SkillTakeoverState,
+export function moveSkillDetailOverlaySelection(
+  state: SkillDetailOverlayState,
   methodGroups: readonly MethodGroup[],
-  direction: SkillTakeoverDirection,
-): SkillTakeoverState {
+  direction: SkillDetailOverlayDirection,
+): SkillDetailOverlayState {
   if (state.kind === "closed") {
     return state;
   }
@@ -89,7 +91,7 @@ export function moveSkillTakeoverSelection(
   const group = methodGroups[groupIndex];
 
   if (!group) {
-    return closeSkillTakeoverState();
+    return closeSkillDetailOverlayState();
   }
 
   const delta = direction === "prev" ? -1 : 1;
@@ -99,7 +101,7 @@ export function moveSkillTakeoverSelection(
     return state;
   }
 
-  return createOpenSkillTakeoverState({
+  return createOpenSkillDetailOverlayState({
     skill: group.skills[nextSkillIndex],
     groupLabel: group.label,
     groupIndex,

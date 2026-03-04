@@ -1,8 +1,8 @@
 import type { MethodGroup, MethodSkill } from "@data";
 
-export type { ActiveSkill } from "../model/skill-takeover";
+export type { ActiveSkill } from "../model/skill-detail-overlay";
 
-export interface SkillTakeoverProps {
+export interface SkillDetailOverlayProps {
   skill: MethodSkill;
   groupLabel: string;
   onClose: () => void;

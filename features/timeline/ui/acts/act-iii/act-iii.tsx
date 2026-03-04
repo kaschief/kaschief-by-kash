@@ -1,9 +1,18 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import { useRef, useState } from "react";
+import { useScroll, useTransform } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { CategoryTags, DetailOverlay, SectionGlow } from "@components";
+import {
+  CategoryTags,
+  DetailOverlay,
+  ListRow,
+  ListRowArrow,
+  LIST_ROW_ARROW_STYLE,
+  LIST_ROW_TONE,
+  SectionGlow,
+} from "@components";
+import { ACT_III, MGMT_STORIES, type ManagementStory } from "@data";
 import {
   CSS_EASE,
   GLOW_OPACITY,
@@ -12,24 +21,20 @@ import {
   TOKENS,
   TRANSITION,
 } from "@utilities";
-import { ACT_III, MGMT_STORIES, type ManagementStory } from "@data";
 import { ActSectionContent } from "../act-section-content";
-import type { CaseStudyCardProps, StoryTakeoverProps } from "./act-iii.types";
+import type { CaseStudyCardProps, StoryDetailOverlayProps } from "./act-iii.types";
 
 const { cream, fontMono, fontSerif, textDim } = TOKENS;
 const { ACT_LEADER } = SECTION_ID;
 const { glow } = SCROLL_RANGE;
 const { act, color } = ACT_III;
-/* ------------------------------------------------------------------ */
-/*  Story takeover                                                      */
-/* ------------------------------------------------------------------ */
 
-function StoryTakeover({
+function StoryDetailOverlay({
   story,
   actLabel,
   color,
   onClose,
-}: StoryTakeoverProps) {
+}: StoryDetailOverlayProps) {
   return (
     <DetailOverlay onClose={onClose}>
       {({ item }) => (
@@ -81,59 +86,34 @@ function StoryTakeover({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Case study card                                                     */
-/* ------------------------------------------------------------------ */
-
-function CaseStudyCard({
-  story,
-  color,
-  onSelect,
-}: CaseStudyCardProps) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
-  const [hovered, setHovered] = useState(false);
-
+function CaseStudyCard({ story, color, onSelect }: CaseStudyCardProps) {
   return (
-    <motion.button
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={TRANSITION.base}
+    <ListRow
+      color={color}
       onClick={onSelect}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        borderColor: hovered
-          ? `color-mix(in srgb, ${color} 40%, transparent)`
-          : undefined,
-      }}
-      className="group w-full cursor-pointer border-b border-[var(--stroke)] py-6 text-left transition-colors">
-      <div className="mb-2">
-        <CategoryTags tags={story.tags} />
-      </div>
-      <div className="flex items-start justify-between gap-4">
-        <h4
-          style={{ color: hovered ? color : undefined }}
-          className="text-base font-medium text-[var(--cream)] transition-colors">
-          {story.title}
-        </h4>
-        <span
-          style={{ color: hovered ? color : undefined }}
-          className="mt-1 hidden shrink-0 text-[var(--text-faint)] transition-all group-hover:translate-x-1 sm:block">
-          {"->"}
-        </span>
-      </div>
-      <p className="mt-2 text-xs leading-relaxed text-[var(--text-dim)]">
-        {story.teaser}
-      </p>
-    </motion.button>
+      tone={LIST_ROW_TONE.MUTED}
+      className="flex items-start justify-between gap-4">
+      {({ hovered }) => (
+        <>
+          <div className="min-w-0 flex-1">
+            <div className="mb-2">
+              <CategoryTags tags={story.tags} />
+            </div>
+            <h4
+              style={{ color: hovered ? color : undefined }}
+              className="text-base font-medium text-[var(--cream)] transition-colors">
+              {story.title}
+            </h4>
+            <p className="mt-2 text-xs leading-relaxed text-[var(--text-dim)]">
+              {story.teaser}
+            </p>
+          </div>
+          <ListRowArrow hovered={hovered} color={color} variant={LIST_ROW_ARROW_STYLE.LINE} />
+        </>
+      )}
+    </ListRow>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/*  Act III — The Leader                                                */
-/* ------------------------------------------------------------------ */
 
 export function ActIII() {
   const [selectedStory, setSelectedStory] = useState<ManagementStory | null>(
@@ -146,17 +126,10 @@ export function ActIII() {
     target: ref,
     offset: ["start end", "end start"],
   });
-  const glowOpacity = useTransform(
-    scrollYProgress,
-    glow,
-    GLOW_OPACITY,
-  );
+  const glowOpacity = useTransform(scrollYProgress, glow, GLOW_OPACITY);
 
   return (
-    <div
-      id={ACT_LEADER}
-      ref={ref}
-      className="relative py-24 sm:py-32">
+    <div id={ACT_LEADER} ref={ref} className="relative py-24 sm:py-32">
       <SectionGlow opacity={glowOpacity} color={color} size="lg" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-6">
@@ -201,14 +174,14 @@ export function ActIII() {
         </ActSectionContent>
       </div>
 
-      {selectedStory && (
-        <StoryTakeover
+      {selectedStory ? (
+        <StoryDetailOverlay
           story={selectedStory}
           actLabel={act}
           color={color}
           onClose={() => setSelectedStory(null)}
         />
-      )}
+      ) : null}
     </div>
   );
 }
