@@ -1,4 +1,7 @@
 import type { MethodGroup, MethodSkill } from "@data";
+
+export type { ActiveSkill } from "../model/skill-takeover";
+
 export interface SkillTakeoverProps {
   skill: MethodSkill;
   groupLabel: string;
@@ -32,11 +35,4 @@ export interface PanelProps {
     skillIndex: number,
   ) => void;
   onScrollToPanel: (i: number) => void;
-}
-
-export interface ActiveSkill {
-  skill: MethodSkill;
-  groupLabel: string;
-  groupIndex: number;
-  skillIndex: number;
 }

@@ -3,10 +3,19 @@
 import { useState, useRef } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { TRANSITION, CSS_EASE, SCROLL_RANGE, GLOW_OPACITY, useTakeover, TakeoverContent, SectionGlow, CategoryTags } from "@components";
-import { ActSectionContent } from "../act-section-content";
-import { TOKENS, Z_INDEX, SECTION_ID } from "@utilities";
+import { CategoryTags, SectionGlow, TakeoverContent } from "@components";
+import { useTakeover } from "@hooks";
+import {
+  CSS_EASE,
+  GLOW_OPACITY,
+  SCROLL_RANGE,
+  SECTION_ID,
+  TOKENS,
+  TRANSITION,
+  Z_INDEX,
+} from "@utilities";
 import { ACT_III, MGMT_STORIES, type ManagementStory } from "@data";
+import { ActSectionContent } from "../act-section-content";
 import type { CaseStudyCardProps, StoryTakeoverProps } from "./act-iii.types";
 
 const { bg, cream, fontMono, fontSerif, textDim } = TOKENS;
@@ -123,7 +132,7 @@ function CaseStudyCard({
         <span
           style={{ color: hovered ? color : undefined }}
           className="mt-1 hidden shrink-0 text-[var(--text-faint)] transition-all group-hover:translate-x-1 sm:block">
-          →
+          {"->"}
         </span>
       </div>
       <p className="mt-2 text-xs leading-relaxed text-[var(--text-dim)]">

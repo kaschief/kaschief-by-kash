@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { PERSONAL, ROLES } from "@data";
-import { EASE } from "@components";
+import { EASE } from "@utilities";
 import { useSectionScroll } from "@hooks";
 export function Hero() {
   const { name } = PERSONAL;

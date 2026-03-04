@@ -136,6 +136,29 @@ function lintFile(filePath) {
 
   const relPath = normalize(relative(ROOT, filePath));
 
+  if (relPath.startsWith("components/sections/")) {
+    issues.push({
+      file: relPath,
+      line: 1,
+      message:
+        "Section features must live under features/*, not components/sections/.",
+      snippet: relPath,
+    });
+  }
+
+  if (
+    relPath === "components/index.ts" &&
+    /from\s+["']\.\/sections(?:\/[^"']*)?["']/.test(source)
+  ) {
+    issues.push({
+      file: relPath,
+      line: 1,
+      message:
+        "components/index.ts must expose shared components only (no sections exports).",
+      snippet: "./sections export detected",
+    });
+  }
+
   for (const rule of DISALLOWED_IMPORTS) {
     findMatches({ relPath, source, regex: rule.regex, message: rule.message });
   }

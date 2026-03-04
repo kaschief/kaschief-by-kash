@@ -137,11 +137,7 @@ export function Contact() {
               href={github}
               external
             />
-            <ContactLink
-              label="Phone"
-              detail={phone}
-              href={`tel:${phone}`}
-            />
+            <ContactLink label="Phone" detail={phone} href={`tel:${phone}`} />
           </div>
         </FadeUp>
 

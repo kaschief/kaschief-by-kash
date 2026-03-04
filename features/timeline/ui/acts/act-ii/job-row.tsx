@@ -2,8 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { TRANSITION } from "@components";
-import { TOKENS } from "@utilities";
+import { TOKENS, TRANSITION } from "@utilities";
 import type { JobRowProps } from "./act-ii.types";
 const { gold } = TOKENS;
 

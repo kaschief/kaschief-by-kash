@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FadeIn, PULSE_TRANSITION } from "@components";
+import { FadeIn } from "@components";
+import { PULSE_TRANSITION } from "@utilities";
 import type { SectionLabelProps } from "./section-label.types";
 export function SectionLabel({ label, color }: SectionLabelProps) {
   return (

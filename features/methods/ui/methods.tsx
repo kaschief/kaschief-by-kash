@@ -3,41 +3,53 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { METHOD_GROUPS } from "@data";
-import { EASE, SectionGlow } from "@components";
-import { TOKENS, SECTION_ID } from "@utilities";
+import { SectionGlow } from "@components";
 import { useSectionScroll } from "@hooks";
+import { EASE, SECTION_ID, TOKENS } from "@utilities";
+import {
+  closeSkillTakeoverState,
+  createOpenSkillTakeoverState,
+  deriveSkillTakeoverNavigation,
+  moveSkillTakeoverSelection,
+  SKILL_TAKEOVER_INITIAL_STATE,
+  type SkillTakeoverState,
+} from "../model/skill-takeover";
 import { Panel } from "./panel";
 import { SkillRow } from "./skill-row";
 import { SkillTakeover } from "./skill-takeover";
-import type { ActiveSkill } from "./methods.types";
+
 const { cream, gold, textDim, textFaint } = TOKENS;
 const { METHODS } = SECTION_ID;
-const N = METHOD_GROUPS.length;
+const groupLength = METHOD_GROUPS.length;
 
 export function Methods() {
   const outerRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
-  const [activeSkill, setActiveSkill] = useState<ActiveSkill | null>(null);
+  const [takeoverState, setTakeoverState] = useState<SkillTakeoverState>(SKILL_TAKEOVER_INITIAL_STATE);
   const [mobilePanel, setMobilePanel] = useState(0);
 
+  // Discriminated-union snapshot prevents impossible combinations
+  // like "no active skill but prev/next enabled".
+  const {
+    activeSkill,
+    canGoPrev: canGoPrevSkill,
+    canGoNext: canGoNextSkill,
+  } = deriveSkillTakeoverNavigation(takeoverState, METHOD_GROUPS);
+
   const inView = useInView(outerRef, { once: true, amount: 0.05 });
-  const activeGroup = activeSkill
-    ? METHOD_GROUPS[activeSkill.groupIndex]
-    : undefined;
-  const activeGroupSkills = activeGroup?.skills ?? [];
-  const activeSkillIndex = activeSkill?.skillIndex ?? -1;
-  const canGoPrevSkill = activeSkillIndex > 0;
-  const canGoNextSkill =
-    activeSkillIndex !== -1 && activeSkillIndex < activeGroupSkills.length - 1;
   const { scrollToY } = useSectionScroll();
 
   const scrollToPanel = (panelIndex: number) => {
     if (!outerRef.current) return;
+
     const outerTop =
       window.scrollY + outerRef.current.getBoundingClientRect().top;
     const scrollable = outerRef.current.offsetHeight - window.innerHeight;
-    const panelScrollHeight = scrollable / (N - 1);
-    scrollToY(outerTop + panelIndex * panelScrollHeight, { behavior: "smooth" });
+    const panelScrollHeight = scrollable / (groupLength - 1);
+
+    scrollToY(outerTop + panelIndex * panelScrollHeight, {
+      behavior: "smooth",
+    });
   };
 
   useEffect(() => {
@@ -45,6 +57,7 @@ export function Methods() {
 
     const handleScroll = () => {
       if (!outerRef.current) return;
+
       const rect = outerRef.current.getBoundingClientRect();
       const scrollable = outerRef.current.offsetHeight - window.innerHeight;
       if (scrollable <= 0) return;
@@ -56,53 +69,48 @@ export function Methods() {
       if (p > 0.05 && p < 0.95) {
         snapTimeout = setTimeout(() => {
           if (!outerRef.current) return;
-          const targetPanel = Math.round(p * (N - 1));
+
+          const targetPanel = Math.round(p * (groupLength - 1));
           const outerTop =
             window.scrollY + outerRef.current.getBoundingClientRect().top;
           const scrollable2 =
             outerRef.current.offsetHeight - window.innerHeight;
-          const panelScrollHeight = scrollable2 / (N - 1);
-          scrollToY(outerTop + targetPanel * panelScrollHeight, { behavior: "smooth" });
+          const panelScrollHeight = scrollable2 / (groupLength - 1);
+
+          scrollToY(outerTop + targetPanel * panelScrollHeight, {
+            behavior: "smooth",
+          });
         }, 150);
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
       clearTimeout(snapTimeout);
     };
   }, [scrollToY]);
 
-  const panelProgress = progress * (N - 1);
+  const panelProgress = progress * (groupLength - 1);
   const activePanelIndex = Math.round(panelProgress);
 
   const skillTakeover = activeSkill && (
     <SkillTakeover
       skill={activeSkill.skill}
       groupLabel={activeSkill.groupLabel}
-      onClose={() => setActiveSkill(null)}
-      onPrev={() => {
-        if (!canGoPrevSkill || !activeGroup) return;
-        const skillIndex = activeSkill.skillIndex - 1;
-        setActiveSkill({
-          skill: activeGroup.skills[skillIndex],
-          groupLabel: activeGroup.label,
-          groupIndex: activeSkill.groupIndex,
-          skillIndex,
-        });
-      }}
-      onNext={() => {
-        if (!canGoNextSkill || !activeGroup) return;
-        const skillIndex = activeSkill.skillIndex + 1;
-        setActiveSkill({
-          skill: activeGroup.skills[skillIndex],
-          groupLabel: activeGroup.label,
-          groupIndex: activeSkill.groupIndex,
-          skillIndex,
-        });
-      }}
+      onClose={() => setTakeoverState(closeSkillTakeoverState())}
+      onPrev={() =>
+        setTakeoverState((previous) =>
+          moveSkillTakeoverSelection(previous, METHOD_GROUPS, "prev"),
+        )
+      }
+      onNext={() =>
+        setTakeoverState((previous) =>
+          moveSkillTakeoverSelection(previous, METHOD_GROUPS, "next"),
+        )
+      }
       canGoPrev={canGoPrevSkill}
       canGoNext={canGoNextSkill}
     />
@@ -112,11 +120,10 @@ export function Methods() {
     <div id={METHODS} style={{ position: "relative" }}>
       <SectionGlow color={gold} size="lg" />
 
-      {/* ── Desktop: sticky scroll experience ──────────────────────────── */}
       <div
         ref={outerRef}
         className="hidden lg:block"
-        style={{ height: `${N * 60}vh` }}>
+        style={{ height: `${groupLength * 60}vh` }}>
         <div
           style={{
             position: "sticky",
@@ -137,7 +144,14 @@ export function Methods() {
                 panelProgress={panelProgress}
                 activePanelIndex={activePanelIndex}
                 onSkillSelect={(skill, groupLabel, groupIndex, skillIndex) =>
-                  setActiveSkill({ skill, groupLabel, groupIndex, skillIndex })
+                  setTakeoverState(
+                    createOpenSkillTakeoverState({
+                      skill,
+                      groupLabel,
+                      groupIndex,
+                      skillIndex,
+                    }),
+                  )
                 }
                 onScrollToPanel={scrollToPanel}
               />
@@ -146,10 +160,8 @@ export function Methods() {
         </div>
       </div>
 
-      {/* ── Mobile: tab-based experience ───────────────────────────────── */}
       <div className="py-16 lg:hidden">
         <div className="mx-auto max-w-5xl px-6">
-          {/* Section label */}
           <div className="mb-6 flex items-center gap-3">
             <span
               className="inline-block h-1.5 w-1.5 rounded-full"
@@ -162,13 +174,12 @@ export function Methods() {
             </span>
           </div>
 
-          {/* Tab strip — horizontally scrollable */}
           <div
             className="mb-8 flex overflow-x-auto border-b border-[var(--stroke)]"
             style={{ scrollbarWidth: "none" }}>
-            {METHOD_GROUPS.map((g, i) => (
+            {METHOD_GROUPS.map((group, i) => (
               <button
-                key={g.id}
+                key={group.id}
                 type="button"
                 onClick={() => setMobilePanel(i)}
                 className="mr-6 shrink-0 whitespace-nowrap pb-3 font-mono text-xs uppercase tracking-wider transition-colors"
@@ -179,12 +190,11 @@ export function Methods() {
                       ? `2px solid ${gold}`
                       : "2px solid transparent",
                 }}>
-                {g.label}
+                {group.label}
               </button>
             ))}
           </div>
 
-          {/* Active panel content */}
           <AnimatePresence mode="wait">
             <motion.div
               key={mobilePanel}
@@ -201,9 +211,7 @@ export function Methods() {
                 }}>
                 {METHOD_GROUPS[mobilePanel].label}
               </h2>
-              <p
-                className="mb-8 text-sm leading-relaxed"
-                style={{ color: textDim }}>
+              <p className="mb-8 text-sm leading-relaxed" style={{ color: textDim }}>
                 {METHOD_GROUPS[mobilePanel].description}
               </p>
               {METHOD_GROUPS[mobilePanel].skills.map((skill, i) => (
@@ -211,12 +219,14 @@ export function Methods() {
                   key={skill.id}
                   label={skill.label}
                   onSelect={() =>
-                    setActiveSkill({
-                      skill,
-                      groupLabel: METHOD_GROUPS[mobilePanel].label,
-                      groupIndex: mobilePanel,
-                      skillIndex: i,
-                    })
+                    setTakeoverState(
+                      createOpenSkillTakeoverState({
+                        skill,
+                        groupLabel: METHOD_GROUPS[mobilePanel].label,
+                        groupIndex: mobilePanel,
+                        skillIndex: i,
+                      }),
+                    )
                   }
                 />
               ))}

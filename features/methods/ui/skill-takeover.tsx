@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useTakeover, TakeoverNavigation, TakeoverContent } from "@components";
+import { TakeoverNavigation, TakeoverContent } from "@components";
+import { useTakeover } from "@hooks";
 import { TOKENS, Z_INDEX, KEYBOARD_EVENT, TAKEOVER_NAV_LABEL } from "@utilities";
 import type { SkillTakeoverProps } from "./methods.types";
 const { KEY: { ARROW_LEFT, ARROW_RIGHT }, TYPE: { KEY_DOWN } } = KEYBOARD_EVENT;

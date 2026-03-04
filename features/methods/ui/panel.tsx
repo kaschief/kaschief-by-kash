@@ -2,8 +2,7 @@
 
 import { motion } from "framer-motion";
 import { METHOD_GROUPS } from "@data";
-import { TRANSITION, CSS_EASE, PULSE_TRANSITION } from "@components";
-import { TOKENS } from "@utilities";
+import { CSS_EASE, PULSE_TRANSITION, TOKENS, TRANSITION } from "@utilities";
 import { NavButton } from "./nav-button";
 import { SkillRow } from "./skill-row";
 import type { CSSProperties } from "react";
