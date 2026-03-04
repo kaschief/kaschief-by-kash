@@ -31,7 +31,7 @@ export function SkillRow({ label, onSelect }: SkillRowProps) {
         fontSize: 15,
       }}>
       <span>{label}</span>
-      <span style={{ color: TOKENS.textFaint, fontSize: 13 }}>→</span>
+      <span className="hidden sm:inline" style={{ color: TOKENS.textFaint, fontSize: 13 }}>→</span>
     </button>
   );
 }

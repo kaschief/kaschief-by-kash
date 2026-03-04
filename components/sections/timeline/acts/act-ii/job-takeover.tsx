@@ -6,6 +6,7 @@ import { TOKENS } from "@/lib/tokens";
 import { Z_INDEX } from "@/lib/constants";
 import { KEYBOARD_EVENT, TAKEOVER_NAV_LABEL } from "@/lib/interaction";
 import { TakeoverNavigation } from "@/components/ui/takeover-navigation";
+import { TakeoverContent } from "@/components/ui/takeover-content";
 import type { JobTakeoverProps } from "./act-ii.types";
 
 export function JobTakeover({
@@ -56,14 +57,7 @@ export function JobTakeover({
         nextLabel={TAKEOVER_NAV_LABEL.NEXT_JOB}
         zIndex={Z_INDEX.takeover + 1}
       />
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          maxWidth: 1024,
-          margin: "0 auto",
-          padding: "18vh 24px 10vh",
-          width: "100%",
-        }}>
+      <TakeoverContent onClick={(e) => e.stopPropagation()}>
         <p
           style={{
             fontFamily: TOKENS.fontMono,
@@ -192,7 +186,7 @@ export function JobTakeover({
             </svg>
           </a>
         </div>
-      </div>
+      </TakeoverContent>
     </div>
   );
 }

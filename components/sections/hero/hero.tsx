@@ -51,7 +51,7 @@ export function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-8 flex items-center justify-center gap-2">
+          className="mt-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
           {ROLES.map(({ label, color }, i) => (
             <motion.span
               key={label}
