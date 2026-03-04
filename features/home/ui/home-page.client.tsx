@@ -1,12 +1,16 @@
 "use client";
 
 import { lazy, Suspense } from "react";
-import { Contact, CursorArrow, Hero, Methods, Philosophy } from "@components";
+import { CursorArrow } from "@components";
+import { Contact } from "@features/contact";
+import { Hero } from "@features/hero";
+import { Methods } from "@features/methods";
 import { Navigation } from "@features/navigation";
+import { Philosophy } from "@features/philosophy";
 import type { HomePageViewModel } from "../model/get-home-page-view-model";
 
 const Timeline = lazy(async () => {
-  const { Timeline: TimelineSection } = await import("@components");
+  const { Timeline: TimelineSection } = await import("@features/timeline");
   return { default: TimelineSection };
 });
 

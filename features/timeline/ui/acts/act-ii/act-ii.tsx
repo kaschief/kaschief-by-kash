@@ -2,7 +2,8 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useScroll, useTransform } from "framer-motion";
-import { FadeIn, SCROLL_RANGE, GLOW_OPACITY, SectionGlow, MonoLabel, ActSectionContent } from "@components";
+import { FadeIn, SCROLL_RANGE, GLOW_OPACITY, SectionGlow, MonoLabel } from "@components";
+import { ActSectionContent } from "../act-section-content";
 import { ACT_II, JOBS } from "@data";
 import { SECTION_ID } from "@utilities";
 import { JobRow } from "./job-row";
