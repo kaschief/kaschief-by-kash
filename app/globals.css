@@ -180,3 +180,9 @@ body,
   filter: blur(120px);
   pointer-events: none;
 }
+
+/* ─── Responsive breakpoints reference ─────────────────────────────────────
+   Breakpoint values are the canonical source of truth in lib/breakpoints.ts.
+   Component-level responsive behaviour lives in lib/use-breakpoint.ts (hook)
+   and in dedicated wrapper components (e.g. components/ui/takeover-content).
+   ──────────────────────────────────────────────────────────────────────── */
