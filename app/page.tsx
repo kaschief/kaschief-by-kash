@@ -1,16 +1,10 @@
-import { CursorArrow, Navigation, Contact, Hero, Methods, Philosophy, Timeline } from "@components";
+import { Suspense } from "react";
+import { HomePage, HomePageFallback } from "@features/home";
+
 export default function Page() {
   return (
-    <>
-      <CursorArrow />
-      <Navigation />
-      <main>
-        <Hero />
-        <Philosophy />
-        <Timeline />
-        <Methods />
-        <Contact />
-      </main>
-    </>
+    <Suspense fallback={<HomePageFallback />}>
+      <HomePage />
+    </Suspense>
   );
 }
