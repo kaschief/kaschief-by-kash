@@ -19,13 +19,12 @@ export function TakeoverNavigation({
   canGoNext,
   onPrev,
   onNext,
+  onClose,
   prevLabel,
   nextLabel,
   zIndex,
 }: TakeoverNavigationProps) {
   const isDesktop = useBreakpoint(BP.sm);
-
-  if (!canGoPrev && !canGoNext) return null;
 
   const base = {
     zIndex,
@@ -52,26 +51,47 @@ export function TakeoverNavigation({
 
   return (
     <>
+      {/* Close button — always visible top-right */}
       <button
         type="button"
-        aria-label={prevLabel}
-        disabled={!canGoPrev}
-        onClick={(e) => { e.stopPropagation(); if (canGoPrev) onPrev(); }}
-        style={prevStyle}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M10 3L5 8l5 5" />
+        aria-label="Close"
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+        style={{
+          ...base,
+          zIndex,
+          position: "fixed",
+          top: "1.5rem",
+          right: "1.5rem",
+        }}>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M1 1l12 12M13 1L1 13" />
         </svg>
       </button>
-      <button
-        type="button"
-        aria-label={nextLabel}
-        disabled={!canGoNext}
-        onClick={(e) => { e.stopPropagation(); if (canGoNext) onNext(); }}
-        style={nextStyle}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M6 3l5 5-5 5" />
-        </svg>
-      </button>
+
+      {(canGoPrev || canGoNext) && (
+        <>
+          <button
+            type="button"
+            aria-label={prevLabel}
+            disabled={!canGoPrev}
+            onClick={(e) => { e.stopPropagation(); if (canGoPrev) onPrev(); }}
+            style={prevStyle}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M10 3L5 8l5 5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label={nextLabel}
+            disabled={!canGoNext}
+            onClick={(e) => { e.stopPropagation(); if (canGoNext) onNext(); }}
+            style={nextStyle}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M6 3l5 5-5 5" />
+            </svg>
+          </button>
+        </>
+      )}
     </>
   );
 }

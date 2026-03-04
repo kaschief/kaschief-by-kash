@@ -193,7 +193,7 @@ export function TradingArsenal() {
                 ref={scrollContainerRef}
                 className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="popLayout">
                   {filteredIndicators.map((indicator, i) => (
                     <motion.button
                       key={indicator.name}
