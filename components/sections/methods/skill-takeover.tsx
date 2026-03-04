@@ -6,6 +6,7 @@ import { TOKENS } from "@/lib/tokens";
 import { Z_INDEX } from "@/lib/constants";
 import { KEYBOARD_EVENT, TAKEOVER_NAV_LABEL } from "@/lib/interaction";
 import { TakeoverNavigation } from "@/components/ui/takeover-navigation";
+import { TakeoverContent } from "@/components/ui/takeover-content";
 import type { SkillTakeoverProps } from "./methods.types";
 
 export function SkillTakeover({
@@ -44,9 +45,7 @@ export function SkillTakeover({
         inset: 0,
         zIndex: Z_INDEX.takeover,
         background: TOKENS.bg,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
+        overflowY: "auto",
       }}>
       <TakeoverNavigation
         canGoPrev={canGoPrev}
@@ -57,9 +56,7 @@ export function SkillTakeover({
         nextLabel={TAKEOVER_NAV_LABEL.NEXT_METHOD}
         zIndex={Z_INDEX.takeover + 1}
       />
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: 1024, margin: "0 auto", padding: "0 24px", width: "100%" }}>
+      <TakeoverContent onClick={(e) => e.stopPropagation()}>
         <p
           style={{
             fontFamily: TOKENS.fontMono,
@@ -76,7 +73,7 @@ export function SkillTakeover({
           style={{
             fontFamily: TOKENS.fontSerif,
             fontWeight: 400,
-            fontSize: "clamp(44px, 7vw, 96px)",
+            fontSize: "clamp(36px, 7vw, 96px)",
             color: TOKENS.cream,
             lineHeight: 1,
             marginBottom: 36,
@@ -95,7 +92,7 @@ export function SkillTakeover({
           }}>
           {skill.detail}
         </p>
-      </div>
+      </TakeoverContent>
     </div>
   );
 }

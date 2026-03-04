@@ -35,6 +35,7 @@ export function Panel({
         inset: 0,
         opacity: panelOpacity,
         pointerEvents: isActive ? "auto" : "none",
+        overflowY: "auto",
       }}>
       <div
         style={{
@@ -43,6 +44,7 @@ export function Panel({
           paddingTop: "18vh",
           paddingLeft: 24,
           paddingRight: 24,
+          paddingBottom: "8vh",
           width: "100%",
         }}>
         <div
@@ -66,18 +68,10 @@ export function Panel({
           </span>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 2fr) minmax(0, 3fr) auto",
-            gap: "0 48px",
-            alignItems: "start",
-          }}>
-          <div
-            style={{
-              borderRight: `1px solid ${TOKENS.stroke}`,
-              paddingRight: 48,
-            }}>
+        {/* Responsive grid: stacked on mobile, 3-col on lg+ */}
+        <div className="grid items-start gap-y-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_auto] lg:gap-x-12 lg:gap-y-0">
+          {/* Left column: group label + description */}
+          <div className="lg:border-r lg:border-[var(--stroke)] lg:pr-12">
             <h2
               className="font-serif text-4xl font-normal tracking-[-0.02em] sm:text-5xl lg:text-6xl"
               style={{
@@ -99,6 +93,7 @@ export function Panel({
             </p>
           </div>
 
+          {/* Skills list */}
           <div>
             {group.skills.map((skill, i) => (
               <div key={skill.id} style={fadeIn(0.2 + i * 0.05)}>
@@ -110,13 +105,8 @@ export function Panel({
             ))}
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-              paddingTop: 4,
-            }}>
+          {/* Nav buttons — desktop only */}
+          <div className="hidden lg:flex lg:flex-col lg:gap-3 lg:pt-1">
             {METHOD_GROUPS.map((g, i) => (
               <NavButton
                 key={g.id}
