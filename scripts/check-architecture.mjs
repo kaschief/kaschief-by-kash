@@ -4,18 +4,26 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { extname, join, relative } from "node:path";
 
 const ROOT = process.cwd();
-const TARGET_DIRS = ["app", "components", "data", "hooks", "utilities"];
+const TARGET_DIRS = [
+  "app",
+  "components",
+  "data",
+  "features",
+  "hooks",
+  "utilities",
+];
 const TARGET_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
 
 const DISALLOWED_IMPORTS = [
   {
     regex: /from\s+["']@\/(?:[^"']+)["']/g,
     message:
-      "Do not use '@/...' imports. Use top-level aliases: @components, @data, @hooks, @utilities.",
+      "Do not use '@/...' imports. Use top-level aliases: @components, @data, @features, @hooks, @utilities.",
   },
   {
     regex: /from\s+["']@components\/(?:[^"']+)["']/g,
-    message: "Do not deep import from @components/... Use only `from \"@components\"`.",
+    message:
+      "Do not deep import from @components/... Use only `from \"@components\"`.",
   },
   {
     regex: /from\s+["']@data\/(?:[^"']+)["']/g,
@@ -27,7 +35,13 @@ const DISALLOWED_IMPORTS = [
   },
   {
     regex: /from\s+["']@utilities\/(?:[^"']+)["']/g,
-    message: "Do not deep import from @utilities/... Use only `from \"@utilities\"`.",
+    message:
+      "Do not deep import from @utilities/... Use only `from \"@utilities\"`.",
+  },
+  {
+    regex: /from\s+["']@features\/(?:[^"'\/]+)\/(?:[^"']+)["']/g,
+    message:
+      "Feature modules must be imported from their public API only (e.g. @features/navigation).",
   },
   {
     regex: /from\s+["'](?:@\/)?lib(?:\/(?:[^"']+))?["']/g,
@@ -50,7 +64,8 @@ const DISALLOWED_MEMBER_ACCESS = [
 
 const DISALLOWED_BREAKPOINT_STRING_RULE = {
   regex: /\buseBreakpoint\(\s*["'][^"']+["']\s*\)/g,
-  message: "Use breakpoint constants (e.g. BP.md), not string literals, in useBreakpoint(...).",
+  message:
+    "Use breakpoint constants (e.g. BP.md), not string literals, in useBreakpoint(...).",
 };
 
 const DISALLOWED_COMPONENT_MATCH_MEDIA_RULE = {
@@ -58,11 +73,10 @@ const DISALLOWED_COMPONENT_MATCH_MEDIA_RULE = {
   message: "Components must not use matchMedia directly. Use hooks from @hooks.",
 };
 
-const MEMBER_ACCESS_ALLOWLIST = new Set([
-  "utilities/sections.ts",
-]);
+const MEMBER_ACCESS_ALLOWLIST = new Set(["utilities/sections.ts"]);
 
-const IMPORT_LINE_REGEX = /^import\s+[\s\S]*?\s+from\s+["']([^"']+)["'];?/gm;
+const IMPORT_LINE_REGEX =
+  /^import\s+[\s\S]*?\s+from\s+["']([^"']+)["'];?/gm;
 
 const issues = [];
 
@@ -128,7 +142,12 @@ function lintFile(filePath) {
 
   if (!MEMBER_ACCESS_ALLOWLIST.has(relPath)) {
     for (const rule of DISALLOWED_MEMBER_ACCESS) {
-      findMatches({ relPath, source, regex: rule.regex, message: rule.message });
+      findMatches({
+        relPath,
+        source,
+        regex: rule.regex,
+        message: rule.message,
+      });
     }
   }
 
@@ -161,6 +180,7 @@ function checkDuplicateImports(relPath, source) {
 
   for (const [modulePath, count] of counts.entries()) {
     if (count <= 1) continue;
+
     issues.push({
       file: relPath,
       line: 1,
@@ -174,6 +194,7 @@ function findMatches({ relPath, source, regex, message }) {
   for (const match of source.matchAll(regex)) {
     const index = match.index ?? 0;
     const line = getLineNumber(source, index);
+
     issues.push({
       file: relPath,
       line,
