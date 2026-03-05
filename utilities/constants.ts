@@ -23,6 +23,6 @@ export const LAYOUT = {
   navScrollOffset: 80,
 
   /** Pin duration as a fraction of viewport height, per direction. */
-  pinDownVh: 1.5,
+  pinDownVh: 1.2,
   pinUpVh: 0.4,
 } as const;
