@@ -9,6 +9,7 @@ const {
   CONTACT,
   METHODS,
   PHILOSOPHY: PHILOSOPHY_SECTION,
+  PORTRAIT,
 } = SECTION_ID;
 
 export interface PersonalInfo {
@@ -31,6 +32,7 @@ export const ROLE_LABEL = {
 export type RoleLabel = (typeof ROLE_LABEL)[keyof typeof ROLE_LABEL];
 
 export const SECTION_NAV_LABEL = {
+  WHO_AM_I: "Who Am I",
   METHODS: "Methods",
   CONTACT: "Contact",
 } as const;
@@ -76,6 +78,12 @@ export const PERSONAL: PersonalInfo = {
 
 // Single source of truth for top nav composition and styling.
 export const NAV_LINKS: NavLink[] = [
+  {
+    type: NAV_LINK_TYPE.SECTION,
+    label: SECTION_NAV_LABEL.WHO_AM_I,
+    sectionId: PORTRAIT,
+    color: gold,
+  },
   {
     type: NAV_LINK_TYPE.ROLE,
     label: ROLE_LABEL.NURSE,

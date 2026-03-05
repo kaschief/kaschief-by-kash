@@ -8,6 +8,6 @@ describe("section scroll offsets", () => {
   });
 
   it("defines section-specific overrides only where needed", () => {
-    expect(Object.keys(SECTION_SCROLL_OFFSET)).toHaveLength(0);
+    expect(Object.keys(SECTION_SCROLL_OFFSET)).toHaveLength(1);
   });
 });

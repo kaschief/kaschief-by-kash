@@ -5,6 +5,7 @@ import * as HomeFeature from "@features/home";
 import * as MethodsFeature from "@features/methods";
 import * as NavigationFeature from "@features/navigation";
 import * as PhilosophyFeature from "@features/philosophy";
+import * as PortraitFeature from "@features/portrait";
 import * as TimelineFeature from "@features/timeline";
 
 describe("feature public-api contracts", () => {
@@ -18,6 +19,7 @@ describe("feature public-api contracts", () => {
 
     expect(typeof HeroFeature.Hero).toBe("function");
     expect(typeof PhilosophyFeature.Philosophy).toBe("function");
+    expect(typeof PortraitFeature.Portrait).toBe("function");
     expect(typeof MethodsFeature.Methods).toBe("function");
     expect(typeof ContactFeature.Contact).toBe("function");
     expect(typeof TimelineFeature.Timeline).toBe("function");

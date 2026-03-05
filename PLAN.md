@@ -1,84 +1,68 @@
-# Plan: Comprehensive Playwright E2E Tests for Navigation & Scroll
+# Plan: Option C Wheel Hijack for Methods + Portrait Section
 
-## Setup
+## Task 1: Portrait Section (Between Hero and Philosophy)
 
-1. **Install Playwright** — `pnpm add -D @playwright/test` + `pnpm exec playwright install chromium`
-2. **Create `playwright.config.ts`** — desktop viewport (1280x720), base URL `http://localhost:3000`, `webServer` config to auto-start the dev server
-3. **Add scripts** to `package.json`: `"test:e2e": "playwright test"`, `"test:e2e:ui": "playwright test --ui"`
+### Approach
+Add a cinematic portrait section with `kaschief.jpg` and intro text. Placed between Hero and Philosophy. Not a navigable section (no nav link, no `SECTION_ID`).
 
-## Test File: `e2e/navigation-scroll.spec.ts`
+### Files to create
 
-### Shared Helpers
+**`features/portrait/ui/portrait.tsx`** — Client component:
+- Full-width section with cinematic framing
+- Next.js `Image` component with `kaschief.jpg` (`/images/kaschief.jpg`)
+- Subtle parallax on the image (scroll-driven y-transform)
+- Intro text alongside/below the photo (brief tagline or paragraph)
+- Uses existing motion primitives (`FadeUp`, `FadeIn`)
+- Follows existing section patterns (CSS variables, page-gutter, etc.)
 
-- `waitForNavVisible(page)` — scroll past hero to make nav appear, wait for `nav` element
-- `clickNavLink(page, label)` — click a nav link by text, wait for scroll to settle
-- `waitForScrollSettle(page, timeout?)` — poll `window.scrollY` until stable for 500ms
-- `getSectionRect(page, sectionId)` — returns `getBoundingClientRect()` for a `#sectionId` element
-- `getMethodsProgress(page)` — evaluates the current Methods scroll progress `p` from the DOM
-- `getVisibleMethodsPanel(page)` — returns which panel label is currently visible (opacity > 0.5)
-- Constants: `NAV_OFFSET = 80`, `OFFSET_TOLERANCE = 15` (px)
+**`features/portrait/public-api.ts`** — Barrel export
 
-### Test Suite 1: Nav → Section Scroll Positioning (6 tests)
+### Files to modify
 
-For each nav-reachable section (`act-nurse`, `act-engineer`, `act-leader`, `act-builder`, `methods`, `contact`):
-- Scroll past hero so nav is visible
-- Click the nav link
-- Wait for scroll to settle
-- Assert: `section.getBoundingClientRect().top` is within `NAV_OFFSET ± OFFSET_TOLERANCE`
+**`features/home/ui/home-page.client.tsx`** — Import and render `<Portrait />` between `<Hero />` and `<Philosophy />`
 
-### Test Suite 2: Cross-Section Navigation (key transitions)
+---
 
-Test the specific transitions that are most likely to break:
-- **Contact → Methods**: Assert Methods lands at correct offset, no intermediate panel flicker
-- **Methods → Contact**: Assert Contact lands at correct offset
-- **Act-Nurse → Methods**: Assert correct offset
-- **Methods → Act-Nurse**: Assert correct offset (scrolling backwards past Methods)
-- **Act-Builder → Methods**: Adjacent section transition
+## Task 2: Option C — Wheel/Swipe Hijack for Methods (Desktop)
 
-### Test Suite 3: Methods Panel Navigation (Bug 1 — position stability)
+### Problem
+Current approach uses a tall outer div (~280vh) with a sticky inner container. Scroll position within the tall div drives panel progress. This causes the **re-traversal problem** — scrolling back up requires traversing all the extra height again.
 
-- Navigate to Methods via nav
-- Record the `scrollY` after settle (this is "panel 0 position")
-- Click panel nav button "How I build" (panel 1)
-- Wait for scroll to settle
-- Assert: `panelProgress` is close to 1.0 (within 0.15)
-- Assert: visible panel label changed to "How I build"
-- Click "How I think" (panel 0) again
-- Wait for settle
-- Assert: `scrollY` is within ±10px of the original "panel 0 position" — **no drift**
-- Repeat for panels 2, 3, 4 — each should land at `panelProgress ≈ index`
+### Approach
+Replace the tall-wrapper approach with **wheel event hijacking**. The section becomes a regular 100vh element. When it's in view, wheel events are intercepted and translated into horizontal panel transitions. Vertical scroll only resumes when the user scrolls past the last or first panel.
 
-### Test Suite 4: Methods No-Replay on Nav Transition (Bug 2)
+### Changes
 
-- Navigate to Contact first
-- Set up a **MutationObserver or scroll listener** that records which Methods panels become visible (opacity > 0.5) during the transition
-- Click Methods nav link
-- Wait for settle
-- Assert: only panel 0 was visible at the end — intermediate panels (1, 2, 3, 4) were **never** the active panel during transit
-- This is the core "no replay / no cycling" test
+**`features/methods/ui/methods.tsx`** — Major rewrite of desktop scroll logic:
+- Remove the tall outer div (`height: 280vh`) and sticky container
+- Section becomes a single `100vh` div (no extra page height)
+- Add `wheel` event listener with `preventDefault()` when section is "capturing"
+- Track internal panel index + accumulated wheel delta
+- Snap to panels after wheel delta exceeds a threshold
+- Entry: when section is fully in viewport and user scrolls down → start capturing wheel events
+- Exit conditions:
+  - On panel 0 + scroll up → release, let page scroll normally
+  - On last panel + scroll down → release, let page scroll normally
+- Coordinate with `NAVIGATION_SCROLL_EVENT` — skip capture during nav-initiated scrolls
+- Mobile stays exactly the same (tab-based, untouched)
 
-### Test Suite 5: Methods Panel Snap Consistency
+**`utilities/constants.ts`** — Remove `methodsPanelVh` (no longer needed, tall wrapper is gone)
 
-- Manually scroll the page to land between two Methods panels (e.g., progress ~0.3)
-- Wait for snap to settle
-- Assert: snap landed at the nearest integer panel (`panelProgress ≈ 0` or `≈ 1`)
-- Assert: `section.getBoundingClientRect().top` is consistent with `outerTop - offset + panel * panelScrollHeight`
+**`e2e/methods-jump.spec.ts`** — Update tests: current tests assert scroll positions within the tall wrapper. With Option C there's no tall wrapper, so the test mechanics change (panel clicks no longer change `scrollY`, they change internal panel state).
 
-### Test Suite 6: Hash Navigation
+**Nav integration** — Since the section no longer has extra height, `scrollToSection("methods")` is a regular scroll-to-element. The `NAVIGATION_SCROLL_EVENT` listener in Methods still works but simplifies: instead of hiding the sticky content during pass-through, it just needs to skip wheel capture during nav scroll.
 
-- Load page with `/#methods` — assert Methods section is at correct offset
-- Load page with `/#contact` — assert Contact section is at correct offset
-- Navigate to Methods, then Contact — press browser back — assert returns to Methods at correct offset
+### Key details for the wheel hijack
+- Use `IntersectionObserver` to detect when Methods is fully in viewport (threshold ~0.95)
+- Accumulate `event.deltaY` — when it exceeds a threshold (e.g. 80px), advance/retreat one panel
+- `event.preventDefault()` stops the page from scrolling while capturing
+- After releasing (scroll past boundaries), need a cooldown before re-capturing to prevent oscillation
+- Touch events: listen for `touchstart`/`touchmove` to handle trackpad swipe on desktop
 
-## Files Created
+---
 
-```
-playwright.config.ts
-e2e/
-  navigation-scroll.spec.ts
-```
-
-## No Changes To
-
-- Existing source code (no test IDs needed — tests use `#sectionId` and nav link text)
-- Existing vitest setup
+## Execution Order
+1. Portrait section first (simpler, no breaking changes)
+2. Methods Option C rewrite (more complex, touches scroll infrastructure)
+3. Update e2e tests
+4. Visual verification via preview

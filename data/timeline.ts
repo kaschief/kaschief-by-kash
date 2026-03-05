@@ -88,7 +88,7 @@ export const ACT_I: ActINurseContent = {
   takeaway:
     "The ICU taught me that under pressure, process matters more than heroics. You assess, prioritize, and execute — or people die. That discipline never left me.",
   intro:
-    "Five years as a critical care nurse in Houston's Texas Medical Center — the largest medical complex in the world. Neuro ICU, Cardiac ICU, ER trauma.",
+    "Three years as a critical care nurse at New York University Langone Medical Center — the largest medical complex in the New York. Neuro ICU, Cardiac ICU, ER trauma.",
   detail:
     "This wasn't a stepping stone. It was where I learned to read complex systems under pressure, communicate with precision, and make decisions when the cost of being wrong was someone's life.",
   features: [

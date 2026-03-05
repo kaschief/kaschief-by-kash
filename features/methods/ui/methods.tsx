@@ -2,19 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useInView } from "framer-motion";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SectionGlow } from "@components";
 import { METHOD_GROUPS } from "@data";
 import {
   NAVIGATION_SCROLL_EVENT,
+  useLenis,
+  useNavStore,
   usePreserveScrollAnchor,
-  useSectionScroll,
 } from "@hooks";
 import {
-  DEFAULT_SCROLL_OFFSET,
   EASE,
   LAYOUT,
   SECTION_ID,
-  SECTION_SCROLL_OFFSET,
   type SectionId,
   TOKENS,
 } from "@utilities";
@@ -33,16 +33,20 @@ import { SkillRow } from "./skill-row";
 const { cream, gold, textDim, textFaint } = TOKENS;
 const { METHODS } = SECTION_ID;
 const groupLength = METHOD_GROUPS.length;
-const { methodsPanelVh } = LAYOUT;
+const panelStepCount = Math.max(1, groupLength - 1);
 
 export function Methods() {
-  const outerRef = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
-  const navScrollInFlightRef = useRef(false);
-  const navScrollTargetRef = useRef<SectionId | null>(null);
-  const [progress, setProgress] = useState(0);
+  const getLenis = useLenis();
+
+  // Desktop panel state
+  const [activePanel, setActivePanel] = useState(0);
+
+  // Skill detail overlay
   const [detailOverlayState, setDetailOverlayState] =
     useState<SkillDetailOverlayState>(SKILL_DETAIL_OVERLAY_INITIAL_STATE);
+
+  // Mobile
   const [mobilePanel, setMobilePanel] = useState(0);
   const {
     anchorRef: mobileContentRef,
@@ -55,21 +59,15 @@ export function Methods() {
     canGoNext: canGoNextSkill,
   } = deriveSkillDetailOverlayNavigation(detailOverlayState, METHOD_GROUPS);
 
-  const inView = useInView(outerRef, { once: true, amount: 0.05 });
-  const { scrollToY } = useSectionScroll();
-  const methodsOffset = SECTION_SCROLL_OFFSET[METHODS] ?? DEFAULT_SCROLL_OFFSET;
+  const inView = useInView(stickyRef, { once: true, amount: 0.05 });
 
+  // ── Nav scroll coordination ───────────────────────────────────────────
+  // When navigating to methods via nav, reset to first panel.
   useEffect(() => {
     const handleNavScroll = (event: Event) => {
-      const customEvent = event as CustomEvent<{ sectionId?: SectionId }>;
-      const target = customEvent.detail?.sectionId ?? null;
-      navScrollTargetRef.current = target;
-      navScrollInFlightRef.current = true;
-
-      // Hide content when scrolling THROUGH Methods (not TO it)
-      // so panels don't flash during pass-through.
-      if (target !== METHODS && stickyRef.current) {
-        stickyRef.current.style.opacity = "0";
+      const { sectionId } = (event as CustomEvent<{ sectionId?: SectionId }>).detail ?? {};
+      if (sectionId === METHODS) {
+        setActivePanel(0);
       }
     };
 
@@ -85,111 +83,90 @@ export function Methods() {
     };
   }, []);
 
-  const scrollToPanel = (panelIndex: number) => {
-    if (!outerRef.current) return;
-
-    const outerTop =
-      window.scrollY + outerRef.current.getBoundingClientRect().top;
-    const scrollable = outerRef.current.offsetHeight - window.innerHeight;
-    const panelScrollHeight = scrollable / (groupLength - 1);
-    const targetY = outerTop - methodsOffset + panelIndex * panelScrollHeight;
-
-    scrollToY(targetY, {
-      behavior: "smooth",
-    });
-  };
-
+  // ── ScrollTrigger pin + progress-driven panels (desktop) ────────────
   useEffect(() => {
-    let snapTimeout: ReturnType<typeof setTimeout>;
-    let settleTimeout: ReturnType<typeof setTimeout>;
+    const el = stickyRef.current;
+    if (!el) return;
 
-    const handleScroll = () => {
-      if (!outerRef.current) return;
+    const mql = window.matchMedia("(min-width: 1024px)");
+    if (!mql.matches) return;
 
-      const rect = outerRef.current.getBoundingClientRect();
-      const scrollable = outerRef.current.offsetHeight - window.innerHeight;
-      if (scrollable <= 0) return;
+    const vh = window.innerHeight;
+    const downDistance = panelStepCount * vh * LAYOUT.pinDownVh;
+    const upThreshold = LAYOUT.pinUpVh / LAYOUT.pinDownVh;
 
-      const p = Math.max(
-        0,
-        Math.min(1, -(rect.top - methodsOffset) / scrollable),
-      );
+    const trigger = ScrollTrigger.create({
+      trigger: el,
+      pin: true,
+      start: "top top",
+      end: `+=${downDistance}`,
+      pinSpacing: true,
+      onUpdate: (self) => {
+        // Don't update panels during any programmatic navigation
+        if (useNavStore.getState().isNavigating) return;
 
-      clearTimeout(snapTimeout);
-      clearTimeout(settleTimeout);
+        // When scrolling up past the short threshold per panel step, jump out
+        const progress = self.progress;
+        const panelProgress = progress * panelStepCount;
+        const currentPanel = Math.floor(panelProgress);
+        const withinPanel = panelProgress - currentPanel;
 
-      // During nav-initiated scroll, skip snap + check for arrival.
-      if (navScrollInFlightRef.current) {
-        const targetSectionId = navScrollTargetRef.current;
-        if (!targetSectionId) {
-          navScrollInFlightRef.current = false;
-        } else {
-          const target = document.getElementById(targetSectionId);
-          if (!target) {
-            navScrollInFlightRef.current = false;
-          } else {
-            const targetTop = target.getBoundingClientRect().top;
-            const targetOffset =
-              SECTION_SCROLL_OFFSET[targetSectionId] ?? DEFAULT_SCROLL_OFFSET;
-            if (Math.abs(targetTop - targetOffset) <= 6) {
-              navScrollInFlightRef.current = false;
-              navScrollTargetRef.current = null;
-            }
-          }
+        if (self.direction === -1 && withinPanel > 0 && withinPanel < upThreshold) {
+          // Snap to the previous panel boundary
+          const targetProgress = currentPanel / panelStepCount;
+          self.scroll(self.start + targetProgress * (self.end - self.start));
         }
 
-        if (navScrollInFlightRef.current) {
-          // Fallback: clear flight flag after scroll settles.
-          settleTimeout = setTimeout(() => {
-            navScrollInFlightRef.current = false;
-            navScrollTargetRef.current = null;
-            if (stickyRef.current) stickyRef.current.style.opacity = "";
-          }, 300);
-        } else {
-          // Arrived — restore visibility
-          if (stickyRef.current) stickyRef.current.style.opacity = "";
-        }
-
-        setProgress(p);
-        return;
-      }
-
-      setProgress(p);
-
-      // Snap to nearest panel when user manually scrolls between panels.
-      if (p > 0.05 && p < 0.95) {
-        snapTimeout = setTimeout(() => {
-          if (!outerRef.current) return;
-
-          const targetPanel = Math.round(p * (groupLength - 1));
-          const outerTop =
-            window.scrollY + outerRef.current.getBoundingClientRect().top;
-          const scrollable2 =
-            outerRef.current.offsetHeight - window.innerHeight;
-          const panelScrollHeight = scrollable2 / (groupLength - 1);
-
-          scrollToY(
-            outerTop - methodsOffset + targetPanel * panelScrollHeight,
-            {
-              behavior: "smooth",
-            },
-          );
-        }, 150);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+        const panel = Math.min(
+          groupLength - 1,
+          Math.max(0, Math.round(panelProgress)),
+        );
+        setActivePanel(panel);
+      },
+    });
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      clearTimeout(snapTimeout);
-      clearTimeout(settleTimeout);
+      trigger.kill();
     };
-  }, [methodsOffset, scrollToY]);
+  }, []);
 
-  const panelProgress = progress * (groupLength - 1);
-  const activePanelIndex = Math.round(panelProgress);
+  // ── Internal panel nav (sidebar buttons) ──────────────────────────────
+  const handleScrollToPanel = (panelIndex: number) => {
+    const trigger = ScrollTrigger.getAll().find(
+      (st) => st.trigger === stickyRef.current,
+    );
+    if (!trigger) return;
+
+    const { startNavigation, endNavigation } = useNavStore.getState();
+
+    // Set panel immediately and freeze scroll detection
+    setActivePanel(panelIndex);
+    startNavigation(METHODS);
+
+    // Calculate the scroll position for this panel within the pin range
+    const pinStart = trigger.start;
+    const pinEnd = trigger.end;
+    const pinRange = pinEnd - pinStart;
+    const targetScroll = pinStart + (pinRange * panelIndex) / panelStepCount;
+
+    const lenis = getLenis();
+    if (lenis) {
+      lenis.scrollTo(targetScroll, {
+        duration: 0.8,
+        lock: true,
+        force: true,
+        onComplete: () => {
+          setTimeout(() => endNavigation(), 50);
+        },
+      });
+    } else {
+      window.scrollTo({ top: targetScroll, behavior: "smooth" });
+      setTimeout(() => endNavigation(), 1000);
+    }
+
+    // Safety fallback
+    setTimeout(() => endNavigation(), 3000);
+  };
 
   const skillDetailOverlay = activeSkill && (
     <SkillDetailOverlay
@@ -213,48 +190,41 @@ export function Methods() {
 
   return (
     <div id={METHODS} style={{ position: "relative" }}>
+      {/* ── Desktop: ScrollTrigger pinned panels ── */}
       <div
-        ref={outerRef}
+        ref={stickyRef}
         className="hidden lg:block"
-        style={{ height: `${(groupLength - 1) * methodsPanelVh + 100}vh` }}>
-        <div
-          ref={stickyRef}
-          style={{
-            position: "sticky",
-            top: 0,
-            height: "100vh",
-            overflow: "hidden",
-          }}>
-          <SectionGlow color={gold} size="lg" />
-          <motion.div
-            style={{ position: "relative", width: "100%", height: "100%" }}
-            initial={{ opacity: 0, y: 48 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, ease: EASE }}>
-            {METHOD_GROUPS.map((group, i) => (
-              <Panel
-                key={group.id}
-                group={group}
-                index={i}
-                panelProgress={panelProgress}
-                activePanelIndex={activePanelIndex}
-                onSkillSelect={(skill, groupLabel, groupIndex, skillIndex) =>
-                  setDetailOverlayState(
-                    createOpenSkillDetailOverlayState({
-                      skill,
-                      groupLabel,
-                      groupIndex,
-                      skillIndex,
-                    }),
-                  )
-                }
-                onScrollToPanel={scrollToPanel}
-              />
-            ))}
-          </motion.div>
-        </div>
+        style={{ height: "100vh", overflow: "hidden" }}>
+        <SectionGlow color={gold} size="lg" />
+        <motion.div
+          style={{ position: "relative", width: "100%", height: "100%" }}
+          initial={{ opacity: 0, y: 48 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.4, ease: EASE }}>
+          {METHOD_GROUPS.map((group, i) => (
+            <Panel
+              key={group.id}
+              group={group}
+              index={i}
+              panelProgress={activePanel}
+              activePanelIndex={activePanel}
+              onSkillSelect={(skill, groupLabel, groupIndex, skillIndex) =>
+                setDetailOverlayState(
+                  createOpenSkillDetailOverlayState({
+                    skill,
+                    groupLabel,
+                    groupIndex,
+                    skillIndex,
+                  }),
+                )
+              }
+              onScrollToPanel={handleScrollToPanel}
+            />
+          ))}
+        </motion.div>
       </div>
 
+      {/* ── Mobile: tab-based panels ── */}
       <div className="py-16 lg:hidden">
         <div className="mx-auto max-w-5xl px-[var(--page-gutter)]">
           <div className="mb-6 flex items-center gap-3">

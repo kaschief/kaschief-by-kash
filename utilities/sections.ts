@@ -6,6 +6,7 @@
  * in top-to-bottom DOM order - the nav relies on this for correctness).
  */
 export const SECTION_ID = {
+  PORTRAIT: "portrait",
   PHILOSOPHY: "philosophy",
   ACT_NURSE: "act-nurse",
   ACT_ENGINEER: "act-engineer",
@@ -18,6 +19,7 @@ export const SECTION_ID = {
 export type SectionId = (typeof SECTION_ID)[keyof typeof SECTION_ID];
 
 const {
+  PORTRAIT,
   PHILOSOPHY,
   ACT_NURSE,
   ACT_ENGINEER,
@@ -29,6 +31,7 @@ const {
 
 /** DOM top-to-bottom order - must match page.tsx render order. */
 export const SECTION_IDS_ORDERED: readonly SectionId[] = [
+  PORTRAIT,
   PHILOSOPHY,
   ACT_NURSE,
   ACT_ENGINEER,

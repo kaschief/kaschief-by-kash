@@ -10,7 +10,7 @@ import {
   SECTION_NAV_LINKS,
   type NavLink,
 } from "@data";
-import { useSectionScroll } from "@hooks";
+import { useNavStore, useSectionScroll } from "@hooks";
 import {
   HISTORY_EVENT,
   SECTION_IDS_ORDERED,
@@ -27,12 +27,13 @@ import {
   navigationReducer,
 } from "../model/navigation-machine";
 
-const { bgNav, textDim } = TOKENS;
+const { textDim } = TOKENS;
 const { nav } = Z_INDEX;
 const { POP_STATE } = HISTORY_EVENT;
 
+const WHO_AM_I_NAV = SECTION_NAV_LINKS.filter((l) => l.sectionId === "portrait");
 const ACT_NAV = ROLE_NAV_LINKS;
-const SECTION_NAV = SECTION_NAV_LINKS;
+const SECTION_NAV = SECTION_NAV_LINKS.filter((l) => l.sectionId !== "portrait");
 const OBSERVER_THRESHOLDS = [0, 0.1, 0.25, 0.5];
 
 const NavigationMobileMenu = dynamic(
@@ -87,17 +88,15 @@ function DesktopNavLink({
       }}
       onMouseEnter={() => onHoverSection(link.sectionId)}
       onMouseLeave={() => onHoverSection(null)}
-      className="relative cursor-pointer py-1 font-mono text-[11px] font-medium uppercase tracking-[0.15em] transition-colors duration-200"
-      style={{ color }}>
+      className="relative cursor-pointer rounded-full px-3.5 py-1.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] transition-all duration-150"
+      style={{
+        color,
+        backgroundColor: isActive
+          ? `color-mix(in srgb, ${link.color} 12%, transparent)`
+          : "transparent",
+        boxShadow: isActive ? `0 0 12px ${link.color}15` : "none",
+      }}>
       {link.label}
-      {isActive && (
-        <motion.span
-          layoutId="nav-dot"
-          className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full"
-          style={{ backgroundColor: link.color }}
-          transition={TRANSITION.fast}
-        />
-      )}
     </a>
   );
 }
@@ -111,22 +110,32 @@ function DesktopNavLink({
  * This keeps the component easier to reason about and easier to test.
  */
 export function Navigation() {
-  const { initials } = PERSONAL;
+  const { name } = PERSONAL;
   const [state, dispatch] = useReducer(
     navigationReducer,
     INITIAL_NAVIGATION_STATE,
   );
   const navRef = useRef<HTMLElement | null>(null);
-  const suppressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isSuppressedRef = useRef(false);
   const pendingMobileSectionRef = useRef<SectionId | null>(null);
   const activeSectionRef = useRef<SectionId | "">("");
   const [mobileMenuLoaded, setMobileMenuLoaded] = useState(false);
   const { scrollToSection, scrollToTop } = useSectionScroll();
+  const { isNavigating, targetSection, settledSection, startNavigation, clearSettled } = useNavStore();
 
   const activeSection = state.activeSection;
-  const currentActiveSection = activeSectionRef.current || activeSection;
+
+  // When navigating, lock to target. When just settled, lock to settled section
+  // until scroll detection catches up.
+  let currentActiveSection: SectionId | "" = activeSectionRef.current || activeSection;
+  if (isNavigating && targetSection) {
+    currentActiveSection = targetSection;
+  } else if (settledSection) {
+    currentActiveSection = settledSection;
+    activeSectionRef.current = settledSection;
+    // Clear after one render so scroll detection takes over
+    queueMicrotask(() => clearSettled());
+  }
   const hoveredLink = state.hoveredLink;
   const mobileOpen = state.mobileMenu.kind === "open";
   const visible = state.kind === "visible";
@@ -139,7 +148,7 @@ export function Navigation() {
 
   useEffect(() => {
     const updateActiveSection = () => {
-      if (isSuppressedRef.current) return;
+      if (useNavStore.getState().isNavigating) return;
 
       const sectionTopById = SECTION_IDS_ORDERED.reduce<
         Record<SectionId, number | null>
@@ -204,7 +213,7 @@ export function Navigation() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!isSuppressedRef.current) {
+      if (!useNavStore.getState().isNavigating) {
         const sectionTopById = SECTION_IDS_ORDERED.reduce<
           Record<SectionId, number | null>
         >(
@@ -255,7 +264,7 @@ export function Navigation() {
 
       // Wait one frame after menu close so mobile browsers apply restored scrolling.
       raf = requestAnimationFrame(() => {
-        scrollToSection(sectionId, { behavior: "smooth", updateHistory: true });
+        scrollToSection(sectionId, { updateHistory: true });
       });
     }
 
@@ -297,7 +306,7 @@ export function Navigation() {
       type: "SET_ACTIVE_SECTION",
       payload: { activeSection: id },
     });
-    scrollToSection(id, { behavior: "instant", updateHistory: false });
+    scrollToSection(id, { updateHistory: false });
   }, [scrollToSection]);
 
   useEffect(() => {
@@ -310,7 +319,7 @@ export function Navigation() {
         type: "SET_ACTIVE_SECTION",
         payload: { activeSection: id },
       });
-      scrollToSection(id, { behavior: "smooth", updateHistory: false });
+      scrollToSection(id, { updateHistory: false });
     };
 
     window.addEventListener(POP_STATE, handlePop);
@@ -324,9 +333,6 @@ export function Navigation() {
       if (mobileCloseTimerRef.current) {
         clearTimeout(mobileCloseTimerRef.current);
       }
-      if (suppressTimerRef.current) {
-        clearTimeout(suppressTimerRef.current);
-      }
     };
   }, []);
 
@@ -337,34 +343,22 @@ export function Navigation() {
       payload: { activeSection: sectionId },
     });
 
-    const untilMs = Date.now() + NAVIGATION_TIMING.suppressScrollMs;
-    dispatch({ type: "SUPPRESS_SCROLL", payload: { untilMs } });
-    isSuppressedRef.current = true;
-
-    if (suppressTimerRef.current) {
-      clearTimeout(suppressTimerRef.current);
-    }
-
-    suppressTimerRef.current = setTimeout(() => {
-      isSuppressedRef.current = false;
-      dispatch({ type: "CLEAR_SUPPRESSION" });
-    }, NAVIGATION_TIMING.suppressScrollMs);
-
     if (mobileOpen) {
       pendingMobileSectionRef.current = sectionId;
+      startNavigation(sectionId);
 
       if (mobileCloseTimerRef.current) {
         clearTimeout(mobileCloseTimerRef.current);
       }
 
-      // Let the highlight update render before closing the menu.
       mobileCloseTimerRef.current = setTimeout(() => {
         dispatch({ type: "CLOSE_MOBILE_MENU" });
       }, 200);
       return;
     }
 
-    scrollToSection(sectionId, { behavior: "smooth", updateHistory: true });
+    // scrollToSection handles startNavigation/endNavigation via store
+    scrollToSection(sectionId, { updateHistory: true });
   };
 
   return (
@@ -372,24 +366,59 @@ export function Navigation() {
       {visible && (
         <motion.nav
           ref={navRef}
-          initial={{ y: -80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -80, opacity: 0 }}
-          transition={TRANSITION.base}
-          className="fixed top-0 left-0 right-0 border-b border-[var(--stroke)]"
+          initial={{ y: -40, opacity: 0, filter: "blur(8px)" }}
+          animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+          exit={{ y: -30, opacity: 0, filter: "blur(6px)" }}
+          transition={TRANSITION.slow}
+          className="fixed top-0 left-0 right-0"
           style={{
             zIndex: nav,
-            backdropFilter: "blur(24px) saturate(1.8)",
-            backgroundColor: bgNav,
+            background:
+              "linear-gradient(to bottom, rgba(7,7,10,0.6) 0%, rgba(7,7,10,0.3) 60%, transparent 100%)",
           }}>
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+            {/* Name — outside the pill, standalone */}
             <button
               onClick={() => scrollToTop()}
-              className="cursor-pointer font-serif text-2xl italic text-[var(--gold)] transition-opacity hover:opacity-70">
-              {initials}
+              className="group cursor-pointer font-serif text-[17px] tracking-[-0.01em] transition-all duration-200 hover:opacity-70"
+              style={{ color: "var(--cream)" }}>
+              <span className="relative">
+                {name}
+                <span
+                  className="absolute -bottom-0.5 left-0 h-px w-0 transition-all duration-300 group-hover:w-full"
+                  style={{ backgroundColor: "var(--gold)", opacity: 0.4 }}
+                />
+              </span>
             </button>
 
-            <div className="hidden items-center gap-8 md:flex">
+            {/* ── Floating pill ── */}
+            <div
+              className="hidden items-center gap-0.5 rounded-full border border-white/[0.08] px-2 py-1 md:flex"
+              style={{
+                backdropFilter: "blur(24px) saturate(1.8)",
+                backgroundColor: "rgba(10, 10, 16, 0.65)",
+                boxShadow:
+                  "0 8px 32px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.05) inset, 0 0 60px rgba(201,168,76,0.03)",
+              }}>
+              {WHO_AM_I_NAV.map((link) => (
+                <DesktopNavLink
+                  key={link.sectionId}
+                  link={link}
+                  activeSection={currentActiveSection}
+                  hoveredSection={hoveredLink}
+                  idleColor={textDim}
+                  onNavigate={handleSectionClick}
+                  onHoverSection={(sectionId) =>
+                    dispatch({
+                      type: "SET_HOVERED_LINK",
+                      payload: { sectionId },
+                    })
+                  }
+                />
+              ))}
+
+              <span className="mx-1.5 h-3.5 w-px bg-white/[0.08]" />
+
               {ACT_NAV.map((link) => (
                 <DesktopNavLink
                   key={link.sectionId}
@@ -407,7 +436,7 @@ export function Navigation() {
                 />
               ))}
 
-              <span className="h-3 w-px bg-[var(--stroke)]" />
+              <span className="mx-1.5 h-3.5 w-px bg-white/[0.08]" />
 
               {SECTION_NAV.map((link) => (
                 <DesktopNavLink
@@ -427,14 +456,16 @@ export function Navigation() {
               ))}
             </div>
 
+            {/* Mobile toggle */}
             <button
               onClick={() => dispatch({ type: "TOGGLE_MOBILE_MENU" })}
               className="cursor-pointer text-[var(--text-dim)] transition-colors hover:text-[var(--gold)] md:hidden"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}>
-              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
 
+          {/* Mobile dropdown */}
           {mobileMenuLoaded ? (
             <NavigationMobileMenu
               mobileOpen={mobileOpen}

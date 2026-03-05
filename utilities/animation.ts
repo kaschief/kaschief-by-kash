@@ -8,11 +8,11 @@
 export const EASE = [0.22, 1, 0.36, 1] as const;
 
 export const TRANSITION = {
-  snap: { duration: 0.15, ease: "easeOut" as const }, // backdrop / near-instant covers
-  fast: { duration: 0.25, ease: EASE },
-  base: { duration: 0.45, ease: EASE },
-  slow: { duration: 0.7, ease: EASE },
-  page: { duration: 0.9, ease: EASE },
+  snap: { duration: 0.12, ease: "easeOut" as const },
+  fast: { duration: 0.2, ease: EASE },
+  base: { duration: 0.35, ease: EASE },
+  slow: { duration: 0.5, ease: EASE },
+  page: { duration: 0.6, ease: EASE },
 } as const;
 
 /** String form for use in CSS `transition` properties. */
