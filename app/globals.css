@@ -1,6 +1,20 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Lenis smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -45,6 +59,29 @@
 
   --cursor-highlight: #f5e080;
   --cursor-shadow: #5c4015;
+
+  /* Section-scoped typography roles (can differ by font pack). */
+  --font-role-nav-sans: var(--font-sans);
+  --font-role-nav-serif: var(--font-serif);
+  --font-role-nav-mono: var(--font-mono);
+  --font-role-hero-sans: var(--font-sans);
+  --font-role-hero-serif: var(--font-serif);
+  --font-role-hero-mono: var(--font-mono);
+  --font-role-portrait-sans: var(--font-sans);
+  --font-role-portrait-serif: var(--font-serif);
+  --font-role-portrait-mono: var(--font-mono);
+  --font-role-timeline-sans: var(--font-sans);
+  --font-role-timeline-serif: var(--font-serif);
+  --font-role-timeline-mono: var(--font-mono);
+  --font-role-philosophy-sans: var(--font-sans);
+  --font-role-philosophy-serif: var(--font-serif);
+  --font-role-philosophy-mono: var(--font-mono);
+  --font-role-methods-sans: var(--font-sans);
+  --font-role-methods-serif: var(--font-serif);
+  --font-role-methods-mono: var(--font-mono);
+  --font-role-contact-sans: var(--font-sans);
+  --font-role-contact-serif: var(--font-serif);
+  --font-role-contact-mono: var(--font-mono);
 }
 
 @theme inline {
@@ -76,6 +113,364 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+html[data-font-pack="default"] {
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-nav-serif: var(--font-playfair), Georgia, serif;
+  --font-role-nav-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-hero-serif: var(--font-playfair), Georgia, serif;
+  --font-role-hero-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-portrait-serif: var(--font-playfair), Georgia, serif;
+  --font-role-portrait-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-timeline-serif: var(--font-playfair), Georgia, serif;
+  --font-role-timeline-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-philosophy-serif: var(--font-playfair), Georgia, serif;
+  --font-role-philosophy-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-methods-serif: var(--font-playfair), Georgia, serif;
+  --font-role-methods-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-contact-serif: var(--font-playfair), Georgia, serif;
+  --font-role-contact-mono: var(--font-jetbrains-mono), monospace;
+}
+
+html[data-font-pack="editorial-noir"] {
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-nav-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-nav-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-hero-serif: var(--font-newsreader), Georgia, serif;
+  --font-role-hero-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-portrait-serif: var(--font-newsreader), Georgia, serif;
+  --font-role-portrait-mono: var(--font-fira-code), monospace;
+  --font-role-timeline-serif: var(--font-spectral), Georgia, serif;
+  --font-role-timeline-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-philosophy-serif: var(--font-newsreader), Georgia, serif;
+  --font-role-philosophy-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-methods-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-methods-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-contact-serif: var(--font-cormorant-garamond), Georgia, serif;
+  --font-role-contact-mono: var(--font-ibm-plex-mono), monospace;
+}
+
+html[data-font-pack="atelier-renaissance"] {
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+  --font-serif: var(--font-cormorant-garamond), Georgia, serif;
+  --font-mono: var(--font-fira-code), monospace;
+  --font-role-nav-serif: var(--font-cormorant-garamond), Georgia, serif;
+  --font-role-nav-mono: var(--font-fira-code), monospace;
+  --font-role-hero-serif: var(--font-cormorant-garamond), Georgia, serif;
+  --font-role-hero-mono: var(--font-fira-code), monospace;
+  --font-role-portrait-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-portrait-mono: var(--font-fira-code), monospace;
+  --font-role-timeline-serif: var(--font-cormorant-garamond), Georgia, serif;
+  --font-role-timeline-mono: var(--font-inconsolata), monospace;
+  --font-role-philosophy-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-philosophy-mono: var(--font-fira-code), monospace;
+  --font-role-methods-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-methods-mono: var(--font-fira-code), monospace;
+  --font-role-contact-serif: var(--font-cormorant-garamond), Georgia, serif;
+  --font-role-contact-mono: var(--font-fira-code), monospace;
+}
+
+html[data-font-pack="signal-grid"] {
+  --font-sans: var(--font-urbanist), system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, serif;
+  --font-mono: var(--font-space-mono), monospace;
+  --font-role-nav-serif: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-role-nav-mono: var(--font-space-mono), monospace;
+  --font-role-hero-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-hero-mono: var(--font-space-mono), monospace;
+  --font-role-portrait-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-portrait-mono: var(--font-space-mono), monospace;
+  --font-role-timeline-serif: var(--font-spectral), Georgia, serif;
+  --font-role-timeline-mono: var(--font-dm-mono), monospace;
+  --font-role-philosophy-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-philosophy-mono: var(--font-space-mono), monospace;
+  --font-role-methods-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-methods-mono: var(--font-space-mono), monospace;
+  --font-role-contact-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-contact-mono: var(--font-space-mono), monospace;
+}
+
+html[data-font-pack="high-contrast-luxe"] {
+  --font-sans: var(--font-sora), system-ui, sans-serif;
+  --font-serif: var(--font-bodoni-moda), Georgia, serif;
+  --font-mono: var(--font-dm-mono), monospace;
+  --font-role-nav-serif: var(--font-bodoni-moda), Georgia, serif;
+  --font-role-nav-mono: var(--font-dm-mono), monospace;
+  --font-role-hero-serif: var(--font-bodoni-moda), Georgia, serif;
+  --font-role-hero-mono: var(--font-dm-mono), monospace;
+  --font-role-portrait-serif: var(--font-playfair), Georgia, serif;
+  --font-role-portrait-mono: var(--font-dm-mono), monospace;
+  --font-role-timeline-serif: var(--font-bodoni-moda), Georgia, serif;
+  --font-role-timeline-mono: var(--font-dm-mono), monospace;
+  --font-role-philosophy-serif: var(--font-libre-baskerville), Georgia, serif;
+  --font-role-philosophy-mono: var(--font-dm-mono), monospace;
+  --font-role-methods-serif: var(--font-bodoni-moda), Georgia, serif;
+  --font-role-methods-mono: var(--font-dm-mono), monospace;
+  --font-role-contact-serif: var(--font-bodoni-moda), Georgia, serif;
+  --font-role-contact-mono: var(--font-dm-mono), monospace;
+}
+
+html[data-font-pack="humanist-pro"] {
+  --font-sans: var(--font-work-sans), system-ui, sans-serif;
+  --font-serif: var(--font-literata), Georgia, serif;
+  --font-mono: var(--font-source-code-pro), monospace;
+  --font-role-nav-serif: var(--font-literata), Georgia, serif;
+  --font-role-nav-mono: var(--font-source-code-pro), monospace;
+  --font-role-hero-serif: var(--font-literata), Georgia, serif;
+  --font-role-hero-mono: var(--font-source-code-pro), monospace;
+  --font-role-portrait-serif: var(--font-literata), Georgia, serif;
+  --font-role-portrait-mono: var(--font-source-code-pro), monospace;
+  --font-role-timeline-serif: var(--font-spectral), Georgia, serif;
+  --font-role-timeline-mono: var(--font-source-code-pro), monospace;
+  --font-role-philosophy-serif: var(--font-literata), Georgia, serif;
+  --font-role-philosophy-mono: var(--font-source-code-pro), monospace;
+  --font-role-methods-serif: var(--font-literata), Georgia, serif;
+  --font-role-methods-mono: var(--font-source-code-pro), monospace;
+  --font-role-contact-serif: var(--font-literata), Georgia, serif;
+  --font-role-contact-mono: var(--font-source-code-pro), monospace;
+}
+
+html[data-font-pack="neo-classic"] {
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-serif: var(--font-spectral), Georgia, serif;
+  --font-mono: var(--font-roboto-mono), monospace;
+  --font-role-nav-serif: var(--font-spectral), Georgia, serif;
+  --font-role-nav-mono: var(--font-roboto-mono), monospace;
+  --font-role-hero-serif: var(--font-spectral), Georgia, serif;
+  --font-role-hero-mono: var(--font-roboto-mono), monospace;
+  --font-role-portrait-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-portrait-mono: var(--font-roboto-mono), monospace;
+  --font-role-timeline-serif: var(--font-spectral), Georgia, serif;
+  --font-role-timeline-mono: var(--font-roboto-mono), monospace;
+  --font-role-philosophy-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-philosophy-mono: var(--font-roboto-mono), monospace;
+  --font-role-methods-serif: var(--font-spectral), Georgia, serif;
+  --font-role-methods-mono: var(--font-roboto-mono), monospace;
+  --font-role-contact-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-contact-mono: var(--font-roboto-mono), monospace;
+}
+
+html[data-font-pack="craft-modern"] {
+  --font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
+  --font-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-mono: var(--font-inconsolata), monospace;
+  --font-role-nav-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-nav-mono: var(--font-inconsolata), monospace;
+  --font-role-hero-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-hero-mono: var(--font-inconsolata), monospace;
+  --font-role-portrait-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-portrait-mono: var(--font-inconsolata), monospace;
+  --font-role-timeline-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-timeline-mono: var(--font-inconsolata), monospace;
+  --font-role-philosophy-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-philosophy-mono: var(--font-inconsolata), monospace;
+  --font-role-methods-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-methods-mono: var(--font-inconsolata), monospace;
+  --font-role-contact-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-contact-mono: var(--font-inconsolata), monospace;
+}
+
+html[data-font-pack="kinetic-editorial"] {
+  --font-sans: var(--font-public-sans), system-ui, sans-serif;
+  --font-serif: var(--font-crimson-pro), Georgia, serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-nav-serif: var(--font-crimson-pro), Georgia, serif;
+  --font-role-nav-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-hero-serif: var(--font-crimson-pro), Georgia, serif;
+  --font-role-hero-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-portrait-serif: var(--font-crimson-pro), Georgia, serif;
+  --font-role-portrait-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-timeline-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-timeline-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-philosophy-serif: var(--font-crimson-pro), Georgia, serif;
+  --font-role-philosophy-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-methods-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-methods-mono: var(--font-jetbrains-mono), monospace;
+  --font-role-contact-serif: var(--font-crimson-pro), Georgia, serif;
+  --font-role-contact-mono: var(--font-jetbrains-mono), monospace;
+}
+
+html[data-font-pack="calm-precision"] {
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-libre-baskerville), Georgia, serif;
+  --font-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-nav-serif: var(--font-libre-baskerville), Georgia, serif;
+  --font-role-nav-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-hero-serif: var(--font-libre-baskerville), Georgia, serif;
+  --font-role-hero-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-portrait-serif: var(--font-newsreader), Georgia, serif;
+  --font-role-portrait-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-timeline-serif: var(--font-libre-baskerville), Georgia, serif;
+  --font-role-timeline-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-philosophy-serif: var(--font-newsreader), Georgia, serif;
+  --font-role-philosophy-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-methods-serif: var(--font-libre-baskerville), Georgia, serif;
+  --font-role-methods-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-contact-serif: var(--font-libre-baskerville), Georgia, serif;
+  --font-role-contact-mono: var(--font-ibm-plex-mono), monospace;
+}
+
+html[data-font-pack="velvet-wire"] {
+  --font-sans: var(--font-bricolage-grotesque), system-ui, sans-serif;
+  --font-serif: var(--font-prata), Georgia, serif;
+  --font-mono: var(--font-chivo-mono), monospace;
+  --font-role-nav-sans: var(--font-syne), system-ui, sans-serif;
+  --font-role-hero-serif: var(--font-prata), Georgia, serif;
+  --font-role-portrait-serif: var(--font-cardo), Georgia, serif;
+  --font-role-timeline-serif: var(--font-merriweather), Georgia, serif;
+  --font-role-philosophy-serif: var(--font-prata), Georgia, serif;
+  --font-role-methods-sans: var(--font-bricolage-grotesque), system-ui, sans-serif;
+  --font-role-contact-serif: var(--font-cormorant-garamond), Georgia, serif;
+}
+
+html[data-font-pack="newsroom-classic"] {
+  --font-sans: var(--font-ibm-plex-sans), system-ui, sans-serif;
+  --font-serif: var(--font-merriweather), Georgia, serif;
+  --font-mono: var(--font-roboto-mono), monospace;
+  --font-role-nav-sans: var(--font-ibm-plex-sans), system-ui, sans-serif;
+  --font-role-hero-serif: var(--font-newsreader), Georgia, serif;
+  --font-role-portrait-serif: var(--font-merriweather), Georgia, serif;
+  --font-role-timeline-serif: var(--font-spectral), Georgia, serif;
+  --font-role-methods-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-role-contact-serif: var(--font-merriweather), Georgia, serif;
+}
+
+html[data-font-pack="art-house"] {
+  --font-sans: var(--font-syne), system-ui, sans-serif;
+  --font-serif: var(--font-cardo), Georgia, serif;
+  --font-mono: var(--font-fira-code), monospace;
+  --font-role-nav-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-role-hero-serif: var(--font-bodoni-moda), Georgia, serif;
+  --font-role-portrait-serif: var(--font-cardo), Georgia, serif;
+  --font-role-timeline-serif: var(--font-prata), Georgia, serif;
+  --font-role-philosophy-serif: var(--font-newsreader), Georgia, serif;
+  --font-role-methods-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-contact-serif: var(--font-cormorant-garamond), Georgia, serif;
+}
+
+html[data-font-pack="northern-ledger"] {
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-serif: var(--font-alegreya), Georgia, serif;
+  --font-mono: var(--font-source-code-pro), monospace;
+  --font-role-nav-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-role-hero-serif: var(--font-alegreya), Georgia, serif;
+  --font-role-portrait-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-timeline-serif: var(--font-spectral), Georgia, serif;
+  --font-role-methods-sans: var(--font-public-sans), system-ui, sans-serif;
+  --font-role-contact-serif: var(--font-alegreya), Georgia, serif;
+}
+
+html[data-font-pack="technical-romance"] {
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+  --font-serif: var(--font-prata), Georgia, serif;
+  --font-mono: var(--font-ibm-plex-mono), monospace;
+  --font-role-nav-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-role-nav-mono: var(--font-dm-mono), monospace;
+  --font-role-hero-serif: var(--font-prata), Georgia, serif;
+  --font-role-portrait-serif: var(--font-cormorant-garamond), Georgia, serif;
+  --font-role-timeline-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-methods-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
+  --font-role-contact-serif: var(--font-libre-baskerville), Georgia, serif;
+}
+
+html[data-font-pack="atelier-raw"] {
+  --font-sans: var(--font-bricolage-grotesque), system-ui, sans-serif;
+  --font-serif: var(--font-cormorant-garamond), Georgia, serif;
+  --font-mono: var(--font-inconsolata), monospace;
+  --font-role-nav-sans: var(--font-bricolage-grotesque), system-ui, sans-serif;
+  --font-role-hero-serif: var(--font-cormorant-garamond), Georgia, serif;
+  --font-role-portrait-serif: var(--font-eb-garamond), Georgia, serif;
+  --font-role-timeline-serif: var(--font-fraunces), Georgia, serif;
+  --font-role-methods-sans: var(--font-syne), system-ui, sans-serif;
+  --font-role-contact-serif: var(--font-cormorant-garamond), Georgia, serif;
+}
+
+html[data-font-pack="print-and-circuit"] {
+  --font-sans: var(--font-public-sans), system-ui, sans-serif;
+  --font-serif: var(--font-merriweather), Georgia, serif;
+  --font-mono: var(--font-chivo-mono), monospace;
+  --font-role-nav-sans: var(--font-ibm-plex-sans), system-ui, sans-serif;
+  --font-role-hero-serif: var(--font-prata), Georgia, serif;
+  --font-role-portrait-serif: var(--font-merriweather), Georgia, serif;
+  --font-role-timeline-serif: var(--font-spectral), Georgia, serif;
+  --font-role-philosophy-serif: var(--font-newsreader), Georgia, serif;
+  --font-role-methods-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-role-contact-serif: var(--font-merriweather), Georgia, serif;
+}
+
+html[data-font-pack="night-signal"] {
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-serif: var(--font-cardo), Georgia, serif;
+  --font-mono: var(--font-dm-mono), monospace;
+  --font-role-nav-sans: var(--font-syne), system-ui, sans-serif;
+  --font-role-nav-mono: var(--font-space-mono), monospace;
+  --font-role-hero-serif: var(--font-bodoni-moda), Georgia, serif;
+  --font-role-portrait-serif: var(--font-cardo), Georgia, serif;
+  --font-role-timeline-serif: var(--font-prata), Georgia, serif;
+  --font-role-philosophy-serif: var(--font-newsreader), Georgia, serif;
+  --font-role-methods-sans: var(--font-urbanist), system-ui, sans-serif;
+  --font-role-contact-serif: var(--font-cormorant-garamond), Georgia, serif;
+}
+
+/* Section-level font overrides so each area can have a distinct voice. */
+[data-typo="nav"] {
+  --font-sans: var(--font-role-nav-sans);
+  --font-serif: var(--font-role-nav-serif);
+  --font-mono: var(--font-role-nav-mono);
+}
+
+[data-typo="hero"] {
+  --font-sans: var(--font-role-hero-sans);
+  --font-serif: var(--font-role-hero-serif);
+  --font-mono: var(--font-role-hero-mono);
+}
+
+[data-typo="portrait"] {
+  --font-sans: var(--font-role-portrait-sans);
+  --font-serif: var(--font-role-portrait-serif);
+  --font-mono: var(--font-role-portrait-mono);
+}
+
+[data-typo="timeline"] {
+  --font-sans: var(--font-role-timeline-sans);
+  --font-serif: var(--font-role-timeline-serif);
+  --font-mono: var(--font-role-timeline-mono);
+}
+
+[data-typo="philosophy"] {
+  --font-sans: var(--font-role-philosophy-sans);
+  --font-serif: var(--font-role-philosophy-serif);
+  --font-mono: var(--font-role-philosophy-mono);
+}
+
+[data-typo="methods"] {
+  --font-sans: var(--font-role-methods-sans);
+  --font-serif: var(--font-role-methods-serif);
+  --font-mono: var(--font-role-methods-mono);
+}
+
+[data-typo="contact"] {
+  --font-sans: var(--font-role-contact-sans);
+  --font-serif: var(--font-role-contact-serif);
+  --font-mono: var(--font-role-contact-mono);
+}
+
+/* Keep font utilities runtime-switchable via --font-* variables. */
+@layer utilities {
+  .font-sans {
+    font-family: var(--font-sans) !important;
+  }
+  .font-serif {
+    font-family: var(--font-serif) !important;
+  }
+  .font-mono {
+    font-family: var(--font-mono) !important;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -86,7 +481,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   max-width: 100%;
   overflow-x: clip;
 }

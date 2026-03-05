@@ -1,5 +1,7 @@
 export { useBreakpoint } from "./use-breakpoint";
 export { useCustomCursorEnabled } from "./use-custom-cursor-enabled";
+export { LenisProvider, useLenis } from "./use-lenis";
 export { useMediaQuery } from "./use-media-query";
+export { useNavStore } from "./use-nav-store";
 export { usePreserveScrollAnchor } from "./use-preserve-scroll-anchor";
 export { NAVIGATION_SCROLL_EVENT, useSectionScroll } from "./use-section-scroll";

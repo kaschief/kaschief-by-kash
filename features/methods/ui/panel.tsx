@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { METHOD_GROUPS } from "@data";
-import { CSS_EASE, PULSE_TRANSITION, TOKENS, TRANSITION } from "@utilities";
+import { CSS_EASE, PULSE_TRANSITION, TOKENS } from "@utilities";
 import { NavButton } from "./nav-button";
 import { SkillRow } from "./skill-row";
 import type { CSSProperties } from "react";
@@ -22,9 +22,10 @@ export function Panel({
 
   const fadeIn = (delay: number): CSSProperties => ({
     opacity: isActive ? 1 : 0,
+    transform: isActive ? "translateY(0)" : "translateY(12px)",
     transition: isActive
-      ? `opacity ${TRANSITION.fast.duration}s ${CSS_EASE} ${delay}s`
-      : "opacity 0s",
+      ? `opacity 0.4s ${CSS_EASE} ${delay}s, transform 0.4s ${CSS_EASE} ${delay}s`
+      : "opacity 0.15s ease-out, transform 0s 0.15s",
   });
 
   return (
@@ -32,10 +33,14 @@ export function Panel({
       style={{
         position: "absolute",
         inset: 0,
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "flex-start",
         opacity: panelOpacity,
+        transition: "opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1)",
         pointerEvents: isActive ? "auto" : "none",
         overflowY: "hidden",
-        paddingTop: "clamp(80px, 18vh, 180px)",
+        paddingTop: "18vh",
       }}>
       <div
         style={{

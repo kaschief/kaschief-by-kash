@@ -7,6 +7,8 @@ import { Hero } from "@features/hero";
 import { Methods } from "@features/methods";
 import { Navigation } from "@features/navigation";
 import { Philosophy } from "@features/philosophy";
+import { Portrait } from "@features/portrait";
+import { LenisProvider } from "@hooks";
 import type { HomePageViewModel } from "../model/get-home-page-view-model";
 import { PageLayout } from "./page-layout";
 
@@ -44,20 +46,35 @@ export function HomePageClient({ viewModel }: HomePageClientProps) {
   const { enableCustomCursor, timelineLoadingLabel } = viewModel;
 
   return (
-    <>
+    <LenisProvider>
       {enableCustomCursor ? <CursorArrow /> : null}
-      <Navigation />
+      <div data-typo="nav">
+        <Navigation />
+      </div>
       <PageLayout>
-        <Hero />
-        <Philosophy />
-        <Suspense fallback={<TimelineFallback label={timelineLoadingLabel} />}>
-          <Timeline />
-        </Suspense>
+        <div data-typo="hero">
+          <Hero />
+        </div>
+        <div data-typo="portrait">
+          <Portrait />
+        </div>
+        <div data-typo="timeline">
+          <Suspense fallback={<TimelineFallback label={timelineLoadingLabel} />}>
+            <Timeline />
+          </Suspense>
+        </div>
         <div className="mx-auto h-px max-w-5xl bg-gradient-to-r from-transparent via-[var(--stroke)] to-transparent" />
-        <Methods />
+        <div data-typo="philosophy">
+          <Philosophy />
+        </div>
+        <div data-typo="methods">
+          <Methods />
+        </div>
         <div className="mx-auto h-px max-w-5xl bg-gradient-to-r from-transparent via-[var(--stroke)] to-transparent" />
-        <Contact />
+        <div data-typo="contact">
+          <Contact />
+        </div>
       </PageLayout>
-    </>
+    </LenisProvider>
   );
 }

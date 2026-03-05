@@ -1,15 +1,19 @@
 "use client";
 
 import { useCallback } from "react";
-import { SECTION_IDS_ORDERED, type SectionId, DEFAULT_SCROLL_OFFSET, SECTION_SCROLL_OFFSET } from "@utilities";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import {
+  SECTION_IDS_ORDERED,
+  type SectionId,
+  DEFAULT_SCROLL_OFFSET,
+  SECTION_SCROLL_OFFSET,
+} from "@utilities";
+import { useLenis } from "./use-lenis";
+import { useNavStore } from "./use-nav-store";
+
 interface ScrollSectionOptions {
-  behavior?: ScrollBehavior;
   updateHistory?: boolean;
   offset?: number;
-}
-
-interface ScrollYOptions {
-  behavior?: ScrollBehavior;
 }
 
 const isSectionId = (value: string): value is SectionId =>
@@ -17,11 +21,44 @@ const isSectionId = (value: string): value is SectionId =>
 
 export const NAVIGATION_SCROLL_EVENT = "portfolio:section-nav-scroll";
 
+/**
+ * Check if the scroll path from `from` to `to` crosses any active
+ * ScrollTrigger pin zone. Returns the far edge of the last pin crossed,
+ * or null if no pins are in the way.
+ */
+function getPinSkipTarget(from: number, to: number): number | null {
+  const goingDown = to > from;
+  let candidate: number | null = null;
+
+  for (const trigger of ScrollTrigger.getAll()) {
+    if (!trigger.pin) continue;
+
+    const pinStart = trigger.start;
+    const pinEnd = trigger.end;
+
+    // Only care about pins that add significant scroll distance
+    if (pinEnd - pinStart < window.innerHeight * 0.3) continue;
+
+    if (goingDown) {
+      // Going down: if we start before pin ends and target is past pin end
+      if (from < pinEnd && to >= pinStart) {
+        const skip = pinEnd + 2;
+        candidate = candidate === null ? skip : Math.max(candidate, skip);
+      }
+    } else {
+      // Going up: if we start after pin starts and target is before pin start
+      if (from > pinStart && to <= pinEnd) {
+        const skip = Math.max(0, pinStart - 2);
+        candidate = candidate === null ? skip : Math.min(candidate, skip);
+      }
+    }
+  }
+
+  return candidate;
+}
+
 export function useSectionScroll() {
-  const scrollToY = useCallback((top: number, options: ScrollYOptions = {}) => {
-    const { behavior = "auto" } = options;
-    window.scrollTo({ top, behavior });
-  }, []);
+  const getLenis = useLenis();
 
   const scrollToSection = useCallback(
     (sectionId: SectionId, options: ScrollSectionOptions = {}) => {
@@ -29,7 +66,6 @@ export function useSectionScroll() {
       if (!el) return false;
 
       const {
-        behavior = "smooth",
         updateHistory = true,
         offset = SECTION_SCROLL_OFFSET[sectionId] ?? DEFAULT_SCROLL_OFFSET,
       } = options;
@@ -38,18 +74,76 @@ export function useSectionScroll() {
         history.pushState(null, "", `#${sectionId}`);
       }
 
-      // Dispatch BEFORE measuring so listeners can adjust layout
-      // (e.g. Methods collapses its 300vh container during pass-through).
       window.dispatchEvent(
         new CustomEvent(NAVIGATION_SCROLL_EVENT, {
-          detail: { sectionId, behavior },
+          detail: { sectionId },
         }),
       );
-      const top = el.getBoundingClientRect().top + window.scrollY - offset;
-      scrollToY(top, { behavior });
+
+      const { startNavigation, endNavigation } = useNavStore.getState();
+      startNavigation(sectionId);
+
+      const lenis = getLenis();
+      if (!lenis) {
+        const top = el.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: "smooth" });
+        setTimeout(() => endNavigation(), 2000);
+        return true;
+      }
+
+      const sectionTop = el.getBoundingClientRect().top + window.scrollY;
+      const finalTarget = sectionTop - offset;
+      const currentScroll = lenis.scroll;
+
+      // Check if we need to skip past any pin zones
+      const skipTarget = getPinSkipTarget(currentScroll, finalTarget);
+
+      const finish = () => {
+        // Recalculate after potential instant jump (element position may shift)
+        const updatedTop = el.getBoundingClientRect().top + window.scrollY;
+        const updatedTarget = updatedTop - offset;
+        const remainingDist = Math.abs(updatedTarget - lenis.scroll);
+        const duration = Math.min(1.0, Math.max(0.5, remainingDist / 2000));
+
+        lenis.scrollTo(updatedTarget, {
+          duration,
+          lock: true,
+          force: true,
+          onComplete: () => {
+            setTimeout(() => endNavigation(), 50);
+          },
+        });
+      };
+
+      if (skipTarget !== null) {
+        // Phase 1: instant jump past the pin zone
+        lenis.scrollTo(skipTarget, {
+          immediate: true,
+          force: true,
+        });
+        // Phase 2: smooth scroll to final target (after a frame for layout)
+        requestAnimationFrame(() => finish());
+      } else {
+        // No pins in the way — smooth scroll directly
+        const distance = Math.abs(finalTarget - currentScroll);
+        const duration = Math.min(1.25, Math.max(0.65, distance / 2600));
+
+        lenis.scrollTo(finalTarget, {
+          duration,
+          lock: true,
+          force: true,
+          onComplete: () => {
+            setTimeout(() => endNavigation(), 50);
+          },
+        });
+      }
+
+      // Safety fallback
+      setTimeout(() => endNavigation(), 4000);
+
       return true;
     },
-    [scrollToY],
+    [getLenis],
   );
 
   const scrollToHref = useCallback(
@@ -63,13 +157,70 @@ export function useSectionScroll() {
 
   const scrollToTop = useCallback(
     (options: Omit<ScrollSectionOptions, "offset"> = {}) => {
-      const { behavior = "smooth", updateHistory = true } = options;
+      const { updateHistory = true } = options;
       if (updateHistory) {
         history.pushState(null, "", "/");
       }
-      scrollToY(0, { behavior });
+
+      const { startNavigation, endNavigation } = useNavStore.getState();
+      startNavigation("portrait" as SectionId);
+
+      const lenis = getLenis();
+      if (!lenis) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setTimeout(() => endNavigation(), 2000);
+        return;
+      }
+
+      const currentScroll = lenis.scroll;
+      const skipTarget = getPinSkipTarget(currentScroll, 0);
+
+      if (skipTarget !== null) {
+        // Instant jump past pins, then smooth to top
+        lenis.scrollTo(skipTarget, {
+          immediate: true,
+          force: true,
+        });
+        requestAnimationFrame(() => {
+          const remaining = lenis.scroll;
+          const duration = Math.min(1.0, Math.max(0.5, remaining / 2000));
+          lenis.scrollTo(0, {
+            duration,
+            lock: true,
+            force: true,
+            onComplete: () => {
+              setTimeout(() => endNavigation(), 50);
+            },
+          });
+        });
+      } else {
+        const distance = Math.abs(currentScroll);
+        const duration = Math.min(1.25, Math.max(0.65, distance / 2600));
+        lenis.scrollTo(0, {
+          duration,
+          lock: true,
+          force: true,
+          onComplete: () => {
+            setTimeout(() => endNavigation(), 50);
+          },
+        });
+      }
+
+      setTimeout(() => endNavigation(), 4000);
     },
-    [scrollToY],
+    [getLenis],
+  );
+
+  const scrollToY = useCallback(
+    (top: number, options: { behavior?: ScrollBehavior } = {}) => {
+      const lenis = getLenis();
+      if (lenis) {
+        lenis.scrollTo(top, { immediate: options.behavior !== "smooth" });
+      } else {
+        window.scrollTo({ top, behavior: options.behavior ?? "auto" });
+      }
+    },
+    [getLenis],
   );
 
   return { scrollToSection, scrollToHref, scrollToTop, scrollToY };
