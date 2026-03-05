@@ -49,16 +49,34 @@ const BUTTON_BASE = {
 /** Right offset so the close button aligns with the overlay content edge. */
 const CONTENT_OFFSET = "max(1rem, calc((100vw - 1024px) / 2 + 1rem))";
 
-/** Left/right offset for desktop side-rail prev/next buttons. */
-const RAIL_OFFSET = "max(1rem, calc(50% - 560px))";
+/**
+ * Left/right offset for xl+ side-rail prev/next buttons.
+ * Sits just outside the 1024px content box with an ~8px gap.
+ * At 1280px: (1280-1024)/2 - 56 = 72px  →  button right edge = 120px, content left = 128px ✓
+ */
+const RAIL_OFFSET = "max(1rem, calc((100vw - 1024px) / 2 - 56px))";
+
+// ─── Pill dock shared style ───────────────────────────────────────────────────
+
+const PILL_STYLE = {
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  padding: 8,
+  borderRadius: 999,
+  border: `1px solid ${stroke}`,
+  background: "color-mix(in srgb, var(--bg) 82%, transparent)",
+  backdropFilter: "blur(12px)",
+} as const satisfies CSSProperties;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 /**
  * Shared navigation controls for detail overlays.
  *
- * Mobile  — pill dock at bottom-center: [prev] [close] [next] (thumb-friendly)
- * Desktop — close anchored at content edge (top-right); prev/next on side rails
+ * Two tiers:
+ * - Mobile/Tablet (<1280px) — bottom-center pill dock: [prev] [close] [next]
+ * - Desktop (≥1280px)       — close at top-right; prev/next on side rails
  */
 export function DetailOverlayNavigation({
   canGoPrev,
@@ -70,7 +88,8 @@ export function DetailOverlayNavigation({
   nextLabel,
   zIndex,
 }: DetailOverlayNavigationProps) {
-  const isDesktop = useBreakpoint(BP.sm);
+  const isDesktopXl = useBreakpoint(BP.xl);  // >= 1280px
+
   const hasDirectionalNav = canGoPrev || canGoNext;
 
   const buttonStyle = { ...BUTTON_BASE, zIndex } satisfies CSSProperties;
@@ -88,64 +107,61 @@ export function DetailOverlayNavigation({
     </button>
   );
 
-  if (!isDesktop) {
+  const prevButton = (opacity: number) => (
+    <button
+      type="button"
+      aria-label={prevLabel}
+      disabled={!canGoPrev}
+      onClick={(event) => {
+        event.stopPropagation();
+        if (canGoPrev) onPrev();
+      }}
+      style={{
+        ...buttonStyle,
+        opacity,
+        cursor: canGoPrev ? "pointer" : "not-allowed",
+      }}>
+      <PrevIcon />
+    </button>
+  );
+
+  const nextButton = (opacity: number) => (
+    <button
+      type="button"
+      aria-label={nextLabel}
+      disabled={!canGoNext}
+      onClick={(event) => {
+        event.stopPropagation();
+        if (canGoNext) onNext();
+      }}
+      style={{
+        ...buttonStyle,
+        opacity,
+        cursor: canGoNext ? "pointer" : "not-allowed",
+      }}>
+      <NextIcon />
+    </button>
+  );
+
+  if (!isDesktopXl) {
     return (
       <div
         style={{
           position: "fixed",
           left: "50%",
-          bottom: "max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem))",
+          bottom: "max(1.25rem, calc(env(safe-area-inset-bottom) + 0.5rem))",
           transform: "translateX(-50%)",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: 8,
-          borderRadius: 999,
-          border: `1px solid ${stroke}`,
-          background: "color-mix(in srgb, var(--bg) 82%, transparent)",
-          backdropFilter: "blur(12px)",
           zIndex,
+          ...PILL_STYLE,
         }}>
-        {hasDirectionalNav ? (
-          <button
-            type="button"
-            aria-label={prevLabel}
-            disabled={!canGoPrev}
-            onClick={(event) => {
-              event.stopPropagation();
-              if (canGoPrev) onPrev();
-            }}
-            style={{
-              ...buttonStyle,
-              opacity: canGoPrev ? 0.85 : 0.35,
-              cursor: canGoPrev ? "pointer" : "not-allowed",
-            }}>
-            <PrevIcon />
-          </button>
-        ) : null}
-
+        {hasDirectionalNav ? prevButton(canGoPrev ? 0.85 : 0.35) : null}
         {closeButton}
-
-        {hasDirectionalNav ? (
-          <button
-            type="button"
-            aria-label={nextLabel}
-            disabled={!canGoNext}
-            onClick={(event) => {
-              event.stopPropagation();
-              if (canGoNext) onNext();
-            }}
-            style={{
-              ...buttonStyle,
-              opacity: canGoNext ? 0.85 : 0.35,
-              cursor: canGoNext ? "pointer" : "not-allowed",
-            }}>
-            <NextIcon />
-          </button>
-        ) : null}
+        {hasDirectionalNav ? nextButton(canGoNext ? 0.85 : 0.35) : null}
       </div>
     );
   }
+
+  // ── Desktop XL: close top-right + side-rail prev/next ────────────────────
 
   return (
     <>
@@ -161,45 +177,27 @@ export function DetailOverlayNavigation({
 
       {hasDirectionalNav ? (
         <>
-          <button
-            type="button"
-            aria-label={prevLabel}
-            disabled={!canGoPrev}
-            onClick={(event) => {
-              event.stopPropagation();
-              if (canGoPrev) onPrev();
-            }}
+          <div
             style={{
-              ...buttonStyle,
               position: "fixed",
               top: "50%",
               left: RAIL_OFFSET,
               transform: "translateY(-50%)",
-              opacity: canGoPrev ? 0.72 : 0.32,
-              cursor: canGoPrev ? "pointer" : "not-allowed",
+              zIndex,
             }}>
-            <PrevIcon />
-          </button>
+            {prevButton(canGoPrev ? 0.72 : 0.32)}
+          </div>
 
-          <button
-            type="button"
-            aria-label={nextLabel}
-            disabled={!canGoNext}
-            onClick={(event) => {
-              event.stopPropagation();
-              if (canGoNext) onNext();
-            }}
+          <div
             style={{
-              ...buttonStyle,
               position: "fixed",
               top: "50%",
               right: RAIL_OFFSET,
               transform: "translateY(-50%)",
-              opacity: canGoNext ? 0.72 : 0.32,
-              cursor: canGoNext ? "pointer" : "not-allowed",
+              zIndex,
             }}>
-            <NextIcon />
-          </button>
+            {nextButton(canGoNext ? 0.72 : 0.32)}
+          </div>
         </>
       ) : null}
     </>

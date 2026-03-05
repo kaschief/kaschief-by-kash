@@ -19,9 +19,8 @@ import {
   type SectionId,
   Z_INDEX,
 } from "@utilities";
-import { isSectionId } from "../model/active-section";
+import { isSectionId, resolveActiveSection } from "../model/active-section";
 import { resolveNavLinkColor } from "../model/nav-link-state";
-import { resolveObservedActiveSection } from "../model/observed-section";
 import {
   INITIAL_NAVIGATION_STATE,
   NAVIGATION_TIMING,
@@ -34,7 +33,7 @@ const { POP_STATE } = HISTORY_EVENT;
 
 const ACT_NAV = ROLE_NAV_LINKS;
 const SECTION_NAV = SECTION_NAV_LINKS;
-const OBSERVER_THRESHOLDS = [0, 0.1, 0.2, 0.35, 0.5, 0.7, 1];
+const OBSERVER_THRESHOLDS = [0, 0.1, 0.25, 0.5];
 
 const NavigationMobileMenu = dynamic(
   () =>
@@ -119,8 +118,9 @@ export function Navigation() {
   );
   const navRef = useRef<HTMLElement | null>(null);
   const suppressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mobileCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSuppressedRef = useRef(false);
   const pendingMobileSectionRef = useRef<SectionId | null>(null);
-  const ratioBySectionRef = useRef<Partial<Record<SectionId, number>>>({});
   const activeSectionRef = useRef<SectionId | "">("");
   const [mobileMenuLoaded, setMobileMenuLoaded] = useState(false);
   const { scrollToSection, scrollToTop } = useSectionScroll();
@@ -139,28 +139,29 @@ export function Navigation() {
 
   useEffect(() => {
     const updateActiveSection = () => {
-      const nextActive = resolveObservedActiveSection({
-        ratioBySection: ratioBySectionRef.current,
+      if (isSuppressedRef.current) return;
+
+      const sectionTopById = SECTION_IDS_ORDERED.reduce<
+        Record<SectionId, number | null>
+      >(
+        (acc, id) => {
+          const el = document.getElementById(id);
+          acc[id] = el ? el.getBoundingClientRect().top : null;
+          return acc;
+        },
+        {} as Record<SectionId, number | null>,
+      );
+
+      activeSectionRef.current = resolveActiveSection({
         scrollY: window.scrollY,
         viewportHeight: window.innerHeight,
         documentHeight: document.documentElement.scrollHeight,
-        previousActiveSection: activeSectionRef.current,
+        sectionTopById,
       });
-
-      activeSectionRef.current = nextActive;
     };
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const id = entry.target.id;
-          if (!isSectionId(id)) continue;
-
-          ratioBySectionRef.current[id] = entry.isIntersecting
-            ? entry.intersectionRatio
-            : 0;
-        }
-
+      () => {
         updateActiveSection();
       },
       {
@@ -203,13 +204,25 @@ export function Navigation() {
 
   useEffect(() => {
     const handleScroll = () => {
-      activeSectionRef.current = resolveObservedActiveSection({
-        ratioBySection: ratioBySectionRef.current,
-        scrollY: window.scrollY,
-        viewportHeight: window.innerHeight,
-        documentHeight: document.documentElement.scrollHeight,
-        previousActiveSection: activeSectionRef.current,
-      });
+      if (!isSuppressedRef.current) {
+        const sectionTopById = SECTION_IDS_ORDERED.reduce<
+          Record<SectionId, number | null>
+        >(
+          (acc, id) => {
+            const el = document.getElementById(id);
+            acc[id] = el ? el.getBoundingClientRect().top : null;
+            return acc;
+          },
+          {} as Record<SectionId, number | null>,
+        );
+
+        activeSectionRef.current = resolveActiveSection({
+          scrollY: window.scrollY,
+          viewportHeight: window.innerHeight,
+          documentHeight: document.documentElement.scrollHeight,
+          sectionTopById,
+        });
+      }
 
       dispatch({
         type: "SCROLLED",
@@ -308,6 +321,9 @@ export function Navigation() {
 
   useEffect(() => {
     return () => {
+      if (mobileCloseTimerRef.current) {
+        clearTimeout(mobileCloseTimerRef.current);
+      }
       if (suppressTimerRef.current) {
         clearTimeout(suppressTimerRef.current);
       }
@@ -316,7 +332,6 @@ export function Navigation() {
 
   const handleSectionClick = (sectionId: SectionId) => {
     activeSectionRef.current = sectionId;
-    dispatch({ type: "CLOSE_MOBILE_MENU" });
     dispatch({
       type: "SET_ACTIVE_SECTION",
       payload: { activeSection: sectionId },
@@ -324,18 +339,28 @@ export function Navigation() {
 
     const untilMs = Date.now() + NAVIGATION_TIMING.suppressScrollMs;
     dispatch({ type: "SUPPRESS_SCROLL", payload: { untilMs } });
+    isSuppressedRef.current = true;
 
     if (suppressTimerRef.current) {
       clearTimeout(suppressTimerRef.current);
     }
 
     suppressTimerRef.current = setTimeout(() => {
+      isSuppressedRef.current = false;
       dispatch({ type: "CLEAR_SUPPRESSION" });
     }, NAVIGATION_TIMING.suppressScrollMs);
 
-    document.body.style.overflow = "";
     if (mobileOpen) {
       pendingMobileSectionRef.current = sectionId;
+
+      if (mobileCloseTimerRef.current) {
+        clearTimeout(mobileCloseTimerRef.current);
+      }
+
+      // Let the highlight update render before closing the menu.
+      mobileCloseTimerRef.current = setTimeout(() => {
+        dispatch({ type: "CLOSE_MOBILE_MENU" });
+      }, 200);
       return;
     }
 

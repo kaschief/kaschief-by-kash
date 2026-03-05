@@ -2,43 +2,41 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { FadeUp, RevealLine, FadeIn } from "@components";
+import {
+  FadeUp,
+  FadeIn,
+  ListRow,
+  ListRowArrow,
+  RevealLine,
+} from "@components";
 import { TOKENS, SECTION_ID } from "@utilities";
 import { PERSONAL } from "@data";
 import type { ContactLinkProps } from "./contact.types";
+
 const { fontSerif } = TOKENS;
 const { CONTACT } = SECTION_ID;
 
-/* ------------------------------------------------------------------ */
-/*  Contact link row — ruled, no fills, consistent with skill rows     */
-/* ------------------------------------------------------------------ */
-
-function ContactLink({
-  label,
-  detail,
-  href,
-  external = false,
-}: ContactLinkProps) {
-  return (
-    <a
-      href={href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
-      className="group flex w-full items-center justify-between border-b border-[var(--stroke)] py-5 transition-opacity hover:opacity-60">
-      <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-faint)] transition-colors group-hover:text-[var(--cream-muted)]">
-        {label}
-      </span>
-      <span className="flex items-center gap-3">
-        <span className="hidden text-sm text-[var(--text-dim)] transition-colors group-hover:text-[var(--cream-muted)] sm:inline">
-          {detail}
-        </span>
-        <span className="text-sm text-[var(--text-faint)] transition-all group-hover:text-[var(--cream-muted)] group-hover:translate-x-0.5">
-          {external ? "↗" : "→"}
-        </span>
-      </span>
-    </a>
-  );
-}
+const CONTACT_LINKS = (
+  email: string,
+  linkedin: string,
+  github: string,
+  phone: string,
+): ContactLinkProps[] => [
+  { label: "Email", detail: email, href: `mailto:${email}` },
+  {
+    label: "LinkedIn",
+    detail: linkedin.replace("https://", ""),
+    href: linkedin,
+    external: true,
+  },
+  {
+    label: "GitHub",
+    detail: github.replace("https://", ""),
+    href: github,
+    external: true,
+  },
+  { label: "Phone", detail: phone, href: `tel:${phone}` },
+];
 
 /* ------------------------------------------------------------------ */
 /*  Section                                                             */
@@ -46,6 +44,7 @@ function ContactLink({
 
 export function Contact() {
   const { email, linkedin, github, phone } = PERSONAL;
+  const links = CONTACT_LINKS(email, linkedin, github, phone);
   const sectionRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -62,7 +61,7 @@ export function Contact() {
     <section
       id={CONTACT}
       ref={sectionRef}
-      className="relative overflow-hidden px-6 py-24 sm:py-32">
+      className="relative overflow-hidden px-[var(--page-gutter)] py-12 sm:py-28">
       {/* Atmospheric glows */}
       <motion.div
         className="pointer-events-none absolute inset-0"
@@ -117,27 +116,37 @@ export function Contact() {
           </p>
         </FadeUp>
 
-        {/* Contact links — ruled rows, no fills, no accent highlight */}
+        {/* Contact links — built on ListRow, consistent with all list patterns */}
         <FadeUp delay={0.5}>
           <div className="border-t border-[var(--stroke)] text-left">
-            <ContactLink
-              label="Email"
-              detail={email}
-              href={`mailto:${email}`}
-            />
-            <ContactLink
-              label="LinkedIn"
-              detail={linkedin.replace("https://", "")}
-              href={linkedin}
-              external
-            />
-            <ContactLink
-              label="GitHub"
-              detail={github.replace("https://", "")}
-              href={github}
-              external
-            />
-            <ContactLink label="Phone" detail={phone} href={`tel:${phone}`} />
+            {links.map((link) => (
+              <ListRow
+                key={link.label}
+                color="var(--gold)"
+                href={link.href}
+                target={link.external ? "_blank" : undefined}
+                rel={link.external ? "noopener noreferrer" : undefined}
+                className="flex items-start justify-between gap-3 sm:items-center sm:gap-4"
+                animated={false}>
+                {({ hovered }) => (
+                  <>
+                    <div className="min-w-0 flex-1 pr-2">
+                      <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-faint)] transition-colors group-hover:text-[var(--cream-muted)]">
+                        {link.label}
+                      </p>
+                      <p className="text-sm leading-relaxed text-[var(--cream-muted)] transition-colors group-hover:text-[var(--cream)] break-all">
+                        {link.detail}
+                      </p>
+                    </div>
+                    <ListRowArrow
+                      hovered={hovered}
+                      color="var(--gold)"
+                      className="hidden shrink-0 self-center text-sm sm:inline-flex"
+                    />
+                  </>
+                )}
+              </ListRow>
+            ))}
           </div>
         </FadeUp>
 

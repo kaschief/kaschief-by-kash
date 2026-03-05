@@ -20,7 +20,7 @@ export function Philosophy() {
     <section
       id={PHILOSOPHY_SECTION}
       ref={ref}
-      className="relative overflow-hidden px-6 py-20 sm:py-28">
+      className="relative overflow-hidden px-[var(--page-gutter)] py-20 sm:py-28">
       <SectionGlow color={gold} size="sm" />
 
       <div className="relative z-10 mx-auto max-w-5xl">

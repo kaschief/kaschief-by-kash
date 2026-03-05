@@ -23,7 +23,7 @@ export function Panel({
   const fadeIn = (delay: number): CSSProperties => ({
     opacity: isActive ? 1 : 0,
     transition: isActive
-      ? `opacity ${TRANSITION.page.duration}s ${CSS_EASE} ${delay}s`
+      ? `opacity ${TRANSITION.fast.duration}s ${CSS_EASE} ${delay}s`
       : "opacity 0s",
   });
 
@@ -41,8 +41,8 @@ export function Panel({
         style={{
           maxWidth: 1024,
           margin: "0 auto",
-          paddingLeft: 24,
-          paddingRight: 24,
+          paddingLeft: "var(--page-gutter)",
+          paddingRight: "var(--page-gutter)",
           width: "100%",
         }}>
         <div
@@ -76,7 +76,7 @@ export function Panel({
                 lineHeight: 1.05,
                 marginBottom: 20,
                 color: cream,
-                ...fadeIn(0.06),
+                ...fadeIn(0.02),
               }}>
               {group.label}
             </h2>
@@ -85,7 +85,7 @@ export function Panel({
                 fontSize: 14,
                 lineHeight: 1.75,
                 color: textDim,
-                ...fadeIn(0.16),
+                ...fadeIn(0.04),
               }}>
               {group.description}
             </p>
@@ -94,7 +94,7 @@ export function Panel({
           {/* Skills list */}
           <div>
             {group.skills.map((skill, i) => (
-              <div key={skill.id} style={fadeIn(0.2 + i * 0.05)}>
+              <div key={skill.id} style={fadeIn(0.04 + i * 0.02)}>
                 <SkillRow
                   label={skill.label}
                   onSelect={() => onSkillSelect(skill, group.label, index, i)}
@@ -104,7 +104,7 @@ export function Panel({
           </div>
 
           {/* Nav buttons — desktop only */}
-          <div className="hidden lg:flex lg:flex-col lg:gap-3 lg:pt-1">
+          <div className="hidden lg:flex lg:flex-col lg:gap-3 lg:pt-1" style={fadeIn(0.02)}>
             {METHOD_GROUPS.map((g, i) => (
               <NavButton
                 key={g.id}

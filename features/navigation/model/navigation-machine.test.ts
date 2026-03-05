@@ -81,4 +81,18 @@ describe("navigationReducer", () => {
     expect(opened.mobileMenu.kind).toBe("open");
     expect(closed.mobileMenu.kind).toBe("closed");
   });
+
+  it("updates active section while mobile menu is still open", () => {
+    const opened = navigationReducer(INITIAL_NAVIGATION_STATE, {
+      type: "TOGGLE_MOBILE_MENU",
+    });
+
+    const withActive = navigationReducer(opened, {
+      type: "SET_ACTIVE_SECTION",
+      payload: { activeSection: ACT_ENGINEER },
+    });
+
+    expect(withActive.mobileMenu.kind).toBe("open");
+    expect(withActive.activeSection).toBe(ACT_ENGINEER);
+  });
 });
