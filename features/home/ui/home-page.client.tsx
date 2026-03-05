@@ -1,6 +1,7 @@
 "use client";
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { CursorArrow } from "@components";
 import { Contact } from "@features/contact";
 import { Hero } from "@features/hero";
@@ -35,12 +36,62 @@ function TimelineFallback({ label }: { label: string }) {
   );
 }
 
+// Hex needed for gradient alpha (CSS vars can't append alpha)
+const GOLD_HEX = "#C9A84C";
+
+/** Animated divider that grows from center on scroll */
+function ScrollDivider() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 0.9", "start 0.5"],
+  });
+  const width = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.4, 1], [0, 0.4, 0.15]);
+
+  return (
+    <div ref={ref} className="mx-auto max-w-5xl py-2">
+      <motion.div
+        className="mx-auto h-px"
+        style={{
+          width,
+          opacity,
+          background: `linear-gradient(to right, transparent, ${GOLD_HEX}50, transparent)`,
+        }}
+      />
+    </div>
+  );
+}
+
+/**
+ * Scroll-driven section wrapper: applies subtle parallax and fade
+ * to create depth between page sections.
+ */
+function SectionTransition({
+  children,
+  offset = 60,
+}: {
+  children: React.ReactNode;
+  offset?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "start 0.3"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [offset, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 0.6], [0, 1]);
+
+  return (
+    <motion.div ref={ref} style={{ y, opacity }}>
+      {children}
+    </motion.div>
+  );
+}
+
 /**
  * Client composition shell for the home page.
- *
- * Trade-off:
- * - Timeline is lazily loaded so initial hydration path is lighter.
- * - The fallback keeps layout stable and communicates loading state.
  */
 export function HomePageClient({ viewModel }: HomePageClientProps) {
   const { enableCustomCursor, timelineLoadingLabel } = viewModel;
@@ -58,22 +109,30 @@ export function HomePageClient({ viewModel }: HomePageClientProps) {
         <div data-typo="portrait">
           <Portrait />
         </div>
-        <div data-typo="timeline">
-          <Suspense fallback={<TimelineFallback label={timelineLoadingLabel} />}>
-            <Timeline />
-          </Suspense>
-        </div>
-        <div className="mx-auto h-px max-w-5xl bg-gradient-to-r from-transparent via-[var(--stroke)] to-transparent" />
-        <div data-typo="philosophy">
-          <Philosophy />
-        </div>
-        <div data-typo="methods">
-          <Methods />
-        </div>
-        <div className="mx-auto h-px max-w-5xl bg-gradient-to-r from-transparent via-[var(--stroke)] to-transparent" />
-        <div data-typo="contact">
-          <Contact />
-        </div>
+        <SectionTransition>
+          <div data-typo="timeline">
+            <Suspense fallback={<TimelineFallback label={timelineLoadingLabel} />}>
+              <Timeline />
+            </Suspense>
+          </div>
+        </SectionTransition>
+        <SectionTransition offset={40}>
+          <ScrollDivider />
+          <div data-typo="philosophy">
+            <Philosophy />
+          </div>
+        </SectionTransition>
+        <SectionTransition>
+          <div data-typo="methods">
+            <Methods />
+          </div>
+        </SectionTransition>
+        <SectionTransition offset={40}>
+          <ScrollDivider />
+          <div data-typo="contact">
+            <Contact />
+          </div>
+        </SectionTransition>
       </PageLayout>
     </LenisProvider>
   );

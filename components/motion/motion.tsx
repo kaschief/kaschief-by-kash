@@ -2,7 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { TRANSITION } from "@utilities";
+import { EASE, TRANSITION } from "@utilities";
 import type { FadeInProps, FadeUpProps, RevealLineProps } from "./motion.types";
 
 /* ------------------------------------------------------------------ */
@@ -21,9 +21,13 @@ export function FadeUp({
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: distance }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: distance }}
-      transition={{ ...TRANSITION.base, delay }}
+      initial={{ opacity: 0, y: distance, filter: "blur(4px)" }}
+      animate={
+        inView
+          ? { opacity: 1, y: 0, filter: "blur(0px)" }
+          : { opacity: 0, y: distance, filter: "blur(4px)" }
+      }
+      transition={{ duration: 0.5, ease: EASE, delay }}
       className={className}>
       {children}
     </motion.div>
@@ -37,12 +41,16 @@ export function FadeIn({ children, delay = 0, className = "" }: FadeInProps) {
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0 }}
-      animate={inView ? { opacity: 1 } : { opacity: 0 }}
+      initial={{ opacity: 0, filter: "blur(4px)" }}
+      animate={
+        inView
+          ? { opacity: 1, filter: "blur(0px)" }
+          : { opacity: 0, filter: "blur(4px)" }
+      }
       transition={{
         duration: TRANSITION.base.duration,
         delay,
-        ease: "easeOut",
+        ease: EASE,
       }}
       className={className}>
       {children}
@@ -61,9 +69,9 @@ export function RevealLine({
   return (
     <motion.div ref={ref} className={`overflow-hidden ${className}`}>
       <motion.div
-        initial={{ y: "110%" }}
-        animate={inView ? { y: 0 } : { y: "110%" }}
-        transition={{ ...TRANSITION.slow, delay }}>
+        initial={{ y: "110%", opacity: 0.3 }}
+        animate={inView ? { y: 0, opacity: 1 } : { y: "110%", opacity: 0.3 }}
+        transition={{ duration: 0.7, ease: EASE, delay }}>
         {children}
       </motion.div>
     </motion.div>

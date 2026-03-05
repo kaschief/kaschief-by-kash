@@ -1,51 +1,58 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useCustomCursorEnabled } from "@hooks";
-import { Z_INDEX, TOKENS } from "@utilities";
+import { Z_INDEX } from "@utilities";
 
-const { bg, cursorHighlight, cursorShadow, gold } = TOKENS;
-const { cursor } = Z_INDEX;
+const { cursor: cursorZ } = Z_INDEX;
+
+const GOLD_HEX = "#C9A84C";
 
 const INTERACTIVE_SELECTOR =
   'a, button, input, select, textarea, label, [role="button"], [tabindex]:not([tabindex="-1"])';
 
+/**
+ * Minimal custom cursor — a small refined circle that tracks the mouse
+ * with a slight spring lag. On interactive elements, it expands and
+ * gets a border. Designed to feel premium without distracting.
+ */
 export function CursorArrow() {
-  const outerRef = useRef<HTMLDivElement>(null);
-  const opacityRef = useRef<HTMLDivElement>(null);
-  const arrowRef = useRef<HTMLDivElement>(null);
-  const ringRef = useRef<HTMLDivElement>(null);
   const enabled = useCustomCursorEnabled();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const mouseX = useMotionValue(-100);
+  const mouseY = useMotionValue(-100);
+
+  const springX = useSpring(mouseX, { stiffness: 500, damping: 40, mass: 0.3 });
+  const springY = useSpring(mouseY, { stiffness: 500, damping: 40, mass: 0.3 });
 
   useEffect(() => {
     const root = document.documentElement;
-
     if (enabled) {
       root.dataset.customCursor = "on";
       return () => {
         delete root.dataset.customCursor;
       };
     }
-
     delete root.dataset.customCursor;
   }, [enabled]);
 
   useEffect(() => {
     if (!enabled) return;
 
-    const outer = outerRef.current;
-    const opacity = opacityRef.current;
-    const arrow = arrowRef.current;
-    const ring = ringRef.current;
-    if (!outer || !opacity || !arrow || !ring) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const dot = container.querySelector<HTMLElement>("[data-dot]");
 
     let shown = false;
     let isPointer = false;
 
     const handleMove = (e: MouseEvent) => {
-      outer.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
       if (!shown) {
-        opacity.style.opacity = "1";
+        container.style.opacity = "1";
         shown = true;
       }
     };
@@ -54,16 +61,22 @@ export function CursorArrow() {
       const next = !!(e.target as Element).closest(INTERACTIVE_SELECTOR);
       if (next === isPointer) return;
       isPointer = next;
-      arrow.style.display = isPointer ? "none" : "block";
-      ring.style.display = isPointer ? "block" : "none";
+      if (dot) {
+        dot.style.width = isPointer ? "8px" : "32px";
+        dot.style.height = isPointer ? "8px" : "32px";
+        dot.style.backgroundColor = isPointer ? GOLD_HEX : "transparent";
+        dot.style.borderColor = isPointer ? "transparent" : `${GOLD_HEX}60`;
+        dot.style.borderWidth = isPointer ? "0px" : "1px";
+        dot.style.mixBlendMode = isPointer ? "normal" : "normal";
+      }
     };
 
     const handleLeave = () => {
-      opacity.style.opacity = "0";
+      container.style.opacity = "0";
     };
 
     const handleEnter = () => {
-      if (shown) opacity.style.opacity = "1";
+      if (shown) container.style.opacity = "1";
     };
 
     document.addEventListener("mousemove", handleMove, { passive: true });
@@ -77,97 +90,41 @@ export function CursorArrow() {
       document.removeEventListener("mouseleave", handleLeave);
       document.removeEventListener("mouseenter", handleEnter);
     };
-  }, [enabled]);
+  }, [enabled, mouseX, mouseY]);
 
   if (!enabled) return null;
 
   return (
     <div
-      ref={outerRef}
+      ref={containerRef}
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
+        inset: 0,
         pointerEvents: "none",
-        zIndex: cursor,
-        willChange: "transform",
-        transform: "translate(-100px, -100px)",
+        zIndex: cursorZ,
+        opacity: 0,
+        transition: "opacity 0.3s ease",
       }}>
-      <div
-        ref={opacityRef}
-        style={{ opacity: 0, transition: "opacity 0.35s ease" }}>
-        <div ref={arrowRef}>
-          <svg width="21" height="31" viewBox="0 0 21 31" fill="none">
-            <defs>
-              <linearGradient
-                id="cursorArrowGrad"
-                x1="0"
-                y1="0"
-                x2="21"
-                y2="31"
-                gradientUnits="userSpaceOnUse">
-                <stop
-                  offset="0%"
-                  style={{ stopColor: cursorHighlight }}
-                />
-                <stop offset="45%" style={{ stopColor: gold }} />
-                <stop
-                  offset="100%"
-                  style={{ stopColor: cursorShadow }}
-                />
-              </linearGradient>
-            </defs>
-            <path
-              d="M0 0 L0 28 L7 21 L12 30 L16 28 L11 19 L20 19 Z"
-              fill="url(#cursorArrowGrad)"
-              stroke={bg}
-              strokeWidth="1.5"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M1 2 L1 13 L5 9"
-              stroke="rgba(255,245,200,0.45)"
-              strokeWidth="1"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </svg>
-        </div>
-
-        <div
-          ref={ringRef}
-          style={{
-            display: "none",
-            transform: "translate(-11px, -11px)",
-          }}>
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <defs>
-              <radialGradient id="cursorRingGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor={gold} stopOpacity="0.18" />
-                <stop offset="100%" stopColor={gold} stopOpacity="0" />
-              </radialGradient>
-            </defs>
-            <circle cx="11" cy="11" r="11" fill="url(#cursorRingGlow)" />
-            <circle
-              cx="11"
-              cy="11"
-              r="8.5"
-              stroke={gold}
-              strokeWidth="1.25"
-              fill="none"
-              strokeOpacity="0.9"
-            />
-            <circle
-              cx="11"
-              cy="11"
-              r="1.5"
-              fill={gold}
-              fillOpacity="0.7"
-            />
-          </svg>
-        </div>
-      </div>
+      <motion.div
+        data-dot
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          x: springX,
+          y: springY,
+          translateX: "-50%",
+          translateY: "-50%",
+          width: 32,
+          height: 32,
+          borderRadius: "50%",
+          backgroundColor: "transparent",
+          borderColor: `${GOLD_HEX}60`,
+          borderWidth: 1,
+          borderStyle: "solid",
+          transition: "width 0.3s cubic-bezier(0.22,1,0.36,1), height 0.3s cubic-bezier(0.22,1,0.36,1), background-color 0.3s ease, border-color 0.3s ease, border-width 0.3s ease, mix-blend-mode 0.2s ease",
+        }}
+      />
     </div>
   );
 }

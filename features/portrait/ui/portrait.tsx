@@ -23,10 +23,17 @@ export function Portrait() {
   const inView = useInView(imageRef, { once: true, margin: "-60px" });
   const [countersActive, setCountersActive] = useState(false);
 
-  // ScrollTrigger pin — replaces manual 150vh wrapper + CSS sticky
+  // ScrollTrigger pin — desktop only (mobile scrolls normally)
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
+
+    const mql = window.matchMedia("(min-width: 1440px)");
+    if (!mql.matches) {
+      // On non-desktop, activate counters immediately (no pin)
+      setCountersActive(true);
+      return;
+    }
 
     const vh = window.innerHeight;
     const downDistance = vh * LAYOUT.pinDownVh;
@@ -71,10 +78,10 @@ export function Portrait() {
 
   return (
     <section id="portrait" ref={sectionRef}>
-      <div className="relative py-44 sm:py-52" style={{ minHeight: "100vh" }}>
+      <div className="relative py-28 sm:py-36 md:py-44 lg:py-52" style={{ minHeight: "100svh" }}>
         <div className="relative mx-auto max-w-5xl px-[var(--page-gutter)]">
           {/* Centered image block with one-shot reveal + glow */}
-          <div className="relative mx-auto -mb-12 max-w-md sm:-mb-16 sm:max-w-lg">
+          <div className="relative mx-auto -mb-12 max-w-[240px] sm:-mb-16 sm:max-w-[280px] md:max-w-[300px] lg:max-w-[320px] xl:max-w-sm 2xl:max-w-lg">
             {/* Ambient glow behind image */}
             <div
               ref={glowRef}
@@ -88,8 +95,8 @@ export function Portrait() {
             {/* Image with one-time clip reveal on enter */}
             <motion.div
               ref={imageRef}
-              className="relative z-10 overflow-hidden rounded-sm"
-              style={{ aspectRatio: "3 / 4", backgroundColor: "var(--bg)" }}
+              className="relative z-10 overflow-hidden rounded-sm aspect-square sm:aspect-[3/4] lg:aspect-[3/4]"
+              style={{ backgroundColor: "var(--bg)" }}
               initial={{ clipPath: "inset(16% 0% 16% 0%)" }}
               animate={
                 inView

@@ -11,6 +11,7 @@ export const Z_INDEX = {
   scrollFade: 40, // fixed top-fade overlay (below nav, above page content)
   nav: 100, // navigation bar
   detailOverlay: 800, // full-screen detail overlays
+  repoPanel: 900, // repo panel overlay (above detail overlays, below cursor)
   cursor: 9999, // custom cursor (always on top)
 } as const;
 
@@ -23,6 +24,6 @@ export const LAYOUT = {
   navScrollOffset: 80,
 
   /** Pin duration as a fraction of viewport height, per direction. */
-  pinDownVh: 1.2,
-  pinUpVh: 0.4,
+  pinDownVh: 0.8,
+  pinUpVh: 0.2,
 } as const;

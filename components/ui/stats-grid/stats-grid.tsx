@@ -103,13 +103,13 @@ export function StatsGrid({
       ref={ref}
       className={
         isRow
-          ? "inline-flex items-start gap-8 sm:gap-12"
+          ? "flex flex-wrap items-start justify-center gap-8 sm:gap-14"
           : "grid grid-cols-2 gap-x-8 gap-y-6 lg:grid-cols-1 lg:gap-y-8"
       }>
       {stats.map((stat, i) => (
         <motion.div
           key={stat.label}
-          className={isRow && i > 0 ? "border-l border-(--stroke) pl-8 sm:pl-12" : ""}
+          className=""
           initial={{ opacity: 0, y: 12 }}
           animate={active ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, ease: EASE, delay: i * 0.1 }}>
