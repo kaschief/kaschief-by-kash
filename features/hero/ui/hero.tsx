@@ -5,6 +5,47 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { PERSONAL, ROLES } from "@data";
 import { EASE } from "@utilities";
 import { useSectionScroll } from "@hooks";
+
+/**
+ * Split text into words, each wrapped in an overflow-hidden span
+ * so each word can reveal independently with a y-clip effect.
+ */
+function SplitReveal({
+  text,
+  baseDelay,
+  stagger,
+  className,
+  style,
+}: {
+  text: string;
+  baseDelay: number;
+  stagger: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const words = text.split(" ");
+  return (
+    <span className={className} style={style}>
+      {words.map((word, i) => (
+        <span key={i} className="inline-block overflow-hidden">
+          <motion.span
+            className="inline-block"
+            initial={{ y: "110%", rotateX: 40, opacity: 0 }}
+            animate={{ y: "0%", rotateX: 0, opacity: 1 }}
+            transition={{
+              duration: 0.8,
+              delay: baseDelay + i * stagger,
+              ease: EASE,
+            }}>
+            {word}
+          </motion.span>
+          {i < words.length - 1 && "\u00A0"}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export function Hero() {
   const { name } = PERSONAL;
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -12,9 +53,19 @@ export function Hero() {
     target: sectionRef,
     offset: ["start start", "end start"],
   });
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, 80]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
+
+  // Scroll-driven parallax: content drifts up + fades + blurs as you scroll away
+  const contentY = useTransform(scrollYProgress, [0, 0.7], [0, 140]);
+  const contentOpacity = useTransform(scrollYProgress, [0.3, 0.75], [1, 0]);
+  const contentBlur = useTransform(scrollYProgress, [0.35, 0.8], [0, 12]);
+  const contentFilter = useTransform(contentBlur, (v) => `blur(${v}px)`);
+  const glowScale = useTransform(scrollYProgress, [0, 0.6], [1, 1.6]);
+  const glowOpacity = useTransform(scrollYProgress, [0.1, 0.55], [0.4, 0]);
+
   const { scrollToSection } = useSectionScroll();
+
+  // Split name into first/last for staggered reveal
+  const nameParts = name.split(" ");
 
   return (
     <section
@@ -24,55 +75,80 @@ export function Hero() {
         background:
           "radial-gradient(ellipse 80% 60% at 50% 40%, #0E0E14 0%, #07070A 100%)",
       }}>
-      {/* Subtle ambient glow */}
-      <div className="pointer-events-none absolute inset-0">
+      {/* Animated ambient glow */}
+      <motion.div
+        className="pointer-events-none absolute inset-0"
+        style={{ scale: glowScale, opacity: glowOpacity }}>
         <div
-          className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40"
+          className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 70%)",
+              "radial-gradient(circle, rgba(201,168,76,0.06) 0%, rgba(201,168,76,0.02) 40%, transparent 70%)",
           }}
         />
-      </div>
+      </motion.div>
 
-      {/* Main content - just the name and roles */}
+      {/* Main content */}
       <motion.div
         className="relative z-10 mx-auto max-w-4xl px-[var(--page-gutter)] text-center"
-        style={{ y: contentY, opacity: contentOpacity }}>
-        {/* Name */}
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
-          className="font-serif text-[clamp(3.5rem,10vw,8rem)] font-normal leading-[0.9] tracking-[-0.02em] text-[var(--cream)]">
-          {name}
-        </motion.h1>
+        style={{
+          y: contentY,
+          opacity: contentOpacity,
+          filter: contentFilter,
+        }}>
+        {/* Name — word-by-word reveal with subtle 3D rotation */}
+        <h1 className="font-serif text-[clamp(3.5rem,10vw,8rem)] font-normal leading-[0.9] tracking-[-0.02em] text-[var(--cream)]">
+          {nameParts.map((part, i) => (
+            <span key={part}>
+              {i > 0 && " "}
+              <SplitReveal
+                text={part}
+                baseDelay={0.3 + i * 0.15}
+                stagger={0.06}
+              />
+            </span>
+          ))}
+        </h1>
 
-        {/* Roles - section links with staggered fade-in */}
+        {/* Divider line that grows from center */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+          className="mx-auto mt-6 mb-6 h-px bg-[var(--gold)]"
+          initial={{ width: 0, opacity: 0 }}
+          animate={{ width: 80, opacity: 0.3 }}
+          transition={{ duration: 1.2, delay: 0.9, ease: EASE }}
+        />
+
+        {/* Roles — staggered fade-in with blur-to-focus */}
+        <motion.div
+          className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
           {ROLES.map(({ label, color, sectionId }, i) => (
             <motion.span
               key={label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 + i * 0.1 }}
+              initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.6, delay: 1.0 + i * 0.12, ease: EASE }}
               className="flex items-center gap-2">
-              {i > 0 && <span className="text-[var(--text-faint)]">/</span>}
+              {i > 0 && (
+                <span className="text-[var(--text-faint)] opacity-40">/</span>
+              )}
               <button
                 type="button"
                 onClick={() => scrollToSection(sectionId)}
-                className="cursor-pointer text-sm font-light tracking-wide transition-opacity hover:opacity-80 sm:text-base"
+                className="group relative cursor-pointer text-sm font-light tracking-wide sm:text-base"
                 style={{ color }}>
-                {label}
+                <span className="transition-opacity duration-200 group-hover:opacity-80">
+                  {label}
+                </span>
+                <span
+                  className="absolute -bottom-0.5 left-0 h-px w-0 transition-all duration-300 group-hover:w-full"
+                  style={{ backgroundColor: color, opacity: 0.5 }}
+                />
               </button>
             </motion.span>
           ))}
         </motion.div>
       </motion.div>
+
     </section>
   );
 }

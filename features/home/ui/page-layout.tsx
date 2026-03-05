@@ -19,6 +19,7 @@ export function PageLayout({ children }: PageLayoutProps) {
 
   return (
     <main
+      className="film-grain"
       style={
         {
           "--page-gutter": pageGutter,

@@ -393,7 +393,7 @@ export function Navigation() {
 
             {/* ── Floating pill ── */}
             <div
-              className="hidden items-center gap-0.5 rounded-full border border-white/[0.08] px-2 py-1 md:flex"
+              className="hidden items-center gap-0.5 rounded-full border border-white/[0.08] px-2 py-1 lg:flex"
               style={{
                 backdropFilter: "blur(24px) saturate(1.8)",
                 backgroundColor: "rgba(10, 10, 16, 0.65)",
@@ -459,7 +459,7 @@ export function Navigation() {
             {/* Mobile toggle */}
             <button
               onClick={() => dispatch({ type: "TOGGLE_MOBILE_MENU" })}
-              className="cursor-pointer text-[var(--text-dim)] transition-colors hover:text-[var(--gold)] md:hidden"
+              className="cursor-pointer text-[var(--text-dim)] transition-colors hover:text-[var(--gold)] lg:hidden"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}>
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>

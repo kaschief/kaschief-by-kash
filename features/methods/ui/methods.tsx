@@ -88,7 +88,7 @@ export function Methods() {
     const el = stickyRef.current;
     if (!el) return;
 
-    const mql = window.matchMedia("(min-width: 1024px)");
+    const mql = window.matchMedia("(min-width: 1440px)");
     if (!mql.matches) return;
 
     const vh = window.innerHeight;
@@ -193,7 +193,7 @@ export function Methods() {
       {/* ── Desktop: ScrollTrigger pinned panels ── */}
       <div
         ref={stickyRef}
-        className="hidden lg:block"
+        className="hidden xl:block"
         style={{ height: "100vh", overflow: "hidden" }}>
         <SectionGlow color={gold} size="lg" />
         <motion.div
@@ -225,7 +225,7 @@ export function Methods() {
       </div>
 
       {/* ── Mobile: tab-based panels ── */}
-      <div className="py-16 lg:hidden">
+      <div className="py-16 xl:hidden">
         <div className="mx-auto max-w-5xl px-[var(--page-gutter)]">
           <div className="mb-6 flex items-center gap-3">
             <span

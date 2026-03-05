@@ -62,6 +62,50 @@ export interface NurseFeature {
   text: string;
 }
 
+export interface Commit {
+  type: string;
+  msg: string;
+}
+
+export interface Tag {
+  text: string;
+  /** Hex color — must be hex (not CSS var) for alpha suffix manipulation */
+  color: string;
+}
+
+export interface ImpactMetric {
+  stat: string;
+  label: string;
+  /** Fill percentage for the diff-stat bar (0–100) */
+  pct: number;
+}
+
+export interface Repo {
+  org: string;
+  name: string;
+  url: string;
+  branch: string;
+  stars: string;
+  language: string;
+  languageColor: string;
+  description: string;
+  readme: string[];
+  impact: ImpactMetric[];
+  stack: string[];
+}
+
+export interface Company {
+  hash: string;
+  company: string;
+  role: string;
+  location: string;
+  period: string;
+  commits: Commit[];
+  tags: Tag[];
+  promoted: boolean;
+  repo: Repo;
+}
+
 export interface ActINurseContent {
   act: string;
   title: string;
@@ -82,8 +126,8 @@ export interface ActINurseContent {
 export const ACT_I: ActINurseContent = {
   act: "ACT I",
   title: `The ${nurseRole.label}`,
-  period: "2012 - 2017",
-  location: "Houston, TX",
+  period: "2012 — 2017",
+  location: "New York, NY",
   color: nurseRole.color,
   takeaway:
     "The ICU taught me that under pressure, process matters more than heroics. You assess, prioritize, and execute — or people die. That discipline never left me.",
@@ -242,6 +286,226 @@ export const ACT_II: ActContent = {
     { id: "s15", label: "Agile Delivery" },
   ],
 };
+
+/* ------------------------------------------------------------------ */
+/*  ACT II — Engineer Companies (git log)                              */
+/* ------------------------------------------------------------------ */
+
+/** Hex value of --act-blue, needed for hex-alpha tag backgrounds */
+const ENGINEER_HEX = "#5B9EC2";
+const PROMOTED_HEX = "#5EBB73";
+
+export const COMPANIES: Company[] = [
+  {
+    hash: "a3f7b21",
+    company: "AMBOSS",
+    role: "Frontend Engineer",
+    location: "Berlin",
+    period: "Sep 2018 — Oct 2019",
+    commits: [
+      { type: "feat", msg: "build React app for medical exam prep (500K+ students)" },
+      { type: "test", msg: "run A/B tests on study flow — engagement +20%" },
+      { type: "chore", msg: "ship features that take product out of beta" },
+      { type: "collab", msg: "work with Product on user research and feature validation" },
+    ],
+    tags: [
+      { text: "React", color: ENGINEER_HEX },
+      { text: "A/B Testing", color: ENGINEER_HEX },
+    ],
+    promoted: false,
+    repo: {
+      org: "amboss-meded",
+      name: "student-app",
+      url: "https://www.amboss.com",
+      branch: "main",
+      stars: "500K+ users",
+      language: "React",
+      languageColor: "#61DAFB",
+      description:
+        "Medical exam preparation platform used by 500K+ students worldwide. Built with React, featuring adaptive learning paths, spaced repetition, and clinical case simulations.",
+      readme: [
+        "## What I shipped",
+        "",
+        "Joined as a frontend engineer on the core student app \u2014 a React SPA used by over half a million medical students across 180+ countries.",
+        "",
+        "The product was in beta when I arrived. My job was to help make it production-ready.",
+        "",
+        "### Key contributions",
+        "",
+        "**A/B testing framework** \u2014 Designed and ran experiments on the study flow UI. One test on the question review screen lifted engagement by 20%. That one change affected hundreds of thousands of daily sessions.",
+        "",
+        "**Feature velocity** \u2014 Shipped multiple features that contributed to the product officially leaving beta. Worked directly with PMs on user research to validate what we built before we built it.",
+        "",
+        "**User research integration** \u2014 Sat in on user interviews, translated findings into technical requirements, and made sure engineering stayed close to the people using the product.",
+      ],
+      impact: [
+        { stat: "+20%", label: "engagement lift", pct: 60 },
+        { stat: "500K+", label: "students served", pct: 95 },
+        { stat: "3", label: "features \u2192 production", pct: 40 },
+      ],
+      stack: ["React", "JavaScript", "Jest", "REST APIs", "Webpack"],
+    },
+  },
+  {
+    hash: "8c2e4d9",
+    company: "Compado",
+    role: "Frontend Engineer \u2192 Senior",
+    location: "Berlin",
+    period: "Oct 2019 — Jun 2021",
+    commits: [
+      { type: "feat", msg: "build product comparison sites in Vue (chatbots, infinite scroll)" },
+      { type: "perf", msg: "improve page speed by 50%" },
+      { type: "fix", msg: "SEO optimizations \u2014 organic traffic +25%" },
+      { type: "collab", msg: "work with Product on acquisition and conversion funnels" },
+    ],
+    tags: [
+      { text: "Vue", color: ENGINEER_HEX },
+      { text: "\u2191 Promoted to Senior", color: PROMOTED_HEX },
+    ],
+    promoted: true,
+    repo: {
+      org: "compado",
+      name: "comparison-engine",
+      url: "https://www.compado.com",
+      branch: "main",
+      stars: "+25% traffic",
+      language: "Vue.js",
+      languageColor: "#42B883",
+      description:
+        "Product comparison websites with chatbots, dynamic loading, and infinite scroll. Built in Vue with a heavy focus on performance and SEO.",
+      readme: [
+        "## What I shipped",
+        "",
+        "Built product comparison websites from scratch in Vue. The business model was content-driven: high-quality comparison pages that ranked well and converted.",
+        "",
+        "### Key contributions",
+        "",
+        "**Page speed overhaul** \u2014 Audited and rebuilt the rendering pipeline. Lazy loading, code splitting, image optimization, critical CSS extraction. Page speed improved by 50%. This directly impacted SEO rankings.",
+        "",
+        "**SEO-driven development** \u2014 Treated SEO as an engineering problem, not a marketing afterthought. Structured data, semantic HTML, server-side rendering. Organic traffic grew 25%.",
+        "",
+        "**Dynamic UI systems** \u2014 Built chatbot interfaces, infinite scroll feeds, and dynamic product comparison tables. All had to work without JavaScript for crawlers while being interactive for users.",
+        "",
+        "**Promoted to Senior** \u2014 Took on more ownership of technical decisions, mentored newer developers, and started leading feature development end-to-end.",
+      ],
+      impact: [
+        { stat: "+50%", label: "page speed improvement", pct: 80 },
+        { stat: "+25%", label: "organic traffic growth", pct: 65 },
+        { stat: "\u2192 Senior", label: "promoted", pct: 100 },
+      ],
+      stack: ["Vue.js", "Nuxt", "JavaScript", "SEO", "Performance"],
+    },
+  },
+  {
+    hash: "1f9a0c3",
+    company: "CAPinside",
+    role: "Senior Frontend Engineer",
+    location: "Hamburg",
+    period: "Jun 2021 — Oct 2021",
+    commits: [
+      { type: "feat", msg: "lead frontend rebuild for fintech platform (10K+ advisors)" },
+      { type: "refactor", msg: "replace struggling legacy app with Vue/TypeScript architecture" },
+      { type: "perf", msg: "cut page load times by 35%" },
+    ],
+    tags: [
+      { text: "Vue", color: ENGINEER_HEX },
+      { text: "TypeScript", color: ENGINEER_HEX },
+      { text: "Fintech", color: ENGINEER_HEX },
+    ],
+    promoted: false,
+    repo: {
+      org: "capinside",
+      name: "advisor-platform",
+      url: "https://www.capinside.com",
+      branch: "develop",
+      stars: "10K+ advisors",
+      language: "TypeScript",
+      languageColor: "#3178C6",
+      description:
+        "Fintech platform serving 10,000+ financial advisors. Replaced a failing legacy application with a modern Vue/TypeScript architecture.",
+      readme: [
+        "## What I shipped",
+        "",
+        "Short stint, high impact. CAPinside had a legacy frontend that was buckling under its own weight. Brought in as a senior to lead the rebuild.",
+        "",
+        "### Key contributions",
+        "",
+        "**Legacy migration** \u2014 The existing app was slow, fragile, and hard to extend. Architected and led the migration to Vue 3 + TypeScript. The new architecture was modular, testable, and fast.",
+        "",
+        "**Performance** \u2014 Cut page load times by 35% through bundle optimization, lazy loading, and eliminating render-blocking resources. For a fintech platform where advisors check data throughout the day, speed is retention.",
+        "",
+        "**Technical leadership** \u2014 Made architecture decisions, set coding standards, and established patterns that the team continued using after I left.",
+      ],
+      impact: [
+        { stat: "-35%", label: "page load time", pct: 70 },
+        { stat: "10K+", label: "advisors on platform", pct: 85 },
+        { stat: "1", label: "legacy app replaced", pct: 50 },
+      ],
+      stack: ["Vue 3", "TypeScript", "Vite", "Fintech", "REST APIs"],
+    },
+  },
+  {
+    hash: "5e7d2a1",
+    company: "DKB Code Factory",
+    role: "Senior Frontend \u2192 Engineering Manager",
+    location: "Berlin",
+    period: "Oct 2021 — Dec 2024",
+    commits: [
+      { type: "refactor", msg: "rebuild frontend of banking app used by 5M people" },
+      { type: "test", msg: "introduce Jest + Playwright testing frameworks" },
+      { type: "fix", msg: "reduce production bugs by 30%" },
+      { type: "docs", msg: "improve documentation, mentor 3 junior engineers" },
+      { type: "feat", msg: "promoted to Engineering Manager" },
+    ],
+    tags: [
+      { text: "React", color: ENGINEER_HEX },
+      { text: "TypeScript", color: ENGINEER_HEX },
+      { text: "\u2191 Promoted", color: PROMOTED_HEX },
+    ],
+    promoted: true,
+    repo: {
+      org: "dkb-code-factory",
+      name: "banking-frontend",
+      url: "https://www.dkb.de",
+      branch: "release/prod",
+      stars: "5M+ users",
+      language: "TypeScript",
+      languageColor: "#3178C6",
+      description:
+        "Frontend of one of Germany\u2019s largest banking apps. React/TypeScript, micro-frontends, serving 5 million customers. Regulated banking environment.",
+      readme: [
+        "## What I shipped",
+        "",
+        "Three years. Two promotions. This is the role where everything came together.",
+        "",
+        "### As Senior Engineer (2021\u20132022)",
+        "",
+        "**Frontend rebuild** \u2014 Rebuilt the UI/UX of a banking platform used by 5 million people. React, TypeScript, component library, micro-frontend architecture.",
+        "",
+        "**Testing culture** \u2014 Introduced Jest and Playwright to an organization that had no automated frontend testing. Built the framework, wrote the initial test suites, and trained the team.",
+        "",
+        "**Promoted to Engineering Manager in 12 months.**",
+        "",
+        "### As Engineering Manager (2022\u20132024)",
+        "",
+        "**Team growth** \u2014 Led a distributed team of 15+ (engineers, designers, QA, freelancers). Grew the core engineering team from 6 to 10 through structured hiring.",
+        "",
+        "**Release velocity** \u2014 Moved releases from monthly to weekly. Bugs dropped 30%.",
+        "",
+        "**People development** \u2014 Weekly 1:1s. Coached engineers into senior roles. Protected team culture across a complex stakeholder environment.",
+        "",
+        "**Product leadership** \u2014 Worked directly with Product on feature prioritization and technical feasibility. Translated business requirements into technical roadmaps.",
+      ],
+      impact: [
+        { stat: "5M+", label: "users served", pct: 100 },
+        { stat: "-30%", label: "production bugs", pct: 70 },
+        { stat: "15+", label: "team managed", pct: 80 },
+        { stat: "\u2192 EM", label: "promoted to manager", pct: 100 },
+      ],
+      stack: ["React", "TypeScript", "Playwright", "Jest", "Micro-frontends", "CI/CD"],
+    },
+  },
+];
 
 /* ------------------------------------------------------------------ */
 /*  ACT III — The Leader                                               */
