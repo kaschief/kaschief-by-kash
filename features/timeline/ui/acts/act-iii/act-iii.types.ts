@@ -4,6 +4,10 @@ export interface StoryDetailOverlayProps {
   actLabel: string;
   color: string;
   onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+  canGoPrev: boolean;
+  canGoNext: boolean;
 }
 
 export interface CaseStudyCardProps {

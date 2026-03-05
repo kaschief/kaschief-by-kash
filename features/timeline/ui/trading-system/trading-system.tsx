@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { FadeUp, FadeIn, ModalCloseButton, MonoLabel } from "@components";
 import { INDICATORS, PROGRESSION, CATEGORIES, type Indicator } from "@data";
@@ -37,13 +37,26 @@ export function TradingArsenal() {
     margin: "-50px",
   });
 
-  const filteredIndicators = INDICATORS.filter(
-    (ind) => ind.category === activeCategory,
+  const indicatorsByCategory = useMemo(
+    () =>
+      CATEGORIES.map((category) => ({
+        category,
+        indicators: INDICATORS.filter((indicator) => indicator.category === category),
+      })),
+    [],
   );
+
+  useEffect(() => {
+    const uniqueSources = Array.from(new Set(INDICATORS.map((item) => item.image)));
+    for (const source of uniqueSources) {
+      const image = new window.Image();
+      image.src = source;
+    }
+  }, []);
 
   return (
     <div className="relative pb-24">
-      <div className="mx-auto max-w-5xl px-6">
+      <div className="mx-auto max-w-5xl px-[var(--page-gutter)]">
         {/* Visual nesting under Act IV */}
         <div className="border-l-2 border-[var(--act-green)]/20 pl-4 sm:pl-8 lg:pl-12">
           {/* Sub-section header */}
@@ -198,42 +211,61 @@ export function TradingArsenal() {
               initial={{ opacity: 0, y: 16 }}
               animate={indicatorsInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.35 }}>
-              <div
-                className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-                <AnimatePresence mode="popLayout">
-                  {filteredIndicators.map((indicator, i) => (
-                    <motion.button
-                      key={indicator.name}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3, delay: i * 0.05 }}
-                      onClick={() => setSelectedIndicator(indicator)}
-                      className="group w-64 shrink-0 cursor-pointer text-left">
-                      {/* Image card - no border */}
-                      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[var(--bg-elevated)] transition-all">
-                        <Image
-                          src={indicator.image}
-                          alt={indicator.name}
-                          fill
-                          className="object-cover transition-all duration-300 grayscale group-hover:grayscale-0"
-                          sizes="256px"
-                        />
-                      </div>
+              <div className="relative -mx-[var(--page-gutter)]">
+                {/* Left edge fade — mobile only */}
+                <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-[var(--bg)] to-transparent sm:hidden" />
+                {/* Right edge fade — mobile only */}
+                <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-[var(--bg)] to-transparent sm:hidden" />
+                <div
+                  className="flex gap-4 overflow-x-auto px-[var(--page-gutter)] pb-4 scrollbar-hide"
+                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                  <div className="relative min-h-[220px]">
+                    {indicatorsByCategory.map(({ category, indicators }) => {
+                      const isActiveCategory = category === activeCategory;
+                      return (
+                        <motion.div
+                          key={category}
+                          initial={false}
+                          animate={{ opacity: isActiveCategory ? 1 : 0 }}
+                          transition={{ duration: 0.18 }}
+                          aria-hidden={!isActiveCategory}
+                          className={`flex gap-4 ${
+                            isActiveCategory
+                              ? "relative"
+                              : "pointer-events-none absolute inset-0"
+                          }`}>
+                          {indicators.map((indicator) => (
+                            <button
+                              key={indicator.name}
+                              onClick={() => setSelectedIndicator(indicator)}
+                              className="group w-64 shrink-0 cursor-pointer text-left">
+                              {/* Image card - no border */}
+                              <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[var(--bg-elevated)] transition-all">
+                                <Image
+                                  src={indicator.image}
+                                  alt={indicator.name}
+                                  fill
+                                  className="object-cover transition-all duration-300 grayscale group-hover:grayscale-0"
+                                  sizes="256px"
+                                />
+                              </div>
 
-                      {/* Info below */}
-                      <div className="mt-3">
-                        <h5 className="text-sm font-medium text-[var(--cream)] transition-colors group-hover:text-[var(--act-green)]">
-                          {indicator.name}
-                        </h5>
-                        <p className="mt-1 text-xs text-[var(--text-dim)]">
-                          {indicator.desc}
-                        </p>
-                      </div>
-                    </motion.button>
-                  ))}
-                </AnimatePresence>
+                              {/* Info below */}
+                              <div className="mt-3">
+                                <h5 className="text-sm font-medium text-[var(--cream)] transition-colors group-hover:text-[var(--act-green)]">
+                                  {indicator.name}
+                                </h5>
+                                <p className="mt-1 text-xs text-[var(--text-dim)]">
+                                  {indicator.desc}
+                                </p>
+                              </div>
+                            </button>
+                          ))}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>

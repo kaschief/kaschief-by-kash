@@ -12,14 +12,14 @@ import {
   LIST_ROW_TONE,
   SectionGlow,
 } from "@components";
-import { ACT_III, MGMT_STORIES, type ManagementStory } from "@data";
+import { ACT_III, MGMT_STORIES } from "@data";
+import { usePreserveScrollAnchor } from "@hooks";
 import {
   CSS_EASE,
   GLOW_OPACITY,
   SCROLL_RANGE,
   SECTION_ID,
   TOKENS,
-  TRANSITION,
 } from "@utilities";
 import { ActSectionContent } from "../act-section-content";
 import type { CaseStudyCardProps, StoryDetailOverlayProps } from "./act-iii.types";
@@ -34,9 +34,18 @@ function StoryDetailOverlay({
   actLabel,
   color,
   onClose,
+  onPrev,
+  onNext,
+  canGoPrev,
+  canGoNext,
 }: StoryDetailOverlayProps) {
   return (
-    <DetailOverlay onClose={onClose}>
+    <DetailOverlay
+      onClose={onClose}
+      onPrev={onPrev}
+      onNext={onNext}
+      canGoPrev={canGoPrev}
+      canGoNext={canGoNext}>
       {({ item }) => (
         <>
           <p
@@ -116,12 +125,19 @@ function CaseStudyCard({ story, color, onSelect }: CaseStudyCardProps) {
 }
 
 export function ActIII() {
-  const [selectedStory, setSelectedStory] = useState<ManagementStory | null>(
-    null,
-  );
+  const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
   const [showCaseStudies, setShowCaseStudies] = useState(false);
   const [caseStudiesHovered, setCaseStudiesHovered] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const {
+    anchorRef: caseStudiesRef,
+    captureAnchor: captureCaseStudiesAnchor,
+  } = usePreserveScrollAnchor<HTMLDivElement>(showCaseStudies, { threshold: 0 });
+
+  const selectedStory = selectedStoryIndex !== null ? MGMT_STORIES[selectedStoryIndex] ?? null : null;
+  const canGoPrevStory = selectedStoryIndex !== null && selectedStoryIndex > 0;
+  const canGoNextStory = selectedStoryIndex !== null && selectedStoryIndex < MGMT_STORIES.length - 1;
+
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
@@ -129,45 +145,49 @@ export function ActIII() {
   const glowOpacity = useTransform(scrollYProgress, glow, GLOW_OPACITY);
 
   return (
-    <div id={ACT_LEADER} ref={ref} className="relative py-24 sm:py-32">
+    <div id={ACT_LEADER} ref={ref} className="relative py-12 sm:py-28">
       <SectionGlow opacity={glowOpacity} color={color} size="lg" />
 
-      <div className="relative z-10 mx-auto max-w-5xl px-6">
+      <div className="relative z-10 mx-auto max-w-5xl px-[var(--page-gutter)]">
         <ActSectionContent {...ACT_III}>
-          <button
-            onClick={() => setShowCaseStudies(!showCaseStudies)}
-            onMouseEnter={() => setCaseStudiesHovered(true)}
-            onMouseLeave={() => setCaseStudiesHovered(false)}
-            style={{ color: caseStudiesHovered ? cream : color }}
-            className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-xs uppercase tracking-wider transition-colors">
-            <ChevronDown
-              size={12}
-              className={`transition-transform duration-300 ${showCaseStudies ? "-rotate-180" : ""}`}
-            />
-            Case studies
-          </button>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateRows: showCaseStudies ? "1fr" : "0fr",
-              transition: `grid-template-rows ${TRANSITION.page.duration}s ${CSS_EASE}`,
-              overflowAnchor: "none",
-            }}>
-            <div style={{ overflow: "hidden" }}>
-              <div
-                style={{
-                  opacity: showCaseStudies ? 1 : 0,
-                  transition: "opacity 0.3s ease",
-                }}
-                className="border-l border-[var(--stroke)] pl-6 pr-2 pt-10 sm:pl-8">
-                {MGMT_STORIES.map((story) => (
-                  <CaseStudyCard
-                    key={story.id}
-                    story={story}
-                    color={color}
-                    onSelect={() => setSelectedStory(story)}
-                  />
-                ))}
+          <div ref={caseStudiesRef}>
+            <button
+              onClick={() => {
+                captureCaseStudiesAnchor();
+                setShowCaseStudies((previous) => !previous);
+              }}
+              onMouseEnter={() => setCaseStudiesHovered(true)}
+              onMouseLeave={() => setCaseStudiesHovered(false)}
+              style={{ color: caseStudiesHovered ? cream : color }}
+              className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-xs uppercase tracking-wider transition-colors">
+              <ChevronDown
+                size={12}
+                className={`transition-transform duration-300 ${showCaseStudies ? "-rotate-180" : ""}`}
+              />
+              Case studies
+            </button>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateRows: showCaseStudies ? "1fr" : "0fr",
+                transition: `grid-template-rows 0.5s ${CSS_EASE}`,
+              }}>
+              <div style={{ overflow: "hidden" }}>
+                <div
+                  style={{
+                    opacity: showCaseStudies ? 1 : 0,
+                    transition: "opacity 0.3s ease",
+                  }}
+                  className="border-l border-[var(--stroke)] pl-6 pr-2 pt-10 sm:pl-8">
+                  {MGMT_STORIES.map((story, index) => (
+                    <CaseStudyCard
+                      key={story.id}
+                      story={story}
+                      color={color}
+                      onSelect={() => setSelectedStoryIndex(index)}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -179,7 +199,11 @@ export function ActIII() {
           story={selectedStory}
           actLabel={act}
           color={color}
-          onClose={() => setSelectedStory(null)}
+          onClose={() => setSelectedStoryIndex(null)}
+          onPrev={() => setSelectedStoryIndex((i) => (i !== null && i > 0 ? i - 1 : i))}
+          onNext={() => setSelectedStoryIndex((i) => (i !== null && i < MGMT_STORIES.length - 1 ? i + 1 : i))}
+          canGoPrev={canGoPrevStory}
+          canGoNext={canGoNextStory}
         />
       ) : null}
     </div>

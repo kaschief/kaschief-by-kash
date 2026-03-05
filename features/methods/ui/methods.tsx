@@ -4,8 +4,20 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useInView } from "framer-motion";
 import { SectionGlow } from "@components";
 import { METHOD_GROUPS } from "@data";
-import { usePreserveScrollAnchor, useSectionScroll } from "@hooks";
-import { EASE, SECTION_ID, TOKENS } from "@utilities";
+import {
+  NAVIGATION_SCROLL_EVENT,
+  usePreserveScrollAnchor,
+  useSectionScroll,
+} from "@hooks";
+import {
+  DEFAULT_SCROLL_OFFSET,
+  EASE,
+  LAYOUT,
+  SECTION_ID,
+  SECTION_SCROLL_OFFSET,
+  type SectionId,
+  TOKENS,
+} from "@utilities";
 import {
   closeSkillDetailOverlayState,
   createOpenSkillDetailOverlayState,
@@ -21,9 +33,13 @@ import { SkillRow } from "./skill-row";
 const { cream, gold, textDim, textFaint } = TOKENS;
 const { METHODS } = SECTION_ID;
 const groupLength = METHOD_GROUPS.length;
+const { methodsPanelVh } = LAYOUT;
 
 export function Methods() {
   const outerRef = useRef<HTMLDivElement>(null);
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const navScrollInFlightRef = useRef(false);
+  const navScrollTargetRef = useRef<SectionId | null>(null);
   const [progress, setProgress] = useState(0);
   const [detailOverlayState, setDetailOverlayState] =
     useState<SkillDetailOverlayState>(SKILL_DETAIL_OVERLAY_INITIAL_STATE);
@@ -41,6 +57,33 @@ export function Methods() {
 
   const inView = useInView(outerRef, { once: true, amount: 0.05 });
   const { scrollToY } = useSectionScroll();
+  const methodsOffset = SECTION_SCROLL_OFFSET[METHODS] ?? DEFAULT_SCROLL_OFFSET;
+
+  useEffect(() => {
+    const handleNavScroll = (event: Event) => {
+      const customEvent = event as CustomEvent<{ sectionId?: SectionId }>;
+      const target = customEvent.detail?.sectionId ?? null;
+      navScrollTargetRef.current = target;
+      navScrollInFlightRef.current = true;
+
+      // Hide content when scrolling THROUGH Methods (not TO it)
+      // so panels don't flash during pass-through.
+      if (target !== METHODS && stickyRef.current) {
+        stickyRef.current.style.opacity = "0";
+      }
+    };
+
+    window.addEventListener(
+      NAVIGATION_SCROLL_EVENT,
+      handleNavScroll as EventListener,
+    );
+    return () => {
+      window.removeEventListener(
+        NAVIGATION_SCROLL_EVENT,
+        handleNavScroll as EventListener,
+      );
+    };
+  }, []);
 
   const scrollToPanel = (panelIndex: number) => {
     if (!outerRef.current) return;
@@ -49,14 +92,16 @@ export function Methods() {
       window.scrollY + outerRef.current.getBoundingClientRect().top;
     const scrollable = outerRef.current.offsetHeight - window.innerHeight;
     const panelScrollHeight = scrollable / (groupLength - 1);
+    const targetY = outerTop - methodsOffset + panelIndex * panelScrollHeight;
 
-    scrollToY(outerTop + panelIndex * panelScrollHeight, {
+    scrollToY(targetY, {
       behavior: "smooth",
     });
   };
 
   useEffect(() => {
     let snapTimeout: ReturnType<typeof setTimeout>;
+    let settleTimeout: ReturnType<typeof setTimeout>;
 
     const handleScroll = () => {
       if (!outerRef.current) return;
@@ -65,10 +110,53 @@ export function Methods() {
       const scrollable = outerRef.current.offsetHeight - window.innerHeight;
       if (scrollable <= 0) return;
 
-      const p = Math.max(0, Math.min(1, -rect.top / scrollable));
-      setProgress(p);
+      const p = Math.max(
+        0,
+        Math.min(1, -(rect.top - methodsOffset) / scrollable),
+      );
 
       clearTimeout(snapTimeout);
+      clearTimeout(settleTimeout);
+
+      // During nav-initiated scroll, skip snap + check for arrival.
+      if (navScrollInFlightRef.current) {
+        const targetSectionId = navScrollTargetRef.current;
+        if (!targetSectionId) {
+          navScrollInFlightRef.current = false;
+        } else {
+          const target = document.getElementById(targetSectionId);
+          if (!target) {
+            navScrollInFlightRef.current = false;
+          } else {
+            const targetTop = target.getBoundingClientRect().top;
+            const targetOffset =
+              SECTION_SCROLL_OFFSET[targetSectionId] ?? DEFAULT_SCROLL_OFFSET;
+            if (Math.abs(targetTop - targetOffset) <= 6) {
+              navScrollInFlightRef.current = false;
+              navScrollTargetRef.current = null;
+            }
+          }
+        }
+
+        if (navScrollInFlightRef.current) {
+          // Fallback: clear flight flag after scroll settles.
+          settleTimeout = setTimeout(() => {
+            navScrollInFlightRef.current = false;
+            navScrollTargetRef.current = null;
+            if (stickyRef.current) stickyRef.current.style.opacity = "";
+          }, 300);
+        } else {
+          // Arrived — restore visibility
+          if (stickyRef.current) stickyRef.current.style.opacity = "";
+        }
+
+        setProgress(p);
+        return;
+      }
+
+      setProgress(p);
+
+      // Snap to nearest panel when user manually scrolls between panels.
       if (p > 0.05 && p < 0.95) {
         snapTimeout = setTimeout(() => {
           if (!outerRef.current) return;
@@ -80,9 +168,12 @@ export function Methods() {
             outerRef.current.offsetHeight - window.innerHeight;
           const panelScrollHeight = scrollable2 / (groupLength - 1);
 
-          scrollToY(outerTop + targetPanel * panelScrollHeight, {
-            behavior: "smooth",
-          });
+          scrollToY(
+            outerTop - methodsOffset + targetPanel * panelScrollHeight,
+            {
+              behavior: "smooth",
+            },
+          );
         }, 150);
       }
     };
@@ -93,8 +184,9 @@ export function Methods() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
       clearTimeout(snapTimeout);
+      clearTimeout(settleTimeout);
     };
-  }, [scrollToY]);
+  }, [methodsOffset, scrollToY]);
 
   const panelProgress = progress * (groupLength - 1);
   const activePanelIndex = Math.round(panelProgress);
@@ -124,8 +216,9 @@ export function Methods() {
       <div
         ref={outerRef}
         className="hidden lg:block"
-        style={{ height: `${groupLength * 60}vh` }}>
+        style={{ height: `${(groupLength - 1) * methodsPanelVh + 100}vh` }}>
         <div
+          ref={stickyRef}
           style={{
             position: "sticky",
             top: 0,
@@ -163,7 +256,7 @@ export function Methods() {
       </div>
 
       <div className="py-16 lg:hidden">
-        <div className="mx-auto max-w-5xl px-6">
+        <div className="mx-auto max-w-5xl px-[var(--page-gutter)]">
           <div className="mb-6 flex items-center gap-3">
             <span
               className="inline-block h-1.5 w-1.5 rounded-full"

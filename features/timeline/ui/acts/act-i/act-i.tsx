@@ -28,10 +28,10 @@ export function ActI() {
     <div
       id={ACT_NURSE}
       ref={ref}
-      className="relative py-24 sm:py-32">
+      className="relative py-12 sm:py-28">
       <SectionGlow opacity={glowOpacity} color={color} size="lg" />
 
-      <div className="relative z-10 mx-auto max-w-5xl px-6">
+      <div className="relative z-10 mx-auto max-w-5xl px-[var(--page-gutter)]">
         <SectionLabel label={act} color={color} />
         <RevealLine>
           <h3 className="font-serif text-4xl font-normal tracking-[-0.02em] text-[var(--cream)] sm:text-5xl lg:text-6xl">

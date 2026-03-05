@@ -37,7 +37,7 @@ export function Hero() {
 
       {/* Main content - just the name and roles */}
       <motion.div
-        className="relative z-10 mx-auto max-w-4xl px-6 text-center"
+        className="relative z-10 mx-auto max-w-4xl px-[var(--page-gutter)] text-center"
         style={{ y: contentY, opacity: contentOpacity }}>
         {/* Name */}
         <motion.h1

@@ -25,6 +25,7 @@ export type ListRowTone = (typeof LIST_ROW_TONE)[keyof typeof LIST_ROW_TONE];
 export const LIST_ROW_ARROW_STYLE = {
   LINE: "line",
   CHEVRON: "chevron",
+  EXTERNAL: "external",
 } as const;
 
 export type ListRowArrowStyle =
@@ -41,10 +42,11 @@ const TONE_BORDER_COLOR = {
   [LIST_ROW_TONE.MUTED]: "color-mix(in srgb, var(--stroke) 72%, transparent)",
 } as const satisfies Record<ListRowTone, string>;
 
-export interface ListRowProps {
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+interface ListRowBaseProps {
   /** Accent color applied to the border and passed to children on hover. */
   color: string;
-  onClick: () => void;
   /** Render prop receives `hovered` so children can apply accent styles. */
   children: (props: { hovered: boolean }) => ReactNode;
   className?: string;
@@ -58,22 +60,49 @@ export interface ListRowProps {
   tone?: ListRowTone;
 }
 
+/** Button variant — triggers an action. */
+type ListRowButtonProps = ListRowBaseProps & {
+  href?: never;
+  onClick: () => void;
+  target?: never;
+  rel?: never;
+};
+
+/** Link variant — navigates to an href. */
+type ListRowLinkProps = ListRowBaseProps & {
+  href: string;
+  onClick?: () => void;
+  target?: string;
+  rel?: string;
+};
+
+export type ListRowProps = ListRowButtonProps | ListRowLinkProps;
+
+// ─── Arrow ────────────────────────────────────────────────────────────────────
+
 interface ListRowArrowProps {
   hovered: boolean;
   color: string;
   variant?: ListRowArrowStyle;
+  /** Override the wrapper className. Defaults to "hidden shrink-0 sm:inline-flex". */
+  className?: string;
 }
 
 /**
  * Standardised arrow indicator used by all list rows.
  * Hidden on mobile, visible on sm+. Slides right on hover.
+ *
+ * Variants:
+ * - LINE     → standard right arrow (→)
+ * - CHEVRON  → SVG chevron (›)
+ * - EXTERNAL → diagonal arrow for external links (↗)
  */
 export function ListRowArrow({
   hovered,
   color,
   variant = LIST_ROW_ARROW_STYLE.LINE,
+  className = "hidden shrink-0 sm:inline-flex",
 }: ListRowArrowProps) {
-  const className = "hidden shrink-0 sm:inline-flex";
   const style: CSSProperties = {
     color: hovered ? color : textFaint,
     alignItems: "center",
@@ -97,6 +126,14 @@ export function ListRowArrow({
     );
   }
 
+  if (variant === LIST_ROW_ARROW_STYLE.EXTERNAL) {
+    return (
+      <span aria-hidden className={className} style={style}>
+        ↗
+      </span>
+    );
+  }
+
   return (
     <span aria-hidden className={className} style={style}>
       →
@@ -104,12 +141,15 @@ export function ListRowArrow({
   );
 }
 
+// ─── Row ──────────────────────────────────────────────────────────────────────
+
 /** Base classes shared by every list row — layout-neutral. */
 const BASE =
   "group w-full cursor-pointer border-b text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]";
 
 /**
- * Shared interactive list row used across Companies, Case Studies, and Methods.
+ * Shared interactive list row used across Companies, Case Studies, Methods,
+ * and Contact links.
  *
  * Owns:
  * - Hover state
@@ -119,36 +159,79 @@ const BASE =
  *
  * Layout (flex direction, alignment, gap) is left to each consumer via
  * `className` or child markup — this keeps the component layout-neutral.
+ *
+ * Pass `href` to render as an `<a>` element instead of `<button>`.
  */
 export function ListRow({
   color,
-  onClick,
   children,
   className = "",
   animated = true,
   density = LIST_ROW_DENSITY.DEFAULT,
   tone = LIST_ROW_TONE.DEFAULT,
+  ...rest
 }: ListRowProps) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const isLink = "href" in rest && rest.href !== undefined;
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const anchorRef = useRef<HTMLAnchorElement>(null);
+  const inView = useInView(isLink ? anchorRef : buttonRef, {
+    once: true,
+    margin: "-40px",
+  });
   const [hovered, setHovered] = useState(false);
   const borderColor = hovered
     ? `color-mix(in srgb, ${color} 31%, transparent)`
     : TONE_BORDER_COLOR[tone];
 
   const sharedProps = {
-    onClick,
     onMouseEnter: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
-    style: {
-      borderColor,
-    },
+    style: { borderColor },
     className: `${BASE} ${DENSITY_CLASS[density]} ${className}`,
   };
 
+  if (isLink) {
+    const { href, onClick, target, rel } = rest as ListRowLinkProps;
+
+    if (!animated) {
+      return (
+        <a
+          ref={anchorRef}
+          href={href}
+          target={target}
+          rel={rel}
+          onClick={onClick}
+          {...sharedProps}>
+          {children({ hovered })}
+        </a>
+      );
+    }
+
+    return (
+      <motion.a
+        ref={anchorRef}
+        href={href}
+        target={target}
+        rel={rel}
+        onClick={onClick}
+        initial={{ opacity: 0, y: 20 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={TRANSITION.base}
+        {...sharedProps}>
+        {children({ hovered })}
+      </motion.a>
+    );
+  }
+
+  const { onClick } = rest as ListRowButtonProps;
+
   if (!animated) {
     return (
-      <button type="button" {...sharedProps}>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={onClick}
+        {...sharedProps}>
         {children({ hovered })}
       </button>
     );
@@ -156,8 +239,9 @@ export function ListRow({
 
   return (
     <motion.button
-      ref={ref}
+      ref={buttonRef}
       type="button"
+      onClick={onClick}
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={TRANSITION.base}

@@ -21,4 +21,7 @@ export const LAYOUT = {
 
   /** Pixels to subtract when scrolling to a section via nav click. */
   navScrollOffset: 80,
+
+  /** Scroll distance (vh) per Methods panel transition. */
+  methodsPanelVh: 45,
 } as const;

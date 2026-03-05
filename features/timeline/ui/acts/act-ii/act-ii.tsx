@@ -47,10 +47,10 @@ export function ActII() {
   }, []);
 
   return (
-    <div id={ACT_ENGINEER} ref={ref} className="relative py-24 sm:py-32">
+    <div id={ACT_ENGINEER} ref={ref} className="relative py-12 sm:py-28">
       <SectionGlow opacity={glowOpacity} color={color} size="lg" />
 
-      <div className="relative z-10 mx-auto max-w-5xl px-6">
+      <div className="relative z-10 mx-auto max-w-5xl px-[var(--page-gutter)]">
         <ActSectionContent {...ACT_II}>
           <FadeIn>
             <MonoLabel label="Companies" className="mb-6" />

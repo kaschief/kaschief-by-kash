@@ -8,6 +8,7 @@ import { Methods } from "@features/methods";
 import { Navigation } from "@features/navigation";
 import { Philosophy } from "@features/philosophy";
 import type { HomePageViewModel } from "../model/get-home-page-view-model";
+import { PageLayout } from "./page-layout";
 
 const Timeline = lazy(async () => {
   const { Timeline: TimelineSection } = await import("@features/timeline");
@@ -20,7 +21,9 @@ interface HomePageClientProps {
 
 function TimelineFallback({ label }: { label: string }) {
   return (
-    <section className="mx-auto w-full max-w-7xl px-6 py-20" aria-live="polite">
+    <section
+      className="mx-auto w-full max-w-7xl px-[var(--page-gutter)] py-20"
+      aria-live="polite">
       <div className="rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)]/60 px-6 py-8">
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--text-dim)]">
           {label}
@@ -44,15 +47,17 @@ export function HomePageClient({ viewModel }: HomePageClientProps) {
     <>
       {enableCustomCursor ? <CursorArrow /> : null}
       <Navigation />
-      <main>
+      <PageLayout>
         <Hero />
         <Philosophy />
         <Suspense fallback={<TimelineFallback label={timelineLoadingLabel} />}>
           <Timeline />
         </Suspense>
+        <div className="mx-auto h-px max-w-5xl bg-gradient-to-r from-transparent via-[var(--stroke)] to-transparent" />
         <Methods />
+        <div className="mx-auto h-px max-w-5xl bg-gradient-to-r from-transparent via-[var(--stroke)] to-transparent" />
         <Contact />
-      </main>
+      </PageLayout>
     </>
   );
 }

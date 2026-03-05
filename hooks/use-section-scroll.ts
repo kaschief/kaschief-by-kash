@@ -15,6 +15,8 @@ interface ScrollYOptions {
 const isSectionId = (value: string): value is SectionId =>
   SECTION_IDS_ORDERED.includes(value as SectionId);
 
+export const NAVIGATION_SCROLL_EVENT = "portfolio:section-nav-scroll";
+
 export function useSectionScroll() {
   const scrollToY = useCallback((top: number, options: ScrollYOptions = {}) => {
     const { behavior = "auto" } = options;
@@ -36,6 +38,13 @@ export function useSectionScroll() {
         history.pushState(null, "", `#${sectionId}`);
       }
 
+      // Dispatch BEFORE measuring so listeners can adjust layout
+      // (e.g. Methods collapses its 300vh container during pass-through).
+      window.dispatchEvent(
+        new CustomEvent(NAVIGATION_SCROLL_EVENT, {
+          detail: { sectionId, behavior },
+        }),
+      );
       const top = el.getBoundingClientRect().top + window.scrollY - offset;
       scrollToY(top, { behavior });
       return true;

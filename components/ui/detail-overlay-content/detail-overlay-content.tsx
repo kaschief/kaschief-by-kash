@@ -18,7 +18,7 @@ export function DetailOverlayContent({
   return (
     <div
       onClick={onClick}
-      className="mx-auto w-full max-w-[1024px] px-5 pt-[10vh] pb-[8.5rem] sm:px-6 sm:pt-[18vh] sm:pb-[10vh]">
+      className="mx-auto w-full max-w-[1024px] px-5 pt-[10vh] pb-[8.5rem] sm:px-8 sm:pt-[18vh] sm:pb-[10vh] md:px-10 lg:px-12">
       {children}
     </div>
   );
