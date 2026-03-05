@@ -5,92 +5,23 @@ import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { StatsGrid } from "@components";
 import { EASE, LAYOUT, TOKENS } from "@utilities";
 
-const { cream, textDim, gold, creamMuted } = TOKENS;
+const { cream, textDim, gold } = TOKENS;
 
-const STATS = [
-  { value: 4, suffix: "", label: "Companies" },
-  { value: 8, suffix: "+", label: "Years in tech" },
-  { value: 5, suffix: "M", label: "Users impacted" },
-] as const;
-
-function Counter({
-  target,
-  suffix,
-  active,
-}: {
-  target: number;
-  suffix: string;
-  active: boolean;
-}) {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!active) return;
-
-    let frame: number;
-    const duration = 1800;
-    const start = performance.now();
-
-    const step = (now: number) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.round(eased * target));
-
-      if (progress < 1) {
-        frame = requestAnimationFrame(step);
-      }
-    };
-
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
-  }, [active, target]);
-
-  return (
-    <>
-      {count}
-      {suffix}
-    </>
-  );
-}
-
-function StatsRow({ stats }: { stats: typeof STATS }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const statsInView = useInView(ref, { once: true, margin: "-40px" });
-
-  return (
-    <div ref={ref} className="inline-flex items-start gap-8 sm:gap-12">
-      {stats.map((stat, i) => (
-        <div
-          key={stat.label}
-          className={i > 0 ? "border-l border-(--stroke) pl-8 sm:pl-12" : ""}>
-          <span
-            className="block font-serif text-2xl tracking-tight sm:text-3xl"
-            style={{ color: cream }}>
-            <Counter
-              target={stat.value}
-              suffix={stat.suffix}
-              active={statsInView}
-            />
-          </span>
-          <span
-            className="mt-1 block font-mono text-[10px] uppercase tracking-[0.2em]"
-            style={{ color: creamMuted }}>
-            {stat.label}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
+const PORTRAIT_STATS = [
+  { value: "4", label: "Companies" },
+  { value: "8+", label: "Years in tech" },
+  { value: "5M+", label: "Users impacted" },
+];
 
 export function Portrait() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const inView = useInView(imageRef, { once: true, margin: "-60px" });
+  const [countersActive, setCountersActive] = useState(false);
 
   // ScrollTrigger pin — replaces manual 150vh wrapper + CSS sticky
   useEffect(() => {
@@ -99,7 +30,7 @@ export function Portrait() {
 
     const vh = window.innerHeight;
     const downDistance = vh * LAYOUT.pinDownVh;
-    const upThreshold = LAYOUT.pinUpVh / LAYOUT.pinDownVh; // progress at which up-scroll releases
+    const upThreshold = LAYOUT.pinUpVh / LAYOUT.pinDownVh;
 
     const trigger = ScrollTrigger.create({
       trigger: el,
@@ -107,8 +38,8 @@ export function Portrait() {
       start: "top top",
       end: `+=${downDistance}`,
       pinSpacing: true,
+      onEnter: () => setCountersActive(true),
       onUpdate: (self) => {
-        // When scrolling up and past the short threshold, jump out of the pin
         if (self.direction === -1 && self.progress > 0 && self.progress < upThreshold) {
           self.scroll(self.start);
         }
@@ -230,7 +161,12 @@ export function Portrait() {
             </p>
 
             {/* Stats row */}
-            <StatsRow stats={STATS} />
+            <StatsGrid
+              stats={PORTRAIT_STATS}
+              color={cream}
+              layout="row"
+              forceActive={countersActive}
+            />
           </motion.div>
         </div>
       </div>
