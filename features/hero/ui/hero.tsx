@@ -111,7 +111,7 @@ export function Hero() {
           <motion.button
             type="button"
             onClick={() => scrollToSection(PORTRAIT)}
-            className="cursor-pointer font-serif text-[clamp(3.5rem,10vw,8rem)] font-normal leading-[0.9] tracking-[-0.02em] text-[var(--cream)] transition-opacity duration-300 hover:opacity-80"
+            className="cursor-pointer font-serif text-[clamp(3.5rem,10vw,8rem)] font-normal leading-[0.9] tracking-[-0.02em] text-[var(--cream)] underline decoration-[var(--gold)]/20 underline-offset-[0.12em] decoration-1 sm:no-underline sm:transition-opacity sm:duration-300 sm:hover:opacity-80"
             animate={{ y: [0, 0, -6, 0] }}
             transition={{ duration: 0.5, delay: 2.2, ease: "easeInOut" }}>
             {nameParts.map((part, i) => (
@@ -151,13 +151,13 @@ export function Hero() {
               <button
                 type="button"
                 onClick={() => scrollToSection(sectionId)}
-                className="group relative cursor-pointer text-xs font-light tracking-wide sm:text-sm md:text-base"
+                className="group relative cursor-pointer px-0.5 py-2 text-xs font-light tracking-wide sm:text-sm md:text-base"
                 style={{ color }}>
                 <span className="transition-opacity duration-200 group-hover:opacity-80">
                   {label}
                 </span>
                 <span
-                  className="absolute -bottom-0.5 left-0 h-px w-0 transition-all duration-300 group-hover:w-full"
+                  className="absolute -bottom-0.5 left-1 right-1 h-px w-0 transition-all duration-300 group-hover:w-[calc(100%-8px)]"
                   style={{ backgroundColor: color, opacity: 0.5 }}
                 />
               </button>

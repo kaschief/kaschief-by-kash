@@ -30,7 +30,7 @@ function MobileNavLink({
         event.preventDefault();
         onNavigate(link.sectionId);
       }}
-      className="cursor-pointer text-left font-mono text-sm font-light uppercase tracking-[0.15em] transition-colors"
+      className="cursor-pointer py-1.5 text-left font-mono text-sm font-light uppercase tracking-[0.15em] transition-colors"
       style={{
         color: resolveNavLinkColor({
           activeSection,
@@ -75,7 +75,7 @@ export function NavigationMobileMenu({
             exit={{ opacity: 0 }}
             transition={{ duration: TRANSITION.fast.duration }}
             onClick={onClose}
-            className="absolute inset-x-0 top-full z-0 h-[calc(100dvh-100%)] md:hidden"
+            className="absolute inset-x-0 top-full z-0 h-[calc(100dvh-100%)] lg:hidden"
             style={{
               backgroundColor: "color-mix(in srgb, var(--bg) 84%, transparent)",
               backdropFilter: "blur(10px) saturate(1.05)",
@@ -88,13 +88,13 @@ export function NavigationMobileMenu({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: TRANSITION.fast.duration }}
-            className="relative z-10 overflow-hidden border-t border-[var(--stroke)] md:hidden"
+            className="relative z-10 overflow-hidden border-t border-[var(--stroke)] lg:hidden"
             style={{
               backgroundColor: "rgba(7, 7, 10, 0.92)",
               backdropFilter: "blur(20px) saturate(1.4)",
               WebkitBackdropFilter: "blur(20px) saturate(1.4)",
             }}>
-            <div className="flex flex-col gap-5 px-6 py-8">
+            <div className="flex flex-col gap-3 px-6 py-8">
               {whoAmINav.map((link, index) => (
                 <MobileNavLink
                   key={link.sectionId}
