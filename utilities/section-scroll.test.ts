@@ -14,16 +14,9 @@ describe("section scroll offsets", () => {
     expect(Object.keys(SECTION_SCROLL_OFFSET)).toHaveLength(2);
   });
 
-  it("scrolls nurse section past top for full-section visibility", () => {
-    const nurseOffset = SECTION_SCROLL_OFFSET[ACT_NURSE];
-    expect(nurseOffset).toBeDefined();
-    // Negative offset = scroll past the section top
-    expect(nurseOffset).toBeLessThan(0);
-  });
-
-  it("scrolls methods section flush with viewport top", () => {
-    const methodsOffset = SECTION_SCROLL_OFFSET[METHODS];
-    expect(methodsOffset).toBe(0);
+  it("scrolls full-viewport sections flush with viewport top", () => {
+    expect(SECTION_SCROLL_OFFSET[ACT_NURSE]).toBe(0);
+    expect(SECTION_SCROLL_OFFSET[METHODS]).toBe(0);
   });
 
   it("only overrides sections that are defined in SECTION_ID", () => {

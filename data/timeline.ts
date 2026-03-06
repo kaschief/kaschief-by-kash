@@ -106,6 +106,16 @@ export interface Company {
   repo: Repo;
 }
 
+export interface ClinicalReadout {
+  label: string;
+  text: string;
+}
+
+export interface ThroughLine {
+  label: string;
+  text: string;
+}
+
 export interface ActINurseContent {
   act: string;
   title: string;
@@ -117,6 +127,10 @@ export interface ActINurseContent {
   detail: string;
   features: NurseFeature[];
   skills: SkillRef[];
+  trainedHeadline: string;
+  readouts: ClinicalReadout[];
+  throughlineHeadline: string;
+  throughlines: ThroughLine[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -130,7 +144,7 @@ export const ACT_I: ActINurseContent = {
   location: "New York, NY",
   color: nurseRole.color,
   takeaway:
-    "The ICU taught me that under pressure, process matters more than heroics. You assess, prioritize, and execute — or people die. That discipline never left me.",
+    "Intensive care taught me how to read a situation fast, stay exact under pressure, and make decisions when the cost of confusion was real.",
   intro:
     "Three years as a critical care nurse at New York University Langone Medical Center — the largest medical complex in the New York. Neuro ICU, Cardiac ICU, ER trauma.",
   detail:
@@ -151,6 +165,37 @@ export const ACT_I: ActINurseContent = {
     { id: "s3", label: "High-Stakes Decisions" },
     { id: "s4", label: "Precision Under Pressure" },
     { id: "s5", label: "Cross-Domain Translation" },
+  ],
+  trainedHeadline: "What that environment trained into me.",
+  readouts: [
+    {
+      label: "Assess",
+      text: "Take in fragmented signals quickly and separate noise from what actually carries risk.",
+    },
+    {
+      label: "Prioritize",
+      text: "Focus attention where the stakes are highest instead of getting lost in everything at once.",
+    },
+    {
+      label: "Communicate",
+      text: "Be direct, accurate, and useful when time, energy, and attention are limited.",
+    },
+    {
+      label: "Act",
+      text: "Move cleanly inside pressure without becoming sloppy, vague, or reactive.",
+    },
+  ],
+  throughlineHeadline:
+    "The ICU was not just a previous career. It was where the operating system began.",
+  throughlines: [
+    {
+      label: "Carryover",
+      text: "The instinct to protect the system, communicate clearly, and respond without panic came from here — long before tech, management, or trading entered the picture.",
+    },
+    {
+      label: "Through-line",
+      text: "Different domains, same pattern — absorb complexity, find the real signal, then make the next step clearer for everyone involved.",
+    },
   ],
 };
 
@@ -303,10 +348,16 @@ export const COMPANIES: Company[] = [
     location: "Berlin",
     period: "Sep 2018 — Oct 2019",
     commits: [
-      { type: "feat", msg: "build React app for medical exam prep (500K+ students)" },
+      {
+        type: "feat",
+        msg: "build React app for medical exam prep (500K+ students)",
+      },
       { type: "test", msg: "run A/B tests on study flow — engagement +20%" },
       { type: "chore", msg: "ship features that take product out of beta" },
-      { type: "collab", msg: "work with Product on user research and feature validation" },
+      {
+        type: "collab",
+        msg: "work with Product on user research and feature validation",
+      },
     ],
     tags: [
       { text: "React", color: ENGINEER_HEX },
@@ -353,10 +404,16 @@ export const COMPANIES: Company[] = [
     location: "Berlin",
     period: "Oct 2019 — Jun 2021",
     commits: [
-      { type: "feat", msg: "build product comparison sites in Vue (chatbots, infinite scroll)" },
+      {
+        type: "feat",
+        msg: "build product comparison sites in Vue (chatbots, infinite scroll)",
+      },
       { type: "perf", msg: "improve page speed by 50%" },
       { type: "fix", msg: "SEO optimizations \u2014 organic traffic +25%" },
-      { type: "collab", msg: "work with Product on acquisition and conversion funnels" },
+      {
+        type: "collab",
+        msg: "work with Product on acquisition and conversion funnels",
+      },
     ],
     tags: [
       { text: "Vue", color: ENGINEER_HEX },
@@ -403,8 +460,14 @@ export const COMPANIES: Company[] = [
     location: "Hamburg",
     period: "Jun 2021 — Oct 2021",
     commits: [
-      { type: "feat", msg: "lead frontend rebuild for fintech platform (10K+ advisors)" },
-      { type: "refactor", msg: "replace struggling legacy app with Vue/TypeScript architecture" },
+      {
+        type: "feat",
+        msg: "lead frontend rebuild for fintech platform (10K+ advisors)",
+      },
+      {
+        type: "refactor",
+        msg: "replace struggling legacy app with Vue/TypeScript architecture",
+      },
       { type: "perf", msg: "cut page load times by 35%" },
     ],
     tags: [
@@ -451,7 +514,10 @@ export const COMPANIES: Company[] = [
     location: "Berlin",
     period: "Oct 2021 — Dec 2024",
     commits: [
-      { type: "refactor", msg: "rebuild frontend of banking app used by 5M people" },
+      {
+        type: "refactor",
+        msg: "rebuild frontend of banking app used by 5M people",
+      },
       { type: "test", msg: "introduce Jest + Playwright testing frameworks" },
       { type: "fix", msg: "reduce production bugs by 30%" },
       { type: "docs", msg: "improve documentation, mentor 3 junior engineers" },
@@ -502,7 +568,14 @@ export const COMPANIES: Company[] = [
         { stat: "15+", label: "team managed", pct: 80 },
         { stat: "\u2192 EM", label: "promoted to manager", pct: 100 },
       ],
-      stack: ["React", "TypeScript", "Playwright", "Jest", "Micro-frontends", "CI/CD"],
+      stack: [
+        "React",
+        "TypeScript",
+        "Playwright",
+        "Jest",
+        "Micro-frontends",
+        "CI/CD",
+      ],
     },
   },
 ];
@@ -567,6 +640,85 @@ export const MGMT_STORIES: ManagementStory[] = [
     text: "Two candidates in the pipeline. HR wanted to close whichever finished first. I pushed back: run both in parallel, give the team a comparison. Delegated code reviews to the engineers who would actually work with the hire. Set a clear timeline: one week for submission, 7-day follow-up. Hired the better candidate, not the faster one.",
   },
 ];
+
+/* ------------------------------------------------------------------ */
+/*  ACT III — The Leader (v2 cinematic)                                */
+/* ------------------------------------------------------------------ */
+
+export interface LeaderScenario {
+  id: string;
+  situation: string;
+  response: string;
+}
+
+export interface LeaderAnnotation {
+  label: string;
+  text: string;
+}
+
+export interface LeaderContent {
+  act: string;
+  title: string;
+  color: string;
+  headline: string;
+  subhead: string;
+  scenarios: LeaderScenario[];
+  annotations: LeaderAnnotation[];
+  proof: string[];
+  closing: string;
+}
+
+export const ACT_III_LEADER: LeaderContent = {
+  act: "ACT III",
+  title: `The ${leaderRole.label}`,
+  color: leaderRole.color,
+  headline:
+    "I turned pressure into clearer decisions, calmer teams, and better outcomes.",
+  subhead:
+    "In high-stakes product environments, I helped teams align faster, narrow the real problem, and keep delivery moving when priorities shifted and confusion started to spread.",
+  scenarios: [
+    {
+      id: "01",
+      situation: "A deployment was drifting into private chats and guesswork.",
+      response:
+        "I pulled readiness into the open, got the real ticket picture on the table, and gave the team one shared view of what could ship.",
+    },
+    {
+      id: "02",
+      situation: "A small feature started turning into a much bigger refactor.",
+      response:
+        "I narrowed scope, protected delivery, and split the broader technical issue into something the team could handle deliberately.",
+    },
+    {
+      id: "03",
+      situation: "A broken merge risked becoming a blame spiral.",
+      response:
+        "I shifted the conversation back to process, test discipline, and learning, so the issue stayed useful instead of corrosive.",
+    },
+  ],
+  annotations: [
+    {
+      label: "What's actually ready",
+      text: "Aligned engineering, product, and stakeholders around what was actually ready, realistic, and worth doing next.",
+    },
+    {
+      label: "When work sprawled",
+      text: "Protected focus when work began to sprawl, and separated urgent delivery from larger systemic fixes.",
+    },
+    {
+      label: "How we talked",
+      text: "Pushed for directness, openness, and constructive feedback over silence, blame, or process confusion.",
+    },
+  ],
+  proof: [
+    "Led and unblocked 15+ engineers across complex product work.",
+    "Worked on systems affecting 5M+ users, where reliability and judgment mattered.",
+    "Managed delivery, communication, recruitment, scope, and team dynamics in parallel.",
+    "Focused on clarity, not theatre — helping teams move with less friction and more trust.",
+  ],
+  closing:
+    "I was at my best where there was ambiguity to resolve, people to align, and systems that needed steadier judgment — not more noise.",
+};
 
 export const ACT_III: ActContent = {
   act: "ACT III",
