@@ -11,7 +11,6 @@ const { glow } = SCROLL_RANGE;
 const {
   act,
   color: COLOR,
-  detail,
   period,
   readouts,
   takeaway,
@@ -215,22 +214,12 @@ function Splash() {
           </motion.div>
 
           <motion.p
-            className="mx-auto mt-5 max-w-lg font-serif text-sm leading-relaxed text-(--cream-muted) sm:mt-10 sm:text-base md:text-xl"
+            className="mx-auto mt-10 max-w-lg font-serif text-sm leading-relaxed text-(--cream-muted) sm:mt-20 sm:text-base md:mt-24 md:text-xl"
             style={{ fontStyle: "italic" }}
             initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.9, delay: 1.1, ease: EASE }}>
             {takeaway}
           </motion.p>
-        </motion.div>
-
-        {/* Detail */}
-        <motion.div
-          className="mx-auto mt-6 max-w-lg text-center sm:mt-14"
-          initial={{ opacity: 0, y: 40 }} animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 1.2, delay: 1.3, ease: EASE }}>
-          <p className="font-sans text-xs font-light leading-loose text-(--cream-muted) sm:text-[13px]">
-            {detail}
-          </p>
         </motion.div>
       </div>
 

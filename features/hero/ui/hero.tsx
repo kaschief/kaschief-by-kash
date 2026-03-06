@@ -3,7 +3,9 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { PERSONAL, ROLES } from "@data";
-import { EASE } from "@utilities";
+import { EASE, SECTION_ID } from "@utilities";
+
+const { PORTRAIT } = SECTION_ID;
 import { useSectionScroll } from "@hooks";
 
 /**
@@ -105,17 +107,24 @@ export function Hero() {
           filter: contentFilter,
         }}>
         {/* Name — word-by-word reveal with subtle 3D rotation */}
-        <h1 className="font-serif text-[clamp(3.5rem,10vw,8rem)] font-normal leading-[0.9] tracking-[-0.02em] text-[var(--cream)]">
-          {nameParts.map((part, i) => (
-            <span key={part}>
-              {i > 0 && " "}
-              <SplitReveal
-                text={part}
-                baseDelay={0.3 + i * 0.15}
-                stagger={0.06}
-              />
-            </span>
-          ))}
+        <h1>
+          <motion.button
+            type="button"
+            onClick={() => scrollToSection(PORTRAIT)}
+            className="cursor-pointer font-serif text-[clamp(3.5rem,10vw,8rem)] font-normal leading-[0.9] tracking-[-0.02em] text-[var(--cream)] transition-opacity duration-300 hover:opacity-80"
+            animate={{ y: [0, 0, -6, 0] }}
+            transition={{ duration: 0.5, delay: 2.2, ease: "easeInOut" }}>
+            {nameParts.map((part, i) => (
+              <span key={part}>
+                {i > 0 && " "}
+                <SplitReveal
+                  text={part}
+                  baseDelay={0.3 + i * 0.15}
+                  stagger={0.06}
+                />
+              </span>
+            ))}
+          </motion.button>
         </h1>
 
         {/* Divider line that grows from center */}
@@ -155,7 +164,9 @@ export function Hero() {
             </motion.span>
           ))}
         </motion.div>
+
       </motion.div>
+
 
     </section>
   );

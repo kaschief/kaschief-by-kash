@@ -99,14 +99,16 @@ export function useSectionScroll() {
       const skipTarget = getPinSkipTarget(currentScroll, finalTarget);
 
       const finish = () => {
+        const finishEasing = (t: number) => 1 - Math.pow(1 - t, 3);
         // Recalculate after potential instant jump (element position may shift)
         const updatedTop = el.getBoundingClientRect().top + window.scrollY;
         const updatedTarget = updatedTop - offset;
         const remainingDist = Math.abs(updatedTarget - lenis.scroll);
-        const duration = Math.min(1.0, Math.max(0.5, remainingDist / 2000));
+        const duration = Math.min(2.2, Math.max(0.8, remainingDist / 1800));
 
         lenis.scrollTo(updatedTarget, {
           duration,
+          easing: finishEasing,
           lock: true,
           force: true,
           onComplete: () => {
@@ -114,6 +116,9 @@ export function useSectionScroll() {
           },
         });
       };
+
+      // Easing: fast start, smooth deceleration
+      const easing = (t: number) => 1 - Math.pow(1 - t, 3);
 
       if (skipTarget !== null) {
         // Phase 1: instant jump past the pin zone
@@ -126,10 +131,11 @@ export function useSectionScroll() {
       } else {
         // No pins in the way — smooth scroll directly
         const distance = Math.abs(finalTarget - currentScroll);
-        const duration = Math.min(1.25, Math.max(0.65, distance / 2600));
+        const duration = Math.min(2.2, Math.max(0.8, distance / 1800));
 
         lenis.scrollTo(finalTarget, {
           duration,
+          easing,
           lock: true,
           force: true,
           onComplete: () => {
@@ -175,6 +181,8 @@ export function useSectionScroll() {
       const currentScroll = lenis.scroll;
       const skipTarget = getPinSkipTarget(currentScroll, 0);
 
+      const topEasing = (t: number) => 1 - Math.pow(1 - t, 3);
+
       if (skipTarget !== null) {
         // Instant jump past pins, then smooth to top
         lenis.scrollTo(skipTarget, {
@@ -183,9 +191,10 @@ export function useSectionScroll() {
         });
         requestAnimationFrame(() => {
           const remaining = lenis.scroll;
-          const duration = Math.min(1.0, Math.max(0.5, remaining / 2000));
+          const duration = Math.min(2.2, Math.max(0.8, remaining / 1800));
           lenis.scrollTo(0, {
             duration,
+            easing: topEasing,
             lock: true,
             force: true,
             onComplete: () => {
@@ -195,9 +204,10 @@ export function useSectionScroll() {
         });
       } else {
         const distance = Math.abs(currentScroll);
-        const duration = Math.min(1.25, Math.max(0.65, distance / 2600));
+        const duration = Math.min(2.2, Math.max(0.8, distance / 1800));
         lenis.scrollTo(0, {
           duration,
+          easing: topEasing,
           lock: true,
           force: true,
           onComplete: () => {
