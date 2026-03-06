@@ -549,45 +549,27 @@ export function ActIIGitLog() {
         className="pointer-events-none absolute inset-0 lg:hidden"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(91,158,194,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(91,158,194,0.06) 1px, transparent 1px)
-          `,
-          backgroundSize: "40px 40px",
-        }}
-      />
-      {/* Grid texture — laptop */}
-      <div
-        className="pointer-events-none absolute inset-0 hidden lg:block xl:hidden"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(91,158,194,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(91,158,194,0.1) 1px, transparent 1px)
+            linear-gradient(rgba(91,158,194,0.12) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(91,158,194,0.12) 1px, transparent 1px)
           `,
           backgroundSize: "50px 50px",
         }}
       />
       {/* Grid texture — desktop */}
       <div
-        className="pointer-events-none absolute inset-0 hidden xl:block"
+        className="pointer-events-none absolute inset-0 hidden lg:block"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(91,158,194,0.13) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(91,158,194,0.13) 1px, transparent 1px)
+            linear-gradient(rgba(91,158,194,0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(91,158,194,0.06) 1px, transparent 1px)
           `,
-          backgroundSize: "60px 60px",
+          backgroundSize: "50px 50px",
         }}
       />
 
-      {/* Grid fade mask — mobile/tablet */}
+      {/* Grid fade mask */}
       <div
-        className="pointer-events-none absolute inset-0 xl:hidden"
-        style={{
-          background: `radial-gradient(ellipse at 50% 40%, transparent 40%, ${SECTION_BG} 85%)`,
-        }}
-      />
-      {/* Grid fade mask — desktop */}
-      <div
-        className="pointer-events-none absolute inset-0 hidden xl:block"
+        className="pointer-events-none absolute inset-0"
         style={{
           background: `radial-gradient(ellipse at 50% 40%, transparent 40%, ${SECTION_BG} 85%)`,
         }}

@@ -30,29 +30,37 @@ function getPinSkipTarget(from: number, to: number): number | null {
   const goingDown = to > from;
   let candidate: number | null = null;
 
-  for (const trigger of ScrollTrigger.getAll()) {
-    if (!trigger.pin) continue;
-
-    const pinStart = trigger.start;
-    const pinEnd = trigger.end;
-
-    // Only care about pins that add significant scroll distance
-    if (pinEnd - pinStart < window.innerHeight * 0.3) continue;
+  const processZone = (pinStart: number, pinEnd: number) => {
+    if (pinEnd - pinStart < window.innerHeight * 0.3) return;
 
     if (goingDown) {
-      // Going down: if we start before pin ends and target is past pin end
       if (from < pinEnd && to >= pinStart) {
         const skip = pinEnd + 2;
         candidate = candidate === null ? skip : Math.max(candidate, skip);
       }
     } else {
-      // Going up: if we start after pin starts and target is before pin start
       if (from > pinStart && to <= pinEnd) {
         const skip = Math.max(0, pinStart - 2);
         candidate = candidate === null ? skip : Math.min(candidate, skip);
       }
     }
+  };
+
+  // GSAP ScrollTrigger pins
+  for (const trigger of ScrollTrigger.getAll()) {
+    if (!trigger.pin) continue;
+    processZone(trigger.start, trigger.end);
   }
+
+  // CSS sticky zones
+  document.querySelectorAll<HTMLElement>("[data-sticky-zone]").forEach((parent) => {
+    const parentRect = parent.getBoundingClientRect();
+    const parentHeight = parentRect.height;
+    if (parentHeight < window.innerHeight * 1.5) return;
+    const pinStart = parentRect.top + window.scrollY;
+    const pinEnd = pinStart + parentHeight;
+    processZone(pinStart, pinEnd);
+  });
 
   return candidate;
 }
@@ -120,7 +128,7 @@ export function useSectionScroll() {
       const easing = (t: number) => 1 - Math.pow(1 - t, 4);
 
       if (skipTarget !== null) {
-        // Phase 1: instant jump past the pin zone
+        // Phase 1: instant jump past all pin/sticky zones
         lenis.scrollTo(skipTarget, {
           immediate: true,
           force: true,
@@ -166,6 +174,12 @@ export function useSectionScroll() {
       if (updateHistory) {
         history.pushState(null, "", "/");
       }
+
+      window.dispatchEvent(
+        new CustomEvent(NAVIGATION_SCROLL_EVENT, {
+          detail: { sectionId: "portrait" },
+        }),
+      );
 
       const { startNavigation, endNavigation } = useNavStore.getState();
       startNavigation("portrait" as SectionId);

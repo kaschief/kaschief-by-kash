@@ -95,8 +95,8 @@ export function ActIIITitle() {
               fontFamily: "var(--font-serif)",
               fontStyle: "italic",
             }}>
-            &ldquo;Leading people turned out to be the hardest kind of
-            debugging. And the most rewarding.&rdquo;
+            Leading people turned out to be the hardest kind of
+            debugging. And the most rewarding.
           </p>
         </FadeUp>
       </motion.div>
