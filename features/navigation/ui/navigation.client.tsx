@@ -381,7 +381,7 @@ export function Navigation() {
             {/* Name — outside the pill, standalone */}
             <button
               onClick={() => scrollToTop()}
-              className="group cursor-pointer font-serif text-[17px] tracking-[-0.01em] transition-all duration-200 hover:opacity-70"
+              className="group cursor-pointer font-serif text-[21px] tracking-[-0.01em] transition-all duration-200 hover:opacity-70"
               style={{ color: "var(--cream)" }}>
               <span className="relative">
                 {name}

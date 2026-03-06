@@ -50,7 +50,9 @@ function Splash() {
             initial={{ y: "110%" }}
             animate={inView ? { y: 0 } : {}}
             transition={{ duration: 0.8, ease: EASE }}>
-            {headline}
+            {headline.split(" ").map((word: string, i: number) => (
+              <span key={i} className="block">{word}</span>
+            ))}
           </motion.h2>
         </div>
 
