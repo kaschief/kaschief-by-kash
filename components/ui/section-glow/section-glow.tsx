@@ -29,7 +29,7 @@ export function SectionGlow({
     return (
       <motion.div
         className="pointer-events-none absolute inset-0 overflow-hidden"
-        style={{ opacity }}>
+        style={{ opacity, willChange: "opacity" }}>
         {inner}
       </motion.div>
     );

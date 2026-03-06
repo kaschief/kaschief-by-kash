@@ -52,10 +52,10 @@ html.lenis body {
   --stroke: #16161e;
   --stroke-hover: #c9a84c33;
 
-  --act-red: #e05252;
-  --act-blue: #5b9ec2;
-  --act-gold: #c9a84c;
-  --act-green: #5ebb73;
+  --act-red: #ef4444;
+  --act-blue: #60a5fa;
+  --act-gold: #e0b84a;
+  --act-green: #4ade80;
 
   --cursor-highlight: #f5e080;
   --cursor-shadow: #5c4015;
@@ -133,6 +133,7 @@ html[data-font-pack="default"] {
   --font-role-contact-mono: var(--font-jetbrains-mono), monospace;
 }
 
+/* --- FONT PACKS COMMENTED OUT ---
 html[data-font-pack="editorial-noir"] {
   --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
   --font-serif: var(--font-newsreader), Georgia, serif;
@@ -416,6 +417,7 @@ html[data-font-pack="night-signal"] {
   --font-role-methods-sans: var(--font-urbanist), system-ui, sans-serif;
   --font-role-contact-serif: var(--font-cormorant-garamond), Georgia, serif;
 }
+--- END FONT PACKS COMMENTED OUT --- */
 
 /* Section-level font overrides so each area can have a distinct voice. */
 [data-typo="nav"] {

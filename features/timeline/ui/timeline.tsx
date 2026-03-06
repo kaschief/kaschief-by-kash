@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ActI, ActIIGitLog, ActIII, ActIV } from "./acts";
+import { ActI, ActIIGitLog, /* ActIII, */ ActIIILeader, ActIV } from "./acts";
 import { TradingArsenal } from "./trading-system";
-import { useScrollDecel } from "@hooks";
 import { SECTION_ID } from "@utilities";
 
-const { ACT_BUILDER, ACT_NURSE, ACT_ENGINEER } = SECTION_ID;
+const { ACT_BUILDER } = SECTION_ID;
 
 // Hex needed for gradient alpha interpolation (CSS vars can't append alpha)
 const GOLD_HEX = "#C9A84C";
@@ -54,22 +53,19 @@ function ActTransition({ children }: { children: React.ReactNode }) {
 }
 
 export function Timeline() {
-  const decelSections = useMemo(() => [ACT_NURSE, ACT_ENGINEER], []);
-  useScrollDecel(decelSections);
-
   return (
     <section id="journey" className="relative">
-      <ActTransition>
-        <ActI />
-      </ActTransition>
+      <ActI />
       <ActTransition>
         <ActIIGitLog />
       </ActTransition>
       <ScrollDivider />
-      <ActTransition>
+      <ActIIILeader />
+      <ScrollDivider />
+      {/* <ActTransition>
         <ActIII />
       </ActTransition>
-      <ScrollDivider />
+      <ScrollDivider /> */}
       <ActTransition>
         <section id={ACT_BUILDER}>
           <ActIV />

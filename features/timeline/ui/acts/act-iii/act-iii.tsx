@@ -18,14 +18,12 @@ import {
   CSS_EASE,
   GLOW_OPACITY,
   SCROLL_RANGE,
-  SECTION_ID,
   TOKENS,
 } from "@utilities";
 import { ActSectionContent } from "../act-section-content";
 import type { CaseStudyCardProps, StoryDetailOverlayProps } from "./act-iii.types";
 
 const { cream, fontMono, fontSerif, textDim } = TOKENS;
-const { ACT_LEADER } = SECTION_ID;
 const { glow } = SCROLL_RANGE;
 const { act, color } = ACT_III;
 
@@ -145,7 +143,7 @@ export function ActIII() {
   const glowOpacity = useTransform(scrollYProgress, glow, GLOW_OPACITY);
 
   return (
-    <div id={ACT_LEADER} ref={ref} className="relative py-12 sm:py-28">
+    <div ref={ref} className="relative py-12 sm:py-28">
       <SectionGlow opacity={glowOpacity} color={color} size="lg" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-[var(--page-gutter)]">

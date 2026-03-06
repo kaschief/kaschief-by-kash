@@ -9,6 +9,6 @@ export const DEFAULT_SCROLL_OFFSET = navScrollOffset;
 
 /** Per-section scroll offsets. 0 = flush with viewport top. */
 export const SECTION_SCROLL_OFFSET: Partial<Record<SectionId, number>> = {
-  [ACT_NURSE]: -60,
+  [ACT_NURSE]: 0,
   [METHODS]: 0,
 };
