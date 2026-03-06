@@ -2,12 +2,13 @@ import { LAYOUT } from "./constants";
 import { SECTION_ID, type SectionId } from "./sections";
 
 const { navScrollOffset } = LAYOUT;
-const { METHODS } = SECTION_ID;
+const { ACT_NURSE, METHODS } = SECTION_ID;
 
 /** Offset applied when scrolling to a section via nav click. */
 export const DEFAULT_SCROLL_OFFSET = navScrollOffset;
 
-/** Per-section scroll offsets. Methods uses 0 so it lands flush for sticky scroll. */
+/** Per-section scroll offsets. 0 = flush with viewport top. */
 export const SECTION_SCROLL_OFFSET: Partial<Record<SectionId, number>> = {
+  [ACT_NURSE]: -60,
   [METHODS]: 0,
 };

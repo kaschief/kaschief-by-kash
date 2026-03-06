@@ -47,6 +47,7 @@ function MobileNavLink({
 interface NavigationMobileMenuProps {
   mobileOpen: boolean;
   activeSection: SectionId | "";
+  whoAmINav: readonly NavLink[];
   actNav: readonly NavLink[];
   sectionNav: readonly NavLink[];
   onNavigate: (sectionId: SectionId) => void;
@@ -56,6 +57,7 @@ interface NavigationMobileMenuProps {
 export function NavigationMobileMenu({
   mobileOpen,
   activeSection,
+  whoAmINav,
   actNav,
   sectionNav,
   onNavigate,
@@ -86,9 +88,14 @@ export function NavigationMobileMenu({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: TRANSITION.fast.duration }}
-            className="relative z-10 overflow-hidden border-t border-[var(--stroke)] md:hidden">
+            className="relative z-10 overflow-hidden border-t border-[var(--stroke)] md:hidden"
+            style={{
+              backgroundColor: "rgba(7, 7, 10, 0.92)",
+              backdropFilter: "blur(20px) saturate(1.4)",
+              WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+            }}>
             <div className="flex flex-col gap-5 px-6 py-8">
-              {actNav.map((link, index) => (
+              {whoAmINav.map((link, index) => (
                 <MobileNavLink
                   key={link.sectionId}
                   link={link}
@@ -100,12 +107,24 @@ export function NavigationMobileMenu({
 
               <div className="h-px bg-[var(--stroke)]" />
 
+              {actNav.map((link, index) => (
+                <MobileNavLink
+                  key={link.sectionId}
+                  link={link}
+                  activeSection={activeSection}
+                  index={whoAmINav.length + index}
+                  onNavigate={onNavigate}
+                />
+              ))}
+
+              <div className="h-px bg-[var(--stroke)]" />
+
               {sectionNav.map((link, index) => (
                 <MobileNavLink
                   key={link.sectionId}
                   link={link}
                   activeSection={activeSection}
-                  index={actNav.length + index}
+                  index={whoAmINav.length + actNav.length + index}
                   onNavigate={onNavigate}
                 />
               ))}

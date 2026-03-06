@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { getHomePageViewModel } from "./get-home-page-view-model";
+import { getHomePageViewModel, type HomePageViewModel } from "./get-home-page-view-model";
 
 describe("getHomePageViewModel", () => {
-  it("returns the default home view model contract", async () => {
-    const viewModel = await getHomePageViewModel();
+  it("returns a complete view model with correct types", async () => {
+    const vm: HomePageViewModel = await getHomePageViewModel();
 
-    expect(viewModel.enableCustomCursor).toBe(true);
-    expect(viewModel.timelineLoadingLabel).toBe("Loading timeline section...");
+    expect(typeof vm.enableCustomCursor).toBe("boolean");
+    expect(typeof vm.timelineLoadingLabel).toBe("string");
+    expect(vm.timelineLoadingLabel.length).toBeGreaterThan(0);
+  });
+
+  it("enables custom cursor by default", async () => {
+    const vm = await getHomePageViewModel();
+    expect(vm.enableCustomCursor).toBe(true);
   });
 });

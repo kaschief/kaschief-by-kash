@@ -86,6 +86,14 @@ function AnimatedValue({
   );
 }
 
+/**
+ * Row mode reads the --ps (portrait scale) CSS variable from its parent.
+ * If present, all sizing is a multiple of --ps (1svh), making the stats
+ * scale identically to the rest of the portrait section.
+ * Falls back to reasonable defaults when used outside portrait.
+ */
+const PS = (n: number) => `calc(${n} * var(--ps, 1vh))`;
+
 export function StatsGrid({
   stats,
   color = gold,
@@ -103,31 +111,32 @@ export function StatsGrid({
       ref={ref}
       className={
         isRow
-          ? "flex flex-wrap items-start justify-center gap-8 sm:gap-14"
+          ? "flex flex-wrap items-start justify-center"
           : "grid grid-cols-2 gap-x-8 gap-y-6 lg:grid-cols-1 lg:gap-y-8"
-      }>
+      }
+      style={isRow ? { gap: PS(3) } : undefined}>
       {stats.map((stat, i) => (
         <motion.div
           key={stat.label}
-          className=""
           initial={{ opacity: 0, y: 12 }}
           animate={active ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, ease: EASE, delay: i * 0.1 }}>
           <p
             className={
               isRow
-                ? "font-serif text-2xl tracking-tight sm:text-3xl"
+                ? "font-serif tracking-tight"
                 : "font-serif text-3xl"
             }
-            style={{ color }}>
+            style={isRow ? { color, fontSize: PS(2.8) } : { color }}>
             <AnimatedValue value={stat.value} active={active} color={color} />
           </p>
           <p
             className={
               isRow
-                ? "mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--cream-muted)]"
+                ? "font-mono uppercase tracking-[0.2em] text-[var(--cream-muted)]"
                 : "mt-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]"
-            }>
+            }
+            style={isRow ? { fontSize: PS(1.1), marginTop: PS(0.3) } : undefined}>
             {stat.label}
           </p>
         </motion.div>

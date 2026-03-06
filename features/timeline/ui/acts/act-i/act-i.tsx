@@ -241,7 +241,7 @@ export function ActI() {
 
             <div className="overflow-hidden">
               <motion.h2
-                className="relative z-1 font-sans text-4xl font-black uppercase leading-[0.85] tracking-[-0.02em] text-[var(--cream)] sm:text-6xl md:text-8xl lg:text-[140px] lg:tracking-[-0.04em] xl:tracking-[-0.05em]"
+                className="relative z-1 font-sans text-4xl font-black uppercase leading-[0.85] tracking-[-0.02em] text-(--cream) sm:text-6xl md:text-8xl lg:text-[140px] lg:tracking-[-0.04em] xl:tracking-[-0.05em]"
                 initial={{ y: "110%" }}
                 animate={inView ? { y: 0 } : {}}
                 transition={{ duration: 0.8, delay: 0.4, ease: EASE }}>

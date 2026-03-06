@@ -1,14 +1,25 @@
 export function HomePageFallback() {
   return (
-    <main className="mx-auto flex min-h-[60vh] w-full max-w-7xl items-center justify-center px-6 py-20">
-      <div className="w-full max-w-xl rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)]/60 px-6 py-8 text-center">
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--text-dim)]">
-          Loading Portfolio
-        </p>
-        <p className="mt-3 text-sm text-[var(--cream-muted)]">
-          Preparing sections and interaction modules.
-        </p>
+    <div
+      className="fixed inset-0 flex items-center justify-center"
+      style={{ backgroundColor: "var(--bg)" }}>
+      <div className="flex flex-col items-center gap-6">
+        {/* Pulsing initials mark */}
+        <span
+          className="animate-pulse font-serif text-2xl tracking-[0.3em]"
+          style={{ color: "var(--gold-dim)" }}>
+          KS
+        </span>
+        {/* Minimal loading bar */}
+        <div
+          className="h-px w-24 overflow-hidden rounded-full"
+          style={{ backgroundColor: "var(--stroke)" }}>
+          <div
+            className="h-full w-full origin-left animate-[shimmer_1.5s_ease-in-out_infinite] rounded-full"
+            style={{ backgroundColor: "var(--gold-dim)" }}
+          />
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
