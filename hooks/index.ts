@@ -4,4 +4,5 @@ export { LenisProvider, useLenis } from "./use-lenis";
 export { useMediaQuery } from "./use-media-query";
 export { useNavStore } from "./use-nav-store";
 export { usePreserveScrollAnchor } from "./use-preserve-scroll-anchor";
+export { useScrollDecel } from "./use-scroll-decel";
 export { NAVIGATION_SCROLL_EVENT, useSectionScroll } from "./use-section-scroll";

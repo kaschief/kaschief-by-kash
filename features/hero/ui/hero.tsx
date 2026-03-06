@@ -10,6 +10,24 @@ import { useSectionScroll } from "@hooks";
  * Split text into words, each wrapped in an overflow-hidden span
  * so each word can reveal independently with a y-clip effect.
  */
+function WordReveal({
+  word,
+  delay,
+}: {
+  word: string;
+  delay: number;
+}) {
+  return (
+    <motion.span
+      className="inline-block"
+      initial={{ y: "100%", opacity: 0 }}
+      animate={{ y: "0%", opacity: 1 }}
+      transition={{ duration: 0.8, delay, ease: EASE }}>
+      {word}
+    </motion.span>
+  );
+}
+
 function SplitReveal({
   text,
   baseDelay,
@@ -27,18 +45,8 @@ function SplitReveal({
   return (
     <span className={className} style={style}>
       {words.map((word, i) => (
-        <span key={i} className="inline-block overflow-hidden">
-          <motion.span
-            className="inline-block"
-            initial={{ y: "110%", rotateX: 40, opacity: 0 }}
-            animate={{ y: "0%", rotateX: 0, opacity: 1 }}
-            transition={{
-              duration: 0.8,
-              delay: baseDelay + i * stagger,
-              ease: EASE,
-            }}>
-            {word}
-          </motion.span>
+        <span key={i}>
+          <WordReveal word={word} delay={baseDelay + i * stagger} />
           {i < words.length - 1 && "\u00A0"}
         </span>
       ))}
@@ -90,7 +98,7 @@ export function Hero() {
 
       {/* Main content */}
       <motion.div
-        className="relative z-10 mx-auto max-w-4xl px-[var(--page-gutter)] text-center"
+        className="relative z-10 mx-auto max-w-5xl px-[var(--page-gutter)] text-center"
         style={{
           y: contentY,
           opacity: contentOpacity,
@@ -134,7 +142,7 @@ export function Hero() {
               <button
                 type="button"
                 onClick={() => scrollToSection(sectionId)}
-                className="group relative cursor-pointer text-sm font-light tracking-wide sm:text-base"
+                className="group relative cursor-pointer text-xs font-light tracking-wide sm:text-sm md:text-base"
                 style={{ color }}>
                 <span className="transition-opacity duration-200 group-hover:opacity-80">
                   {label}

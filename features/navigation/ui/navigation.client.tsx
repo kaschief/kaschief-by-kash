@@ -470,6 +470,7 @@ export function Navigation() {
             <NavigationMobileMenu
               mobileOpen={mobileOpen}
               activeSection={currentActiveSection}
+              whoAmINav={WHO_AM_I_NAV}
               actNav={ACT_NAV}
               sectionNav={SECTION_NAV}
               onNavigate={handleSectionClick}

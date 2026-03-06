@@ -9,8 +9,7 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import { ACT_II, COMPANIES } from "@data";
-import type { Company, ImpactMetric } from "@data";
+import { ACT_II, COMPANIES, type Company, type ImpactMetric } from "@data";
 
 import {
   EASE,
@@ -19,6 +18,7 @@ import {
   SECTION_ID,
   Z_INDEX,
 } from "@utilities";
+import { NAVIGATION_SCROLL_EVENT } from "@hooks";
 
 /* ── Constants ── */
 
@@ -195,7 +195,7 @@ function ReadmeContent({ lines }: { lines: string[] }) {
           return (
             <h2
               key={i}
-              className="mb-3 border-b border-[var(--stroke)] pb-2 text-xl font-semibold text-[var(--cream)]"
+              className="mb-3 border-b border-[var(--stroke)] pb-2 text-base font-semibold text-[var(--cream)] md:text-xl"
               style={{ marginTop: i > 0 ? 8 : 0 }}>
               {line.replace("## ", "")}
             </h2>
@@ -204,7 +204,7 @@ function ReadmeContent({ lines }: { lines: string[] }) {
           return (
             <h3
               key={i}
-              className="mb-2 mt-4 text-[15px] font-semibold text-[var(--cream)]">
+              className="mb-2 mt-4 text-[13px] font-semibold text-[var(--cream)] md:text-[15px]">
               {line.replace("### ", "")}
             </h3>
           );
@@ -213,7 +213,7 @@ function ReadmeContent({ lines }: { lines: string[] }) {
           return (
             <p
               key={i}
-              className="mb-2 text-[13px] leading-[1.8] text-[var(--cream-muted)]">
+              className="mb-2 text-[11px] leading-[1.8] text-[var(--cream-muted)] sm:text-[12px] md:text-[13px]">
               <strong className="text-[var(--cream)]">{parts[1]}</strong>
               {parts[2]}
             </p>
@@ -222,7 +222,7 @@ function ReadmeContent({ lines }: { lines: string[] }) {
         return (
           <p
             key={i}
-            className="mb-2 text-[13px] leading-[1.8] text-[var(--cream-muted)]">
+            className="mb-2 text-[11px] leading-[1.8] text-[var(--cream-muted)] sm:text-[12px] md:text-[13px]">
             {line}
           </p>
         );
@@ -293,7 +293,7 @@ function RepoPanel({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.4, ease: EASE }}
-        className="mx-auto cursor-auto px-6 pt-16 pb-20 sm:pt-20"
+        className="mx-auto cursor-auto px-6 pt-24 pb-20 sm:pt-28"
         style={{ maxWidth: 860 }}
         onClick={(e) => e.stopPropagation()}>
 
@@ -316,11 +316,11 @@ function RepoPanel({
               aria-hidden="true">
               <path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1h-8a1 1 0 00-1 1v6.708A2.486 2.486 0 014.5 9h8V1.5z" />
             </svg>
-            <span className="font-mono text-sm" style={{ color: COLOR }}>
+            <span className="font-mono text-xs sm:text-sm" style={{ color: COLOR }}>
               {r.org}
             </span>
             <span className="text-[var(--text-faint)]">/</span>
-            <span className="font-mono text-sm font-bold text-[var(--cream)]">
+            <span className="font-mono text-xs font-bold text-[var(--cream)] sm:text-sm">
               {r.name}
             </span>
           </button>
@@ -367,7 +367,7 @@ function RepoPanel({
         </div>
 
         {/* Description */}
-        <p className="mb-7 max-w-[700px] text-sm leading-[1.7] text-[var(--cream-muted)]">
+        <p className="mb-7 max-w-[700px] text-[11px] leading-[1.7] text-[var(--cream-muted)] sm:text-[12px] md:text-sm">
           {r.description}
         </p>
 
@@ -471,7 +471,7 @@ function CommitEntry({
       </div>
 
       {/* Company */}
-      <div className="text-base font-bold text-[var(--cream)] transition-colors duration-200 group-hover:text-[#5B9EC2] sm:text-lg">
+      <div className="text-sm font-bold text-[var(--cream)] transition-colors duration-200 group-hover:text-[#5B9EC2] sm:text-base lg:text-lg">
         {company.company}
         <span
           className="ml-2 font-mono text-[11px] text-[var(--text-faint)] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
@@ -493,7 +493,7 @@ function CommitEntry({
       {/* Commit messages */}
       <ul className="mt-3 flex list-none flex-col gap-1.5" aria-label="Commits">
         {company.commits.map((commit, i) => (
-          <li key={i} className="font-mono text-[12px] leading-[1.7]">
+          <li key={i} className="font-mono text-[10px] leading-[1.7] sm:text-[11px] md:text-[12px]">
             <span
               style={{ color: COMMIT_TYPE_COLORS[commit.type] || "#4A4640" }}>
               {commit.type}
@@ -538,6 +538,13 @@ export function ActIIGitLog() {
 
   const handleClose = useCallback(() => setSelectedCompany(null), []);
 
+  // Close repo panel when user navigates via nav bar
+  useEffect(() => {
+    const close = () => setSelectedCompany(null);
+    window.addEventListener(NAVIGATION_SCROLL_EVENT, close);
+    return () => window.removeEventListener(NAVIGATION_SCROLL_EVENT, close);
+  }, []);
+
   return (
     <div
       id={ACT_ENGINEER}
@@ -546,13 +553,24 @@ export function ActIIGitLog() {
       style={{ backgroundColor: SECTION_BG }}>
       {/* Grid texture — mobile/tablet */}
       <div
-        className="pointer-events-none absolute inset-0 xl:hidden"
+        className="pointer-events-none absolute inset-0 lg:hidden"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(91,158,194,0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(91,158,194,0.06) 1px, transparent 1px)
+          `,
+          backgroundSize: "40px 40px",
+        }}
+      />
+      {/* Grid texture — laptop */}
+      <div
+        className="pointer-events-none absolute inset-0 hidden lg:block xl:hidden"
         style={{
           backgroundImage: `
             linear-gradient(rgba(91,158,194,0.1) 1px, transparent 1px),
             linear-gradient(90deg, rgba(91,158,194,0.1) 1px, transparent 1px)
           `,
-          backgroundSize: "40px 40px",
+          backgroundSize: "50px 50px",
         }}
       />
       {/* Grid texture — desktop */}
@@ -560,8 +578,8 @@ export function ActIIGitLog() {
         className="pointer-events-none absolute inset-0 hidden xl:block"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(91,158,194,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(91,158,194,0.03) 1px, transparent 1px)
+            linear-gradient(rgba(91,158,194,0.13) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(91,158,194,0.13) 1px, transparent 1px)
           `,
           backgroundSize: "60px 60px",
         }}
@@ -578,7 +596,7 @@ export function ActIIGitLog() {
       <div
         className="pointer-events-none absolute inset-0 hidden xl:block"
         style={{
-          background: `radial-gradient(ellipse at 50% 40%, transparent 30%, ${SECTION_BG} 75%)`,
+          background: `radial-gradient(ellipse at 50% 40%, transparent 40%, ${SECTION_BG} 85%)`,
         }}
       />
 
@@ -661,10 +679,10 @@ export function ActIIGitLog() {
               intervalMs={70}
             />
           </h2>
-          <p className="mx-auto mt-6 max-w-[500px] font-serif text-xs leading-relaxed text-[var(--cream-muted)] italic sm:text-base md:text-lg">
+          <p className="mx-auto mt-6 max-w-[500px] font-serif text-[11px] leading-relaxed text-[var(--cream-muted)] italic sm:text-xs md:text-base lg:text-lg">
             &ldquo;{lead}&rdquo;
           </p>
-          <p className="mx-auto mt-5 max-w-[640px] text-[13px] leading-[1.8] text-[var(--text-dim)] sm:mt-6 sm:text-[15px]">
+          <p className="mx-auto mt-5 max-w-[640px] text-[11px] leading-[1.7] text-[var(--text-dim)] sm:text-[12px] sm:mt-6 md:text-[13px] lg:text-[15px]">
             {body}
           </p>
         </motion.div>
@@ -686,7 +704,7 @@ export function ActIIGitLog() {
 
         {/* Terminal body */}
         <motion.div
-          className="rounded-b-lg border border-[var(--stroke)] p-6 sm:p-8"
+          className="rounded-b-lg border border-[var(--stroke)] p-4 sm:p-5 md:p-6 lg:p-8"
           style={{ backgroundColor: TERMINAL_BG }}
           initial={{ opacity: 0, y: -10 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}

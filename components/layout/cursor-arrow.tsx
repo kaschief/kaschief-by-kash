@@ -62,12 +62,14 @@ export function CursorArrow() {
       if (next === isPointer) return;
       isPointer = next;
       if (dot) {
-        dot.style.width = isPointer ? "8px" : "32px";
-        dot.style.height = isPointer ? "8px" : "32px";
+        dot.style.width = isPointer ? "12px" : "32px";
+        dot.style.height = isPointer ? "12px" : "32px";
         dot.style.backgroundColor = isPointer ? GOLD_HEX : "transparent";
-        dot.style.borderColor = isPointer ? "transparent" : `${GOLD_HEX}60`;
-        dot.style.borderWidth = isPointer ? "0px" : "1px";
-        dot.style.mixBlendMode = isPointer ? "normal" : "normal";
+        dot.style.borderColor = isPointer ? "transparent" : `${GOLD_HEX}CC`;
+        dot.style.borderWidth = isPointer ? "0px" : "2px";
+        dot.style.boxShadow = isPointer
+          ? "none"
+          : `0 0 8px ${GOLD_HEX}30`;
       }
     };
 
@@ -119,10 +121,11 @@ export function CursorArrow() {
           height: 32,
           borderRadius: "50%",
           backgroundColor: "transparent",
-          borderColor: `${GOLD_HEX}60`,
-          borderWidth: 1,
+          borderColor: `${GOLD_HEX}CC`,
+          borderWidth: 2,
           borderStyle: "solid",
-          transition: "width 0.3s cubic-bezier(0.22,1,0.36,1), height 0.3s cubic-bezier(0.22,1,0.36,1), background-color 0.3s ease, border-color 0.3s ease, border-width 0.3s ease, mix-blend-mode 0.2s ease",
+          boxShadow: `0 0 8px ${GOLD_HEX}30`,
+          transition: "width 0.3s cubic-bezier(0.22,1,0.36,1), height 0.3s cubic-bezier(0.22,1,0.36,1), background-color 0.3s ease, border-color 0.3s ease, border-width 0.3s ease, box-shadow 0.3s ease",
         }}
       />
     </div>

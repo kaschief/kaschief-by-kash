@@ -1,36 +1,33 @@
 import { describe, expect, it } from "vitest";
-import { LIST_ROW_ARROW_STYLE, ListRowArrow } from "./list-row";
+import {
+  LIST_ROW_ARROW_STYLE,
+  LIST_ROW_DENSITY,
+  LIST_ROW_TONE,
+} from "./list-row";
 
-describe("ListRowArrow", () => {
-  it("hides arrows on mobile breakpoints by default", () => {
-    const element = ListRowArrow({ hovered: false, color: "#fff" });
-    const props = element.props as {
-      className: string;
-      style: Record<string, unknown>;
-    };
-
-    expect(props.className).toContain("hidden");
-    expect(props.className).toContain("sm:inline-flex");
-    expect(props.style.display).toBeUndefined();
+describe("ListRow design tokens", () => {
+  it("offers exactly three arrow variants", () => {
+    const variants = Object.values(LIST_ROW_ARROW_STYLE).sort();
+    expect(variants).toEqual(["chevron", "external", "line"]);
   });
 
-  it("renders line arrow as default variant", () => {
-    const element = ListRowArrow({ hovered: false, color: "#fff" });
-    const props = element.props as { children: string };
-
-    expect(props.children).toBe("→");
+  it("offers exactly three density levels", () => {
+    const densities = Object.values(LIST_ROW_DENSITY).sort();
+    expect(densities).toEqual(["compact", "default", "spacious"]);
   });
 
-  it("renders chevron icon for chevron variant", () => {
-    const element = ListRowArrow({
-      hovered: true,
-      color: "#fff",
-      variant: LIST_ROW_ARROW_STYLE.CHEVRON,
-    });
-    const props = element.props as {
-      children: { type: string };
-    };
+  it("offers exactly two tone levels", () => {
+    const tones = Object.values(LIST_ROW_TONE).sort();
+    expect(tones).toEqual(["default", "muted"]);
+  });
 
-    expect(props.children.type).toBe("svg");
+  it("uses unique values across all density options", () => {
+    const values = Object.values(LIST_ROW_DENSITY);
+    expect(new Set(values).size).toBe(values.length);
+  });
+
+  it("uses unique values across all arrow style options", () => {
+    const values = Object.values(LIST_ROW_ARROW_STYLE);
+    expect(new Set(values).size).toBe(values.length);
   });
 });

@@ -577,6 +577,22 @@ html[data-custom-cursor="on"] *::after {
   color: var(--cream);
 }
 
+/* Shimmer bar for loading fallback */
+@keyframes shimmer {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+}
+
 /* Film grain overlay — subtle texture for cinematic depth */
 @keyframes grain-shift {
   0%,
