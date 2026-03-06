@@ -241,7 +241,7 @@ export function ActIIILeader() {
   const glowOpacity = useTransform(scrollYProgress, glow, GLOW_OPACITY);
 
   return (
-    <div id={ACT_LEADER} ref={ref} className="relative">
+    <div id={ACT_LEADER} ref={ref} className="relative" style={{ backgroundColor: "#0A0A0F" }}>
       <ActIIITitle />
 
       <SectionGlow opacity={glowOpacity} color={COLOR} size="lg" />
