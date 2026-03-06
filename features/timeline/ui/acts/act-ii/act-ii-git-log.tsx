@@ -188,14 +188,14 @@ function ImpactStats({
 
 function ReadmeContent({ lines }: { lines: string[] }) {
   return (
-    <div className="px-6 py-6">
+    <div className="px-4 py-4 sm:px-6 sm:py-6">
       {lines.map((line, i) => {
         if (line === "") return <div key={i} className="h-3" />;
         if (line.startsWith("## "))
           return (
             <h2
               key={i}
-              className="mb-3 border-b border-[var(--stroke)] pb-2 text-base font-semibold text-[var(--cream)] md:text-xl"
+              className="mb-3 border-b border-[var(--stroke)] pb-2 text-lg font-semibold text-[var(--cream)] md:text-xl"
               style={{ marginTop: i > 0 ? 8 : 0 }}>
               {line.replace("## ", "")}
             </h2>
@@ -204,7 +204,7 @@ function ReadmeContent({ lines }: { lines: string[] }) {
           return (
             <h3
               key={i}
-              className="mb-2 mt-4 text-[13px] font-semibold text-[var(--cream)] md:text-[15px]">
+              className="mb-2 mt-4 text-sm font-semibold text-[var(--cream)] md:text-base">
               {line.replace("### ", "")}
             </h3>
           );
@@ -213,7 +213,7 @@ function ReadmeContent({ lines }: { lines: string[] }) {
           return (
             <p
               key={i}
-              className="mb-2 text-[11px] leading-[1.8] text-[var(--cream-muted)] sm:text-[12px] md:text-[13px]">
+              className="mb-2 text-[12px] leading-[1.8] text-[var(--cream-muted)] sm:text-[13px]">
               <strong className="text-[var(--cream)]">{parts[1]}</strong>
               {parts[2]}
             </p>
@@ -222,7 +222,7 @@ function ReadmeContent({ lines }: { lines: string[] }) {
         return (
           <p
             key={i}
-            className="mb-2 text-[11px] leading-[1.8] text-[var(--cream-muted)] sm:text-[12px] md:text-[13px]">
+            className="mb-2 text-[12px] leading-[1.8] text-[var(--cream-muted)] sm:text-[13px]">
             {line}
           </p>
         );
@@ -293,44 +293,43 @@ function RepoPanel({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.4, ease: EASE }}
-        className="mx-auto cursor-auto px-6 pt-24 pb-20 sm:pt-28"
+        className="mx-auto cursor-auto px-6 pt-4 pb-20"
         style={{ maxWidth: 860 }}
         onClick={(e) => e.stopPropagation()}>
 
-        {/* Top bar */}
+        {/* Top bar — sticky; pt absorbs space behind the nav so content scrolls under it */}
         <nav
-          className="mb-6 flex items-center justify-between pb-4"
-          style={{ borderBottom: `1px solid ${PANEL_BORDER}` }}
+          className="sticky top-0 z-10 mb-6 flex items-center justify-between pt-20 pb-4"
+          style={{ borderBottom: `1px solid ${PANEL_BORDER}`, background: "rgba(4,4,8,0.98)", backdropFilter: "blur(8px)" }}
           aria-label="Repository navigation">
           <button
             type="button"
             onClick={onClose}
-            className="flex cursor-pointer items-center gap-2 rounded transition-opacity hover:opacity-70"
+            className="flex min-h-11 min-w-0 cursor-pointer items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-[rgba(91,158,194,0.08)] active:scale-[0.97] focus-visible:outline-1 focus-visible:outline-[rgba(91,158,194,0.4)]"
             aria-label={`Back to career log from ${company.company}`}
-            style={{ background: "none", border: "none", padding: 0 }}>
+            style={{ background: "none", border: "none" }}>
             <svg
               width="16"
               height="16"
               viewBox="0 0 16 16"
               fill={COLOR}
+              className="shrink-0"
               aria-hidden="true">
               <path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1h-8a1 1 0 00-1 1v6.708A2.486 2.486 0 014.5 9h8V1.5z" />
             </svg>
-            <span className="font-mono text-xs sm:text-sm" style={{ color: COLOR }}>
-              {r.org}
-            </span>
-            <span className="text-[var(--text-faint)]">/</span>
-            <span className="font-mono text-xs font-bold text-[var(--cream)] sm:text-sm">
-              {r.name}
+            <span className="truncate font-mono text-xs sm:text-sm">
+              <span style={{ color: COLOR }}>{r.org}</span>
+              <span className="text-[var(--text-faint)]"> / </span>
+              <span className="font-bold text-[var(--cream)]">{r.name}</span>
             </span>
           </button>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close panel (Escape)"
-            className="cursor-pointer rounded-md border border-[#2A2A34] px-3.5 py-1.5 font-mono text-xs text-[var(--cream-muted)] transition-colors hover:border-[var(--text-faint)]"
+            aria-label="Close panel"
+            className="flex shrink-0 min-h-11 cursor-pointer items-center whitespace-nowrap rounded-md border border-[#2A2A34] px-3.5 py-1.5 font-mono text-xs text-[var(--cream-muted)] transition-all hover:border-[var(--text-faint)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--cream)] active:scale-[0.97] focus-visible:outline-1 focus-visible:outline-[rgba(91,158,194,0.4)]"
             style={{ background: "none" }}>
-            ESC
+            ✕ Close
           </button>
         </nav>
 
@@ -354,20 +353,10 @@ function RepoPanel({
             <span aria-hidden="true">{"\u2387"} </span>
             {r.branch}
           </span>
-          <a
-            href={r.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: COLOR }}
-            className="no-underline"
-            aria-label={`Visit ${r.url.replace("https://www.", "")} (opens in new tab)`}>
-            {r.url.replace("https://www.", "")}{" "}
-            <span aria-hidden="true">{"\u2197"}</span>
-          </a>
         </div>
 
         {/* Description */}
-        <p className="mb-7 max-w-[700px] text-[11px] leading-[1.7] text-[var(--cream-muted)] sm:text-[12px] md:text-sm">
+        <p className="mb-7 max-w-[700px] text-[13px] leading-[1.7] text-[var(--cream-muted)] sm:text-sm">
           {r.description}
         </p>
 
@@ -403,19 +392,19 @@ function RepoPanel({
           <ReadmeContent lines={r.readme} />
         </div>
 
-        {/* Visit link */}
+        {/* External link */}
         <div className="mt-8 text-center">
           <a
             href={r.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block rounded-md border px-6 py-2.5 font-mono text-xs no-underline transition-colors"
+            className="inline-flex min-h-11 items-center justify-center rounded-md border px-6 py-2.5 font-mono text-xs no-underline transition-all hover:border-[rgba(91,158,194,0.4)] hover:bg-[rgba(91,158,194,0.08)] active:scale-[0.97] focus-visible:outline-1 focus-visible:outline-[rgba(91,158,194,0.4)]"
             style={{
               color: COLOR,
               borderColor: "rgba(91,158,194,0.2)",
             }}
-            aria-label={`Visit ${r.url.replace("https://www.", "")} (opens in new tab)`}>
-            Visit {r.url.replace("https://www.", "")}{" "}
+            aria-label={`${r.url.replace("https://www.", "")} (opens in new tab)`}>
+            {r.url.replace("https://www.", "")}{" "}
             <span aria-hidden="true">{"\u2197"}</span>
           </a>
         </div>
@@ -454,7 +443,7 @@ function CommitEntry({
       initial={{ opacity: 0, x: -20 }}
       animate={inView ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.7, delay: index * 0.15, ease: EASE }}
-      className={`group relative ml-1.5 cursor-pointer pl-7 outline-none focus-visible:rounded focus-visible:ring-1 focus-visible:ring-[rgba(91,158,194,0.4)] ${!isLast ? "border-l-2 border-[var(--stroke)]" : ""} pb-8`}
+      className={`group relative ml-1.5 cursor-pointer pl-7 pr-4 py-5 outline-none transition-all duration-200 hover:bg-[rgba(91,158,194,0.03)] active:scale-[0.99] rounded-r-2xl focus-visible:rounded-r-2xl focus-visible:ring-1 focus-visible:ring-[rgba(91,158,194,0.4)] ${!isLast ? "border-l-2 border-[var(--stroke)]" : ""}`}
       onClick={onSelect}>
       {/* Branch dot */}
       <div
@@ -471,17 +460,21 @@ function CommitEntry({
       </div>
 
       {/* Company */}
-      <div className="text-sm font-bold text-[var(--cream)] transition-colors duration-200 group-hover:text-[#5B9EC2] sm:text-base lg:text-lg">
-        {company.company}
-        <span
-          className="ml-2 font-mono text-[11px] text-[var(--text-faint)] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+      <div className="flex items-center justify-between text-sm font-bold text-[var(--cream)] transition-colors duration-200 group-hover:text-[#5B9EC2] sm:text-base lg:text-lg">
+        <span>{company.company}</span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          className="shrink-0 text-[var(--text-faint)] transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-[#5B9EC2]"
           aria-hidden="true">
-          git show →
-        </span>
+          <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </div>
 
       {/* Role */}
-      <div className="mt-0.5 font-mono text-xs" style={{ color: COLOR }}>
+      <div className="mt-0.5 font-mono text-xs transition-[filter] duration-200 group-hover:brightness-125" style={{ color: COLOR }}>
         {company.role}
       </div>
 
