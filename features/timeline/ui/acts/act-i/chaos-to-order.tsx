@@ -121,7 +121,7 @@ export function ChaosToOrder() {
         ))}
 
         <NarrativeText scrollProgress={scrollYProgress} />
-        <ScrollIndicator scrollProgress={scrollYProgress} />
+        <ScrollIndicator sectionRef={sceneRef} scrollProgress={scrollYProgress} />
       </div>
     </div>
   );
