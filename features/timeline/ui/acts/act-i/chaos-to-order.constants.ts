@@ -130,18 +130,34 @@ export const STACK_LG: readonly NodePosition[] = [
 ];
 
 // Mobile/tablet — starts below nav, compact ~11% gap
+// left: 6 ≈ matches --page-gutter (1.5rem ≈ 24px on 390px = ~6.2%)
 export const STACK_SM: readonly NodePosition[] = [
-  { left: 4, top: 15 },
-  { left: 4, top: 26 },
-  { left: 4, top: 37 },
-  { left: 4, top: 48 },
-  { left: 4, top: 59 },
-  { left: 4, top: 70 },
+  { left: 6, top: 18 },
+  { left: 6, top: 29 },
+  { left: 6, top: 40 },
+  { left: 6, top: 51 },
+  { left: 6, top: 62 },
+  { left: 6, top: 73 },
 ];
 
 /** Max-width for cards in the stacked phase */
 export const MAX_W_STACK_LG = "min(280px, 25vw)";
 export const MAX_W_STACK_SM = "70vw";
+
+// ─── Focus Phase ─────────────────────────────────────────────────────────────
+// After stack settles, a white ball emerges from each skill sequentially.
+
+export const FOCUS_START = 0.88;
+export const FOCUS_END = 0.98;
+
+/** On mobile, orbit nodes fade out after order settles, then accordion appears */
+export const MOBILE_FADEOUT_START = 0.63;
+export const MOBILE_FADEOUT_END = 0.66;
+/** Accordion appears after orbit nodes are fully gone */
+export const MOBILE_ACCORDION_START = 0.66;
+export const MOBILE_ACCORDION_END = 0.69;
+/** Per-node slice within the focus phase */
+export const FOCUS_SLICE = (FOCUS_END - FOCUS_START) / 6;
 
 // ─── Mouse Displacement ─────────────────────────────────────────────────────
 

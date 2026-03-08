@@ -676,6 +676,16 @@ html[data-custom-cursor="on"] *::after {
 }
 
 
+/* ─── Scroll-fade overlay — responsive height ─────────────────────────────── */
+:root {
+  --scroll-fade-height: 72px;
+}
+@media (min-width: 640px) {
+  :root {
+    --scroll-fade-height: 160px;
+  }
+}
+
 /* ─── Responsive breakpoints reference ─────────────────────────────────────
    Breakpoint values are the canonical source of truth in utilities/breakpoints.ts.
    Component-level responsive behaviour lives in hooks/use-breakpoint.ts and hooks/use-media-query.ts
