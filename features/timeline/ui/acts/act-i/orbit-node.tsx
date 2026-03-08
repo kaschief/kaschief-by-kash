@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion, useTransform } from "framer-motion";
+import { useRef, useState } from "react";
+import { motion, useTransform, useMotionValueEvent } from "framer-motion";
 import type { OrbitNode as OrbitNodeData } from "@data";
 import {
   C,
@@ -21,10 +21,18 @@ import {
   ORDER_SM,
   STACK_LG,
   STACK_SM,
-  MAX_W_LG,
-  MAX_W_SM,
-  MAX_W_STACK_LG,
-  MAX_W_STACK_SM,
+  MAX_W_LG_PX,
+  MAX_W_LG_VW,
+  MAX_W_SM_VW,
+  MAX_W_STACK_LG_PX,
+  MAX_W_STACK_LG_VW,
+  MAX_W_STACK_MD_PX,
+  MAX_W_STACK_MD_VW,
+  MAX_W_STACK_SM_VW,
+  NUDGE_DELAYS,
+  NUDGE_DISPLAY_MS,
+  BURST_SPRING,
+  PROOF_MAX_HEIGHT,
 } from "./chaos-to-order.constants";
 import { useMouseDisplacement } from "./chaos-to-order.hooks";
 
@@ -49,7 +57,38 @@ export function OrbitNode({
 }: OrbitNodeProps) {
   const [hovered, setHovered] = useState(false);
   const [burstDone, setBurstDone] = useState(false);
+  const [nudged, setNudged] = useState(false);
+  const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nudgeDone = useRef(false);
+  const inStack = useRef(false);
   const interactive = lgRef.current;
+
+  // Track whether we're in stack/focus phase to disable hover effects
+  useMotionValueEvent(scrollProgress, "change", (p) => {
+    inStack.current = p >= STACK_START;
+    if (inStack.current && hovered) setHovered(false);
+  });
+
+  // Auto-expand proof on staggered cards as a hint that cards are hoverable
+  const nudgeDelay = NUDGE_DELAYS[index];
+  const canNudge = nudgeDelay > 0 || index === 0;
+  useMotionValueEvent(scrollProgress, "change", (p) => {
+    if (!canNudge || nudgeDone.current || !lgRef.current) return;
+    if (p >= SNAP_END + 0.02 && p < STACK_START && !nudgeTimer.current) {
+      nudgeTimer.current = setTimeout(() => {
+        if (hovered) { nudgeDone.current = true; return; }
+        setNudged(true);
+        setTimeout(() => {
+          setNudged(false);
+          nudgeDone.current = true;
+        }, NUDGE_DISPLAY_MS);
+      }, nudgeDelay);
+    }
+    if (p < SNAP_START || p >= STACK_START) {
+      if (nudgeTimer.current) { clearTimeout(nudgeTimer.current); nudgeTimer.current = null; }
+      setNudged(false);
+    }
+  });
 
   const { x: displaceX, y: displaceY } = useMouseDisplacement(
     containerRef,
@@ -89,10 +128,19 @@ export function OrbitNode({
   });
   const maxWidth = useTransform(scrollProgress, (p) => {
     const lg = lgRef.current;
-    const orbitMw = lg ? MAX_W_LG[index] : MAX_W_SM;
-    if (p < STACK_START) return orbitMw;
+    const vw = typeof window !== "undefined" ? window.innerWidth / 100 : 10;
+    const orbitPx = lg
+      ? Math.min(MAX_W_LG_PX[index], MAX_W_LG_VW[index] * vw)
+      : MAX_W_SM_VW * vw;
+    if (p < STACK_START) return orbitPx;
+    const isMd = !lg && typeof window !== "undefined" && window.innerWidth >= 640;
+    const stackPx = lg
+      ? Math.min(MAX_W_STACK_LG_PX, MAX_W_STACK_LG_VW * vw)
+      : isMd
+        ? Math.min(MAX_W_STACK_MD_PX, MAX_W_STACK_MD_VW * vw)
+        : MAX_W_STACK_SM_VW * vw;
     const t = Math.min(1, Math.max(0, (p - STACK_START) / (STACK_END - STACK_START)));
-    return t > 0.3 ? (lg ? MAX_W_STACK_LG : MAX_W_STACK_SM) : orbitMw;
+    return orbitPx + (stackPx - orbitPx) * t;
   });
 
   const scrollRotate = useTransform(
@@ -102,35 +150,72 @@ export function OrbitNode({
   );
 
   // Fade out chaos-only effects (drift + mouse displacement) during snap
-  const chaosFade = useTransform(scrollProgress, [SNAP_START, SNAP_END], [1, 0]);
+  // Hard zero after SNAP_END so spring momentum can't leak into order/focus
+  const chaosFade = useTransform(scrollProgress, (p) =>
+    p >= SNAP_END ? 0 : p <= SNAP_START ? 1 : 1 - (p - SNAP_START) / (SNAP_END - SNAP_START),
+  );
   const fadedDrift = useTransform([drift, chaosFade], ([d, cf]) => (d as number) * (cf as number));
   const fadedDisplaceX = useTransform([displaceX, chaosFade], ([d, cf]) => (d as number) * (cf as number));
   const fadedDisplaceY = useTransform([displaceY, chaosFade], ([d, cf]) => (d as number) * (cf as number));
   const combinedY = useTransform([fadedDisplaceY, fadedDrift], ([dy, d]) => (dy as number) + (d as number));
 
-  // Dim during chaos (0.25), full brightness when ordered (1).
-  // On mobile, fade out before focus accordion takes over.
+  // Desktop: 0.25 chaos → 1 order (committed values).
+  // Mobile: dimmer — 0.15 chaos → 0.7 order, then fade out before accordion.
   const finalOpacity = useTransform(scrollProgress, (p) => {
-    if (p < SNAP_START) return 0.25;
-    if (p < SNAP_END) return 0.25 + 0.75 * ((p - SNAP_START) / (SNAP_END - SNAP_START));
-    // Phone only (< 640px): fade out before accordion
-    if (typeof window !== "undefined" && window.innerWidth < 640 && p >= MOBILE_FADEOUT_START) {
+    const mobile = typeof window !== "undefined" && window.innerWidth < 640;
+    const chaosVal = mobile ? 0.15 : 0.25;
+    const orderVal = mobile ? 0.7 : 1;
+    if (p < SNAP_START) return chaosVal;
+    if (p < SNAP_END) return chaosVal + (orderVal - chaosVal) * ((p - SNAP_START) / (SNAP_END - SNAP_START));
+    if (mobile && p >= MOBILE_FADEOUT_START) {
       const t = Math.min(1, (p - MOBILE_FADEOUT_START) / (MOBILE_FADEOUT_END - MOBILE_FADEOUT_START));
-      return 1 - t;
+      return orderVal - orderVal * t;
     }
-    return 1;
+    return orderVal;
   });
 
-  // Fade out secondary content (did, built, transfer, hairline) during stack transition
-  const detailOpacity = useTransform(scrollProgress, [STACK_START - 0.03, STACK_START], [1, 0]);
+  // Title: hidden in chaos, fades in during snap, stays visible through stack
+  const titleOpacity = useTransform(scrollProgress, [SNAP_START, SNAP_END], [0, 1]);
+  // Title becomes primary text in stack — brighten color (hover handled in style prop)
+  const titleColor = useTransform(scrollProgress, (p) => {
+    if (p < STACK_START) return C.cardTitle;
+    const t = Math.min(1, (p - STACK_START) / (STACK_END - STACK_START));
+    return t > 0.5 ? C.narrator : C.cardTitle;
+  });
+  // Proof: hidden in chaos, fades in during snap, fades out during stack
+  const proofOpacity = useTransform(scrollProgress, [SNAP_START, SNAP_END, STACK_START - 0.03, STACK_START], [0, 1, 1, 0]);
 
-  const isHovered = lgRef.current && hovered;
+  // Question color: bright in chaos, muted in order, bright again in focus
+  const questionColor = useTransform(scrollProgress, (p) => {
+    if (p < SNAP_START) return C.narrator;         // chaos
+    if (p < SNAP_END) return C.cardTitle;           // snap
+    if (p < STACK_START) return C.cardTitle;         // order
+    return C.narrator;                               // focus
+  });
+
+  // Accent color for highlighted question substring — red in order phase only
+  const accentColor = useTransform(scrollProgress, (p) => {
+    if (p < SNAP_START) return C.narrator;            // chaos — same as question
+    if (p < SNAP_END) return C.accentMuted;            // snap — fade to muted red
+    if (p < STACK_START) return C.accentMuted;         // order — muted red
+    return C.accentMuted;                              // focus — stays red
+  });
+
+  // ID watermark: hidden in chaos/order, fades in during focus
+  const watermarkOpacity = useTransform(scrollProgress, [STACK_START, STACK_END], [0, 1]);
+
+  const isHovered = (lgRef.current && hovered) || nudged;
   const chaosTarget = lgRef.current ? CHAOS_LG[index] : CHAOS_SM[index];
 
   return (
     <motion.div
-      onMouseEnter={lgRef.current ? () => setHovered(true) : undefined}
+      role="article"
+      tabIndex={lgRef.current ? 0 : undefined}
+      aria-label={node.question}
+      onMouseEnter={lgRef.current ? () => { if (!inStack.current) { setHovered(true); setNudged(false); } } : undefined}
       onMouseLeave={lgRef.current ? () => setHovered(false) : undefined}
+      onFocus={lgRef.current ? () => { if (!inStack.current) setHovered(true); } : undefined}
+      onBlur={lgRef.current ? () => setHovered(false) : undefined}
       initial={{
         left: "50%",
         top: "50%",
@@ -149,10 +234,7 @@ export function OrbitNode({
           : {}
       }
       transition={{
-        type: "spring",
-        stiffness: 80,
-        damping: 12,
-        mass: 1.2,
+        ...BURST_SPRING,
         delay: NODE_DELAYS[index],
         opacity: { duration: 0.8, delay: NODE_DELAYS[index], ease: [0.22, 1, 0.36, 1] },
       }}
@@ -165,70 +247,67 @@ export function OrbitNode({
         opacity: isHovered ? 1 : finalOpacity,
         willChange: "auto",
       }}>
-      <motion.div style={{ x: fadedDisplaceX, y: combinedY }}>
+      {/* ID watermark — fixed to container, not card width */}
+      <motion.div
+        className="pointer-events-none absolute top-[40%] -translate-y-1/2 select-none whitespace-nowrap font-serif text-[clamp(45px,8cqh,120px)] font-bold uppercase leading-none"
+        style={{
+          left: "31cqw",
+          color: `rgba(224,82,82,${isHovered ? 0.07 : 0.04})`,
+          opacity: watermarkOpacity,
+          transition: "color 0.4s",
+        }}
+        aria-hidden="true">
+        {node.id}
+      </motion.div>
 
-        {/* Label — fades out during stack on mobile, stays on desktop */}
+      <motion.div style={{ x: fadedDisplaceX, y: combinedY }} className="relative">
+        {/* Question — hero text, accent substring highlighted in order phase */}
         <motion.div
-          className="mb-1 font-sans text-[8px] font-medium uppercase tracking-[0.12em] md:text-[9px]"
+          className="mb-[0.5cqh] font-sans text-[clamp(10px,1.6cqh,19px)] leading-[1.3] [text-wrap:balance] sm:font-serif sm:italic"
           style={{
-            color: isHovered ? C.accentHot : C.accent,
-            opacity: isHovered ? 0.9 : 0.5,
-            transition: "all 0.4s",
+            color: isHovered ? C.cardTitleHover : questionColor,
+            transition: "color 0.4s",
           }}>
-          {node.label}
+          {(() => {
+            const idx = node.question.indexOf(node.accent);
+            if (idx === -1) return node.question;
+            const before = node.question.slice(0, idx);
+            const after = node.question.slice(idx + node.accent.length);
+            return (
+              <>
+                {before}
+                <motion.span style={{ color: isHovered ? C.accentHot : accentColor, transition: "color 0.4s" }}>
+                  {node.accent}
+                </motion.span>
+                {after}
+              </>
+            );
+          })()}
         </motion.div>
 
-        {/* Title */}
-        <div
-          className="mb-1.5 font-sans text-[clamp(13px,1.6vw,20px)] leading-tight tracking-[-0.01em] sm:font-serif sm:tracking-normal"
+        {/* Title — fades in at snap, becomes primary text in stack (hidden on phone) */}
+        <motion.div
+          className="mb-[0.3cqh] hidden font-sans text-[clamp(9px,1.4cqh,16px)] leading-[1.3] tracking-[-0.01em] [text-wrap:pretty] sm:block"
           style={{
-            color: isHovered ? C.cardTitleHover : C.cardTitle,
+            color: isHovered ? C.cardTitleHover : titleColor,
+            opacity: titleOpacity,
             transition: "color 0.4s",
           }}>
           {node.title}
-        </div>
-
-        {/* Detail content — fades out during stack */}
-        <motion.div style={{ opacity: detailOpacity }}>
-          <p
-            className="hidden font-sans text-[clamp(8px,0.85vw,11px)] font-light leading-[1.7] sm:block"
-            style={{
-              color: isHovered ? C.cardBodyHover : C.cardBody,
-              transition: "color 0.4s",
-            }}>
-            {node.did}
-          </p>
-
-          <p
-            className="mt-2 hidden pt-1.5 font-sans text-[clamp(8px,0.8vw,10px)] leading-[1.6] sm:block"
-            style={{
-              color: isHovered ? C.cardSecondaryHover : C.cardSecondary,
-              borderTop: `1px solid ${isHovered ? C.hairlineBorderHover : C.hairlineBorder}`,
-              transition: "all 0.4s",
-            }}>
-            <em
-              className="not-italic"
-              style={{
-                color: isHovered ? C.accentHot : C.accent,
-                transition: "color 0.4s",
-              }}>
-              {"\u2192"}
-            </em>{" "}
-            {node.built}
-          </p>
-
-          <p
-            className="mt-2 hidden font-serif text-[clamp(9px,0.8vw,11px)] italic leading-normal sm:block"
-            style={{
-              color: C.cardTransfer,
-              opacity: isHovered ? 0.85 : 0,
-              maxHeight: isHovered ? 80 : 0,
-              overflow: "hidden",
-              transition: "opacity 0.4s ease, max-height 0.5s ease",
-            }}>
-            {node.transfer}
-          </p>
         </motion.div>
+
+        {/* Proof — hover-only collapse, scroll-gated to order phase */}
+        <motion.p
+          className="hidden font-sans text-[clamp(8px,0.8vw,10px)] font-light leading-[1.7] sm:block"
+          style={{
+            color: isHovered ? C.cardSecondaryHover : C.cardSecondary,
+            opacity: proofOpacity,
+            maxHeight: isHovered ? PROOF_MAX_HEIGHT : 0,
+            overflow: "hidden",
+            transition: "color 0.4s, max-height 0.35s ease",
+          }}>
+          {node.proof}
+        </motion.p>
       </motion.div>
     </motion.div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useScroll, useTransform } from "framer-motion";
+import { useScroll, useTransform, type MotionValue } from "framer-motion";
 import { ORBIT_NODES } from "@data";
 import { NAVIGATION_SCROLL_EVENT } from "@hooks";
 import { C, DRIFT_RATES, DRIFT_DIRS } from "./chaos-to-order.constants";
@@ -73,20 +73,29 @@ export function ChaosToOrder() {
   });
 
   const baseDrift = useTransform(scrollYProgress, [0, 1], [0, 60]);
-  const drifts = DRIFT_RATES.map((rate, i) =>
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useTransform(baseDrift, (v) => v * rate * DRIFT_DIRS[i]),
-  );
+  // Each drift hook called explicitly at top level (Rules of Hooks safe — count is static)
+  const drift0 = useTransform(baseDrift, (v) => v * DRIFT_RATES[0] * DRIFT_DIRS[0]);
+  const drift1 = useTransform(baseDrift, (v) => v * DRIFT_RATES[1] * DRIFT_DIRS[1]);
+  const drift2 = useTransform(baseDrift, (v) => v * DRIFT_RATES[2] * DRIFT_DIRS[2]);
+  const drift3 = useTransform(baseDrift, (v) => v * DRIFT_RATES[3] * DRIFT_DIRS[3]);
+  const drift4 = useTransform(baseDrift, (v) => v * DRIFT_RATES[4] * DRIFT_DIRS[4]);
+  const drift5 = useTransform(baseDrift, (v) => v * DRIFT_RATES[5] * DRIFT_DIRS[5]);
+  const drifts: MotionValue<number>[] = [drift0, drift1, drift2, drift3, drift4, drift5];
 
   return (
     <div
       ref={sceneRef}
       className="relative"
       data-sticky-zone
-      style={{ height: "1100vh" }}>
+      style={{ height: "800vh" }}>
       <div
         ref={stickyRef}
-        className="sticky top-0 mx-auto h-screen max-w-350 overflow-hidden">
+        className="sticky top-0 mx-auto h-screen max-w-350"
+        style={{
+          containerType: "size",
+          overflowX: "visible",
+          overflowY: "clip",
+        }}>
         {/* Atmospheric glows */}
         <div
           className="pointer-events-none absolute hidden rounded-full sm:block"
@@ -111,7 +120,7 @@ export function ChaosToOrder() {
 
         {ORBIT_NODES.map((node, i) => (
           <OrbitNode
-            key={`${node.label}-${burstKey}`}
+            key={`${node.id}-${burstKey}`}
             node={node}
             index={i}
             visible={shouldBurst}

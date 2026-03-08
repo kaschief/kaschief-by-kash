@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { motion, useTransform, AnimatePresence } from "framer-motion";
-import { ChevronRight } from "lucide-react";
 import { ORBIT_NODES } from "@data";
-import { C, MOBILE_ACCORDION_START, MOBILE_ACCORDION_END } from "./chaos-to-order.constants";
+import {
+  C,
+  MOBILE_ACCORDION_START,
+  MOBILE_ACCORDION_END,
+} from "./chaos-to-order.constants";
 
 export function FocusAccordion({
   scrollProgress,
@@ -32,16 +35,21 @@ export function FocusAccordion({
         style={{ opacity: bgOpacity, background: "var(--bg)" }}
       />
       <motion.div
-        className="relative h-full overflow-y-auto px-[var(--page-gutter)] pt-24"
-        style={{ opacity: contentOpacity }}>
-        {ORBIT_NODES.map((node, i) => (
-          <AccordionItem
-            key={node.label}
-            node={node}
-            isOpen={openIndex === i}
-            onToggle={() => setOpenIndex(openIndex === i ? null : i)}
-          />
-        ))}
+        className="relative flex h-full flex-col justify-center overflow-y-auto px-[var(--page-gutter)]"
+        style={{ opacity: contentOpacity }}
+        role="list"
+        aria-label="Skills breakdown">
+        <div className="space-y-1">
+          {ORBIT_NODES.map((node, i) => (
+            <AccordionItem
+              key={node.id}
+              node={node}
+              index={i}
+              isOpen={openIndex === i}
+              onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+            />
+          ))}
+        </div>
       </motion.div>
     </div>
   );
@@ -49,52 +57,77 @@ export function FocusAccordion({
 
 function AccordionItem({
   node,
+  index,
   isOpen,
   onToggle,
 }: {
   node: (typeof ORBIT_NODES)[number];
+  index: number;
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const panelId = `accordion-panel-${node.id}`;
+
   return (
-    <div>
+    <div
+      role="listitem"
+      className="border-b"
+      style={{ borderColor: isOpen ? C.hairlineBorderHover : C.hairlineBorder }}>
       <button
         onClick={onToggle}
-        className="flex w-full cursor-pointer items-center justify-between py-3 text-left">
-        <div className="min-w-0 flex-1">
-          <div
-            className="mb-0.5 font-sans text-[8px] font-medium uppercase tracking-[0.12em]"
-            style={{ color: C.accent, opacity: 0.5 }}>
-            {node.label}
-          </div>
-          <div
-            className="font-sans text-[clamp(14px,4vw,17px)] leading-tight tracking-[-0.01em]"
-            style={{ color: isOpen ? C.cardTitleHover : C.cardTitle }}>
-            {node.title}
-          </div>
-        </div>
-        <motion.div
-          animate={{ rotate: isOpen ? 90 : 0 }}
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        className="flex w-full cursor-pointer items-center gap-3 py-4 text-left">
+        {/* Index number */}
+        <span
+          className="shrink-0 font-mono text-[10px] tabular-nums"
+          style={{ color: C.accent, opacity: isOpen ? 0.6 : 0.25 }}>
+          {String(index + 1).padStart(2, "0")}
+        </span>
+
+        {/* Title */}
+        <span
+          className="min-w-0 flex-1 font-sans text-[clamp(14px,4vw,17px)] leading-snug tracking-[-0.01em]"
+          style={{
+            color: isOpen ? C.narrator : C.cardTitle,
+            transition: "color 0.3s",
+          }}>
+          {node.title}
+        </span>
+
+        {/* Toggle indicator */}
+        <motion.span
+          animate={{ rotate: isOpen ? 45 : 0 }}
           transition={{ duration: 0.2 }}
-          className="shrink-0 pl-3"
-          style={{ color: C.accent, opacity: 0.3 }}>
-          <ChevronRight size={14} />
-        </motion.div>
+          className="shrink-0 text-[14px] leading-none"
+          style={{ color: C.accent, opacity: isOpen ? 0.5 : 0.2 }}
+          aria-hidden="true">
+          +
+        </motion.span>
       </button>
 
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
+            id={panelId}
+            role="region"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
             className="overflow-hidden">
-            <p
-              className="pb-4 font-serif text-[13px] italic leading-relaxed"
-              style={{ color: C.narrator }}>
-              {node.capability}
-            </p>
+            <div className="pb-5 pl-[calc(10px+0.75rem)]">
+              <p
+                className="mb-3 font-[family-name:var(--font-spectral)] text-[13px] italic leading-relaxed"
+                style={{ color: C.cardBody }}>
+                {node.question}
+              </p>
+              <p
+                className="font-sans text-[12px] font-light leading-relaxed"
+                style={{ color: C.cardSecondary }}>
+                {node.capability}
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

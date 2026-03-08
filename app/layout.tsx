@@ -19,6 +19,7 @@ import {
   JetBrains_Mono,
   Libre_Baskerville,
   Literata,
+  Lora,
   Manrope,
   Merriweather,
   Newsreader,
@@ -182,6 +183,13 @@ const firaCode = Fira_Code({
   display: "swap",
 });
 
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
 const literata = Literata({
   subsets: ["latin"],
   variable: "--font-literata",
@@ -287,6 +295,7 @@ const fontVariables = [
   crimsonPro.variable,
   ebGaramond.variable,
   firaCode.variable,
+  lora.variable,
   literata.variable,
   sourceCodePro.variable,
   spaceGrotesk.variable,

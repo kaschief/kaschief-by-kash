@@ -9,6 +9,8 @@ export const C = {
   accent: ACT_I.color,
   /** Brighter accent for hover states */
   accentHot: "#F06060",
+  /** Muted accent for inline question highlights */
+  accentMuted: "#9E3535",
 
   /** Narrator text — brightest text on screen */
   narrator: "#F5ECD8",
@@ -45,8 +47,8 @@ export const C = {
 // ─── Layout Constants ────────────────────────────────────────────────────────
 
 /** Scroll progress range where chaos snaps to order */
-export const SNAP_START = 0.55;
-export const SNAP_END = 0.62;
+export const SNAP_START = 0.35;
+export const SNAP_END = 0.42;
 
 // ─── Per-Node Animation Tuning ──────────────────────────────────────────────
 
@@ -83,15 +85,6 @@ export const ORDER_LG: readonly NodePosition[] = [
   { left: 44, top: 62 },
   { left: 64, top: 62 },
 ];
-export const MAX_W_LG = [
-  "min(180px, 15vw)",
-  "min(170px, 14vw)",
-  "min(175px, 15vw)",
-  "min(175px, 15vw)",
-  "min(165px, 13vw)",
-  "min(170px, 14vw)",
-];
-
 // Mobile (< lg) — scattered orbit → 2×3 grid
 // Cards are 40vw wide. Narrator at ~54%.
 export const CHAOS_SM: readonly NodePosition[] = [
@@ -103,21 +96,19 @@ export const CHAOS_SM: readonly NodePosition[] = [
   { left: 46, top: 72 },
 ];
 export const ORDER_SM: readonly NodePosition[] = [
-  { left: 6, top: 12 },
-  { left: 52, top: 12 },
-  { left: 6, top: 32 },
-  { left: 52, top: 32 },
-  { left: 6, top: 72 },
-  { left: 52, top: 72 },
+  { left: 14, top: 12 },
+  { left: 56, top: 12 },
+  { left: 14, top: 32 },
+  { left: 56, top: 32 },
+  { left: 14, top: 72 },
+  { left: 56, top: 72 },
 ];
-export const MAX_W_SM = "40vw";
-
 // ─── Stack Phase ──────────────────────────────────────────────────────────────
 // After order grid, elements fly to a left-aligned vertical stack.
 
 /** Scroll progress range where order snaps to stack */
-export const STACK_START = 0.75;
-export const STACK_END = 0.85;
+export const STACK_START = 0.65;
+export const STACK_END = 0.75;
 
 // Desktop (lg) — left-aligned, evenly spaced below nav (~14% gap)
 export const STACK_LG: readonly NodePosition[] = [
@@ -132,17 +123,24 @@ export const STACK_LG: readonly NodePosition[] = [
 // Mobile/tablet — starts below nav, compact ~11% gap
 // left: 6 ≈ matches --page-gutter (1.5rem ≈ 24px on 390px = ~6.2%)
 export const STACK_SM: readonly NodePosition[] = [
-  { left: 6, top: 18 },
-  { left: 6, top: 29 },
+  { left: 6, top: 10 },
+  { left: 6, top: 25 },
   { left: 6, top: 40 },
-  { left: 6, top: 51 },
-  { left: 6, top: 62 },
-  { left: 6, top: 73 },
+  { left: 6, top: 55 },
+  { left: 6, top: 70 },
+  { left: 6, top: 85 },
 ];
 
-/** Max-width for cards in the stacked phase */
-export const MAX_W_STACK_LG = "min(280px, 25vw)";
-export const MAX_W_STACK_SM = "70vw";
+// ─── Max-Width (numeric for Framer Motion interpolation) ─────────────────────
+
+export const MAX_W_LG_PX = [180, 170, 175, 175, 165, 170];
+export const MAX_W_LG_VW = [15, 14, 15, 15, 13, 14];
+export const MAX_W_SM_VW = 40;
+export const MAX_W_STACK_LG_PX = 340;
+export const MAX_W_STACK_LG_VW = 30;
+export const MAX_W_STACK_MD_PX = 320;
+export const MAX_W_STACK_MD_VW = 42;
+export const MAX_W_STACK_SM_VW = 70;
 
 // ─── Focus Phase ─────────────────────────────────────────────────────────────
 // After stack settles, a white ball emerges from each skill sequentially.
@@ -151,11 +149,11 @@ export const FOCUS_START = 0.88;
 export const FOCUS_END = 0.98;
 
 /** On mobile, orbit nodes fade out after order settles, then accordion appears */
-export const MOBILE_FADEOUT_START = 0.63;
-export const MOBILE_FADEOUT_END = 0.66;
+export const MOBILE_FADEOUT_START = 0.6;
+export const MOBILE_FADEOUT_END = 0.63;
 /** Accordion appears after orbit nodes are fully gone */
-export const MOBILE_ACCORDION_START = 0.66;
-export const MOBILE_ACCORDION_END = 0.69;
+export const MOBILE_ACCORDION_START = 0.63;
+export const MOBILE_ACCORDION_END = 0.66;
 /** Per-node slice within the focus phase */
 export const FOCUS_SLICE = (FOCUS_END - FOCUS_START) / 6;
 
@@ -165,3 +163,28 @@ export const MOUSE_RADIUS = 500;
 export const MOUSE_STRENGTH = 100;
 export const MAX_DISPLACEMENT = 80;
 export const SPRING_CONFIG = { stiffness: 35, damping: 10, mass: 2 };
+
+// ─── Narrator Copy ──────────────────────────────────────────────────────────
+
+export const NARRATOR_CHAOS =
+  "Every shift began in the middle of something: competing signals, incomplete information, all at once.";
+export const NARRATOR_ORDER_BEFORE =
+  "The job was never to eliminate the chaos. It was to use";
+export const NARRATOR_ORDER_SKILLS = "my skills";
+export const NARRATOR_ORDER_AFTER = "to make order from it.";
+
+// ─── Nudge Timing ────────────────────────────────────────────────────────────
+
+/** Delay (ms) before auto-expand hint per card index. 0 = no nudge. */
+export const NUDGE_DELAYS = [600, 0, 3800, 0, 7000, 0];
+export const NUDGE_DISPLAY_MS = 2000;
+
+// ─── Orbit Node Animation ────────────────────────────────────────────────────
+
+export const BURST_SPRING = {
+  type: "spring" as const,
+  stiffness: 80,
+  damping: 12,
+  mass: 1.2,
+};
+export const PROOF_MAX_HEIGHT = 80;

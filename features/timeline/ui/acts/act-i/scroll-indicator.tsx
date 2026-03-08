@@ -2,12 +2,12 @@
 
 import { useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent } from "framer-motion";
-import { C } from "./chaos-to-order.constants";
+import { C, STACK_START } from "./chaos-to-order.constants";
 
 export function ScrollIndicator({
   scrollProgress,
 }: {
-  sectionRef: React.RefObject<HTMLDivElement | null>;
+  sectionRef?: React.RefObject<HTMLDivElement | null>;
   scrollProgress: import("framer-motion").MotionValue<number>;
 }) {
   const [show, setShow] = useState(false);
@@ -18,8 +18,8 @@ export function ScrollIndicator({
   useMotionValueEvent(scrollProgress, "change", (v) => {
     if (dismissed.current) return;
 
-    // Dismiss when narrator text is visible (chaos narrator fades in 0.08→0.15)
-    if (v >= 0.14) {
+    // Dismiss when focus/stack phase begins
+    if (v >= STACK_START) {
       narratorReached.current = true;
       dismissed.current = true;
       if (showTimer.current) clearTimeout(showTimer.current);
@@ -27,11 +27,11 @@ export function ScrollIndicator({
       return;
     }
 
-    // Show with a slight delay so burst animation plays first
-    if (v > 0.005 && !showTimer.current) {
+    // Show as soon as section enters viewport
+    if (v > 0 && !showTimer.current) {
       showTimer.current = setTimeout(() => {
         if (!dismissed.current) setShow(true);
-      }, 300);
+      }, 100);
     }
 
     // User scrolled back above — only re-show if narrator was never reached
