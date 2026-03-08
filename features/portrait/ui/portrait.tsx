@@ -6,6 +6,7 @@ import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { StatsGrid } from "@components";
+import { useLenis, usePinStore } from "@hooks";
 import { EASE, LAYOUT, TOKENS } from "@utilities";
 
 const { cream, textDim, gold } = TOKENS;
@@ -34,6 +35,7 @@ export function Portrait() {
   const glowRef = useRef<HTMLDivElement>(null);
   const inView = useInView(imageRef, { once: true, margin: "-60px" });
   const [countersActive, setCountersActive] = useState(false);
+  const getLenis = useLenis();
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -41,6 +43,12 @@ export function Portrait() {
 
     const mql = window.matchMedia("(min-width: 768px)");
     if (!mql.matches) {
+      setCountersActive(true);
+      return;
+    }
+
+    // Already completed — no pin at all, just a normal section
+    if (usePinStore.getState().completed["portrait"]) {
       setCountersActive(true);
       return;
     }
@@ -56,6 +64,29 @@ export function Portrait() {
       end: `+=${downDistance}`,
       pinSpacing: true,
       onEnter: () => setCountersActive(true),
+      onLeave: (self) => {
+        // GSAP-recommended approach for pin-once with Lenis:
+        // 1. Capture scroll position & pin distance before killing
+        const lenis = getLenis();
+        const scroll = lenis?.scroll ?? window.scrollY;
+        const pinDistance = self.end - self.start;
+
+        // 2. Kill trigger but preserve element's final position
+        self.kill(true, true);
+
+        // 3. Recalculate all ScrollTrigger positions (spacer is now gone)
+        ScrollTrigger.refresh();
+
+        // 4. Compensate scroll so user doesn't see a jump
+        if (lenis) {
+          lenis.scrollTo(scroll - pinDistance, { immediate: true });
+        } else {
+          window.scrollTo(0, scroll - pinDistance);
+        }
+
+        // 5. Mark done in store so pin is never recreated
+        usePinStore.getState().markDone("portrait");
+      },
       onUpdate: (self) => {
         if (self.direction === -1 && self.progress > 0 && self.progress < upThreshold) {
           self.scroll(self.start);

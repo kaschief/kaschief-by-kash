@@ -2,13 +2,16 @@
 
 import { FadeIn } from "@components";
 import { ACT_I } from "@data";
+import { useStickyOnce } from "@hooks";
 
 const { color: COLOR, throughlineHeadline, throughlines } = ACT_I;
 
 export function Throughline() {
+  const { ref, height, stickyClass } = useStickyOnce("throughline", "200vh");
+
   return (
-    <div className="relative" data-sticky-zone style={{ height: "200vh" }}>
-      <div className="sticky top-0 flex h-screen items-center justify-center px-(--page-gutter)">
+    <div ref={ref} className="relative" data-sticky-zone style={{ height }}>
+      <div className={`${stickyClass} flex h-screen items-center justify-center px-(--page-gutter)`}>
         <div className="mx-auto grid w-full max-w-5xl items-center gap-12 lg:grid-cols-2 lg:gap-20">
           <div>
             <FadeIn>
