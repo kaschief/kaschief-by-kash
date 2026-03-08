@@ -654,10 +654,10 @@ export function ActIIGitLog() {
               intervalMs={70}
             />
           </h2>
-          <p className="mx-auto mt-6 max-w-[500px] font-serif text-[11px] leading-relaxed text-[var(--cream-muted)] italic sm:text-xs md:text-base lg:text-lg">
-            &ldquo;{lead}&rdquo;
+          <p className="mx-auto mt-6 max-w-[500px] font-serif text-sm leading-relaxed text-[var(--cream-muted)] italic sm:text-base md:text-lg lg:text-xl">
+            {lead}
           </p>
-          <p className="mx-auto mt-5 max-w-[640px] text-[11px] leading-[1.7] text-[var(--text-dim)] sm:text-[12px] sm:mt-6 md:text-[13px] lg:text-[15px]">
+          <p className="mx-auto mt-5 max-w-[640px] text-xs leading-[1.7] text-[var(--text-dim)] sm:text-[13px] sm:mt-6 md:text-sm lg:text-base">
             {body}
           </p>
         </motion.div>
