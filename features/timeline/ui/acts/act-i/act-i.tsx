@@ -3,6 +3,7 @@
 import { SECTION_ID } from "@utilities";
 import { Splash } from "./splash";
 import { ChaosToOrder } from "./chaos-to-order";
+import { FocusZone } from "./focus-zone";
 import { Throughline } from "./throughline";
 
 const { ACT_NURSE } = SECTION_ID;
@@ -13,6 +14,7 @@ export function ActI() {
       <Splash />
       <div className="h-24 lg:h-40" />
       <ChaosToOrder />
+      <FocusZone />
       {/* Fade from orbit into throughline */}
       <div
         className="relative h-24 lg:h-64"

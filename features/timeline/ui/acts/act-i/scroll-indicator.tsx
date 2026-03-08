@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent } from "framer-motion";
 import { C } from "./chaos-to-order.constants";
 
 export function ScrollIndicator({
-  sectionRef,
   scrollProgress,
 }: {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -13,29 +12,35 @@ export function ScrollIndicator({
 }) {
   const [show, setShow] = useState(false);
   const dismissed = useRef(false);
+  const narratorReached = useRef(false);
+  const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Show when section enters viewport
-  useEffect(() => {
-    const el = sectionRef.current;
-    if (!el) return;
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !dismissed.current) {
-          setShow(true);
-        }
-      },
-      { threshold: 0.05 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [sectionRef]);
-
-  // Dismiss when narrator text starts appearing (scroll progress ~8%)
   useMotionValueEvent(scrollProgress, "change", (v) => {
-    if (v >= 0.08 && !dismissed.current) {
+    if (dismissed.current) return;
+
+    // Dismiss when narrator text is visible (chaos narrator fades in 0.08→0.15)
+    if (v >= 0.14) {
+      narratorReached.current = true;
       dismissed.current = true;
+      if (showTimer.current) clearTimeout(showTimer.current);
       setShow(false);
+      return;
+    }
+
+    // Show with a slight delay so burst animation plays first
+    if (v > 0.005 && !showTimer.current) {
+      showTimer.current = setTimeout(() => {
+        if (!dismissed.current) setShow(true);
+      }, 300);
+    }
+
+    // User scrolled back above — only re-show if narrator was never reached
+    if (v <= 0) {
+      if (showTimer.current) clearTimeout(showTimer.current);
+      showTimer.current = null;
+      if (!narratorReached.current) {
+        setShow(false);
+      }
     }
   });
 

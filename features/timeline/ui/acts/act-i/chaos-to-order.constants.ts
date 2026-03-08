@@ -112,6 +112,37 @@ export const ORDER_SM: readonly NodePosition[] = [
 ];
 export const MAX_W_SM = "40vw";
 
+// ─── Stack Phase ──────────────────────────────────────────────────────────────
+// After order grid, elements fly to a left-aligned vertical stack.
+
+/** Scroll progress range where order snaps to stack */
+export const STACK_START = 0.75;
+export const STACK_END = 0.85;
+
+// Desktop (lg) — left-aligned, evenly spaced below nav (~14% gap)
+export const STACK_LG: readonly NodePosition[] = [
+  { left: 6, top: 14 },
+  { left: 6, top: 27 },
+  { left: 6, top: 40 },
+  { left: 6, top: 53 },
+  { left: 6, top: 66 },
+  { left: 6, top: 79 },
+];
+
+// Mobile/tablet — starts below nav, compact ~11% gap
+export const STACK_SM: readonly NodePosition[] = [
+  { left: 4, top: 15 },
+  { left: 4, top: 26 },
+  { left: 4, top: 37 },
+  { left: 4, top: 48 },
+  { left: 4, top: 59 },
+  { left: 4, top: 70 },
+];
+
+/** Max-width for cards in the stacked phase */
+export const MAX_W_STACK_LG = "min(280px, 25vw)";
+export const MAX_W_STACK_SM = "70vw";
+
 // ─── Mouse Displacement ─────────────────────────────────────────────────────
 
 export const MOUSE_RADIUS = 500;
