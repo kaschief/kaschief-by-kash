@@ -9,6 +9,8 @@ import { useIsLgRef } from "./chaos-to-order.hooks";
 import { OrbitNode } from "./orbit-node";
 import { NarrativeText } from "./narrative-text";
 import { ScrollIndicator } from "./scroll-indicator";
+import { FocusBall } from "./focus-ball";
+import { FocusAccordion } from "./focus-accordion";
 
 export function ChaosToOrder() {
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -81,7 +83,7 @@ export function ChaosToOrder() {
       ref={sceneRef}
       className="relative"
       data-sticky-zone
-      style={{ height: "800vh" }}>
+      style={{ height: "1100vh" }}>
       <div
         ref={stickyRef}
         className="sticky top-0 mx-auto h-screen max-w-350 overflow-hidden">
@@ -121,6 +123,8 @@ export function ChaosToOrder() {
         ))}
 
         <NarrativeText scrollProgress={scrollYProgress} />
+        <FocusBall scrollProgress={scrollYProgress} lgRef={lgRef} />
+        <FocusAccordion scrollProgress={scrollYProgress} />
         <ScrollIndicator sectionRef={sceneRef} scrollProgress={scrollYProgress} />
       </div>
     </div>

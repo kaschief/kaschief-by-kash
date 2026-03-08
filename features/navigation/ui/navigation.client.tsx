@@ -383,7 +383,7 @@ export function Navigation() {
             zIndex: nav,
             background: mobileOpen
               ? "rgba(7,7,10,1)"
-              : "linear-gradient(to bottom, rgba(7,7,10,0.6) 0%, rgba(7,7,10,0.3) 60%, transparent 100%)",
+              : "linear-gradient(to bottom, rgba(7,7,10,0.5) 0%, transparent 48px)",
           }}>
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
             {/* Name — outside the pill, standalone */}

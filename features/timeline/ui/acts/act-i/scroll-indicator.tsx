@@ -54,7 +54,7 @@ export function ScrollIndicator({
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="pointer-events-none absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2">
           <motion.div
-            className="font-mono text-[9px] uppercase tracking-[0.3em]"
+            className="font-sans text-[9px] font-medium uppercase tracking-[0.15em]"
             style={{ color: C.narrator, opacity: 0.8 }}>
             Scroll
           </motion.div>

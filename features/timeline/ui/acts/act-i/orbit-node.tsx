@@ -9,13 +9,15 @@ import {
   SNAP_END,
   STACK_START,
   STACK_END,
+  MOBILE_FADEOUT_START,
+  MOBILE_FADEOUT_END,
   NODE_DELAYS,
   NODE_START_ROTATIONS,
   NODE_END_ROTATIONS,
   NODE_WEIGHTS,
   CHAOS_LG,
-  ORDER_LG,
   CHAOS_SM,
+  ORDER_LG,
   ORDER_SM,
   STACK_LG,
   STACK_SM,
@@ -66,11 +68,9 @@ export function OrbitNode({
     const stack = lg ? STACK_LG[index] : STACK_SM[index];
 
     if (p < SNAP_END) {
-      // chaos → order
       const t = Math.min(1, Math.max(0, (p - SNAP_START) / (SNAP_END - SNAP_START)));
       return `${chaos.left + (order.left - chaos.left) * t}%`;
     }
-    // order → stack
     const t = Math.min(1, Math.max(0, (p - STACK_START) / (STACK_END - STACK_START)));
     return `${order.left + (stack.left - order.left) * t}%`;
   });
@@ -81,15 +81,12 @@ export function OrbitNode({
     const stack = lg ? STACK_LG[index] : STACK_SM[index];
 
     if (p < SNAP_END) {
-      // chaos → order
       const t = Math.min(1, Math.max(0, (p - SNAP_START) / (SNAP_END - SNAP_START)));
       return `${chaos.top + (order.top - chaos.top) * t}%`;
     }
-    // order → stack
     const t = Math.min(1, Math.max(0, (p - STACK_START) / (STACK_END - STACK_START)));
     return `${order.top + (stack.top - order.top) * t}%`;
   });
-  // Widen cards during stack so titles wrap less
   const maxWidth = useTransform(scrollProgress, (p) => {
     const lg = lgRef.current;
     const orbitMw = lg ? MAX_W_LG[index] : MAX_W_SM;
@@ -111,8 +108,18 @@ export function OrbitNode({
   const fadedDisplaceY = useTransform([displaceY, chaosFade], ([d, cf]) => (d as number) * (cf as number));
   const combinedY = useTransform([fadedDisplaceY, fadedDrift], ([dy, d]) => (dy as number) + (d as number));
 
-  // Dim during chaos (0.25), full brightness when ordered (1)
-  const finalOpacity = useTransform(scrollProgress, [SNAP_START, SNAP_END], [0.25, 1]);
+  // Dim during chaos (0.25), full brightness when ordered (1).
+  // On mobile, fade out before focus accordion takes over.
+  const finalOpacity = useTransform(scrollProgress, (p) => {
+    if (p < SNAP_START) return 0.25;
+    if (p < SNAP_END) return 0.25 + 0.75 * ((p - SNAP_START) / (SNAP_END - SNAP_START));
+    // Phone only (< 640px): fade out before accordion
+    if (typeof window !== "undefined" && window.innerWidth < 640 && p >= MOBILE_FADEOUT_START) {
+      const t = Math.min(1, (p - MOBILE_FADEOUT_START) / (MOBILE_FADEOUT_END - MOBILE_FADEOUT_START));
+      return 1 - t;
+    }
+    return 1;
+  });
 
   // Fade out secondary content (did, built, transfer, hairline) during stack transition
   const detailOpacity = useTransform(scrollProgress, [STACK_START - 0.03, STACK_START], [1, 0]);
@@ -159,23 +166,10 @@ export function OrbitNode({
         willChange: "auto",
       }}>
       <motion.div style={{ x: fadedDisplaceX, y: combinedY }}>
-        {/* Hairline + secondary content — fades out during stack */}
-        <motion.div style={{ opacity: detailOpacity }}>
-          <div
-            style={{
-              width: isHovered ? 28 : 12,
-              height: 1,
-              background: isHovered ? C.accentHot : C.accent,
-              opacity: isHovered ? 0.6 : 0.2,
-              marginBottom: 6,
-              transition: "all 0.4s ease",
-            }}
-          />
-        </motion.div>
 
         {/* Label — fades out during stack on mobile, stays on desktop */}
         <motion.div
-          className="mb-1 font-mono text-[7px] uppercase tracking-[0.25em] md:text-[9px]"
+          className="mb-1 font-sans text-[8px] font-medium uppercase tracking-[0.12em] md:text-[9px]"
           style={{
             color: isHovered ? C.accentHot : C.accent,
             opacity: isHovered ? 0.9 : 0.5,
@@ -186,7 +180,7 @@ export function OrbitNode({
 
         {/* Title */}
         <div
-          className="mb-1.5 font-serif text-[clamp(13px,1.6vw,20px)] leading-tight"
+          className="mb-1.5 font-sans text-[clamp(13px,1.6vw,20px)] leading-tight tracking-[-0.01em] sm:font-serif sm:tracking-normal"
           style={{
             color: isHovered ? C.cardTitleHover : C.cardTitle,
             transition: "color 0.4s",
@@ -197,7 +191,7 @@ export function OrbitNode({
         {/* Detail content — fades out during stack */}
         <motion.div style={{ opacity: detailOpacity }}>
           <p
-            className="hidden font-mono text-[clamp(8px,0.85vw,11px)] font-light leading-[1.7] sm:block"
+            className="hidden font-sans text-[clamp(8px,0.85vw,11px)] font-light leading-[1.7] sm:block"
             style={{
               color: isHovered ? C.cardBodyHover : C.cardBody,
               transition: "color 0.4s",
@@ -206,7 +200,7 @@ export function OrbitNode({
           </p>
 
           <p
-            className="mt-2 hidden pt-1.5 font-mono text-[clamp(7px,0.8vw,10px)] leading-[1.6] sm:block"
+            className="mt-2 hidden pt-1.5 font-sans text-[clamp(8px,0.8vw,10px)] leading-[1.6] sm:block"
             style={{
               color: isHovered ? C.cardSecondaryHover : C.cardSecondary,
               borderTop: `1px solid ${isHovered ? C.hairlineBorderHover : C.hairlineBorder}`,

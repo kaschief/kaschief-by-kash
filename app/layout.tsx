@@ -38,10 +38,9 @@ import {
 } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { FontPackSwitcher } from "@components";
-import { Z_INDEX, LAYOUT } from "@utilities";
+import { Z_INDEX } from "@utilities";
 import type { Metadata, Viewport } from "next";
 const { scrollFade } = Z_INDEX;
-const { scrollFadeHeight } = LAYOUT;
 
 const inter = Inter({
   subsets: ["latin"],
@@ -343,7 +342,7 @@ export default function RootLayout({
             top: 0,
             left: 0,
             right: 0,
-            height: scrollFadeHeight,
+            height: "var(--scroll-fade-height)",
             background:
               "linear-gradient(to bottom, var(--bg) 0%, transparent 100%)",
             pointerEvents: "none",
