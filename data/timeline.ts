@@ -207,6 +207,10 @@ export interface OrbitNode {
   did: string;
   built: string;
   transfer: string;
+  /** Clinical context shown in the examination detail view */
+  clinical: string;
+  /** Capability unlocked — the bridge to tech */
+  capability: string;
 }
 
 export const ORBIT_NODES: readonly OrbitNode[] = [
@@ -217,6 +221,10 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
     built: "Absorb fast, filter noise, orient before the full picture exists.",
     transfer:
       "The instinct that reads a patient before the alarm fires is the same one that catches a system failing before the ticket lands.",
+    clinical:
+      "Hourly neuro checks on post-craniotomy patients. Correlating ICP waveforms with MAP, interpreting ABGs while titrating pressors — all before the attending rounds.",
+    capability:
+      "Rapid situational awareness. Synthesizing incomplete, competing data streams into a prioritized action plan before anyone asks.",
   },
   {
     label: "Pattern Recognition",
@@ -225,6 +233,10 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
     built: "Find what's actually broken. Not what's loudest.",
     transfer:
       "The eye that catches a drug interaction catches a regression buried three PRs deep.",
+    clinical:
+      "2 am cough on a post-op thoracic patient. Could be pleural effusion, vent dyssynchrony, or a delayed reaction to a med given six hours ago. Differential diagnosis under time pressure, every night.",
+    capability:
+      "Root-cause analysis under pressure. Tracing symptoms back through layers of causation instead of treating what's loudest.",
   },
   {
     label: "Communication",
@@ -233,6 +245,10 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
     built: "Make complexity clear for people who need to act on it. Now.",
     transfer:
       "The voice that steadies a family in the ICU steadies a team when the roadmap shifts.",
+    clinical:
+      "SBAR handoff to a surgeon mid-case. Family at bedside needing ventilator settings explained without jargon. Charge nurse needing staffing rationale in one sentence. Three audiences, three languages, one shift.",
+    capability:
+      "Adaptive communication. Translating technical complexity into clarity for any audience, under any pressure.",
   },
   {
     label: "Execution",
@@ -242,6 +258,10 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
       "Move fast under pressure without getting sloppy. Context-switch clean.",
     transfer:
       "Production incidents, regulatory deadlines, competing releases. Same muscle, different room.",
+    clinical:
+      "Code blue called. Intubation tray, crash cart, epi pushed. Charting in real time while calling out vitals. Code ends — walk back to three other critical patients mid-drip and pick up exactly where you left off.",
+    capability:
+      "High-velocity execution with clean context-switching. Performing under pressure without sacrificing precision or losing threads.",
   },
   {
     label: "Triage",
@@ -250,6 +270,10 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
     built: "Know which fire to fight first. Know which ones can wait.",
     transfer:
       "Three projects on fire, a teammate blocked, a deadline moved up. Triage was four ICU beds.",
+    clinical:
+      "Four ICU beds. One desatting, one with rising lactate, one family demanding updates, one stable but due for a dangerous med. All urgent. Decided which fire to fight first and which ones could wait — then escalated past the chain when the chain was too slow.",
+    capability:
+      "Strategic prioritization under competing urgency. Knowing what to defer, what to escalate, and what to handle yourself — simultaneously.",
   },
   {
     label: "Composure",
@@ -258,6 +282,10 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
     built:
       "Regulate yourself first. A reactive leader makes a reactive system.",
     transfer: "A team reads its manager the way a room reads its nurse.",
+    clinical:
+      "1,100 night shifts. Codes where the outcome was already written. Families breaking down at 4 am. Moments where the decision was mine alone and the room was reading my face before I spoke.",
+    capability:
+      "Emotional regulation as a leadership tool. The room mirrors its leader — composure isn't temperament, it's a practiced discipline.",
   },
 ];
 

@@ -306,7 +306,15 @@ export function Navigation() {
       type: "SET_ACTIVE_SECTION",
       payload: { activeSection: id },
     });
-    scrollToSection(id, { updateHistory: false });
+
+    // Delay hash-scroll so GSAP ScrollTrigger pins and spacers are
+    // initialized first — otherwise element positions are wrong.
+    const timer = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollToSection(id, { updateHistory: false });
+      });
+    });
+    return () => cancelAnimationFrame(timer);
   }, [scrollToSection]);
 
   useEffect(() => {

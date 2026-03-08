@@ -1,18 +1,35 @@
 "use client";
 
 import { motion, useTransform } from "framer-motion";
-import { C, SNAP_START, SNAP_END } from "./chaos-to-order.constants";
+import {
+  C,
+  SNAP_START,
+  SNAP_END,
+  STACK_START,
+} from "./chaos-to-order.constants";
 
 export function NarrativeText({
   scrollProgress,
 }: {
   scrollProgress: import("framer-motion").MotionValue<number>;
 }) {
-  const chaosOpacity = useTransform(scrollProgress, [0.08, 0.15, 0.45, 0.53], [0, 1, 1, 0]);
-  const orderOpacity = useTransform(scrollProgress, [SNAP_START, SNAP_END], [0, 1]);
+  const chaosOpacity = useTransform(
+    scrollProgress,
+    [0.08, 0.15, 0.45, 0.53],
+    [0, 1, 1, 0],
+  );
+  const orderOpacity = useTransform(
+    scrollProgress,
+    [SNAP_START, SNAP_END, STACK_START - 0.05, STACK_START],
+    [0, 1, 1, 0],
+  );
 
   // Desktop narrator shifts from center (50%) to sit between grid rows (48%)
-  const narratorTop = useTransform(scrollProgress, [SNAP_START, SNAP_END], [50, 48]);
+  const narratorTop = useTransform(
+    scrollProgress,
+    [SNAP_START, SNAP_END],
+    [50, 48],
+  );
   const narratorTopStr = useTransform(narratorTop, (v) => `${v}%`);
 
   const narratorBg = `radial-gradient(ellipse, ${C.narratorBgCenter} 0%, ${C.narratorBgEdge} 50%, transparent 100%)`;
@@ -37,7 +54,8 @@ export function NarrativeText({
       <p
         className="font-serif text-[clamp(20px,2.8vw,22px)] italic leading-relaxed lg:text-[clamp(16px,1.6vw,22px)]"
         style={{ color: C.narrator }}>
-        The job was never to eliminate the chaos. It was to make order from it.
+        The job was never to eliminate the chaos. It was to use my skills to
+        make order from it.
       </p>
     </motion.div>
   );
