@@ -678,9 +678,14 @@ html[data-custom-cursor="on"] *::after {
 
 /* ─── Scroll-fade overlay — responsive height ─────────────────────────────── */
 :root {
-  --scroll-fade-height: 72px;
+  --scroll-fade-height: 0px;
 }
 @media (min-width: 640px) {
+  :root {
+    --scroll-fade-height: 56px;
+  }
+}
+@media (min-width: 1024px) {
   :root {
     --scroll-fade-height: 160px;
   }
