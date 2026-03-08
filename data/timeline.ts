@@ -111,11 +111,6 @@ export interface ClinicalReadout {
   text: string;
 }
 
-export interface ThroughLine {
-  label: string;
-  text: string;
-}
-
 export interface ActINurseContent {
   act: string;
   title: string;
@@ -130,7 +125,6 @@ export interface ActINurseContent {
   trainedHeadline: string;
   readouts: ClinicalReadout[];
   throughlineHeadline: string;
-  throughlines: ThroughLine[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -186,106 +180,84 @@ export const ACT_I: ActINurseContent = {
     },
   ],
   throughlineHeadline:
-    "The ICU was not just a previous career. It was where the operating system began.",
-  throughlines: [
-    {
-      label: "Carryover",
-      text: "The instinct to protect the system, communicate clearly, and respond without panic came from here — long before tech, management, or trading entered the picture.",
-    },
-    {
-      label: "Through-line",
-      text: "Different domains, same pattern — absorb complexity, find the real signal, then make the next step clearer for everyone involved.",
-    },
-  ],
+    "The ICU was not just a previous career. It was where my operating system started.",
 };
 
 /* ACT I — Chaos-to-Order orbit nodes */
 
 export interface OrbitNode {
-  label: string;
+  id: string;
+  question: string;
+  /** Substring of question to highlight in accent color during order phase */
+  accent: string;
   title: string;
-  did: string;
-  built: string;
-  transfer: string;
-  /** Clinical context shown in the examination detail view */
-  clinical: string;
-  /** Capability unlocked — the bridge to tech */
+  proof: string;
   capability: string;
 }
 
 export const ORBIT_NODES: readonly OrbitNode[] = [
   {
-    label: "Assessment",
-    title: "Read the room before the monitor does",
-    did: "Neuro checks every hour. ICP, hemodynamics, blood gas — all at once. Incomplete data, competing signals, every single shift.",
-    built: "Absorb fast, filter noise, orient before the full picture exists.",
-    transfer:
-      "The instinct that reads a patient before the alarm fires is the same one that catches a system failing before the ticket lands.",
-    clinical:
-      "Hourly neuro checks on post-craniotomy patients. Correlating ICP waveforms with MAP, interpreting ABGs while titrating pressors — all before the attending rounds.",
+    id: "assessment",
+    question:
+      "What do you do when the numbers are not telling the whole story yet?",
+    accent: "you do",
+    title: "Recognize the signal before it is obvious",
+    proof:
+      "Hourly neuro exams, pupils, ICP trends, blood gases still pending, blood pressure drifting. In neuro ICU the monitor rarely gives the full picture in time. Most of the real signals come from the patient long before the chart catches up.",
     capability:
-      "Rapid situational awareness. Synthesizing incomplete, competing data streams into a prioritized action plan before anyone asks.",
+      "Collect the data, build the picture from fragments, and decide what information matters.",
   },
   {
-    label: "Pattern Recognition",
-    title: "Never treat the symptom",
-    did: "A cough at 1 am — nothing, or effusion, vent malfunction, a dosage reaction from hours ago. Diagnosis under time pressure, every night.",
-    built: "Find what's actually broken. Not what's loudest.",
-    transfer:
-      "The eye that catches a drug interaction catches a regression buried three PRs deep.",
-    clinical:
-      "2 am cough on a post-op thoracic patient. Could be pleural effusion, vent dyssynchrony, or a delayed reaction to a med given six hours ago. Differential diagnosis under time pressure, every night.",
+    id: "pattern",
+    question: "When something breaks, how do you find the cause?",
+    accent: "find the cause",
+    title: "Start with what changed",
+    proof:
+      "A patient suddenly coughing on the ventilator in the middle of the night. It might be nothing. It might be secretions, fluid shifting, tube positioning, a sedation issue, or a reaction to medication given hours earlier. You have minutes to figure out which one.",
     capability:
-      "Root-cause analysis under pressure. Tracing symptoms back through layers of causation instead of treating what's loudest.",
+      "Trace problems back to their cause instead of reacting to the loudest symptom.",
   },
   {
-    label: "Communication",
-    title: "Translate fear into trust in ninety seconds",
-    did: "Briefed surgeons in three sentences. Talked families through ventilator settings at 3 am. Every audience needed a different language.",
-    built: "Make complexity clear for people who need to act on it. Now.",
-    transfer:
-      "The voice that steadies a family in the ICU steadies a team when the roadmap shifts.",
-    clinical:
-      "SBAR handoff to a surgeon mid-case. Family at bedside needing ventilator settings explained without jargon. Charge nurse needing staffing rationale in one sentence. Three audiences, three languages, one shift.",
+    id: "communication",
+    question:
+      "How do you explain something critical to someone who has never seen it before?",
+    accent: "explain something",
+    title: "Put complex things into plain language",
+    proof:
+      "Families asking what the machines mean at three in the morning. Surgeons needing a fast update during rounds. Residents asking what changed since the last shift. Each conversation requires a different level of detail but the same responsibility to be clear and honest.",
     capability:
-      "Adaptive communication. Translating technical complexity into clarity for any audience, under any pressure.",
+      "Translate complex situations into clear language for whoever needs to understand them.",
   },
   {
-    label: "Execution",
-    title: "Chaos, controlled",
-    did: "Rapid response. Ventilators, IV titrations, arterial lines. Document in real time. Then walk back to three other patients like nothing happened.",
-    built:
-      "Move fast under pressure without getting sloppy. Context-switch clean.",
-    transfer:
-      "Production incidents, regulatory deadlines, competing releases. Same muscle, different room.",
-    clinical:
-      "Code blue called. Intubation tray, crash cart, epi pushed. Charting in real time while calling out vitals. Code ends — walk back to three other critical patients mid-drip and pick up exactly where you left off.",
+    id: "execution",
+    question: "How do you get it right when everything is happening at once?",
+    accent: "everything is happening",
+    title: "Stop. Breathe. Focus.",
+    proof:
+      "Rapid responses, ventilator adjustments, titrating vasopressors, drawing labs, documenting every change, then stepping back into the rest of the assignment as if nothing happened. The shift keeps moving whether the crisis ends or not.",
     capability:
-      "High-velocity execution with clean context-switching. Performing under pressure without sacrificing precision or losing threads.",
+      "Execute precisely while tracking everything else that is unfolding.",
   },
   {
-    label: "Triage",
-    title: "One crashing. Three still need you steady.",
-    did: "Four critical patients. Competing needs, all urgent. Escalated past the chain when the chain was too slow.",
-    built: "Know which fire to fight first. Know which ones can wait.",
-    transfer:
-      "Three projects on fire, a teammate blocked, a deadline moved up. Triage was four ICU beds.",
-    clinical:
-      "Four ICU beds. One desatting, one with rising lactate, one family demanding updates, one stable but due for a dangerous med. All urgent. Decided which fire to fight first and which ones could wait — then escalated past the chain when the chain was too slow.",
+    id: "triage",
+    question:
+      "How do you decide where your attention goes when every patient is critical?",
+    accent: "decide",
+    title: "Fix the most dangerous problem first",
+    proof:
+      "Four ICU patients. One deteriorating fast, another unstable but holding, two more needing constant monitoring. Sometimes escalation through the normal chain takes too long, so you go straight to the attending and keep the rest of the floor stable while help arrives.",
     capability:
-      "Strategic prioritization under competing urgency. Knowing what to defer, what to escalate, and what to handle yourself — simultaneously.",
+      "Focus attention where risk is highest and escalate before the system catches up.",
   },
   {
-    label: "Composure",
-    title: "Calm is a procedure, not a personality",
-    did: "~1,100 night shifts. Codes, family breakdowns, moments where the call was mine alone. The room reads the nurse first.",
-    built:
-      "Regulate yourself first. A reactive leader makes a reactive system.",
-    transfer: "A team reads its manager the way a room reads its nurse.",
-    clinical:
-      "1,100 night shifts. Codes where the outcome was already written. Families breaking down at 4 am. Moments where the decision was mine alone and the room was reading my face before I spoke.",
+    id: "composure",
+    question: "When the pressure rises in the room, what matters most?",
+    accent: "pressure",
+    title: "Anchor and keep direction",
+    proof:
+      "Years of night shifts. Codes, neurological decline, families breaking down in the hallway, moments where decisions had to be made before the rest of the team arrived. In those moments the tone of the room follows the nurse.",
     capability:
-      "Emotional regulation as a leadership tool. The room mirrors its leader — composure isn't temperament, it's a practiced discipline.",
+      "Stay steady so the room can think clearly and move to the next step.",
   },
 ];
 
