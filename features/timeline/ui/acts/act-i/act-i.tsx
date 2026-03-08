@@ -14,7 +14,12 @@ export function ActI() {
       <div className="h-24 lg:h-40" />
       <ChaosToOrder />
       {/* Fade from orbit into throughline */}
-      <div className="relative h-24 lg:h-64" style={{ background: "linear-gradient(to bottom, transparent, var(--bg) 60%)" }} />
+      <div
+        className="relative h-24 lg:h-64"
+        style={{
+          background: "linear-gradient(to bottom, transparent, var(--bg) 60%)",
+        }}
+      />
       <Throughline />
 
       <div className="h-24 md:h-40" />
