@@ -199,6 +199,68 @@ export const ACT_I: ActINurseContent = {
   ],
 };
 
+/* ACT I — Chaos-to-Order orbit nodes */
+
+export interface OrbitNode {
+  label: string;
+  title: string;
+  did: string;
+  built: string;
+  transfer: string;
+}
+
+export const ORBIT_NODES: readonly OrbitNode[] = [
+  {
+    label: "Assessment",
+    title: "Read the room before the monitor does",
+    did: "Neuro checks every hour. ICP, hemodynamics, blood gas — all at once. Incomplete data, competing signals, every single shift.",
+    built: "Absorb fast, filter noise, orient before the full picture exists.",
+    transfer:
+      "The instinct that reads a patient before the alarm fires is the same one that catches a system failing before the ticket lands.",
+  },
+  {
+    label: "Pattern Recognition",
+    title: "Never treat the symptom",
+    did: "A cough at 1 am — nothing, or effusion, vent malfunction, a dosage reaction from hours ago. Diagnosis under time pressure, every night.",
+    built: "Find what's actually broken. Not what's loudest.",
+    transfer:
+      "The eye that catches a drug interaction catches a regression buried three PRs deep.",
+  },
+  {
+    label: "Communication",
+    title: "Translate fear into trust in ninety seconds",
+    did: "Briefed surgeons in three sentences. Talked families through ventilator settings at 3 am. Every audience needed a different language.",
+    built: "Make complexity clear for people who need to act on it. Now.",
+    transfer:
+      "The voice that steadies a family in the ICU steadies a team when the roadmap shifts.",
+  },
+  {
+    label: "Execution",
+    title: "Chaos, controlled",
+    did: "Rapid response. Ventilators, IV titrations, arterial lines. Document in real time. Then walk back to three other patients like nothing happened.",
+    built:
+      "Move fast under pressure without getting sloppy. Context-switch clean.",
+    transfer:
+      "Production incidents, regulatory deadlines, competing releases. Same muscle, different room.",
+  },
+  {
+    label: "Triage",
+    title: "One crashing. Three still need you steady.",
+    did: "Four critical patients. Competing needs, all urgent. Escalated past the chain when the chain was too slow.",
+    built: "Know which fire to fight first. Know which ones can wait.",
+    transfer:
+      "Three projects on fire, a teammate blocked, a deadline moved up. Triage was four ICU beds.",
+  },
+  {
+    label: "Composure",
+    title: "Calm is a procedure, not a personality",
+    did: "~1,100 night shifts. Codes, family breakdowns, moments where the call was mine alone. The room reads the nurse first.",
+    built:
+      "Regulate yourself first. A reactive leader makes a reactive system.",
+    transfer: "A team reads its manager the way a room reads its nurse.",
+  },
+];
+
 /* ------------------------------------------------------------------ */
 /*  ACT II — The Engineer                                              */
 /* ------------------------------------------------------------------ */
