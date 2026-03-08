@@ -203,7 +203,7 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
     accent: "you do",
     title: "Recognize the signal before it is obvious",
     proof:
-      "Hourly neuro exams, pupils, ICP trends, blood gases still pending, blood pressure drifting. In neuro ICU the monitor rarely gives the full picture in time. Most of the real signals come from the patient long before the chart catches up.",
+      "Ran hourly neuro checks, watched ICP trends, compared vitals with the patient in front of me, and caught changes before the chart reflected them.",
     capability:
       "Collect the data, build the picture from fragments, and decide what information matters.",
   },
@@ -213,7 +213,7 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
     accent: "find the cause",
     title: "Start with what changed",
     proof:
-      "A patient suddenly coughing on the ventilator in the middle of the night. It might be nothing. It might be secretions, fluid shifting, tube positioning, a sedation issue, or a reaction to medication given hours earlier. You have minutes to figure out which one.",
+      "Checked the ventilator, reviewed medication changes, assessed secretions, and worked backwards through what had changed when something suddenly looked wrong.",
     capability:
       "Trace problems back to their cause instead of reacting to the loudest symptom.",
   },
@@ -224,7 +224,7 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
     accent: "explain something",
     title: "Put complex things into plain language",
     proof:
-      "Families asking what the machines mean at three in the morning. Surgeons needing a fast update during rounds. Residents asking what changed since the last shift. Each conversation requires a different level of detail but the same responsibility to be clear and honest.",
+      "Explained machines and alarms to families in the middle of the night and gave surgeons clear updates during rounds.",
     capability:
       "Translate complex situations into clear language for whoever needs to understand them.",
   },
@@ -234,7 +234,7 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
     accent: "everything is happening",
     title: "Stop. Breathe. Focus.",
     proof:
-      "Rapid responses, ventilator adjustments, titrating vasopressors, drawing labs, documenting every change, then stepping back into the rest of the assignment as if nothing happened. The shift keeps moving whether the crisis ends or not.",
+      "Adjusted ventilators, titrated vasopressors, drew labs, documented changes, and moved between patients without losing track of the details.",
     capability:
       "Execute precisely while tracking everything else that is unfolding.",
   },
@@ -245,7 +245,7 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
     accent: "decide",
     title: "Fix the most dangerous problem first",
     proof:
-      "Four ICU patients. One deteriorating fast, another unstable but holding, two more needing constant monitoring. Sometimes escalation through the normal chain takes too long, so you go straight to the attending and keep the rest of the floor stable while help arrives.",
+      "Managed four ICU patients at once, deciding who needed immediate attention and who could safely wait.",
     capability:
       "Focus attention where risk is highest and escalate before the system catches up.",
   },
@@ -255,7 +255,7 @@ export const ORBIT_NODES: readonly OrbitNode[] = [
     accent: "pressure",
     title: "Anchor and keep direction",
     proof:
-      "Years of night shifts. Codes, neurological decline, families breaking down in the hallway, moments where decisions had to be made before the rest of the team arrived. In those moments the tone of the room follows the nurse.",
+      "Stayed steady during tense moments so the room could focus on the next step instead of the stress.",
     capability:
       "Stay steady so the room can think clearly and move to the next step.",
   },
