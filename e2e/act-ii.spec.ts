@@ -40,7 +40,7 @@ const COMPANIES = [
   {
     hash: "8c2e4d9",
     company: "Compado",
-    role: "Frontend Engineer → Senior",
+    role: "Frontend Engineer → Senior Frontend Engineer",
     location: "Berlin",
     period: "Oct 2019 — Jun 2021",
     commits: [
@@ -49,7 +49,7 @@ const COMPANIES = [
       "architect SEO improvements directly in the frontend layer",
       "own the acquisition and conversion frontend end to end",
     ],
-    tags: ["Vue", "Marketing", "↑ Promoted to Senior"],
+    tags: ["Vue", "Marketing", "↑ Promoted"],
     promoted: true,
     repo: {
       org: "compado",
@@ -82,14 +82,14 @@ const COMPANIES = [
   {
     hash: "5e7d2a1",
     company: "DKB Code Factory",
-    role: "Senior Frontend → Engineering Manager",
+    role: "Senior Frontend Engineer → Engineering Manager",
     location: "Berlin",
     period: "Oct 2021 — Dec 2024",
     commits: [
       "rebuild banking UI for millions of users in React/TS",
       "introduce Jest and Playwright for mission-critical reliability",
       "partner with Product to identify and fix usability gaps",
-      "promoted to Engineering Manager within 12 months",
+      "move releases from monthly to weekly with zero rollbacks",
     ],
     tags: ["React", "TypeScript", "Banking", "↑ Promoted"],
     promoted: true,
