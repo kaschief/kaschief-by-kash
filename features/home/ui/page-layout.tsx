@@ -2,7 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { useBreakpoint } from "@hooks";
-import { BP } from "@utilities";
+import { BREAKPOINTS } from "@utilities";
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -13,8 +13,8 @@ interface PageLayoutProps {
  * Children consume `--page-gutter` instead of hard-coding breakpoint paddings.
  */
 export function PageLayout({ children }: PageLayoutProps) {
-  const isTabletUp = useBreakpoint(BP.md);
-  const isDesktopXl = useBreakpoint(BP.xl);
+  const isTabletUp = useBreakpoint(BREAKPOINTS.md);
+  const isDesktopXl = useBreakpoint(BREAKPOINTS.xl);
   const pageGutter = isTabletUp && !isDesktopXl ? "2.5rem" : "1.5rem";
 
   return (

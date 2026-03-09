@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { useBreakpoint } from "@hooks";
-import { BP, TOKENS } from "@utilities";
+import { BREAKPOINTS, TOKENS } from "@utilities";
 import type { DetailOverlayNavigationProps } from "./detail-overlay-navigation.types";
 
 const { creamMuted, stroke } = TOKENS;
@@ -88,7 +88,7 @@ export function DetailOverlayNavigation({
   nextLabel,
   zIndex,
 }: DetailOverlayNavigationProps) {
-  const isDesktopXl = useBreakpoint(BP.xl);  // >= 1280px
+  const isDesktopXl = useBreakpoint(BREAKPOINTS.xl);  // >= 1280px
 
   const hasDirectionalNav = canGoPrev || canGoNext;
 

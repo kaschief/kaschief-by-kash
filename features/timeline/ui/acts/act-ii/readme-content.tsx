@@ -11,7 +11,7 @@ export function ReadmeContent({ lines }: ReadmeContentProps) {
           return (
             <h2
               key={i}
-              className="mb-3 border-b border-[var(--stroke)] pb-2 text-lg font-semibold text-[var(--cream)] md:text-xl"
+              className="mb-3 border-b border-(--stroke) pb-2 text-lg font-semibold text-(--cream) md:text-xl"
               style={{ marginTop: i > 0 ? 8 : 0 }}>
               {line.replace("## ", "")}
             </h2>
@@ -20,7 +20,7 @@ export function ReadmeContent({ lines }: ReadmeContentProps) {
           return (
             <h3
               key={i}
-              className="mb-2 mt-4 text-sm font-semibold text-[var(--cream)] md:text-base">
+              className="mb-2 mt-4 text-sm font-semibold text-(--cream) md:text-base">
               {line.replace("### ", "")}
             </h3>
           );
@@ -29,8 +29,8 @@ export function ReadmeContent({ lines }: ReadmeContentProps) {
           return (
             <p
               key={i}
-              className="mb-2 text-[12px] leading-[1.8] text-[var(--cream-muted)] sm:text-[13px]">
-              <strong className="text-[var(--cream)]">{parts[1]}</strong>
+              className="mb-2 text-[12px] leading-[1.8] text-(--cream-muted) sm:text-[13px]">
+              <strong className="text-(--cream)">{parts[1]}</strong>
               {parts[2]}
             </p>
           );
@@ -38,7 +38,7 @@ export function ReadmeContent({ lines }: ReadmeContentProps) {
         return (
           <p
             key={i}
-            className="mb-2 text-[12px] leading-[1.8] text-[var(--cream-muted)] sm:text-[13px]">
+            className="mb-2 text-[12px] leading-[1.8] text-(--cream-muted) sm:text-[13px]">
             {line}
           </p>
         );

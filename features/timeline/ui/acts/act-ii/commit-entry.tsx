@@ -7,7 +7,12 @@ import { EASE } from "@utilities";
 
 import {
   COLOR,
+  COLOR_HOVER,
+  COLOR_RGBA,
   COMMIT_TYPE_COLORS,
+  COMMIT_TYPE_FALLBACK,
+  ENTRY_INVIEW_MARGIN,
+  ENTRY_STAGGER_DELAY,
   PROMOTED_COLOR,
   SECTION_BG,
 } from "./act-ii.constants";
@@ -19,7 +24,7 @@ export function CommitEntry({
   onSelect,
 }: CommitEntryProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const inView = useInView(ref, { once: true, margin: ENTRY_INVIEW_MARGIN });
   const isLast = index === COMPANIES.length - 1;
 
   return (
@@ -36,9 +41,16 @@ export function CommitEntry({
       }}
       initial={{ opacity: 0, x: -20 }}
       animate={inView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.7, delay: index * 0.15, ease: EASE }}
-      className={`group relative ml-1.5 cursor-pointer pl-7 pr-4 py-5 outline-none transition-all duration-200 hover:bg-[rgba(91,158,194,0.05)] active:scale-[0.99] rounded-r-2xl focus-visible:rounded-r-2xl focus-visible:ring-1 focus-visible:ring-[rgba(91,158,194,0.4)] ${!isLast ? "border-l-2 border-[var(--stroke)]" : ""}`}
-      style={{ "--dot-color": company.promoted ? PROMOTED_COLOR : COLOR } as React.CSSProperties}
+      transition={{ duration: 0.7, delay: index * ENTRY_STAGGER_DELAY, ease: EASE }}
+      className={`group relative ml-1.5 cursor-pointer pl-7 pr-4 py-5 outline-none transition-all duration-200 active:scale-[0.99] rounded-r-2xl focus-visible:rounded-r-2xl ${!isLast ? "border-l-2 border-(--stroke)" : ""}`}
+      style={{
+        "--dot-color": company.promoted ? PROMOTED_COLOR : COLOR,
+        backgroundColor: "transparent",
+      } as React.CSSProperties}
+      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLOR_RGBA(0.05); }}
+      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+      onFocus={(e) => { e.currentTarget.style.boxShadow = `inset 0 0 0 1px ${COLOR_RGBA(0.4)}`; }}
+      onBlur={(e) => { e.currentTarget.style.boxShadow = "none"; }}
       onClick={onSelect}>
       {/* Branch dot */}
       <div
@@ -50,31 +62,34 @@ export function CommitEntry({
       />
 
       {/* Hash */}
-      <div className="mb-1 font-mono text-[11px] tracking-[0.05em] text-[var(--gold)]">
+      <div className="mb-1 font-mono text-[11px] tracking-[0.05em] text-(--gold)">
         {company.hash}
       </div>
 
       {/* Company */}
-      <div className="flex items-center justify-between text-sm font-bold text-[var(--cream)] transition-colors duration-200 group-hover:text-[#5B9EC2] sm:text-base lg:text-lg">
-        <span>{company.company}</span>
+      <div className="flex items-center justify-between text-sm font-bold text-(--cream) transition-colors duration-200 sm:text-base lg:text-lg"
+        style={{ "--hover-color": COLOR } as React.CSSProperties}>
+        <span className="group-hover:text-(--act-blue)">{company.company}</span>
         <svg
           width="14"
           height="14"
           viewBox="0 0 14 14"
           fill="none"
-          className="shrink-0 text-[var(--text-faint)] transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-[#5B9EC2]"
+          className="shrink-0 text-(--text-faint) transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-(--act-blue)"
           aria-hidden="true">
           <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
 
       {/* Role */}
-      <div className="mt-0.5 font-mono text-xs text-[#5B9EC2] transition-colors duration-200 group-hover:text-[#8ECAE6]">
-        {company.role}
+      <div className="mt-0.5 font-mono text-xs transition-colors duration-200"
+        style={{ color: COLOR }}>
+        <span className="group-hover:hidden">{company.role}</span>
+        <span className="hidden group-hover:inline" style={{ color: COLOR_HOVER }}>{company.role}</span>
       </div>
 
       {/* Location + period */}
-      <div className="mt-1 font-mono text-[11px] text-[var(--text-dim)]">
+      <div className="mt-1 font-mono text-[11px] text-(--text-dim)">
         {company.location} · {company.period}
       </div>
 
@@ -83,11 +98,11 @@ export function CommitEntry({
         {company.commits.map((commit, i) => (
           <li key={i} className="font-mono text-[10px] leading-[1.7] sm:text-[11px] md:text-[12px]">
             <span
-              style={{ color: COMMIT_TYPE_COLORS[commit.type] || "#4A4640" }}>
+              style={{ color: COMMIT_TYPE_COLORS[commit.type] || COMMIT_TYPE_FALLBACK }}>
               {commit.type}
             </span>
-            <span className="text-[var(--text-faint)]">: </span>
-            <span className="text-[var(--cream-muted)]">{commit.msg}</span>
+            <span className="text-(--text-faint)">: </span>
+            <span className="text-(--cream-muted)">{commit.msg}</span>
           </li>
         ))}
       </ul>

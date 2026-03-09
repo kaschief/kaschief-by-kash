@@ -3,9 +3,9 @@
 import React from "react";
 import { motion, useTransform } from "framer-motion";
 import { ACT_I } from "@data";
+import { BREAKPOINTS } from "@utilities";
 import {
   COLORS,
-  BREAKPOINTS,
   DEVICES,
   type Devices,
   FOCUS_START,
