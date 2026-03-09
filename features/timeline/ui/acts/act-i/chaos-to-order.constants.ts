@@ -1,5 +1,5 @@
 import { ACT_I } from "@data";
-import { BP, TOKENS } from "@utilities";
+import { TOKENS } from "@utilities";
 
 // ─── Color Palette ──────────────────────────────────────────────────────────
 // Single source of truth for every color in this section.
@@ -189,9 +189,6 @@ export const BURST_SPRING = {
 };
 export const PROOF_MAX_HEIGHT = 80;
 
-// ─── Shared Breakpoints (re-exported for convenience) ───────────────────────
-
-export { BP as BREAKPOINTS };
 
 /** Named devices for JS comparisons (avoids magic "sm"/"md"/"lg" strings) */
 export const DEVICES = {

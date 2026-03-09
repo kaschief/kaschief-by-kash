@@ -17,10 +17,20 @@ import { NAVIGATION_SCROLL_EVENT } from "@hooks";
 import {
   act,
   body,
+  BODY_MAX_W,
   COLOR,
+  COLOR_RGBA,
+  CONTENT_MAX_W,
+  GLOW_PRIMARY,
+  GLOW_SECONDARY,
+  GRID_OPACITY_DESKTOP,
+  GRID_OPACITY_MOBILE,
+  GRID_SIZE,
+  SCAN_LINE_DURATION,
   SECTION_BG,
   SITE_BG,
   splash,
+  SPLASH_MAX_W,
   title,
   TERMINAL_BG,
   TERMINAL_TITLE_BG,
@@ -64,10 +74,10 @@ export function ActII() {
         className="pointer-events-none absolute inset-0 lg:hidden"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(91,158,194,0.12) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(91,158,194,0.12) 1px, transparent 1px)
+            linear-gradient(${COLOR_RGBA(GRID_OPACITY_MOBILE)} 1px, transparent 1px),
+            linear-gradient(90deg, ${COLOR_RGBA(GRID_OPACITY_MOBILE)} 1px, transparent 1px)
           `,
-          backgroundSize: "50px 50px",
+          backgroundSize: GRID_SIZE,
         }}
       />
       {/* Grid texture — desktop */}
@@ -75,10 +85,10 @@ export function ActII() {
         className="pointer-events-none absolute inset-0 hidden lg:block"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(91,158,194,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(91,158,194,0.06) 1px, transparent 1px)
+            linear-gradient(${COLOR_RGBA(GRID_OPACITY_DESKTOP)} 1px, transparent 1px),
+            linear-gradient(90deg, ${COLOR_RGBA(GRID_OPACITY_DESKTOP)} 1px, transparent 1px)
           `,
-          backgroundSize: "50px 50px",
+          backgroundSize: GRID_SIZE,
         }}
       />
 
@@ -113,24 +123,22 @@ export function ActII() {
         <div
           className="atmospheric-glow"
           style={{
-            width: 1000,
-            height: 1000,
-            top: "25%",
-            right: "10%",
+            width: GLOW_PRIMARY.size,
+            height: GLOW_PRIMARY.size,
+            top: GLOW_PRIMARY.top,
+            right: GLOW_PRIMARY.right,
             transform: "translate(0, -50%)",
-            background:
-              "radial-gradient(circle, rgba(91,158,194,0.07) 0%, transparent 65%)",
+            background: `radial-gradient(circle, ${COLOR_RGBA(GLOW_PRIMARY.opacity)} 0%, transparent 65%)`,
           }}
         />
         <div
           className="atmospheric-glow"
           style={{
-            width: 700,
-            height: 700,
-            bottom: "20%",
-            left: "5%",
-            background:
-              "radial-gradient(circle, rgba(91,158,194,0.04) 0%, transparent 65%)",
+            width: GLOW_SECONDARY.size,
+            height: GLOW_SECONDARY.size,
+            bottom: GLOW_SECONDARY.bottom,
+            left: GLOW_SECONDARY.left,
+            background: `radial-gradient(circle, ${COLOR_RGBA(GLOW_SECONDARY.opacity)} 0%, transparent 65%)`,
           }}
         />
       </motion.div>
@@ -139,14 +147,14 @@ export function ActII() {
       <motion.div
         className="pointer-events-none absolute inset-x-0 h-px"
         style={{
-          background: `linear-gradient(90deg, transparent, rgba(91,158,194,0.08), transparent)`,
+          background: `linear-gradient(90deg, transparent, ${COLOR_RGBA(0.08)}, transparent)`,
         }}
         animate={{ top: ["0%", "100%"] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: SCAN_LINE_DURATION, repeat: Infinity, ease: "linear" }}
       />
 
       {/* ── Content ── */}
-      <div className="relative z-10 mx-auto max-w-[900px] px-[var(--page-gutter)]">
+      <div className="relative z-10 mx-auto px-(--page-gutter)" style={{ maxWidth: CONTENT_MAX_W }}>
         {/* Act header */}
         <motion.div
           className="mb-12 text-center"
@@ -160,7 +168,7 @@ export function ActII() {
           </p>
           <h2
             ref={titleRef}
-            className="font-sans text-4xl font-bold tracking-[-0.03em] text-[var(--cream)] sm:text-6xl md:text-8xl lg:text-[140px] lg:tracking-[-0.04em]">
+            className="font-sans text-4xl font-bold tracking-[-0.03em] text-(--cream) sm:text-6xl md:text-8xl lg:text-[140px] lg:tracking-[-0.04em]">
             <ScrambleText
               text={title.toUpperCase().replace(/I/, "1")}
               active={titleInView}
@@ -169,32 +177,32 @@ export function ActII() {
               intervalMs={70}
             />
           </h2>
-          <p className="mx-auto mt-6 max-w-[500px] font-serif text-sm leading-relaxed text-[var(--cream-muted)] italic sm:text-base md:text-lg lg:text-xl">
+          <p className="mx-auto mt-6 font-serif text-sm leading-relaxed text-(--cream-muted) italic sm:text-base md:text-lg lg:text-xl" style={{ maxWidth: SPLASH_MAX_W }}>
             {splash}
           </p>
-          <p className="mx-auto mt-5 max-w-[640px] text-xs leading-[1.7] text-[var(--text-dim)] sm:text-[13px] sm:mt-6 md:text-sm lg:text-base">
+          <p className="mx-auto mt-5 text-xs leading-[1.7] text-(--text-dim) sm:text-[13px] sm:mt-6 md:text-sm lg:text-base" style={{ maxWidth: BODY_MAX_W }}>
             {body}
           </p>
         </motion.div>
 
         {/* Terminal title bar */}
         <motion.div
-          className="flex items-center gap-2 rounded-t-lg border border-b-0 border-[var(--stroke)] px-4 py-2.5"
+          className="flex items-center gap-2 rounded-t-lg border border-b-0 border-(--stroke) px-4 py-2.5"
           style={{ backgroundColor: TERMINAL_TITLE_BG }}
           initial={{ opacity: 0, y: -15 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.3, ease: EASE }}>
-          <span className="h-2.5 w-2.5 rounded-full bg-[#E05252]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#C9A84C]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#5EBB73]" />
-          <span className="ml-3 font-mono text-[11px] text-[var(--text-faint)]">
+          <span className="h-2.5 w-2.5 rounded-full bg-(--act-red)" />
+          <span className="h-2.5 w-2.5 rounded-full bg-(--act-gold)" />
+          <span className="h-2.5 w-2.5 rounded-full bg-(--act-green)" />
+          <span className="ml-3 font-mono text-[11px] text-(--text-faint)">
             kaschief — ~/career — git log --oneline
           </span>
         </motion.div>
 
         {/* Terminal body */}
         <motion.div
-          className="rounded-b-lg border border-[var(--stroke)] p-4 sm:p-5 md:p-6 lg:p-8"
+          className="rounded-b-lg border border-(--stroke) p-4 sm:p-5 md:p-6 lg:p-8"
           style={{ backgroundColor: TERMINAL_BG }}
           initial={{ opacity: 0, y: -10 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -206,8 +214,8 @@ export function ActII() {
             animate={inView ? { opacity: 1 } : {}}
             transition={{ duration: 0.6, delay: 0.5 }}>
             <span style={{ color: COLOR }}>~/career</span>
-            <span className="text-[var(--text-faint)]"> $ </span>
-            <span className="text-[var(--cream)]">git log --graph --all</span>
+            <span className="text-(--text-faint)"> $ </span>
+            <span className="text-(--cream)">git log --graph --all</span>
             <span
               className="ml-1 inline-block h-4 w-2"
               style={{
@@ -235,7 +243,7 @@ export function ActII() {
           animate={inView ? { opacity: 1 } : {}}
           transition={{ duration: 1, delay: 0.8 }}
           style={{
-            background: `linear-gradient(90deg, transparent, rgba(91,158,194,0.2), transparent)`,
+            background: `linear-gradient(90deg, transparent, ${COLOR_RGBA(0.2)}, transparent)`,
           }}
         />
       </div>

@@ -4,7 +4,17 @@ import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { EASE, Z_INDEX } from "@utilities";
 
-import { COLOR, PANEL_BORDER, PANEL_HEADER_BG } from "./act-ii.constants";
+import {
+  CLOSE_BORDER,
+  COLOR,
+  COLOR_HOVER,
+  COLOR_RGBA,
+  OVERLAY_BG,
+  OVERLAY_NAV_BG,
+  PANEL_BORDER,
+  PANEL_HEADER_BG,
+  PANEL_MAX_W,
+} from "./act-ii.constants";
 import type { RepoPanelProps } from "./act-ii.types";
 import { ImpactStats } from "./impact-stats";
 import { ReadmeContent } from "./readme-content";
@@ -63,7 +73,7 @@ export function RepoPanel({
       className="fixed inset-0 cursor-default overflow-y-auto overscroll-contain outline-none"
       style={{
         zIndex: Z_INDEX.repoPanel,
-        background: "rgba(4,4,8,0.92)",
+        background: OVERLAY_BG,
         backdropFilter: "blur(12px)",
         WebkitOverflowScrolling: "touch",
       }}
@@ -74,20 +84,22 @@ export function RepoPanel({
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.4, ease: EASE }}
         className="mx-auto cursor-auto px-6 pt-4 pb-20"
-        style={{ maxWidth: 860 }}
+        style={{ maxWidth: PANEL_MAX_W }}
         onClick={(e) => e.stopPropagation()}>
 
         {/* Top bar */}
         <nav
           className="sticky top-0 z-10 mb-6 flex items-center justify-between pt-20 pb-4"
-          style={{ borderBottom: `1px solid ${PANEL_BORDER}`, background: "rgba(4,4,8,0.98)", backdropFilter: "blur(8px)" }}
+          style={{ borderBottom: `1px solid ${PANEL_BORDER}`, background: OVERLAY_NAV_BG, backdropFilter: "blur(8px)" }}
           aria-label="Repository navigation">
           <button
             type="button"
             onClick={onClose}
-            className="group/back flex min-h-11 min-w-0 cursor-pointer items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-[rgba(91,158,194,0.08)] active:scale-[0.97] focus-visible:outline-1 focus-visible:outline-[rgba(91,158,194,0.4)]"
-            aria-label={`Back to career log from ${company.company}`}
-            style={{ background: "none", border: "none" }}>
+            className="group/back flex min-h-11 min-w-0 cursor-pointer items-center gap-2 rounded-md px-2 py-1 transition-colors active:scale-[0.97]"
+            style={{ background: "none", border: "none" }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLOR_RGBA(0.08); }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+            aria-label={`Back to career log from ${company.company}`}>
             <svg
               width="16"
               height="16"
@@ -99,16 +111,18 @@ export function RepoPanel({
             </svg>
             <span className="truncate font-mono text-xs sm:text-sm">
               <span style={{ color: COLOR }}>{repo.org}</span>
-              <span className="text-[var(--text-faint)] transition-colors group-hover/back:text-[var(--text-dim)]"> / </span>
-              <span className="font-bold text-[var(--cream)] transition-colors group-hover/back:text-white">{repo.name}</span>
+              <span className="text-(--text-faint) transition-colors group-hover/back:text-(--text-dim)"> / </span>
+              <span className="font-bold text-(--cream) transition-colors group-hover/back:text-white">{repo.name}</span>
             </span>
           </button>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close panel"
-            className="flex shrink-0 min-h-11 cursor-pointer items-center whitespace-nowrap rounded-md border border-[#2A2A34] px-3.5 py-1.5 font-mono text-xs text-[var(--cream-muted)] transition-all hover:border-[var(--text-faint)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--cream)] active:scale-[0.97] focus-visible:outline-1 focus-visible:outline-[rgba(91,158,194,0.4)]"
-            style={{ background: "none" }}>
+            className="flex shrink-0 min-h-11 cursor-pointer items-center whitespace-nowrap rounded-md border px-3.5 py-1.5 font-mono text-xs text-(--cream-muted) transition-all hover:border-(--text-faint) hover:text-(--cream) active:scale-[0.97]"
+            style={{ background: "none", borderColor: CLOSE_BORDER }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.04)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
             Close
           </button>
         </nav>
@@ -123,20 +137,20 @@ export function RepoPanel({
               style={{ backgroundColor: repo.languageColor }}
               aria-hidden="true"
             />
-            <span className="text-[var(--cream-muted)]">{repo.language}</span>
+            <span className="text-(--cream-muted)">{repo.language}</span>
           </span>
-          <span className="text-[var(--text-dim)]">
+          <span className="text-(--text-dim)">
             <span aria-hidden="true">{"\u2605"} </span>
             {repo.stars}
           </span>
-          <span className="text-[var(--text-dim)]">
+          <span className="text-(--text-dim)">
             <span aria-hidden="true">{"\u2387"} </span>
             {repo.branch}
           </span>
         </div>
 
         {/* Description */}
-        <p className="mb-7 max-w-[700px] text-[13px] leading-[1.7] text-[var(--cream-muted)] sm:text-sm">
+        <p className="mb-7 max-w-[700px] text-[13px] leading-[1.7] text-(--cream-muted) sm:text-sm">
           {repo.description}
         </p>
 
@@ -165,7 +179,7 @@ export function RepoPanel({
           className="overflow-hidden rounded-md border"
           style={{ borderColor: PANEL_BORDER }}>
           <div
-            className="flex items-center gap-2 border-b px-4 py-2.5 font-mono text-xs text-[var(--cream-muted)]"
+            className="flex items-center gap-2 border-b px-4 py-2.5 font-mono text-xs text-(--cream-muted)"
             style={{ background: PANEL_HEADER_BG, borderColor: PANEL_BORDER }}>
             {"\uD83D\uDCC4"} README.md
           </div>
@@ -178,7 +192,18 @@ export function RepoPanel({
             href={repo.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center justify-center rounded-md border border-[rgba(91,158,194,0.2)] px-6 py-2.5 font-mono text-xs text-[#5B9EC2] no-underline transition-all hover:border-[rgba(91,158,194,0.5)] hover:bg-[rgba(91,158,194,0.06)] hover:text-[#8ECAE6] active:scale-[0.97] focus-visible:outline-1 focus-visible:outline-[rgba(91,158,194,0.4)]"
+            className="inline-flex min-h-11 items-center justify-center rounded-md border px-6 py-2.5 font-mono text-xs no-underline transition-all active:scale-[0.97]"
+            style={{ color: COLOR, borderColor: COLOR_RGBA(0.2) }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = COLOR_HOVER;
+              e.currentTarget.style.borderColor = COLOR_RGBA(0.5);
+              e.currentTarget.style.backgroundColor = COLOR_RGBA(0.06);
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = COLOR;
+              e.currentTarget.style.borderColor = COLOR_RGBA(0.2);
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
             aria-label={`${repo.url.replace("https://www.", "")} (opens in new tab)`}>
             {repo.url.replace("https://www.", "")}{" "}
             <span aria-hidden="true">{"\u2197"}</span>

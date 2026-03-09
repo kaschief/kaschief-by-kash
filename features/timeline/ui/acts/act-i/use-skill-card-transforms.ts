@@ -1,9 +1,9 @@
 "use client";
 
 import { useTransform, type MotionValue } from "framer-motion";
+import { BREAKPOINTS } from "@utilities";
 import {
   COLORS,
-  BREAKPOINTS,
   SNAP_START,
   SNAP_END,
   STACK_START,

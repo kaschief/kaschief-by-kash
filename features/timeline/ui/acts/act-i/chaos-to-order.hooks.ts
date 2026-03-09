@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { useMotionValue, useSpring } from "framer-motion";
+import { BREAKPOINTS } from "@utilities";
 import {
-  BREAKPOINTS,
   MOUSE_RADIUS,
   MOUSE_STRENGTH,
   MAX_DISPLACEMENT,

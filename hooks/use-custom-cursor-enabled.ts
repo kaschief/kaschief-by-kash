@@ -1,11 +1,11 @@
 "use client";
 
-import { BP } from "@utilities";
+import { BREAKPOINTS } from "@utilities";
 import { useBreakpoint } from "./use-breakpoint";
 import { useMediaQuery } from "./use-media-query";
 
 const FINE_POINTER_HOVER_QUERY = "(hover: hover) and (pointer: fine)";
-const { md } = BP;
+const { md } = BREAKPOINTS;
 
 /**
  * Enables custom cursor only for desktop-like pointer environments.
