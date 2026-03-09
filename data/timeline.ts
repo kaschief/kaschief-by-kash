@@ -48,7 +48,7 @@ export interface ActContent {
   readonly period: string;
   readonly location: string;
   readonly color: string;
-  readonly lead: string;
+  readonly splash: string;
   readonly body: string;
   readonly takeaway: string;
   readonly takeawaySerif?: boolean;
@@ -77,8 +77,6 @@ export interface Tag {
 export interface ImpactMetric {
   readonly stat: string;
   readonly label: string;
-  /** Fill percentage for the diff-stat bar (0–100) */
-  readonly pct: number;
 }
 
 export interface Repo {
@@ -92,7 +90,7 @@ export interface Repo {
   readonly description: string;
   readonly readme: readonly string[];
   readonly impact: readonly ImpactMetric[];
-  readonly stack: readonly string[];
+  readonly stack: readonly Tag[];
 }
 
 export interface Company {
@@ -345,7 +343,8 @@ export const ACT_II: ActContent = {
   period: "2018 - 2022",
   location: "Berlin, Germany",
   color: engineerRole.color,
-  lead: "Four frontend roles across health tech, fintech, and Germany's largest bank. Each move was deliberate — find the hardest problem, learn it deeply, then follow the signal.",
+  splash:
+    "Four frontend roles across health tech, fintech, and Germany's largest bank. Each move was deliberate — find the hardest problem, learn it deeply, then follow the signal.",
   body: "React at AMBOSS, Vue at Compado and CAPinside, TypeScript across all of it. Four years building production systems that needed to be fast, correct, and reliable at scale. The path from engineer to manager didn't come from asking — it came from already doing the work.",
   takeaway:
     "Four companies in four years wasn't job-hopping. It was following the signal: find the hardest problem, solve it, and when you've learned what you came to learn, move to where you can learn more.",
@@ -377,6 +376,7 @@ export const ACT_II: ActContent = {
 /** Hex value of --act-blue, needed for hex-alpha tag backgrounds */
 const ENGINEER_HEX = "#5B9EC2";
 const PROMOTED_HEX = "#5EBB73";
+const INDUSTRY_HEX = "#9B8FCE";
 
 export const COMPANIES: readonly Company[] = [
   {
@@ -386,20 +386,18 @@ export const COMPANIES: readonly Company[] = [
     location: "Berlin",
     period: "Sep 2018 — Oct 2019",
     commits: [
-      {
-        type: "feat",
-        msg: "build React app for medical exam prep (500K+ students)",
-      },
-      { type: "test", msg: "run A/B tests on study flow — engagement +20%" },
-      { type: "chore", msg: "ship features that take product out of beta" },
+      { type: "feat", msg: "ship core React product for medical exam prep" },
+      { type: "test", msg: "run A/B experiments on study and review flows" },
       {
         type: "collab",
-        msg: "work with Product on user research and feature validation",
+        msg: "translate research insights into product changes",
       },
+      { type: "ship", msg: "help take the product from beta to production" },
     ],
     tags: [
       { text: "React", color: ENGINEER_HEX },
       { text: "A/B Testing", color: ENGINEER_HEX },
+      { text: "Med-Ed", color: INDUSTRY_HEX },
     ],
     promoted: false,
     repo: {
@@ -407,55 +405,59 @@ export const COMPANIES: readonly Company[] = [
       name: "student-app",
       url: "https://www.amboss.com",
       branch: "main",
-      stars: "500K+ users",
+      stars: "500K+ students",
       language: "React",
       languageColor: "#61DAFB",
-      description:
-        "Medical exam preparation platform used by 500K+ students worldwide. Built with React, featuring adaptive learning paths, spaced repetition, and clinical case simulations.",
+      description: "Medical exam preparation platform used by 500K+ students.",
       readme: [
-        "## What I shipped",
+        "AMBOSS was my transition from writing code to building products. It was an environment that prioritized evidence over ego.",
         "",
-        "Joined as a frontend engineer on the core student app \u2014 a React SPA used by over half a million medical students across 180+ countries.",
+        "I learned that an elegant component is a failure if it confuses a student during an exam. I spent my time in research sessions, watching how people actually interacted with our flows. It grounded my engineering in human behavior.",
         "",
-        "The product was in beta when I arrived. My job was to help make it production-ready.",
-        "",
-        "### Key contributions",
-        "",
-        "**A/B testing framework** \u2014 Designed and ran experiments on the study flow UI. One test on the question review screen lifted engagement by 20%. That one change affected hundreds of thousands of daily sessions.",
-        "",
-        "**Feature velocity** \u2014 Shipped multiple features that contributed to the product officially leaving beta. Worked directly with PMs on user research to validate what we built before we built it.",
-        "",
-        "**User research integration** \u2014 Sat in on user interviews, translated findings into technical requirements, and made sure engineering stayed close to the people using the product.",
+        "The goal wasn't just to ship features, but to move the needle on engagement through rigorous A/B testing. It taught me that engineering decisions must be informed by real usage, not just intuition.",
       ],
       impact: [
-        { stat: "+20%", label: "engagement lift", pct: 60 },
-        { stat: "500K+", label: "students served", pct: 95 },
-        { stat: "3", label: "features \u2192 production", pct: 40 },
+        { stat: "500K+", label: "students supported" },
+        { stat: "beta → prod", label: "product maturation" },
+        { stat: "+20%", label: "engagement from A/B testing" },
       ],
-      stack: ["React", "JavaScript", "Jest", "REST APIs", "Webpack"],
+      stack: [
+        { text: "React", color: ENGINEER_HEX },
+        { text: "JavaScript", color: ENGINEER_HEX },
+        { text: "Jest", color: ENGINEER_HEX },
+        { text: "A/B Testing", color: ENGINEER_HEX },
+        { text: "Med-Ed", color: INDUSTRY_HEX },
+      ],
     },
   },
   {
     hash: "8c2e4d9",
     company: "Compado",
-    role: "Frontend Engineer \u2192 Senior",
+    role: "Frontend Engineer → Senior",
     location: "Berlin",
     period: "Oct 2019 — Jun 2021",
     commits: [
       {
         type: "feat",
-        msg: "build product comparison sites in Vue (chatbots, infinite scroll)",
+        msg: "build Vue comparison products with dynamic UI systems",
       },
-      { type: "perf", msg: "improve page speed by 50%" },
-      { type: "fix", msg: "SEO optimizations \u2014 organic traffic +25%" },
+      {
+        type: "perf",
+        msg: "redesign loading strategy and reduce page latency",
+      },
+      {
+        type: "fix",
+        msg: "architect SEO improvements directly in the frontend layer",
+      },
       {
         type: "collab",
-        msg: "work with Product on acquisition and conversion funnels",
+        msg: "own the acquisition and conversion frontend end to end",
       },
     ],
     tags: [
       { text: "Vue", color: ENGINEER_HEX },
-      { text: "\u2191 Promoted to Senior", color: PROMOTED_HEX },
+      { text: "Marketing", color: INDUSTRY_HEX },
+      { text: "↑ Promoted to Senior", color: PROMOTED_HEX },
     ],
     promoted: true,
     repo: {
@@ -463,32 +465,30 @@ export const COMPANIES: readonly Company[] = [
       name: "comparison-engine",
       url: "https://www.compado.com",
       branch: "main",
-      stars: "+25% traffic",
+      stars: "SEO Growth",
       language: "Vue.js",
       languageColor: "#42B883",
       description:
-        "Product comparison websites with chatbots, dynamic loading, and infinite scroll. Built in Vue with a heavy focus on performance and SEO.",
+        "High-traffic comparison platforms where speed drove organic growth.",
       readme: [
-        "## What I shipped",
+        "At Compado, performance was a business metric, not a technical preference. In the world of SEO and comparison engines, milliseconds are directly tied to traffic and revenue.",
         "",
-        "Built product comparison websites from scratch in Vue. The business model was content-driven: high-quality comparison pages that ranked well and converted.",
+        "I went deep into the loading pipeline—identifying what blocks rendering and what can be stripped away. I began treating SEO as a core engineering constraint rather than a marketing afterthought.",
         "",
-        "### Key contributions",
-        "",
-        "**Page speed overhaul** \u2014 Audited and rebuilt the rendering pipeline. Lazy loading, code splitting, image optimization, critical CSS extraction. Page speed improved by 50%. This directly impacted SEO rankings.",
-        "",
-        "**SEO-driven development** \u2014 Treated SEO as an engineering problem, not a marketing afterthought. Structured data, semantic HTML, server-side rendering. Organic traffic grew 25%.",
-        "",
-        "**Dynamic UI systems** \u2014 Built chatbot interfaces, infinite scroll feeds, and dynamic product comparison tables. All had to work without JavaScript for crawlers while being interactive for users.",
-        "",
-        "**Promoted to Senior** \u2014 Took on more ownership of technical decisions, mentored newer developers, and started leading feature development end-to-end.",
+        "This role shifted my focus toward the 'cost' of code. The fastest code is often what you have the discipline to remove. That mix of technical depth and business alignment led to my promotion to Senior.",
       ],
       impact: [
-        { stat: "+50%", label: "page speed improvement", pct: 80 },
-        { stat: "+25%", label: "organic traffic growth", pct: 65 },
-        { stat: "\u2192 Senior", label: "promoted", pct: 100 },
+        { stat: "+SEO", label: "organic traffic growth" },
+        { stat: "+50%", label: "page load speed" },
+        { stat: "promoted", label: "to senior engineer" },
       ],
-      stack: ["Vue.js", "Nuxt", "JavaScript", "SEO", "Performance"],
+      stack: [
+        { text: "Vue.js", color: ENGINEER_HEX },
+        { text: "JavaScript", color: ENGINEER_HEX },
+        { text: "SEO", color: ENGINEER_HEX },
+        { text: "Performance", color: ENGINEER_HEX },
+        { text: "Marketing", color: INDUSTRY_HEX },
+      ],
     },
   },
   {
@@ -500,119 +500,113 @@ export const COMPANIES: readonly Company[] = [
     commits: [
       {
         type: "feat",
-        msg: "lead frontend rebuild for fintech platform (10K+ advisors)",
+        msg: "build new frontend for advisor platform used by 10K+ people",
       },
       {
         type: "refactor",
-        msg: "replace struggling legacy app with Vue/TypeScript architecture",
+        msg: "replace unstable legacy frontend with Vue 3 and TypeScript",
       },
-      { type: "perf", msg: "cut page load times by 35%" },
+      {
+        type: "perf",
+        msg: "reduce load time and stabilize the UI architecture",
+      },
+      {
+        type: "docs",
+        msg: "define architecture patterns the team kept building on",
+      },
     ],
     tags: [
       { text: "Vue", color: ENGINEER_HEX },
       { text: "TypeScript", color: ENGINEER_HEX },
-      { text: "Fintech", color: ENGINEER_HEX },
+      { text: "Fintech", color: INDUSTRY_HEX },
     ],
     promoted: false,
     repo: {
       org: "capinside",
       name: "advisor-platform",
       url: "https://www.capinside.com",
-      branch: "develop",
+      branch: "main",
       stars: "10K+ advisors",
       language: "TypeScript",
       languageColor: "#3178C6",
-      description:
-        "Fintech platform serving 10,000+ financial advisors. Replaced a failing legacy application with a modern Vue/TypeScript architecture.",
+      description: "Fintech platform serving 10,000+ financial advisors.",
       readme: [
-        "## What I shipped",
+        "I joined CAPinside to stabilize a fintech platform that had reached a breaking point with its legacy debt.",
         "",
-        "Short stint, high impact. CAPinside had a legacy frontend that was buckling under its own weight. Brought in as a senior to lead the rebuild.",
+        "The most senior decision I made wasn't a clever hack, but the realization that the foundation itself was the problem. I mapped the product surface and replaced the struggling legacy app with a modern Vue 3 and TypeScript architecture.",
         "",
-        "### Key contributions",
-        "",
-        "**Legacy migration** \u2014 The existing app was slow, fragile, and hard to extend. Architected and led the migration to Vue 3 + TypeScript. The new architecture was modular, testable, and fast.",
-        "",
-        "**Performance** \u2014 Cut page load times by 35% through bundle optimization, lazy loading, and eliminating render-blocking resources. For a fintech platform where advisors check data throughout the day, speed is retention.",
-        "",
-        "**Technical leadership** \u2014 Made architecture decisions, set coding standards, and established patterns that the team continued using after I left.",
+        "This project reinforced a core belief: seniority is about knowing when to stop patching and when to start rebuilding. I left the team with a predictable, stable system they could actually grow.",
       ],
       impact: [
-        { stat: "-35%", label: "page load time", pct: 70 },
-        { stat: "10K+", label: "advisors on platform", pct: 85 },
-        { stat: "1", label: "legacy app replaced", pct: 50 },
+        { stat: "rebuilt", label: "legacy frontend" },
+        { stat: "10K+", label: "advisors supported" },
+        { stat: "-35%", label: "page load time" },
       ],
-      stack: ["Vue 3", "TypeScript", "Vite", "Fintech", "REST APIs"],
+      stack: [
+        { text: "Vue 3", color: ENGINEER_HEX },
+        { text: "TypeScript", color: ENGINEER_HEX },
+        { text: "Architecture Redesign", color: ENGINEER_HEX },
+        { text: "Fintech", color: INDUSTRY_HEX },
+      ],
     },
   },
   {
     hash: "5e7d2a1",
     company: "DKB Code Factory",
-    role: "Senior Frontend \u2192 Engineering Manager",
+    role: "Senior Frontend → Engineering Manager",
     location: "Berlin",
     period: "Oct 2021 — Dec 2024",
     commits: [
       {
         type: "refactor",
-        msg: "rebuild frontend of banking app used by 5M people",
+        msg: "rebuild banking UI for millions of users in React/TS",
       },
-      { type: "test", msg: "introduce Jest + Playwright testing frameworks" },
-      { type: "fix", msg: "reduce production bugs by 30%" },
-      { type: "docs", msg: "improve documentation, mentor 3 junior engineers" },
-      { type: "feat", msg: "promoted to Engineering Manager" },
+      {
+        type: "test",
+        msg: "introduce Jest and Playwright for mission-critical reliability",
+      },
+      {
+        type: "collab",
+        msg: "partner with Product to identify and fix usability gaps",
+      },
+      { type: "feat", msg: "promoted to Engineering Manager within 12 months" },
     ],
     tags: [
       { text: "React", color: ENGINEER_HEX },
       { text: "TypeScript", color: ENGINEER_HEX },
-      { text: "\u2191 Promoted", color: PROMOTED_HEX },
+      { text: "Banking", color: INDUSTRY_HEX },
+      { text: "↑ Promoted", color: PROMOTED_HEX },
     ],
     promoted: true,
     repo: {
       org: "dkb-code-factory",
       name: "banking-frontend",
       url: "https://www.dkb.de",
-      branch: "release/prod",
+      branch: "main",
       stars: "5M+ users",
       language: "TypeScript",
       languageColor: "#3178C6",
-      description:
-        "Frontend of one of Germany\u2019s largest banking apps. React/TypeScript, micro-frontends, serving 5 million customers. Regulated banking environment.",
+      description: "Mission-critical frontend for a major German digital bank.",
       readme: [
-        "## What I shipped",
+        "At DKB, engineering scale met regulatory rigor. When you serve millions of users, 'moving fast' is only possible if your testing is ironclad.",
         "",
-        "Three years. Two promotions. This is the role where everything came together.",
+        "I focused on rebuilding the UI/UX while introducing automated testing frameworks like Jest and Playwright. We needed to make releases boring and predictable, not heroic efforts.",
         "",
-        "### As Senior Engineer (2021\u20132022)",
+        "I spent my time bridging the gap between technical feasibility and product vision. By the time I moved into leadership, we had transformed the platform from a fragile system into a reliable, mission-critical product.",
         "",
-        "**Frontend rebuild** \u2014 Rebuilt the UI/UX of a banking platform used by 5 million people. React, TypeScript, component library, micro-frontend architecture.",
-        "",
-        "**Testing culture** \u2014 Introduced Jest and Playwright to an organization that had no automated frontend testing. Built the framework, wrote the initial test suites, and trained the team.",
-        "",
-        "**Promoted to Engineering Manager in 12 months.**",
-        "",
-        "### As Engineering Manager (2022\u20132024)",
-        "",
-        "**Team growth** \u2014 Led a distributed team of 15+ (engineers, designers, QA, freelancers). Grew the core engineering team from 6 to 10 through structured hiring.",
-        "",
-        "**Release velocity** \u2014 Moved releases from monthly to weekly. Bugs dropped 30%.",
-        "",
-        "**People development** \u2014 Weekly 1:1s. Coached engineers into senior roles. Protected team culture across a complex stakeholder environment.",
-        "",
-        "**Product leadership** \u2014 Worked directly with Product on feature prioritization and technical feasibility. Translated business requirements into technical roadmaps.",
+        "Within 12 months I was promoted to Engineering Manager. I was already doing the work — unblocking engineers, fixing process, and taking responsibility for outcomes beyond my own code. As EM I led a group of engineers, designers, QA, and freelancers. Grew the core team from 6 to 10 and moved releases from monthly to weekly.",
       ],
       impact: [
-        { stat: "5M+", label: "users served", pct: 100 },
-        { stat: "-30%", label: "production bugs", pct: 70 },
-        { stat: "15+", label: "team managed", pct: 80 },
-        { stat: "\u2192 EM", label: "promoted to manager", pct: 100 },
+        { stat: "5M+", label: "active banking users" },
+        { stat: "0 → full", label: "test automation introduced" },
+        { stat: "-30%", label: "production bugs" },
       ],
       stack: [
-        "React",
-        "TypeScript",
-        "Playwright",
-        "Jest",
-        "Micro-frontends",
-        "CI/CD",
+        { text: "React", color: ENGINEER_HEX },
+        { text: "TypeScript", color: ENGINEER_HEX },
+        { text: "Playwright", color: ENGINEER_HEX },
+        { text: "Jest", color: ENGINEER_HEX },
+        { text: "Banking", color: INDUSTRY_HEX },
       ],
     },
   },
@@ -764,7 +758,8 @@ export const ACT_III: ActContent = {
   period: "2022 - 2024",
   location: "DKB Code Factory, Berlin",
   color: leaderRole.color,
-  lead: "Eight engineers on one of Germany's largest banking apps. Grew the core team from 6 to 10. Drove migration to React/TypeScript and micro-frontends.",
+  splash:
+    "Eight engineers on one of Germany's largest banking apps. Grew the core team from 6 to 10. Drove migration to React/TypeScript and micro-frontends.",
   body: "Monthly releases became weekly. Bugs dropped 30%. Ran weekly 1:1s. Coached engineers into senior roles. Navigated a regulated banking environment while staying hands-on with code — because I believe the best engineering managers still understand what they're managing.",
   takeaway:
     "Management isn't about being in charge. It's about creating the conditions where other people can do their best work.",
@@ -798,7 +793,8 @@ export const ACT_IV: ActContent = {
   period: "2024 - Present",
   location: "Self-Employed, Berlin",
   color: builderRole.color,
-  lead: "An algorithmic futures trading system. 14 custom indicators. 13,500 lines of Pine Script v6, written from scratch with AI-assisted development as a daily workflow.",
+  splash:
+    "An algorithmic futures trading system. 14 custom indicators. 13,500 lines of Pine Script v6, written from scratch with AI-assisted development as a daily workflow.",
   body: "No libraries, no wrappers. The market gives feedback instantly, and it doesn't care about your feelings. Managing funded accounts with real money on the line.",
   takeaway:
     "This is where everything converges. ICU pattern recognition, engineering discipline, leadership under pressure. The market doesn't care what you've done before. It only cares if you can read it correctly, right now.",

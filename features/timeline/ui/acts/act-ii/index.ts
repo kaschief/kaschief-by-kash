@@ -1,1 +1,1 @@
-export { ActIIGitLog } from "./act-ii-git-log";
+export { ActII } from "./act-ii";

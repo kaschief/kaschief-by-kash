@@ -1,5 +1,5 @@
 export interface SectionProseProps {
-  lead: string;
+  splash: string;
   body?: string;
   delay?: number;
   className?: string;

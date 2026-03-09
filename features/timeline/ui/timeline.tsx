@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ActI, ActIIGitLog, /* ActIII, */ ActIIILeader, ActIV } from "./acts";
+import { ActI, ActII, /* ActIII, */ ActIIILeader, ActIV } from "./acts";
 import { TradingArsenal } from "./trading-system";
 import { SECTION_ID } from "@utilities";
 
@@ -30,7 +30,7 @@ export function Timeline() {
     <section id="journey" className="relative">
       <ActI />
       <ActTransition>
-        <ActIIGitLog />
+        <ActII />
       </ActTransition>
       <ActIIILeader />
       <ActTransition>
