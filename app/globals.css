@@ -559,6 +559,17 @@ html[data-custom-cursor="on"] *::after {
   }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes essence-float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(var(--float-y, -6px));
+    }
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
