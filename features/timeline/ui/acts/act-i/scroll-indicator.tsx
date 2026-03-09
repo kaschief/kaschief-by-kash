@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent } from "framer-motion";
-import { C, STACK_START } from "./chaos-to-order.constants";
+import { COLORS, STACK_START, SCROLL_INDICATOR_DELAY_MS } from "./chaos-to-order.constants";
 
 export function ScrollIndicator({
   scrollProgress,
@@ -31,7 +31,7 @@ export function ScrollIndicator({
     if (v > 0 && !showTimer.current) {
       showTimer.current = setTimeout(() => {
         if (!dismissed.current) setShow(true);
-      }, 100);
+      }, SCROLL_INDICATOR_DELAY_MS);
     }
 
     // User scrolled back above — only re-show if narrator was never reached
@@ -55,7 +55,7 @@ export function ScrollIndicator({
           className="pointer-events-none absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2">
           <motion.div
             className="font-sans text-[9px] font-medium uppercase tracking-[0.15em]"
-            style={{ color: C.narrator, opacity: 0.8 }}>
+            style={{ color: COLORS.narrator, opacity: 0.8 }}>
             Scroll
           </motion.div>
           <motion.div
@@ -64,7 +64,7 @@ export function ScrollIndicator({
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path
                 d="M2 5L7 10L12 5"
-                stroke={C.narrator}
+                stroke={COLORS.narrator}
                 strokeWidth={1.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"

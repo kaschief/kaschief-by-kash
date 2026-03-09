@@ -13,13 +13,13 @@ const {
 } = SECTION_ID;
 
 export interface PersonalInfo {
-  name: string;
-  initials: string;
-  email: string;
-  phone: string;
-  location: string;
-  linkedin: string;
-  github: string;
+  readonly name: string;
+  readonly initials: string;
+  readonly email: string;
+  readonly phone: string;
+  readonly location: string;
+  readonly linkedin: string;
+  readonly github: string;
 }
 
 export const ROLE_LABEL = {
@@ -77,7 +77,7 @@ export const PERSONAL: PersonalInfo = {
 };
 
 // Single source of truth for top nav composition and styling.
-export const NAV_LINKS: NavLink[] = [
+export const NAV_LINKS: readonly NavLink[] = [
   {
     type: NAV_LINK_TYPE.SECTION,
     label: SECTION_NAV_LABEL.WHO_AM_I,
@@ -138,10 +138,10 @@ const NAV_LINKS_BY_TYPE = NAV_LINKS.reduce(
   },
 );
 
-export const ROLE_NAV_LINKS: RoleNavLink[] = NAV_LINKS_BY_TYPE.roles;
-export const SECTION_NAV_LINKS: SectionNavLink[] = NAV_LINKS_BY_TYPE.sections;
+export const ROLE_NAV_LINKS: readonly RoleNavLink[] = NAV_LINKS_BY_TYPE.roles;
+export const SECTION_NAV_LINKS: readonly SectionNavLink[] = NAV_LINKS_BY_TYPE.sections;
 
-export const ROLES: Role[] = ROLE_NAV_LINKS;
+export const ROLES: readonly Role[] = ROLE_NAV_LINKS;
 
 export const PHILOSOPHY = {
   label: "How I Think",

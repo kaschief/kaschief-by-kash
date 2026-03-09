@@ -5,7 +5,7 @@ import { motion, useInView } from "framer-motion";
 import { ACT_I } from "@data";
 import { EASE } from "@utilities";
 
-const { act, color: COLOR, period, takeaway, title } = ACT_I;
+const { act, color: COLOR, period, splash, title } = ACT_I;
 
 // ECG waveform — single QRS spike unit, tiled.
 const spike = (offset: number) =>
@@ -199,11 +199,11 @@ export function Splash() {
           </motion.div>
 
           <motion.p
-            className="mx-auto mt-10 max-w-lg font-serif text-sm leading-relaxed text-(--cream-muted) sm:mt-20 sm:text-base md:mt-24 md:text-xl"
+            className="mx-auto mt-10 max-w-lg font-[family-name:var(--font-spectral)] text-sm leading-relaxed text-(--cream) sm:mt-20 sm:text-base md:mt-24 md:text-xl"
             style={{ fontStyle: "italic" }}
             initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.9, delay: 1.1, ease: EASE }}>
-            {takeaway}
+            {splash}
           </motion.p>
         </motion.div>
       </div>

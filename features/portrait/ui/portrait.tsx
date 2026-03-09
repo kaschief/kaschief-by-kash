@@ -25,7 +25,7 @@ const PORTRAIT_STATS = [
 const S = (n: number) => `calc(${n} * var(--ps))`;
 
 const sectionStyle: CSSProperties = {
-  "--ps": "min(1svh, 9.5px)",
+  "--ps": "clamp(7.8px, 1svh, 9.5px)",
   height: "100svh",
 } as CSSProperties;
 

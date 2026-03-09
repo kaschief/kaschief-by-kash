@@ -20,7 +20,7 @@ export function TakeawayBlock({
           borderColor: `color-mix(in srgb, ${color} 19%, transparent)`,
         }}>
         <p
-          className={`${serif ? "font-serif text-base" : "text-sm"} italic leading-relaxed text-[var(--cream-muted)]`}>
+          className={`${serif ? "font-[family-name:var(--font-spectral)] text-base" : "font-[family-name:var(--font-spectral)] text-sm"} italic leading-relaxed text-[var(--cream)]`}>
           {text}
         </p>
       </div>

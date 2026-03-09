@@ -1,10 +1,10 @@
 export interface Stat {
-  value: string;
-  label: string;
+  readonly value: string;
+  readonly label: string;
 }
 
 export interface StatsGridProps {
-  stats: Stat[];
+  stats: readonly Stat[];
   color?: string;
   /** "grid" (default) for timeline sidebar, "row" for inline horizontal layout */
   layout?: "grid" | "row";

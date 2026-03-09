@@ -1,17 +1,17 @@
 export interface MethodSkill {
-  id: string;
-  label: string;
-  detail: string;
+  readonly id: string;
+  readonly label: string;
+  readonly detail: string;
 }
 
 export interface MethodGroup {
-  id: string;
-  label: string;
-  description: string;
-  skills: MethodSkill[];
+  readonly id: string;
+  readonly label: string;
+  readonly description: string;
+  readonly skills: readonly MethodSkill[];
 }
 
-export const METHOD_GROUPS: MethodGroup[] = [
+export const METHOD_GROUPS: readonly MethodGroup[] = [
   {
     id: "think",
     label: "How I think",

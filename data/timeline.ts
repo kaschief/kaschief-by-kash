@@ -6,125 +6,131 @@ const [nurseRole, engineerRole, leaderRole, builderRole] = ROLES;
 /* ------------------------------------------------------------------ */
 
 export interface Job {
-  id: string;
-  company: string;
-  role: string;
-  period: string;
-  location: string;
-  color: string;
-  tech: string[];
-  summary: string;
-  url: string;
-  deepDive: {
-    context: string;
-    contribution: string;
-    outcome: string;
-    skills: string[];
+  readonly id: string;
+  readonly company: string;
+  readonly role: string;
+  readonly period: string;
+  readonly location: string;
+  readonly color: string;
+  readonly tech: readonly string[];
+  readonly summary: string;
+  readonly url: string;
+  readonly deepDive: {
+    readonly context: string;
+    readonly contribution: string;
+    readonly outcome: string;
+    readonly skills: readonly string[];
   };
 }
 
 export interface ManagementStory {
-  id: string;
-  tags: string[];
-  color: string;
-  title: string;
-  teaser: string;
-  text: string;
+  readonly id: string;
+  readonly tags: readonly string[];
+  readonly color: string;
+  readonly title: string;
+  readonly teaser: string;
+  readonly text: string;
 }
 
 export interface Stat {
-  value: string;
-  label: string;
+  readonly value: string;
+  readonly label: string;
 }
 
 export interface SkillRef {
-  id: string;
-  label: string;
+  readonly id: string;
+  readonly label: string;
 }
 
 export interface ActContent {
-  act: string;
-  title: string;
-  period: string;
-  location: string;
-  color: string;
-  lead: string;
-  body: string;
-  takeaway: string;
-  takeawaySerif?: boolean;
-  stats: Stat[];
-  statsColor?: string;
-  skills: SkillRef[];
+  readonly act: string;
+  readonly title: string;
+  readonly period: string;
+  readonly location: string;
+  readonly color: string;
+  readonly lead: string;
+  readonly body: string;
+  readonly takeaway: string;
+  readonly takeawaySerif?: boolean;
+  readonly throughline: string;
+  readonly stats: readonly Stat[];
+  readonly statsColor?: string;
+  readonly skills: readonly SkillRef[];
 }
 
 export interface NurseFeature {
-  label: string;
-  text: string;
+  readonly label: string;
+  readonly text: string;
 }
 
 export interface Commit {
-  type: string;
-  msg: string;
+  readonly type: string;
+  readonly msg: string;
 }
 
 export interface Tag {
-  text: string;
+  readonly text: string;
   /** Hex color — must be hex (not CSS var) for alpha suffix manipulation */
-  color: string;
+  readonly color: string;
 }
 
 export interface ImpactMetric {
-  stat: string;
-  label: string;
+  readonly stat: string;
+  readonly label: string;
   /** Fill percentage for the diff-stat bar (0–100) */
-  pct: number;
+  readonly pct: number;
 }
 
 export interface Repo {
-  org: string;
-  name: string;
-  url: string;
-  branch: string;
-  stars: string;
-  language: string;
-  languageColor: string;
-  description: string;
-  readme: string[];
-  impact: ImpactMetric[];
-  stack: string[];
+  readonly org: string;
+  readonly name: string;
+  readonly url: string;
+  readonly branch: string;
+  readonly stars: string;
+  readonly language: string;
+  readonly languageColor: string;
+  readonly description: string;
+  readonly readme: readonly string[];
+  readonly impact: readonly ImpactMetric[];
+  readonly stack: readonly string[];
 }
 
 export interface Company {
-  hash: string;
-  company: string;
-  role: string;
-  location: string;
-  period: string;
-  commits: Commit[];
-  tags: Tag[];
-  promoted: boolean;
-  repo: Repo;
+  readonly hash: string;
+  readonly company: string;
+  readonly role: string;
+  readonly location: string;
+  readonly period: string;
+  readonly commits: readonly Commit[];
+  readonly tags: readonly Tag[];
+  readonly promoted: boolean;
+  readonly repo: Repo;
 }
 
-export interface ClinicalReadout {
-  label: string;
-  text: string;
+export interface SkillScenario {
+  readonly id: string;
+  readonly question: string;
+  /** Substring of question to highlight in accent color during order phase */
+  readonly accentText: string;
+  readonly title: string;
+  readonly proof: string;
+  readonly capability: string;
 }
 
 export interface ActINurseContent {
-  act: string;
-  title: string;
-  period: string;
-  location: string;
-  color: string;
-  takeaway: string;
-  intro: string;
-  detail: string;
-  features: NurseFeature[];
-  skills: SkillRef[];
-  trainedHeadline: string;
-  readouts: ClinicalReadout[];
-  throughlineHeadline: string;
+  readonly act: string;
+  readonly title: string;
+  readonly period: string;
+  readonly location: string;
+  readonly color: string;
+  readonly splash: string;
+  readonly intro: string;
+  readonly detail: string;
+  readonly features: readonly NurseFeature[];
+  readonly skills: readonly SkillRef[];
+  readonly trainedHeadline: string;
+  readonly throughline: string;
+  readonly skillScenarios: readonly SkillScenario[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -137,7 +143,7 @@ export const ACT_I: ActINurseContent = {
   period: "2012 — 2017",
   location: "New York, NY",
   color: nurseRole.color,
-  takeaway:
+  splash:
     "Intensive care taught me how to read a situation fast, stay exact under pressure, and make decisions when the cost of confusion was real.",
   intro:
     "Three years as a critical care nurse at New York University Langone Medical Center — the largest medical complex in the New York. Neuro ICU, Cardiac ICU, ER trauma.",
@@ -161,111 +167,80 @@ export const ACT_I: ActINurseContent = {
     { id: "s5", label: "Cross-Domain Translation" },
   ],
   trainedHeadline: "What that environment trained into me.",
-  readouts: [
+  throughline:
+    "The ICU was not just a previous career. It was where my operating system started.",
+  skillScenarios: [
     {
-      label: "Assess",
-      text: "Take in fragmented signals quickly and separate noise from what actually carries risk.",
+      id: "detection",
+      question:
+        "What do you do when the numbers are not telling the whole story yet?",
+      accentText: "you do",
+      title: "Recognize the signal before it is obvious",
+      proof:
+        "Ran hourly neuro checks, watched ICP trends, compared vitals with the patient in front of me, and caught changes before the chart reflected them.",
+      capability:
+        "Collect the data, build the picture from fragments, and decide what information matters.",
     },
     {
-      label: "Prioritize",
-      text: "Focus attention where the stakes are highest instead of getting lost in everything at once.",
+      id: "diagnosis",
+      question: "When something breaks, how do you find the cause?",
+      accentText: "find the cause",
+      title: "Start with what changed",
+      proof:
+        "Checked the ventilator, reviewed medication changes, assessed secretions, and worked backwards through what had changed when something suddenly looked wrong.",
+      capability:
+        "Trace problems back to their cause instead of reacting to the loudest symptom.",
     },
     {
-      label: "Communicate",
-      text: "Be direct, accurate, and useful when time, energy, and attention are limited.",
+      id: "communication",
+      question:
+        "How do you explain something critical to someone who has never seen it before?",
+      accentText: "explain something",
+      title: "Put complex things into plain language",
+      proof:
+        "Explained machines and alarms to families in the middle of the night and gave surgeons clear updates during rounds.",
+      capability:
+        "Translate complex situations into clear language for whoever needs to understand them.",
     },
     {
-      label: "Act",
-      text: "Move cleanly inside pressure without becoming sloppy, vague, or reactive.",
+      id: "execution",
+      question: "How do you get it right when everything is happening at once?",
+      accentText: "everything is happening",
+      title: "Stop. Breathe. Focus.",
+      proof:
+        "Adjusted ventilators, titrated vasopressors, drew labs, documented changes, and moved between patients without losing track of the details.",
+      capability:
+        "Execute precisely while tracking everything else that is unfolding.",
+    },
+    {
+      id: "triage",
+      question:
+        "How do you decide where your attention goes when every patient is critical?",
+      accentText: "decide",
+      title: "Fix the most dangerous problem first",
+      proof:
+        "Managed four ICU patients at once, deciding who needed immediate attention and who could safely wait.",
+      capability:
+        "Focus attention where risk is highest and escalate before the system catches up.",
+    },
+    {
+      id: "composure",
+      question: "When the pressure rises in the room, what matters most?",
+      accentText: "pressure",
+      title: "Anchor and keep direction",
+      proof:
+        "Stayed steady during tense moments so the room could focus on the next step instead of the stress.",
+      capability:
+        "Stay steady so the room can think clearly and move to the next step.",
     },
   ],
-  throughlineHeadline:
-    "The ICU was not just a previous career. It was where my operating system started.",
 };
-
-/* ACT I — Chaos-to-Order orbit nodes */
-
-export interface OrbitNode {
-  id: string;
-  question: string;
-  /** Substring of question to highlight in accent color during order phase */
-  accent: string;
-  title: string;
-  proof: string;
-  capability: string;
-}
-
-export const ORBIT_NODES: readonly OrbitNode[] = [
-  {
-    id: "assessment",
-    question:
-      "What do you do when the numbers are not telling the whole story yet?",
-    accent: "you do",
-    title: "Recognize the signal before it is obvious",
-    proof:
-      "Ran hourly neuro checks, watched ICP trends, compared vitals with the patient in front of me, and caught changes before the chart reflected them.",
-    capability:
-      "Collect the data, build the picture from fragments, and decide what information matters.",
-  },
-  {
-    id: "pattern",
-    question: "When something breaks, how do you find the cause?",
-    accent: "find the cause",
-    title: "Start with what changed",
-    proof:
-      "Checked the ventilator, reviewed medication changes, assessed secretions, and worked backwards through what had changed when something suddenly looked wrong.",
-    capability:
-      "Trace problems back to their cause instead of reacting to the loudest symptom.",
-  },
-  {
-    id: "communication",
-    question:
-      "How do you explain something critical to someone who has never seen it before?",
-    accent: "explain something",
-    title: "Put complex things into plain language",
-    proof:
-      "Explained machines and alarms to families in the middle of the night and gave surgeons clear updates during rounds.",
-    capability:
-      "Translate complex situations into clear language for whoever needs to understand them.",
-  },
-  {
-    id: "execution",
-    question: "How do you get it right when everything is happening at once?",
-    accent: "everything is happening",
-    title: "Stop. Breathe. Focus.",
-    proof:
-      "Adjusted ventilators, titrated vasopressors, drew labs, documented changes, and moved between patients without losing track of the details.",
-    capability:
-      "Execute precisely while tracking everything else that is unfolding.",
-  },
-  {
-    id: "triage",
-    question:
-      "How do you decide where your attention goes when every patient is critical?",
-    accent: "decide",
-    title: "Fix the most dangerous problem first",
-    proof:
-      "Managed four ICU patients at once, deciding who needed immediate attention and who could safely wait.",
-    capability:
-      "Focus attention where risk is highest and escalate before the system catches up.",
-  },
-  {
-    id: "composure",
-    question: "When the pressure rises in the room, what matters most?",
-    accent: "pressure",
-    title: "Anchor and keep direction",
-    proof:
-      "Stayed steady during tense moments so the room could focus on the next step instead of the stress.",
-    capability:
-      "Stay steady so the room can think clearly and move to the next step.",
-  },
-];
 
 /* ------------------------------------------------------------------ */
 /*  ACT II — The Engineer                                              */
 /* ------------------------------------------------------------------ */
 
-export const JOBS: Job[] = [
+export const JOBS: readonly Job[] = [
   {
     id: "amboss",
     company: "AMBOSS",
@@ -374,6 +349,7 @@ export const ACT_II: ActContent = {
   body: "React at AMBOSS, Vue at Compado and CAPinside, TypeScript across all of it. Four years building production systems that needed to be fast, correct, and reliable at scale. The path from engineer to manager didn't come from asking — it came from already doing the work.",
   takeaway:
     "Four companies in four years wasn't job-hopping. It was following the signal: find the hardest problem, solve it, and when you've learned what you came to learn, move to where you can learn more.",
+  throughline: "",
   stats: [
     { value: "4", label: "Companies" },
     { value: "5M+", label: "Users at DKB" },
@@ -402,7 +378,7 @@ export const ACT_II: ActContent = {
 const ENGINEER_HEX = "#5B9EC2";
 const PROMOTED_HEX = "#5EBB73";
 
-export const COMPANIES: Company[] = [
+export const COMPANIES: readonly Company[] = [
   {
     hash: "a3f7b21",
     company: "AMBOSS",
@@ -646,7 +622,7 @@ export const COMPANIES: Company[] = [
 /*  ACT III — The Leader                                               */
 /* ------------------------------------------------------------------ */
 
-export const MGMT_STORIES: ManagementStory[] = [
+export const MGMT_STORIES: readonly ManagementStory[] = [
   {
     id: "releases",
     tags: ["LEADERSHIP", "PROCESS"],
@@ -708,26 +684,26 @@ export const MGMT_STORIES: ManagementStory[] = [
 /* ------------------------------------------------------------------ */
 
 export interface LeaderScenario {
-  id: string;
-  situation: string;
-  response: string;
+  readonly id: string;
+  readonly situation: string;
+  readonly response: string;
 }
 
 export interface LeaderAnnotation {
-  label: string;
-  text: string;
+  readonly label: string;
+  readonly text: string;
 }
 
 export interface LeaderContent {
-  act: string;
-  title: string;
-  color: string;
-  headline: string;
-  subhead: string;
-  scenarios: LeaderScenario[];
-  annotations: LeaderAnnotation[];
-  proof: string[];
-  closing: string;
+  readonly act: string;
+  readonly title: string;
+  readonly color: string;
+  readonly headline: string;
+  readonly subhead: string;
+  readonly scenarios: readonly LeaderScenario[];
+  readonly annotations: readonly LeaderAnnotation[];
+  readonly proof: readonly string[];
+  readonly closing: string;
 }
 
 export const ACT_III_LEADER: LeaderContent = {
@@ -793,6 +769,7 @@ export const ACT_III: ActContent = {
   takeaway:
     "Management isn't about being in charge. It's about creating the conditions where other people can do their best work.",
   takeawaySerif: true,
+  throughline: "",
   stats: [
     { value: "8", label: "Engineers managed" },
     { value: "6→10", label: "Team growth" },
@@ -825,6 +802,7 @@ export const ACT_IV: ActContent = {
   body: "No libraries, no wrappers. The market gives feedback instantly, and it doesn't care about your feelings. Managing funded accounts with real money on the line.",
   takeaway:
     "This is where everything converges. ICU pattern recognition, engineering discipline, leadership under pressure. The market doesn't care what you've done before. It only cares if you can read it correctly, right now.",
+  throughline: "",
   statsColor: builderRole.color,
   stats: [
     { value: "14", label: "Custom indicators" },

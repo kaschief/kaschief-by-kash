@@ -1,12 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useScroll, useTransform, type MotionValue } from "framer-motion";
-import { ORBIT_NODES } from "@data";
+import { useScroll, useTransform } from "framer-motion";
+import { ACT_I } from "@data";
 import { NAVIGATION_SCROLL_EVENT } from "@hooks";
-import { C, DRIFT_RATES, DRIFT_DIRS } from "./chaos-to-order.constants";
+import {
+  COLORS,
+  SCENE_HEIGHT_VH,
+  BURST_TRIGGER_VIEWPORT,
+  BURST_RESET_VIEWPORT,
+  BASE_DRIFT_RANGE,
+} from "./chaos-to-order.constants";
 import { useIsLgRef } from "./chaos-to-order.hooks";
-import { OrbitNode } from "./orbit-node";
+import { SkillCard } from "./skill-card";
 import { NarrativeText } from "./narrative-text";
 import { ScrollIndicator } from "./scroll-indicator";
 import { FocusBall } from "./focus-ball";
@@ -32,8 +38,7 @@ export function ChaosToOrder() {
     setShouldBurst(true);
   }, []);
 
-  // Trigger burst only when scrolling DOWN into the section.
-  // Reset when user scrolls back above it.
+  // Trigger burst when scrolling DOWN into the section.
   const lastScrollY = useRef(0);
   useEffect(() => {
     const handleScroll = () => {
@@ -44,9 +49,10 @@ export function ChaosToOrder() {
 
       const top = el.getBoundingClientRect().top;
 
-      if (top < window.innerHeight * 0.66 && scrollingDown) {
+      if (top < window.innerHeight * BURST_TRIGGER_VIEWPORT && scrollingDown) {
         triggerBurst();
-      } else if (top > 0) {
+      } else if (top > window.innerHeight * BURST_RESET_VIEWPORT) {
+        // Only reset when section is mostly off-screen (avoids flash of empty black)
         resetBurst();
       }
     };
@@ -62,7 +68,8 @@ export function ChaosToOrder() {
       if (detail?.sectionId === "portrait") resetBurst();
     };
     window.addEventListener(NAVIGATION_SCROLL_EVENT, handleNavScroll);
-    return () => window.removeEventListener(NAVIGATION_SCROLL_EVENT, handleNavScroll);
+    return () =>
+      window.removeEventListener(NAVIGATION_SCROLL_EVENT, handleNavScroll);
   }, [resetBurst]);
 
   const lgRef = useIsLgRef();
@@ -72,22 +79,14 @@ export function ChaosToOrder() {
     offset: ["start start", "end end"],
   });
 
-  const baseDrift = useTransform(scrollYProgress, [0, 1], [0, 60]);
-  // Each drift hook called explicitly at top level (Rules of Hooks safe — count is static)
-  const drift0 = useTransform(baseDrift, (v) => v * DRIFT_RATES[0] * DRIFT_DIRS[0]);
-  const drift1 = useTransform(baseDrift, (v) => v * DRIFT_RATES[1] * DRIFT_DIRS[1]);
-  const drift2 = useTransform(baseDrift, (v) => v * DRIFT_RATES[2] * DRIFT_DIRS[2]);
-  const drift3 = useTransform(baseDrift, (v) => v * DRIFT_RATES[3] * DRIFT_DIRS[3]);
-  const drift4 = useTransform(baseDrift, (v) => v * DRIFT_RATES[4] * DRIFT_DIRS[4]);
-  const drift5 = useTransform(baseDrift, (v) => v * DRIFT_RATES[5] * DRIFT_DIRS[5]);
-  const drifts: MotionValue<number>[] = [drift0, drift1, drift2, drift3, drift4, drift5];
+  const baseDrift = useTransform(scrollYProgress, [0, 1], [0, BASE_DRIFT_RANGE]);
 
   return (
     <div
       ref={sceneRef}
       className="relative"
       data-sticky-zone
-      style={{ height: "800vh" }}>
+      style={{ height: `${SCENE_HEIGHT_VH}vh` }}>
       <div
         ref={stickyRef}
         className="sticky top-0 mx-auto h-screen max-w-350"
@@ -104,7 +103,7 @@ export function ChaosToOrder() {
             height: 500,
             top: "15%",
             right: "8%",
-            background: `radial-gradient(circle, ${C.glowStrong}, transparent 55%)`,
+            background: `radial-gradient(circle, ${COLORS.glowStrong}, transparent 55%)`,
           }}
         />
         <div
@@ -114,17 +113,17 @@ export function ChaosToOrder() {
             height: 350,
             bottom: "20%",
             left: "6%",
-            background: `radial-gradient(circle, ${C.glowSubtle}, transparent 55%)`,
+            background: `radial-gradient(circle, ${COLORS.glowSubtle}, transparent 55%)`,
           }}
         />
 
-        {ORBIT_NODES.map((node, i) => (
-          <OrbitNode
+        {ACT_I.skillScenarios.map((node, i) => (
+          <SkillCard
             key={`${node.id}-${burstKey}`}
             node={node}
             index={i}
             visible={shouldBurst}
-            drift={drifts[i]}
+            baseDrift={baseDrift}
             containerRef={stickyRef}
             scrollProgress={scrollYProgress}
             lgRef={lgRef}
@@ -134,7 +133,10 @@ export function ChaosToOrder() {
         <NarrativeText scrollProgress={scrollYProgress} />
         <FocusBall scrollProgress={scrollYProgress} lgRef={lgRef} />
         <FocusAccordion scrollProgress={scrollYProgress} />
-        <ScrollIndicator sectionRef={sceneRef} scrollProgress={scrollYProgress} />
+        <ScrollIndicator
+          sectionRef={sceneRef}
+          scrollProgress={scrollYProgress}
+        />
       </div>
     </div>
   );

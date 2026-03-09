@@ -25,6 +25,7 @@ export default defineConfig({
       "components/**/*.test.ts",
       "components/**/*.test.tsx",
       "data/**/*.test.ts",
+      "hooks/**/*.test.ts",
       "utilities/**/*.test.ts",
     ],
     exclude: ["node_modules", ".next"],

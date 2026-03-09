@@ -1,16 +1,16 @@
 export interface Indicator {
-  name: string;
-  category: string;
-  color: string;
-  image: string;
-  desc: string;
+  readonly name: string;
+  readonly category: string;
+  readonly color: string;
+  readonly image: string;
+  readonly desc: string;
 }
 
 export interface ProgressionStep {
-  step: string;
-  title: string;
-  desc: string;
-  image: string;
+  readonly step: string;
+  readonly title: string;
+  readonly desc: string;
+  readonly image: string;
 }
 
 export const CATEGORIES = ["Liquidity", "Session", "Range"] as const;
@@ -21,7 +21,7 @@ export const CATEGORY_COLORS: Record<(typeof CATEGORIES)[number], string> = {
   Range: "var(--act-green)",
 };
 
-export const INDICATORS: Indicator[] = [
+export const INDICATORS: readonly Indicator[] = [
   {
     name: "MBZ Core",
     category: "Liquidity",
@@ -108,7 +108,7 @@ export const INDICATORS: Indicator[] = [
   },
 ];
 
-export const PROGRESSION: ProgressionStep[] = [
+export const PROGRESSION: readonly ProgressionStep[] = [
   {
     step: "01",
     title: "Naked Price",
