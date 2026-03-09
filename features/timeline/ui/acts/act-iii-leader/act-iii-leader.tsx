@@ -244,6 +244,11 @@ export function ActIIILeader() {
 
   return (
     <div id={ACT_LEADER} ref={ref} className="relative" style={{ backgroundColor: "#0A0A0F" }}>
+      {/* Top fog — smooth transition from Act II */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-12"
+        style={{ background: "linear-gradient(to bottom, #0A0A0F, transparent)" }}
+      />
       <ActIIITitle />
 
       <SectionGlow opacity={glowOpacity} color={COLOR} size="lg" />

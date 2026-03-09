@@ -219,48 +219,52 @@ test.describe("3 · Company entries", () => {
 
   for (const [i, co] of COMPANIES.entries()) {
     test.describe(co.company, () => {
-      test(`entry ${i} is keyboard-accessible (tabindex=0, aria-label)`, async ({ page }) => {
+      /**
+       * Scrambled text makes text= locators unreliable.
+       * Use aria-label (real text, never scrambled) for content verification
+       * and DOM structure (element counts) for layout checks.
+       */
+
+      test(`entry ${i} — aria-label contains company and role`, async ({ page }) => {
         const entry = page.locator(`#${ACT_ENGINEER} article[role="button"]`).nth(i);
+        await entry.scrollIntoViewIfNeeded();
         expect(await entry.getAttribute("tabindex")).toBe("0");
         const ariaLabel = await entry.getAttribute("aria-label");
         expect(ariaLabel).toContain(co.company);
         expect(ariaLabel).toContain(co.role);
       });
 
-      test(`shows company name "${co.company}"`, async ({ page }) => {
-        await expect(
-          page.locator(`#${ACT_ENGINEER}`).locator(`text=${co.company}`).first(),
-        ).toBeVisible();
-      });
-
-      test(`shows location "${co.location}" and period`, async ({ page }) => {
-        await expect(
-          page.locator(`#${ACT_ENGINEER}`).locator(`text=${co.location}`).first(),
-        ).toBeVisible();
-      });
-
-      test(`shows all ${co.tags.length} tags`, async ({ page }) => {
-        for (const tag of co.tags) {
-          await expect(
-            page.locator(`#${ACT_ENGINEER}`).locator(`text=${tag}`).first(),
-          ).toBeVisible();
-        }
-      });
-
-      test(`shows all 4 commit messages`, async ({ page }) => {
-        for (const msg of co.commits) {
-          await expect(
-            page.locator(`#${ACT_ENGINEER}`).locator(`text=${msg}`).first(),
-          ).toBeVisible();
-        }
-      });
-
-      test(`lock icon is present (SVG with path elements)`, async ({ page }) => {
+      test(`entry ${i} — has 4 commit list items`, async ({ page }) => {
         const entry = page.locator(`#${ACT_ENGINEER} article[role="button"]`).nth(i);
+        await entry.scrollIntoViewIfNeeded();
+        const commits = entry.locator("ul[aria-label='Commits'] li");
+        expect(await commits.count()).toBe(4);
+      });
+
+      test(`entry ${i} — has ${co.tags.length} tags`, async ({ page }) => {
+        const entry = page.locator(`#${ACT_ENGINEER} article[role="button"]`).nth(i);
+        await entry.scrollIntoViewIfNeeded();
+        const tags = entry.locator("[aria-label='Tags'] span");
+        expect(await tags.count()).toBe(co.tags.length);
+      });
+
+      test(`entry ${i} — lock icon SVG present`, async ({ page }) => {
+        const entry = page.locator(`#${ACT_ENGINEER} article[role="button"]`).nth(i);
+        await entry.scrollIntoViewIfNeeded();
         const svg = entry.locator("svg").first();
         await expect(svg).toBeVisible();
         expect(await svg.locator("path").count()).toBeGreaterThanOrEqual(1);
       });
+
+      if (co.promoted) {
+        test(`entry ${i} — has promoted indicator`, async ({ page }) => {
+          const entry = page.locator(`#${ACT_ENGINEER} article[role="button"]`).nth(i);
+          await entry.scrollIntoViewIfNeeded();
+          // Branch dot has promoted color as border
+          const dot = entry.locator(".rounded-full").first();
+          await expect(dot).toBeVisible();
+        });
+      }
     });
   }
 });

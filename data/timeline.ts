@@ -714,7 +714,7 @@ export const ACT_III_LEADER: LeaderContent = {
   title: `The ${leaderRole.label}`,
   color: leaderRole.color,
   headline:
-    "I turned pressure into clearer decisions, calmer teams, and better outcomes.",
+    "turned pressure into clearer decisions, calmer teams, and better outcomes.",
   subhead:
     "In high-stakes product environments, I helped teams align faster, narrow the real problem, and keep delivery moving when priorities shifted and confusion started to spread.",
   scenarios: [
