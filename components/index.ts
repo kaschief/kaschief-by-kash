@@ -1,5 +1,6 @@
 export * from "./layout";
 export * from "./motion";
+export * from "./ui/act-label";
 export * from "./ui/category-tags";
 export * from "./ui/detail-modal";
 export * from "./ui/detail-overlay";

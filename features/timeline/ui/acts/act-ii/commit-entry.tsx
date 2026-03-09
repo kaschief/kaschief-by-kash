@@ -1,22 +1,25 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { COMPANIES } from "@data";
 import { EASE } from "@utilities";
 
 import {
   COLOR,
-  COLOR_HOVER,
   COLOR_RGBA,
   COMMIT_TYPE_COLORS,
   COMMIT_TYPE_FALLBACK,
+  ENTRY_DECODE_STAGGER,
   ENTRY_INVIEW_MARGIN,
   ENTRY_STAGGER_DELAY,
   PROMOTED_COLOR,
+  SCRAMBLE_CONFIG,
   SECTION_BG,
 } from "./act-ii.constants";
 import type { CommitEntryProps } from "./act-ii.types";
+import { LockToChevron } from "./lock-to-chevron";
+import { ScrambleText } from "./scramble-text";
 
 export function CommitEntry({
   company,
@@ -26,6 +29,12 @@ export function CommitEntry({
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: ENTRY_INVIEW_MARGIN });
   const isLast = index === COMPANIES.length - 1;
+
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const decoded = hovered || inView;
+  const delay = index * ENTRY_DECODE_STAGGER;
 
   return (
     <motion.article
@@ -45,12 +54,13 @@ export function CommitEntry({
       className={`group relative ml-1.5 cursor-pointer pl-7 pr-4 py-5 outline-none transition-all duration-200 active:scale-[0.99] rounded-r-2xl focus-visible:rounded-r-2xl ${!isLast ? "border-l-2 border-(--stroke)" : ""}`}
       style={{
         "--dot-color": company.promoted ? PROMOTED_COLOR : COLOR,
-        backgroundColor: "transparent",
+        backgroundColor: hovered ? COLOR_RGBA(0.05) : "transparent",
+        boxShadow: focused ? `inset 0 0 0 1px ${COLOR_RGBA(0.4)}` : "none",
       } as React.CSSProperties}
-      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLOR_RGBA(0.05); }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
-      onFocus={(e) => { e.currentTarget.style.boxShadow = `inset 0 0 0 1px ${COLOR_RGBA(0.4)}`; }}
-      onBlur={(e) => { e.currentTarget.style.boxShadow = "none"; }}
+      onMouseEnter={() => { setHovered(true); setUnlocked(true); }}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => { setHovered(true); setFocused(true); }}
+      onBlur={() => setFocused(false)}
       onClick={onSelect}>
       {/* Branch dot */}
       <div
@@ -63,34 +73,28 @@ export function CommitEntry({
 
       {/* Hash */}
       <div className="mb-1 font-mono text-[11px] tracking-[0.05em] text-(--gold)">
-        {company.hash}
+        <ScrambleText text={company.hash} active={decoded} delayMs={delay} {...SCRAMBLE_CONFIG} />
       </div>
 
       {/* Company */}
-      <div className="flex items-center justify-between text-sm font-bold text-(--cream) transition-colors duration-200 sm:text-base lg:text-lg"
-        style={{ "--hover-color": COLOR } as React.CSSProperties}>
-        <span className="group-hover:text-(--act-blue)">{company.company}</span>
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          className="shrink-0 text-(--text-faint) transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-(--act-blue)"
-          aria-hidden="true">
-          <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+      <div className="flex items-center justify-between text-sm font-bold text-(--cream) transition-colors duration-200 sm:text-base lg:text-lg">
+        <span className="group-hover:text-(--act-blue)">
+          <ScrambleText text={company.company} active={decoded} delayMs={delay} {...SCRAMBLE_CONFIG} />
+        </span>
+        <span className="text-(--text-faint) transition-colors duration-200 group-hover:text-(--act-blue)">
+          <LockToChevron unlocked={unlocked} />
+        </span>
       </div>
 
       {/* Role */}
       <div className="mt-0.5 font-mono text-xs transition-colors duration-200"
         style={{ color: COLOR }}>
-        <span className="group-hover:hidden">{company.role}</span>
-        <span className="hidden group-hover:inline" style={{ color: COLOR_HOVER }}>{company.role}</span>
+        <ScrambleText text={company.role} active={decoded} delayMs={delay} {...SCRAMBLE_CONFIG} />
       </div>
 
       {/* Location + period */}
       <div className="mt-1 font-mono text-[11px] text-(--text-dim)">
-        {company.location} · {company.period}
+        <ScrambleText text={`${company.location} · ${company.period}`} active={decoded} delayMs={delay} {...SCRAMBLE_CONFIG} />
       </div>
 
       {/* Commit messages */}
@@ -99,10 +103,12 @@ export function CommitEntry({
           <li key={i} className="font-mono text-[10px] leading-[1.7] sm:text-[11px] md:text-[12px]">
             <span
               style={{ color: COMMIT_TYPE_COLORS[commit.type] || COMMIT_TYPE_FALLBACK }}>
-              {commit.type}
+              <ScrambleText text={commit.type} active={decoded} delayMs={delay} {...SCRAMBLE_CONFIG} />
             </span>
             <span className="text-(--text-faint)">: </span>
-            <span className="text-(--cream-muted)">{commit.msg}</span>
+            <span className="text-(--cream-muted)">
+              <ScrambleText text={commit.msg} active={decoded} delayMs={delay} {...SCRAMBLE_CONFIG} />
+            </span>
           </li>
         ))}
       </ul>
@@ -117,7 +123,7 @@ export function CommitEntry({
               backgroundColor: `${tag.color}12`,
               color: tag.color,
             }}>
-            {tag.text}
+            <ScrambleText text={tag.text} active={decoded} delayMs={delay} {...SCRAMBLE_CONFIG} />
           </span>
         ))}
       </div>

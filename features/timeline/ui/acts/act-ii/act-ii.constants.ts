@@ -23,10 +23,9 @@ export const CLOSE_BORDER = "#2A2A34";
 const colorRgb = "91,158,194";
 export const COLOR_RGBA = (a: number) => `rgba(${colorRgb},${a})`;
 
-/** Overlay backgrounds (near-black with high opacity) */
-const overlayRgb = "4,4,8";
-export const OVERLAY_BG = `rgba(${overlayRgb},0.92)`;
-export const OVERLAY_NAV_BG = `rgba(${overlayRgb},0.98)`;
+/** Overlay backgrounds */
+export const OVERLAY_BG = SECTION_BG;
+export const OVERLAY_NAV_BG = SECTION_BG;
 
 /* ── Layout ── */
 
@@ -50,8 +49,27 @@ export const GLOW_SECONDARY = { size: 700, bottom: "20%", left: "5%", opacity: 0
 /* ── Animation Timing ── */
 
 export const SCAN_LINE_DURATION = 12;
+export const SCAN_LINE_OPACITY = 0.08;
 export const ENTRY_STAGGER_DELAY = 0.15;
 export const ENTRY_INVIEW_MARGIN = "-40px";
+export const ENTRY_DECODE_STAGGER = 600;
+
+/** Shared scramble config for commit entry text */
+export const SCRAMBLE_CONFIG = {
+  initiallyScrambled: true,
+  idleGlitch: true,
+  staggerMs: 50,
+  cyclesPerChar: 6,
+  intervalMs: 55,
+} as const;
+
+/** Lock-to-chevron animation timing */
+export const LOCK_TRANSITION = { duration: 0.4, ease: [0.4, 0, 0.2, 1] } as const;
+export const LOCK_BREATHE = {
+  opacity: [0.4, 0.9, 0.4],
+  scale: [1, 1.1, 1],
+  transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" as const },
+};
 
 /* ── Commit Type Colors ── */
 
