@@ -104,6 +104,8 @@ export interface Company {
   readonly tags: readonly Tag[];
   readonly promoted: boolean;
   readonly repo: Repo;
+  /** Single-sentence distillation — what this role taught */
+  readonly essence: string;
 }
 
 export interface SkillScenario {
@@ -431,6 +433,7 @@ export const COMPANIES: readonly Company[] = [
         { text: "Med-Ed", color: INDUSTRY_HEX },
       ],
     },
+    essence: "I understand the problem before I write the solution.",
   },
   {
     hash: "8c2e4d9",
@@ -493,6 +496,7 @@ export const COMPANIES: readonly Company[] = [
         { text: "Marketing", color: INDUSTRY_HEX },
       ],
     },
+    essence: "I leave things simpler and faster than I found them.",
   },
   {
     hash: "1f9a0c3",
@@ -553,6 +557,7 @@ export const COMPANIES: readonly Company[] = [
         { text: "Fintech", color: INDUSTRY_HEX },
       ],
     },
+    essence: "I take ownership of the task and the outcome.",
   },
   {
     hash: "5e7d2a1",
@@ -618,6 +623,7 @@ export const COMPANIES: readonly Company[] = [
         { text: "Banking", color: INDUSTRY_HEX },
       ],
     },
+    essence: "I make the people around me more effective.",
   },
 ];
 
