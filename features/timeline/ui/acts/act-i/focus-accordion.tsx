@@ -8,6 +8,7 @@ import {
   MOBILE_ACCORDION_START,
   MOBILE_ACCORDION_END,
   ACCORDION_BG_LEAD,
+  WATERMARK_COLOR_MOBILE,
   COLOR_TRANSITION,
 } from "./chaos-to-order.constants";
 
@@ -36,8 +37,9 @@ export function FocusAccordion({
         className="absolute inset-0"
         style={{ opacity: bgOpacity, background: "var(--bg)" }}
       />
+
       <motion.div
-        className="relative flex h-full flex-col justify-center overflow-y-auto px-[var(--page-gutter)]"
+        className="relative flex h-full flex-col justify-start overflow-y-auto px-[var(--page-gutter)] pt-[15cqh]"
         style={{ opacity: contentOpacity }}
         role="list"
         aria-label="Skills breakdown">
@@ -46,7 +48,6 @@ export function FocusAccordion({
             <AccordionItem
               key={node.id}
               node={node}
-              index={i}
               isOpen={openIndex === i}
               onToggle={() => setOpenIndex(openIndex === i ? null : i)}
             />
@@ -59,12 +60,10 @@ export function FocusAccordion({
 
 function AccordionItem({
   node,
-  index,
   isOpen,
   onToggle,
 }: {
   node: (typeof ACT_I.skillScenarios)[number];
-  index: number;
   isOpen: boolean;
   onToggle: () => void;
 }) {
@@ -73,20 +72,23 @@ function AccordionItem({
   return (
     <div
       role="listitem"
-      className="border-b"
+      className="relative border-b overflow-hidden"
       style={{ borderColor: isOpen ? COLORS.hairlineBorderHover : COLORS.hairlineBorder }}>
       <button
         onClick={onToggle}
         aria-expanded={isOpen}
         aria-controls={panelId}
-        className="flex w-full cursor-pointer items-center gap-3 py-4 text-left">
-        {/* Index number */}
+        className="relative flex w-full cursor-pointer items-center gap-3 py-4 text-left">
+        {/* Watermark — pinned to button row, not the expanding panel */}
         <span
-          className="shrink-0 font-mono text-[10px] tabular-nums"
-          style={{ color: COLORS.accent, opacity: isOpen ? 0.6 : 0.25 }}>
-          {String(index + 1).padStart(2, "0")}
+          className="pointer-events-none absolute inset-y-0 left-0 flex items-center select-none font-serif font-bold uppercase leading-none"
+          style={{
+            fontSize: "clamp(32px, 10vw, 48px)",
+            color: WATERMARK_COLOR_MOBILE,
+          }}
+          aria-hidden="true">
+          {node.id}
         </span>
-
         {/* Title */}
         <span
           className="min-w-0 flex-1 font-sans text-[clamp(14px,4vw,17px)] leading-snug tracking-[-0.01em]"
@@ -118,7 +120,7 @@ function AccordionItem({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
             className="overflow-hidden">
-            <div className="pb-5 pl-[calc(10px+0.75rem)]">
+            <div className="pb-5">
               <p
                 className="mb-3 font-[family-name:var(--font-spectral)] text-[13px] italic leading-relaxed"
                 style={{ color: COLORS.cardBody }}>

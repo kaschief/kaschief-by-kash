@@ -233,6 +233,8 @@ export const ORDER_OPACITY = { desktop: 1, mobile: 0.7 } as const;
 export const WATERMARK_ALPHA = 0.13;
 /** Watermark color alpha when card is active (hovered/nudged) */
 export const WATERMARK_ALPHA_ACTIVE = 0.16;
+/** Watermark color for mobile accordion (fainter — no hover transition) */
+export const WATERMARK_COLOR_MOBILE = `rgba(224,82,82,${WATERMARK_ALPHA * 0.5})`;
 
 // ─── Burst Animation ────────────────────────────────────────────────────────
 
