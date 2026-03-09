@@ -43,8 +43,8 @@ export const GRID_OPACITY_DESKTOP = 0.06;
 
 /* ── Atmospheric Glows ── */
 
-export const GLOW_PRIMARY = { size: 1000, top: "25%", right: "10%", opacity: 0.07 };
-export const GLOW_SECONDARY = { size: 700, bottom: "20%", left: "5%", opacity: 0.04 };
+export const GLOW_PRIMARY = { size: 1000, top: "25%", right: "10%", opacity: 0.04 };
+export const GLOW_SECONDARY = { size: 700, bottom: "20%", left: "5%", opacity: 0.025 };
 
 /* ── Animation Timing ── */
 

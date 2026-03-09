@@ -64,11 +64,11 @@ export function TerminalAtmosphere({ glowOpacity }: TerminalAtmosphereProps) {
         }}
       />
 
-      {/* Bottom fog */}
+      {/* Bottom fog — taller to fade grid before takeaway */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-80"
         style={{
-          background: `linear-gradient(to top, ${SITE_BG}, transparent)`,
+          background: `linear-gradient(to top, ${SITE_BG} 30%, transparent)`,
         }}
       />
 
