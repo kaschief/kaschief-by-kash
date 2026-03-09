@@ -8,7 +8,7 @@ export function ActSectionContent({
   period,
   location,
   color,
-  lead,
+  splash,
   body,
   takeaway,
   takeawaySerif,
@@ -32,7 +32,7 @@ export function ActSectionContent({
 
       <div className="mt-16 grid gap-12 lg:grid-cols-3 lg:gap-16">
         <div className="lg:col-span-2">
-          <SectionProse lead={lead} body={body} delay={0.3} />
+          <SectionProse splash={splash} body={body} delay={0.3} />
           <TakeawayBlock
             text={takeaway}
             color={color}

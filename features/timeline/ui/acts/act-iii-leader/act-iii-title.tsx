@@ -70,9 +70,9 @@ export function ActIIITitle() {
           initial={{ opacity: 0, letterSpacing: "0.3em" }}
           animate={inView ? { opacity: 1, letterSpacing: "0.5em" } : {}}
           transition={{ duration: 1.2, delay: 0.2 }}
-          className="mb-6 font-mono text-[9px] font-medium uppercase"
+          className="mb-6 text-xs tracking-wide sm:text-sm md:text-base"
           style={{ color: "#C9A84C" }}>
-          Act III
+          ACT III
         </motion.div>
 
         {/* THE TEAM */}

@@ -35,7 +35,7 @@ describe("feature public-api contracts", () => {
     expect(Object.keys(ContactFeature)).toEqual(["Contact"]);
     expect(Object.keys(TimelineFeature).sort()).toEqual([
       "ActI",
-      "ActIIGitLog",
+      "ActII",
       "ActIII",
       "ActIIILeader",
       "ActIV",

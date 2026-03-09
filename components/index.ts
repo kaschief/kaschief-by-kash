@@ -11,4 +11,5 @@ export * from "./ui/section-glow";
 export * from "./ui/section-label";
 export * from "./ui/section-prose";
 export * from "./ui/stats-grid";
+export * from "./ui/takeaway";
 export * from "./ui/takeaway-block";
