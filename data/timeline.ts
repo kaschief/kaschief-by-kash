@@ -267,7 +267,7 @@ export const JOBS: readonly Job[] = [
   {
     id: "compado",
     company: "Compado",
-    role: "Frontend Engineer → Senior",
+    role: "Frontend Engineer → Senior Frontend Engineer",
     period: "2019 - 2021",
     location: "Berlin",
     color: engineerRole.color,
@@ -435,7 +435,7 @@ export const COMPANIES: readonly Company[] = [
   {
     hash: "8c2e4d9",
     company: "Compado",
-    role: "Frontend Engineer → Senior",
+    role: "Frontend Engineer → Senior Frontend Engineer",
     location: "Berlin",
     period: "Oct 2019 — Jun 2021",
     industry: "Marketing",
@@ -460,7 +460,7 @@ export const COMPANIES: readonly Company[] = [
     tags: [
       { text: "Vue", color: ENGINEER_HEX },
       { text: "Marketing", color: INDUSTRY_HEX },
-      { text: "↑ Promoted to Senior", color: PROMOTED_HEX },
+      { text: "↑ Promoted", color: PROMOTED_HEX },
     ],
     promoted: true,
     repo: {
@@ -483,7 +483,7 @@ export const COMPANIES: readonly Company[] = [
       impact: [
         { stat: "+SEO", label: "organic traffic growth" },
         { stat: "+50%", label: "page load speed" },
-        { stat: "promoted", label: "to senior engineer" },
+        { stat: "promoted", label: "to Senior Frontend Engineer" },
       ],
       stack: [
         { text: "Vue.js", color: ENGINEER_HEX },
@@ -557,7 +557,7 @@ export const COMPANIES: readonly Company[] = [
   {
     hash: "5e7d2a1",
     company: "DKB Code Factory",
-    role: "Senior Frontend → Engineering Manager",
+    role: "Senior Frontend Engineer → Engineering Manager",
     location: "Berlin",
     period: "Oct 2021 — Dec 2024",
     industry: "Banking",
@@ -574,7 +574,10 @@ export const COMPANIES: readonly Company[] = [
         type: "collab",
         msg: "partner with Product to identify and fix usability gaps",
       },
-      { type: "feat", msg: "promoted to Engineering Manager within 12 months" },
+      {
+        type: "ship",
+        msg: "move releases from monthly to weekly with zero rollbacks",
+      },
     ],
     tags: [
       { text: "React", color: ENGINEER_HEX },
@@ -605,6 +608,7 @@ export const COMPANIES: readonly Company[] = [
         { stat: "5M+", label: "active banking users" },
         { stat: "0 → full", label: "test automation introduced" },
         { stat: "-30%", label: "production bugs" },
+        { stat: "promoted", label: "to Engineering Manager" },
       ],
       stack: [
         { text: "React", color: ENGINEER_HEX },
