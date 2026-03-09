@@ -9,7 +9,7 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import { Takeaway } from "@components";
+import { ActLabel, Takeaway } from "@components";
 import { ACT_II, COMPANIES, type Company } from "@data";
 import { EASE, GLOW_OPACITY, SCROLL_RANGE, SECTION_ID } from "@utilities";
 import { NAVIGATION_SCROLL_EVENT } from "@hooks";
@@ -21,20 +21,14 @@ import {
   COLOR,
   COLOR_RGBA,
   CONTENT_MAX_W,
-  GLOW_PRIMARY,
-  GLOW_SECONDARY,
-  GRID_OPACITY_DESKTOP,
-  GRID_OPACITY_MOBILE,
-  GRID_SIZE,
-  SCAN_LINE_DURATION,
   SECTION_BG,
-  SITE_BG,
   splash,
   SPLASH_MAX_W,
   title,
   TERMINAL_BG,
   TERMINAL_TITLE_BG,
 } from "./act-ii.constants";
+import { TerminalAtmosphere } from "./terminal-atmosphere";
 import { ScrambleText } from "./scramble-text";
 import { CommitEntry } from "./commit-entry";
 import { RepoPanel } from "./repo-panel";
@@ -69,89 +63,7 @@ export function ActII() {
       ref={sceneRef}
       className="relative min-h-screen py-24 sm:py-32"
       style={{ backgroundColor: SECTION_BG }}>
-      {/* Grid texture — mobile/tablet */}
-      <div
-        className="pointer-events-none absolute inset-0 lg:hidden"
-        style={{
-          backgroundImage: `
-            linear-gradient(${COLOR_RGBA(GRID_OPACITY_MOBILE)} 1px, transparent 1px),
-            linear-gradient(90deg, ${COLOR_RGBA(GRID_OPACITY_MOBILE)} 1px, transparent 1px)
-          `,
-          backgroundSize: GRID_SIZE,
-        }}
-      />
-      {/* Grid texture — desktop */}
-      <div
-        className="pointer-events-none absolute inset-0 hidden lg:block"
-        style={{
-          backgroundImage: `
-            linear-gradient(${COLOR_RGBA(GRID_OPACITY_DESKTOP)} 1px, transparent 1px),
-            linear-gradient(90deg, ${COLOR_RGBA(GRID_OPACITY_DESKTOP)} 1px, transparent 1px)
-          `,
-          backgroundSize: GRID_SIZE,
-        }}
-      />
-
-      {/* Grid fade mask */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: `radial-gradient(ellipse at 50% 40%, transparent 40%, ${SECTION_BG} 85%)`,
-        }}
-      />
-
-      {/* Top fog */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-40"
-        style={{
-          background: `linear-gradient(to bottom, ${SITE_BG}, transparent)`,
-        }}
-      />
-
-      {/* Bottom fog */}
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40"
-        style={{
-          background: `linear-gradient(to top, ${SITE_BG}, transparent)`,
-        }}
-      />
-
-      {/* Blue atmospheric glows */}
-      <motion.div
-        className="pointer-events-none absolute inset-0"
-        style={{ opacity: glowOpacity }}>
-        <div
-          className="atmospheric-glow"
-          style={{
-            width: GLOW_PRIMARY.size,
-            height: GLOW_PRIMARY.size,
-            top: GLOW_PRIMARY.top,
-            right: GLOW_PRIMARY.right,
-            transform: "translate(0, -50%)",
-            background: `radial-gradient(circle, ${COLOR_RGBA(GLOW_PRIMARY.opacity)} 0%, transparent 65%)`,
-          }}
-        />
-        <div
-          className="atmospheric-glow"
-          style={{
-            width: GLOW_SECONDARY.size,
-            height: GLOW_SECONDARY.size,
-            bottom: GLOW_SECONDARY.bottom,
-            left: GLOW_SECONDARY.left,
-            background: `radial-gradient(circle, ${COLOR_RGBA(GLOW_SECONDARY.opacity)} 0%, transparent 65%)`,
-          }}
-        />
-      </motion.div>
-
-      {/* Scan line */}
-      <motion.div
-        className="pointer-events-none absolute inset-x-0 h-px"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${COLOR_RGBA(0.08)}, transparent)`,
-        }}
-        animate={{ top: ["0%", "100%"] }}
-        transition={{ duration: SCAN_LINE_DURATION, repeat: Infinity, ease: "linear" }}
-      />
+      <TerminalAtmosphere glowOpacity={glowOpacity} />
 
       {/* ── Content ── */}
       <div className="relative z-10 mx-auto px-(--page-gutter)" style={{ maxWidth: CONTENT_MAX_W }}>
@@ -161,11 +73,7 @@ export function ActII() {
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1, ease: EASE }}>
-          <p
-            className="mb-3 text-xs tracking-wide sm:mb-6 sm:text-sm md:text-base"
-            style={{ color: COLOR }}>
-            {act}
-          </p>
+          <ActLabel label={act} color={COLOR} inView={inView} />
           <h2
             ref={titleRef}
             className="font-sans text-4xl font-bold tracking-[-0.03em] text-(--cream) sm:text-6xl md:text-8xl lg:text-[140px] lg:tracking-[-0.04em]">

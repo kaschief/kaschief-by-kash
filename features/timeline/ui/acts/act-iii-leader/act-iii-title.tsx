@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
-import { FadeUp, RevealLine } from "@components";
+import { ActLabel, FadeUp, RevealLine } from "@components";
 
 const WARM_BG = "#0B0A07";
 const SITE_BG = "#0A0A0F";
@@ -65,15 +65,7 @@ export function ActIIITitle() {
       <motion.div
         className="relative z-10 px-10 text-center"
         style={{ y: contentY, opacity: contentOpacity, willChange: "transform, opacity" }}>
-        {/* ACT III label */}
-        <motion.div
-          initial={{ opacity: 0, letterSpacing: "0.3em" }}
-          animate={inView ? { opacity: 1, letterSpacing: "0.5em" } : {}}
-          transition={{ duration: 1.2, delay: 0.2 }}
-          className="mb-6 text-xs tracking-wide sm:text-sm md:text-base"
-          style={{ color: "#C9A84C" }}>
-          ACT III
-        </motion.div>
+        <ActLabel label="ACT III" color="#C9A84C" inView={inView} />
 
         {/* THE TEAM */}
         <RevealLine delay={0.3}>

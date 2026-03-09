@@ -383,10 +383,16 @@ export function Navigation() {
             zIndex: nav,
             background: mobileOpen
               ? "rgba(7,7,10,1)"
-              : typeof window !== "undefined" && window.innerWidth < 640
-                ? "linear-gradient(to bottom, rgba(7,7,10,0.4) 0%, transparent 28px)"
-                : "linear-gradient(to bottom, rgba(7,7,10,0.5) 0%, transparent 48px)",
+              : "linear-gradient(to bottom, rgba(7,7,10,0.5) 0%, transparent 48px)",
           }}>
+          {/* Mobile: taller fade to hide content scrolling under nav */}
+          <div
+            className="pointer-events-none absolute inset-0 bottom-auto lg:hidden"
+            style={{
+              height: 120,
+              background: "linear-gradient(to bottom, rgba(7,7,10,1) 0%, rgba(7,7,10,0.85) 40%, transparent 100%)",
+            }}
+          />
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
             {/* Name — outside the pill, standalone */}
             <button

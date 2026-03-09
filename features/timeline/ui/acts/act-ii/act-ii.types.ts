@@ -23,6 +23,12 @@ export interface ReadmeContentProps {
 export interface ScrambleTextProps {
   text: string;
   active: boolean;
+  /** Start with scrambled characters instead of the real text */
+  initiallyScrambled?: boolean;
+  /** Delay before the unscramble begins (ms) */
+  delayMs?: number;
+  /** Random idle glitches after decode finishes */
+  idleGlitch?: boolean;
   staggerMs?: number;
   cyclesPerChar?: number;
   intervalMs?: number;

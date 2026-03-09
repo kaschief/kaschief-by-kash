@@ -99,6 +99,7 @@ export interface Company {
   readonly role: string;
   readonly location: string;
   readonly period: string;
+  readonly industry: string;
   readonly commits: readonly Commit[];
   readonly tags: readonly Tag[];
   readonly promoted: boolean;
@@ -347,7 +348,7 @@ export const ACT_II: ActContent = {
     "Four frontend roles across health tech, fintech, and Germany's largest bank. Each move was deliberate — find the hardest problem, learn it deeply, then follow the signal.",
   body: "React at AMBOSS, Vue at Compado and CAPinside, TypeScript across all of it. Four years building production systems that needed to be fast, correct, and reliable at scale. The path from engineer to manager didn't come from asking — it came from already doing the work.",
   takeaway:
-    "Four companies in four years wasn't job-hopping. It was following the signal: find the hardest problem, solve it, and when you've learned what you came to learn, move to where you can learn more.",
+    "The deeper I went into engineering, the more the work became about judgment, seeing the system clearly and making the right technical decisions.",
   throughline: "",
   stats: [
     { value: "4", label: "Companies" },
@@ -385,6 +386,7 @@ export const COMPANIES: readonly Company[] = [
     role: "Frontend Engineer",
     location: "Berlin",
     period: "Sep 2018 — Oct 2019",
+    industry: "Med-Ed",
     commits: [
       { type: "feat", msg: "ship core React product for medical exam prep" },
       { type: "test", msg: "run A/B experiments on study and review flows" },
@@ -436,6 +438,7 @@ export const COMPANIES: readonly Company[] = [
     role: "Frontend Engineer → Senior",
     location: "Berlin",
     period: "Oct 2019 — Jun 2021",
+    industry: "Marketing",
     commits: [
       {
         type: "feat",
@@ -497,6 +500,7 @@ export const COMPANIES: readonly Company[] = [
     role: "Senior Frontend Engineer",
     location: "Hamburg",
     period: "Jun 2021 — Oct 2021",
+    industry: "Fintech",
     commits: [
       {
         type: "feat",
@@ -556,6 +560,7 @@ export const COMPANIES: readonly Company[] = [
     role: "Senior Frontend → Engineering Manager",
     location: "Berlin",
     period: "Oct 2021 — Dec 2024",
+    industry: "Banking",
     commits: [
       {
         type: "refactor",

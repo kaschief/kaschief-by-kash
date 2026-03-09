@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
+import { ActLabel } from "@components";
 import { ACT_I } from "@data";
 import { EASE } from "@utilities";
 
@@ -103,11 +104,7 @@ export function Splash() {
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1.2, delay: 0.2, ease: EASE }}>
-          <p
-            className="mb-3 text-xs tracking-wide sm:mb-6 sm:text-sx md:text-base"
-            style={{ color: COLOR }}>
-            {act}
-          </p>
+          <ActLabel label={act} color={COLOR} inView={inView} />
 
           {/* Title + ECG wrapper */}
           <div className="relative">
