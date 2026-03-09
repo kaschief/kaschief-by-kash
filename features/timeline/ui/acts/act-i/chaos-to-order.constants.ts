@@ -1,10 +1,10 @@
 import { ACT_I } from "@data";
-import { TOKENS } from "@utilities";
+import { BP, TOKENS } from "@utilities";
 
 // ─── Color Palette ──────────────────────────────────────────────────────────
 // Single source of truth for every color in this section.
 
-export const C = {
+export const COLORS = {
   /** Act accent — labels, hairlines, arrows */
   accent: ACT_I.color,
   /** Brighter accent for hover states */
@@ -56,8 +56,8 @@ export const NODE_DELAYS = [0.0, 0.08, 0.15, 0.22, 0.3, 0.38];
 export const NODE_START_ROTATIONS = [-12, 8, -6, 14, -10, 7];
 export const NODE_END_ROTATIONS = [-2, 1.5, -1, 3, -2.5, 1];
 export const NODE_WEIGHTS = [0.9, 1.2, 0.75, 1.0, 1.3, 0.85];
-export const DRIFT_RATES = [0.9, 1.2, 0.65, 1.05, 0.8, 0.95];
-export const DRIFT_DIRS = [-1, 1, -1, 1, -1, 1];
+/** Per-card drift multiplier (rate × direction). Negative = drift up, positive = down. */
+export const DRIFT_MULTIPLIERS = [-0.9, 1.2, -0.65, 1.05, -0.8, 0.95];
 
 // ─── Position Sets ──────────────────────────────────────────────────────────
 // Narrator occupies ~42%–60% vertically on both breakpoints.
@@ -68,7 +68,7 @@ export interface NodePosition {
   top: number;
 }
 
-// Desktop (lg) — 3×2 elliptical orbit → 3×2 grid
+// Desktop (lg) — 3×2 scattered → 3×2 grid
 export const CHAOS_LG: readonly NodePosition[] = [
   { left: 24, top: 38 },
   { left: 34, top: 16 },
@@ -85,7 +85,7 @@ export const ORDER_LG: readonly NodePosition[] = [
   { left: 44, top: 62 },
   { left: 64, top: 62 },
 ];
-// Mobile (< lg) — scattered orbit → 2×3 grid
+// Mobile (< lg) — scattered → 2×3 grid
 // Cards are 40vw wide. Narrator at ~54%.
 export const CHAOS_SM: readonly NodePosition[] = [
   { left: 18, top: 11 },
@@ -148,10 +148,10 @@ export const MAX_W_STACK_SM_VW = 70;
 export const FOCUS_START = 0.88;
 export const FOCUS_END = 0.98;
 
-/** On mobile, orbit nodes fade out after order settles, then accordion appears */
+/** On mobile, skill cards fade out after order settles, then accordion appears */
 export const MOBILE_FADEOUT_START = 0.6;
 export const MOBILE_FADEOUT_END = 0.63;
-/** Accordion appears after orbit nodes are fully gone */
+/** Accordion appears after skill cards are fully gone */
 export const MOBILE_ACCORDION_START = 0.63;
 export const MOBILE_ACCORDION_END = 0.66;
 /** Per-node slice within the focus phase */
@@ -179,12 +179,99 @@ export const NARRATOR_ORDER_AFTER = "to make order from it.";
 export const NUDGE_DELAYS = [600, 0, 3800, 0, 7000, 0];
 export const NUDGE_DISPLAY_MS = 2000;
 
-// ─── Orbit Node Animation ────────────────────────────────────────────────────
+// ─── Skill Card Animation ────────────────────────────────────────────────────
 
 export const BURST_SPRING = {
   type: "spring" as const,
-  stiffness: 80,
-  damping: 12,
-  mass: 1.2,
+  stiffness: 130,
+  damping: 10,
+  mass: 1.0,
 };
 export const PROOF_MAX_HEIGHT = 80;
+
+// ─── Shared Breakpoints (re-exported for convenience) ───────────────────────
+
+export { BP as BREAKPOINTS };
+
+/** Named devices for JS comparisons (avoids magic "sm"/"md"/"lg" strings) */
+export const DEVICES = {
+  phone: "phone",
+  tablet: "tablet",
+  desktop: "desktop",
+} as const;
+export type Devices = (typeof DEVICES)[keyof typeof DEVICES];
+
+// ─── Scroll-Relative Offsets ────────────────────────────────────────────────
+// Small offsets from phase boundaries. Changing these shifts timing subtly.
+
+/** Buffer after SNAP_END before nudge timer starts */
+export const NUDGE_TRIGGER_OFFSET = 0.02;
+/** Chaos narrator finishes fading out this far before SNAP_START */
+export const NARRATOR_CHAOS_OUT_BUFFER = 0.02;
+/** Proof opacity starts fading this far before STACK_START */
+export const PROOF_FADEOUT_MARGIN = 0.03;
+/** Narrator text fade-in/out margin around phase boundaries */
+export const NARRATOR_FADE_MARGIN = 0.04;
+/** When chaos narrator first appears (scroll progress) */
+export const NARRATOR_CHAOS_IN = 0.06;
+/** When chaos narrator is fully visible */
+export const NARRATOR_CHAOS_PEAK = 0.12;
+/** "my skills" starts fading this far after FOCUS_START */
+export const SKILLS_LINGER_FADE = 0.03;
+/** Accordion bg appears this far before its phase */
+export const ACCORDION_BG_LEAD = 0.01;
+
+// ─── Card Opacity Per Phase ─────────────────────────────────────────────────
+// Desktop cards are bolder; mobile cards are dimmer to let narrator dominate.
+
+export const CHAOS_OPACITY = { desktop: 0.25, mobile: 0.15 } as const;
+export const ORDER_OPACITY = { desktop: 1, mobile: 0.7 } as const;
+
+// ─── Watermark ──────────────────────────────────────────────────────────────
+
+/** Watermark color alpha when card is idle */
+export const WATERMARK_ALPHA = 0.13;
+/** Watermark color alpha when card is active (hovered/nudged) */
+export const WATERMARK_ALPHA_ACTIVE = 0.16;
+
+// ─── Burst Animation ────────────────────────────────────────────────────────
+
+/** Initial scale before burst explodes outward */
+export const BURST_INITIAL_SCALE = 0.2;
+/** Opacity flash: [hidden, peak flash, settle to chaos] */
+export const BURST_OPACITY_SEQUENCE = [0, 0.5, 0.25] as const;
+/** Burst opacity animation duration (seconds) */
+export const BURST_OPACITY_DURATION = 0.65;
+
+// ─── Scene Layout ───────────────────────────────────────────────────────────
+
+/** Total scroll height of the chaos-to-order section */
+export const SCENE_HEIGHT_VH = 800;
+/** Viewport fraction threshold for triggering burst on scroll-down (higher = triggers sooner) */
+export const BURST_TRIGGER_VIEWPORT = 0.9;
+/** Section must be this far off-screen (viewport fraction) before burst resets on scroll-up */
+export const BURST_RESET_VIEWPORT = 0.5;
+/** Max drift displacement in px at full scroll */
+export const BASE_DRIFT_RANGE = 60;
+
+// ─── Shared Transition Durations ────────────────────────────────────────────
+
+/** Color/opacity transition for hover states */
+export const COLOR_TRANSITION = "0.4s";
+/** Max-height transition for proof expand/collapse */
+export const PROOF_TRANSITION = "0.35s ease";
+
+// ─── Focus Ball Tuning ──────────────────────────────────────────────────────
+
+/** Fraction of phase where ball reaches its end position */
+export const BALL_TRAVEL_FRACTION = 0.6;
+/** Ball end X position (% from left) per breakpoint */
+export const BALL_END_X = { lg: 38, md: 44 } as const;
+/** Ball size keyframes [hidden, appear, peak, shrink] */
+export const BALL_SIZE_KEYS = [0, 12, 20, 12] as const;
+/** Ball peak opacity */
+export const BALL_PEAK_OPACITY = 0.9;
+/** Revealed text max width (px) */
+export const REVEALED_TEXT_MAX_W = 500;
+/** Scroll indicator debounce (ms) */
+export const SCROLL_INDICATOR_DELAY_MS = 100;

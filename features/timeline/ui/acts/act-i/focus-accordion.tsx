@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { motion, useTransform, AnimatePresence } from "framer-motion";
-import { ORBIT_NODES } from "@data";
+import { ACT_I } from "@data";
 import {
-  C,
+  COLORS,
   MOBILE_ACCORDION_START,
   MOBILE_ACCORDION_END,
+  ACCORDION_BG_LEAD,
+  COLOR_TRANSITION,
 } from "./chaos-to-order.constants";
 
 export function FocusAccordion({
@@ -18,7 +20,7 @@ export function FocusAccordion({
 
   const bgOpacity = useTransform(
     scrollProgress,
-    [MOBILE_ACCORDION_START - 0.01, MOBILE_ACCORDION_START],
+    [MOBILE_ACCORDION_START - ACCORDION_BG_LEAD, MOBILE_ACCORDION_START],
     [0, 1],
   );
 
@@ -40,7 +42,7 @@ export function FocusAccordion({
         role="list"
         aria-label="Skills breakdown">
         <div className="space-y-1">
-          {ORBIT_NODES.map((node, i) => (
+          {ACT_I.skillScenarios.map((node, i) => (
             <AccordionItem
               key={node.id}
               node={node}
@@ -61,7 +63,7 @@ function AccordionItem({
   isOpen,
   onToggle,
 }: {
-  node: (typeof ORBIT_NODES)[number];
+  node: (typeof ACT_I.skillScenarios)[number];
   index: number;
   isOpen: boolean;
   onToggle: () => void;
@@ -72,7 +74,7 @@ function AccordionItem({
     <div
       role="listitem"
       className="border-b"
-      style={{ borderColor: isOpen ? C.hairlineBorderHover : C.hairlineBorder }}>
+      style={{ borderColor: isOpen ? COLORS.hairlineBorderHover : COLORS.hairlineBorder }}>
       <button
         onClick={onToggle}
         aria-expanded={isOpen}
@@ -81,7 +83,7 @@ function AccordionItem({
         {/* Index number */}
         <span
           className="shrink-0 font-mono text-[10px] tabular-nums"
-          style={{ color: C.accent, opacity: isOpen ? 0.6 : 0.25 }}>
+          style={{ color: COLORS.accent, opacity: isOpen ? 0.6 : 0.25 }}>
           {String(index + 1).padStart(2, "0")}
         </span>
 
@@ -89,8 +91,8 @@ function AccordionItem({
         <span
           className="min-w-0 flex-1 font-sans text-[clamp(14px,4vw,17px)] leading-snug tracking-[-0.01em]"
           style={{
-            color: isOpen ? C.narrator : C.cardTitle,
-            transition: "color 0.3s",
+            color: isOpen ? COLORS.narrator : COLORS.cardTitle,
+            transition: `color ${COLOR_TRANSITION}`,
           }}>
           {node.title}
         </span>
@@ -100,7 +102,7 @@ function AccordionItem({
           animate={{ rotate: isOpen ? 45 : 0 }}
           transition={{ duration: 0.2 }}
           className="shrink-0 text-[14px] leading-none"
-          style={{ color: C.accent, opacity: isOpen ? 0.5 : 0.2 }}
+          style={{ color: COLORS.accent, opacity: isOpen ? 0.5 : 0.2 }}
           aria-hidden="true">
           +
         </motion.span>
@@ -119,12 +121,12 @@ function AccordionItem({
             <div className="pb-5 pl-[calc(10px+0.75rem)]">
               <p
                 className="mb-3 font-[family-name:var(--font-spectral)] text-[13px] italic leading-relaxed"
-                style={{ color: C.cardBody }}>
+                style={{ color: COLORS.cardBody }}>
                 {node.question}
               </p>
               <p
                 className="font-sans text-[12px] font-light leading-relaxed"
-                style={{ color: C.cardSecondary }}>
+                style={{ color: COLORS.cardSecondary }}>
                 {node.capability}
               </p>
             </div>

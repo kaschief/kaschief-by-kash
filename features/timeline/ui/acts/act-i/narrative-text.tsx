@@ -2,7 +2,7 @@
 
 import { motion, useTransform, type MotionValue } from "framer-motion";
 import {
-  C,
+  COLORS,
   SNAP_START,
   SNAP_END,
   STACK_START,
@@ -11,9 +11,14 @@ import {
   NARRATOR_ORDER_BEFORE,
   NARRATOR_ORDER_SKILLS,
   NARRATOR_ORDER_AFTER,
+  NARRATOR_CHAOS_IN,
+  NARRATOR_CHAOS_PEAK,
+  NARRATOR_FADE_MARGIN,
+  SKILLS_LINGER_FADE,
+  NARRATOR_CHAOS_OUT_BUFFER,
 } from "./chaos-to-order.constants";
 
-const NARRATOR_BG = `radial-gradient(ellipse, ${C.narratorBgCenter} 0%, ${C.narratorBgEdge} 50%, transparent 100%)`;
+const NARRATOR_BG = `radial-gradient(ellipse, ${COLORS.narratorBgCenter} 0%, ${COLORS.narratorBgEdge} 50%, transparent 100%)`;
 const NARRATOR_BG_MOBILE =
   "radial-gradient(ellipse 70% 55%, rgba(7,7,10,0.88) 0%, rgba(7,7,10,0.6) 40%, transparent 100%)";
 
@@ -28,9 +33,9 @@ function OrderSentence({ lingerOnly }: { lingerOnly?: boolean }) {
   return (
     <p
       className={FONT_DESKTOP}
-      style={{ color: lingerOnly ? "transparent" : C.narrator }}>
+      style={{ color: lingerOnly ? "transparent" : COLORS.narrator }}>
       {NARRATOR_ORDER_BEFORE}{" "}
-      <span className="whitespace-nowrap" style={{ color: C.narrator }}>{NARRATOR_ORDER_SKILLS}</span>{" "}
+      <span className="whitespace-nowrap" style={{ color: COLORS.narrator }}>{NARRATOR_ORDER_SKILLS}</span>{" "}
       {NARRATOR_ORDER_AFTER}
     </p>
   );
@@ -40,9 +45,9 @@ function OrderSentenceMobile({ lingerOnly }: { lingerOnly?: boolean }) {
   return (
     <p
       className={FONT_MOBILE}
-      style={{ color: lingerOnly ? "transparent" : C.narrator }}>
+      style={{ color: lingerOnly ? "transparent" : COLORS.narrator }}>
       {NARRATOR_ORDER_BEFORE}{" "}
-      <span className="whitespace-nowrap" style={{ color: C.narrator }}>{NARRATOR_ORDER_SKILLS}</span>{" "}
+      <span className="whitespace-nowrap" style={{ color: COLORS.narrator }}>{NARRATOR_ORDER_SKILLS}</span>{" "}
       {NARRATOR_ORDER_AFTER}
     </p>
   );
@@ -57,18 +62,18 @@ export function NarrativeText({
 }) {
   const chaosOpacity = useTransform(
     scrollProgress,
-    [0.06, 0.12, SNAP_START - 0.06, SNAP_START - 0.02],
+    [NARRATOR_CHAOS_IN, NARRATOR_CHAOS_PEAK, SNAP_START - NARRATOR_CHAOS_IN, SNAP_START - NARRATOR_CHAOS_OUT_BUFFER],
     [0, 1, 1, 0],
   );
   const orderOpacity = useTransform(
     scrollProgress,
-    [SNAP_END, SNAP_END + 0.04, STACK_START - 0.04, STACK_START],
+    [SNAP_END, SNAP_END + NARRATOR_FADE_MARGIN, STACK_START - NARRATOR_FADE_MARGIN, STACK_START],
     [0, 1, 1, 0],
   );
   // "my skills" lingers until just before the first capability reveals
   const skillsLingerOpacity = useTransform(
     scrollProgress,
-    [SNAP_END, SNAP_END + 0.04, STACK_START - 0.04, STACK_START, FOCUS_START, FOCUS_START + 0.03],
+    [SNAP_END, SNAP_END + NARRATOR_FADE_MARGIN, STACK_START - NARRATOR_FADE_MARGIN, STACK_START, FOCUS_START, FOCUS_START + SKILLS_LINGER_FADE],
     [0, 1, 1, 1, 1, 0],
   );
 
@@ -90,7 +95,7 @@ export function NarrativeText({
           <motion.div
             className="rounded-lg px-6 py-4"
             style={{ opacity: chaosOpacity, background: NARRATOR_BG }}>
-            <p className={FONT_DESKTOP} style={{ color: C.narrator }}>
+            <p className={FONT_DESKTOP} style={{ color: COLORS.narrator }}>
               {NARRATOR_CHAOS}
             </p>
           </motion.div>
@@ -124,7 +129,7 @@ export function NarrativeText({
           <motion.div
             className="rounded-lg px-6 py-4"
             style={{ opacity: chaosOpacity, background: NARRATOR_BG_MOBILE }}>
-            <p className={FONT_MOBILE} style={{ color: C.narrator }}>
+            <p className={FONT_MOBILE} style={{ color: COLORS.narrator }}>
               {NARRATOR_CHAOS}
             </p>
           </motion.div>

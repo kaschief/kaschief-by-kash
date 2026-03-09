@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useMotionValue, useSpring } from "framer-motion";
 import {
+  BREAKPOINTS,
   MOUSE_RADIUS,
   MOUSE_STRENGTH,
   MAX_DISPLACEMENT,
@@ -13,7 +14,7 @@ import {
 export function useIsLgRef() {
   const ref = useRef(false);
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
+    const mq = window.matchMedia(`(min-width: ${BREAKPOINTS.lg}px)`);
     ref.current = mq.matches;
     const handler = (e: MediaQueryListEvent) => {
       ref.current = e.matches;

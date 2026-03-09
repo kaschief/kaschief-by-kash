@@ -227,11 +227,7 @@ export function ListRow({
 
   if (!animated) {
     return (
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={onClick}
-        {...sharedProps}>
+      <button ref={buttonRef} type="button" onClick={onClick} {...sharedProps}>
         {children({ hovered })}
       </button>
     );

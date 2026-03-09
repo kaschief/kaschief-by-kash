@@ -133,7 +133,7 @@ function ImpactStats({
   impact,
   hash,
 }: {
-  impact: ImpactMetric[];
+  impact: readonly ImpactMetric[];
   hash: string;
 }) {
   return (
@@ -186,7 +186,7 @@ function ImpactStats({
 
 /* ── ReadmeContent ── */
 
-function ReadmeContent({ lines }: { lines: string[] }) {
+function ReadmeContent({ lines }: { lines: readonly string[] }) {
   return (
     <div className="px-4 py-4 sm:px-6 sm:py-6">
       {lines.map((line, i) => {

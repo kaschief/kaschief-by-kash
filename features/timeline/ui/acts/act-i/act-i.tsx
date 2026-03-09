@@ -11,9 +11,9 @@ export function ActI() {
   return (
     <div id={ACT_NURSE} className="relative">
       <Splash />
-      <div className="h-24 lg:h-40" />
+      <div className="h-10 lg:h-20" />
       <ChaosToOrder />
-      {/* Fade from orbit into throughline */}
+      {/* Fade from skill cards into throughline */}
       <div
         className="relative h-24 lg:h-64"
         style={{
