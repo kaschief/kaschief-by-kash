@@ -21,8 +21,6 @@ export const TEXT_DIM = "#8A8478";
 export const TEXT_FAINT = "#4A4640";
 /** Accent — hashes, highlights, refactor/ship commit types */
 export const GOLD = "#C9A84C";
-/** Default border/separator for non-terminal UI */
-export const STROKE = "#16161E";
 
 /* ══════════════════════════════════════════════════════════════
  * Section & surface backgrounds
@@ -50,8 +48,6 @@ export const TERMINAL_BORDER = "#24243A";
 
 /** Branch line between commit entries — subtler than TERMINAL_BORDER */
 export const BRANCH_LINE = "#1C1C2A";
-/** Branch dot top offset — fixed px in terminal, cqh in distillation */
-export const BRANCH_DOT_TOP_PX = "26px";
 
 /* ══════════════════════════════════════════════════════════════
  * Detail panel (company overlay)

@@ -572,17 +572,26 @@ html[data-custom-cursor="on"] *::after {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--stroke);
-  border-radius: 2px;
+  background: var(--gold-dim);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--gold);
+  background-clip: content-box;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
 }
 
 ::selection {

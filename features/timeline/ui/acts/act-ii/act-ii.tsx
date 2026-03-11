@@ -46,10 +46,10 @@ export function ActII() {
   });
   const glowOpacity = useTransform(scrollYProgress, glow, GLOW_OPACITY);
 
-  // Fade the real terminal out quickly as it exits the viewport
+  // Fade the terminal out fast — tight 20% viewport window
   const { scrollYProgress: termExit } = useScroll({
     target: terminalRef,
-    offset: ["end 0.8", "end 0.35"],
+    offset: ["end 0.6", "end 0.4"],
   });
   const terminalOpacity = useTransform(termExit, [0, 1], [1, 0]);
 

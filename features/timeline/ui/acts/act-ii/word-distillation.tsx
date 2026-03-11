@@ -1,13 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import {
-  useMotionValueEvent,
-  useReducedMotion,
-  type MotionValue,
-} from "framer-motion";
+import { useEffect, useRef, type RefObject } from "react";
+import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import type { Company } from "@data";
+import { NAVIGATION_SCROLL_EVENT } from "@hooks";
 import {
   ACT_BLUE,
   BRANCH_LINE,
@@ -24,15 +21,22 @@ import {
 } from "./act-ii.constants";
 
 /* ══════════════════════════════════════════════════════════════
- * Scroll breakpoints (normalized 0→1)
- *   0 → 0.35     dissolve: words/meta/borders fade out
- *   0.35 → 1.0   fly: seed words fly to targets, questions fill
+ * Desktop timeline phases (normalized 0→1)
+ *   0 → 0.35   dissolve: words/meta fade, seed words remain
+ *   0.35 → 1.0  fly + settle: seeds fly to targets, fills appear,
+ *                color shifts to final question styling
+ *
+ * Mobile: source hidden, seed words float in, then fills appear.
+ *
+ * Driven by GSAP ScrollTrigger — scrub gives immediate feedback,
+ * snap (desktop only) prevents parking in intermediate states.
  * ══════════════════════════════════════════════════════════════ */
 
-const SCROLL_PHASES = {
-  dissolveEnd: 0.35,
-  flyStart:    0.35,
-} as const;
+const SCROLL_PHASES = { flyStart: 0.35 } as const;
+
+/** Minimum projected scroll progress to commit to playing forward.
+ *  Below this, snap returns to 0 (source entries). */
+const SNAP_COMMIT = 0.15;
 
 /* ══════════════════════════════════════════════════════════════
  * Types
@@ -40,15 +44,15 @@ const SCROLL_PHASES = {
 
 interface WordDistillationProps {
   readonly companies: readonly Company[];
-  /** Scroll progress 0→1 driving the entire animation */
-  readonly progress: MotionValue<number>;
+  /** Ref to the scroll runway element (the tall div that creates scrub distance) */
+  readonly scrollTarget: RefObject<HTMLDivElement | null>;
 }
 
 /* ══════════════════════════════════════════════════════════════
  * Component
  * ══════════════════════════════════════════════════════════════ */
 
-export function WordDistillation({ companies, progress }: WordDistillationProps) {
+export function WordDistillation({ companies, scrollTarget }: WordDistillationProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef  = useRef<gsap.core.Timeline | null>(null);
   const clonesRef    = useRef<HTMLElement[]>([]);
@@ -63,32 +67,56 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
    * deterministic and scoped to a single render pass. */
   const claimedSeeds = new Set<string>();
 
-  /* ── Build single paused GSAP timeline, scrub via progress ── */
+  /* ── Build ScrollTrigger-driven GSAP timeline ── */
   useEffect(() => {
     if (prefersReducedMotion) return;
     const container = containerRef.current;
-    if (!container) return;
+    const trigger = scrollTarget.current;
+    if (!container || !trigger) return;
 
     let frameId: number;
 
     const buildTimeline = () => {
-      /* Clean previous */
+      /* Clean previous timeline + ScrollTrigger */
+      timelineRef.current?.scrollTrigger?.kill();
       timelineRef.current?.kill();
       clonesRef.current.forEach((c) => c.remove());
       clonesRef.current = [];
+      /* Ensure container is visible — nav scroll handler may have hidden it */
+      container.style.visibility = "";
 
       /* Wait one frame for refs to populate after render */
       frameId = requestAnimationFrame(() => {
-        const timeline = gsap.timeline({ paused: true });
-        /* Force total duration = 1 so progress maps directly.
-         * addLabel does NOT extend duration — a real tween is required. */
+        const isPhone = container.clientWidth < 640;
+
+        const timeline = gsap.timeline({
+          scrollTrigger: {
+            trigger,
+            /* Mobile: start scrub early so words build while container
+             * is still scrolling up — eliminates dead empty screen.
+             * Desktop: start at pin point (top top) as before. */
+            start: isPhone ? "top 40%" : "top top",
+            end: "bottom bottom",
+            scrub: 0.5,
+            /* Desktop: snap prevents parking in ugly mid-dissolve states.
+             * Mobile: no snap — simple fade animation, no intermediate states to hide.
+             * Snapping to 1 on mobile unpins the sticky container too early. */
+            ...(isPhone ? {} : {
+              snap: {
+                snapTo: (end: number) => (end < SNAP_COMMIT ? 0 : 1),
+                duration: { min: 0.8, max: 2.0 },
+                ease: "power2.inOut",
+              },
+            }),
+          },
+        });
+        /* Force total duration = 1 so scroll maps to normalized phases */
         const durationForcer = { v: 0 };
         timeline.set(durationForcer, { v: 1 }, 1);
 
         const sourceDiv = container.querySelector("[data-source]") as HTMLElement;
         const targetDiv = container.querySelector("[data-target]") as HTMLElement;
         const entriesDiv = container.querySelector("[data-entries]") as HTMLElement;
-        const isPhone = container.clientWidth < 640;
 
         /* ── Responsive fit ──
          * If entries overflow vertically on a wide viewport,
@@ -155,48 +183,46 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
          * On mobile, seed words arrive first (the "essence"), then the
          * surrounding words fade in to form the full questions. */
         if (isPhone) {
-          if (sourceDiv) timeline.set(sourceDiv, { visibility: "hidden" }, 0);
+          /* Hide source immediately — not in the timeline — so it's
+           * never visible before GSAP scrub starts. */
+          if (sourceDiv) sourceDiv.style.visibility = "hidden";
           if (targetDiv) {
-            timeline.set(targetDiv, { visibility: "visible" }, 0);
+            targetDiv.style.visibility = "visible";
 
-            /* All words start hidden */
-            const seeds = targetDiv.querySelectorAll("[data-seed]");
-            const fills = targetDiv.querySelectorAll("[data-fill]");
-            timeline.set(seeds, { opacity: 0, visibility: "visible", y: 16, filter: "blur(4px)" }, 0);
-            timeline.set(fills, { opacity: 0, y: 6 }, 0);
+            /* All words start hidden — applied immediately, not via timeline */
+            const seeds = targetDiv.querySelectorAll<HTMLElement>("[data-seed]");
+            const fills = targetDiv.querySelectorAll<HTMLElement>("[data-fill]");
+            seeds.forEach((el) => { gsap.set(el, { opacity: 0, visibility: "visible", y: 16, filter: "blur(4px)" }); });
+            fills.forEach((el) => { gsap.set(el, { opacity: 0, y: 6 }); });
 
-            /* Phase 1 (0.05 → 0.45): Seed words float up into place */
+            /* Phase 1 (0.02 → 0.17): Seed words float up quickly */
             timeline.to(seeds, {
               opacity: 1, y: 0, filter: "blur(0px)",
-              duration: 0.3,
-              stagger: { each: 0.015, from: "random" },
-              ease: "power2.out",
-            }, 0.05);
-
-            /* Phase 2 (0.40 → 0.80): Fill words fade in around the seeds */
-            timeline.to(fills, {
-              opacity: 1, y: 0,
-              duration: 0.2,
+              duration: 0.15,
               stagger: { each: 0.008, from: "random" },
               ease: "power2.out",
-            }, 0.40);
+            }, 0.02);
+
+            /* Phase 2 (0.15 → 0.30): Fill words appear immediately after */
+            timeline.to(fills, {
+              opacity: 1, y: 0,
+              duration: 0.15,
+              stagger: { each: 0.004, from: "random" },
+              ease: "power2.out",
+            }, 0.15);
           }
 
           timelineRef.current = timeline;
-          timeline.progress(Math.max(0, Math.min(1, progress.get())));
           return;
         }
 
         /* ── TABLET/DESKTOP: full dissolve + fly animation ── */
 
-        const flyStart = SCROLL_PHASES.flyStart;
-        const flyDuration   = 1 - flyStart;
+        const { flyStart } = SCROLL_PHASES;
+        const flyDuration = 1 - flyStart;   // 0.65
 
         /* ── DISSOLVE PHASE (0 → 0.35) ── */
 
-        /* Dissolve extends past flyStart due to stagger — that's fine because
-         * source div stays visible until flyStart + flyDuration * 0.5 and dissolved
-         * elements are already near-invisible by the time targets overlay. */
         timeline.to(container.querySelectorAll("[data-dissolve]"), {
           opacity: 0, y: -8, filter: "blur(4px)",
           duration: 0.35,
@@ -300,17 +326,15 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
           timeline.set(fillEls, { opacity: 0, y: 6 }, 0);
           timeline.to(fillEls, {
             opacity: 1, y: 0,
-            duration: flyDuration * 0.26,
-            stagger: flyDuration * 0.013,
+            duration: flyDuration * 0.20,
+            stagger: flyDuration * 0.008,
             ease: "power2.out",
-          }, flyStart + flyDuration * 0.15);
+          }, flyStart + flyDuration * 0.08);
         }
 
         clonesRef.current = clones;
         timelineRef.current = timeline;
-
-        /* Sync to current scroll position */
-        timeline.progress(Math.max(0, Math.min(1, progress.get())));
+        /* ScrollTrigger auto-syncs to current scroll position */
       });
     };
 
@@ -326,21 +350,43 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
     });
     observer.observe(container);
 
+    /* Disable snap during programmatic nav scrolls so ScrollTrigger
+     * doesn't fight the scroll-to and leave content "stuck" visible.
+     * Scrub stays active so the timeline follows the scroll naturally. */
+    let snapRestore: ReturnType<typeof setTimeout>;
+    const onNavScroll = () => {
+      const st = timelineRef.current?.scrollTrigger;
+      if (!st) return;
+      /* Immediately hide so nothing flashes during nav scroll */
+      container.style.visibility = "hidden";
+      st.vars.snap = undefined;
+      clearTimeout(snapRestore);
+      snapRestore = setTimeout(() => {
+        container.style.visibility = "";
+        if (!timelineRef.current?.scrollTrigger) return;
+        timelineRef.current.scrollTrigger.vars.snap = {
+          snapTo: (end: number) => (end < SNAP_COMMIT ? 0 : 1),
+          duration: { min: 0.8, max: 2.0 },
+          ease: "power2.inOut",
+        };
+      }, 1200);
+    };
+    window.addEventListener(NAVIGATION_SCROLL_EVENT, onNavScroll);
+
     return () => {
       cancelAnimationFrame(frameId);
       clearTimeout(resizeTimer);
+      clearTimeout(snapRestore);
+      container.style.visibility = "";
       observer.disconnect();
+      window.removeEventListener(NAVIGATION_SCROLL_EVENT, onNavScroll);
+      timelineRef.current?.scrollTrigger?.kill();
       timelineRef.current?.kill();
       timelineRef.current = null;
       clonesRef.current.forEach((c) => c.remove());
       clonesRef.current = [];
     };
-  }, [companies, prefersReducedMotion]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  /* Scrub timeline on scroll */
-  useMotionValueEvent(progress, "change", (v) => {
-    timelineRef.current?.progress(Math.max(0, Math.min(1, v)));
-  });
+  }, [companies, prefersReducedMotion, scrollTarget]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Reduced motion: show final (questions) state immediately ── */
   if (prefersReducedMotion) {
@@ -353,7 +399,7 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
                 const words = company.distillation.question.split(" ");
                 return (
                   <p key={company.hash} className="text-center italic tracking-[-0.01em]"
-                    style={{ fontFamily: "var(--font-spectral)", fontSize: "clamp(14px, 2.2cqh, 26px)", lineHeight: 1.5, color: CREAM_MUTED }}>
+                    style={{ fontFamily: "var(--font-spectral)", fontSize: "clamp(14px, 3cqh, 26px)", lineHeight: 1.5, color: CREAM_MUTED }}>
                     {words.map((word, wordIndex) => (
                       <span key={wordIndex} className="inline-block">
                         {word}{wordIndex < words.length - 1 ? " " : ""}
@@ -474,7 +520,7 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
 
               return (
                 <p key={company.hash} data-question="" className="text-center italic tracking-[-0.01em]"
-                  style={{ fontFamily: "var(--font-spectral)", fontSize: "clamp(14px, 2.2cqh, 26px)", lineHeight: 1.5, color: CREAM_MUTED }}>
+                  style={{ fontFamily: "var(--font-spectral)", fontSize: "clamp(14px, 3cqh, 26px)", lineHeight: 1.5, color: CREAM_MUTED }}>
                   {words.map((word, wordIndex) => {
                     const stripped = word.toLowerCase().replace(/[^a-z]/g, "");
                     const isSeed   = seedSet.has(stripped);
