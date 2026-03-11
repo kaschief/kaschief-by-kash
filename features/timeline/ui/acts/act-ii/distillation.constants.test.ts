@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { COMPANIES } from "@data";
+import { CREAM, SECTION_BG, TEXT_FAINT } from "./act-ii.constants";
 import {
-  BG_HEX,
   COMPANY_COUNT,
-  CREAM_HEX,
   DISSOLVE,
   DISTILLATION_DURATION,
   ENTRY_CONTRACT,
@@ -15,7 +14,6 @@ import {
   SCROLL_SPREAD_THRESHOLD,
   SPREAD_THRESHOLD,
   STOP_WORDS,
-  TEXT_FAINT_HEX,
   TIER_RANGES,
   WORD_DISSOLVE_SPAN,
   wordJitter,
@@ -143,7 +141,7 @@ describe("timing constants", () => {
 
 describe("color hex constants", () => {
   it("all are valid hex colors", () => {
-    for (const hex of [CREAM_HEX, TEXT_FAINT_HEX, BG_HEX]) {
+    for (const hex of [CREAM, TEXT_FAINT, SECTION_BG]) {
       expect(hex).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }
   });

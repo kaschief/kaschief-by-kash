@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  COLOR,
-  COLOR_RGBA,
+  ACT_BLUE,
+  actBlueRgba,
   COMMIT_TYPE_COLORS,
   CONTENT_MAX_W,
   ENTRY_STAGGER_DELAY,
@@ -10,9 +10,9 @@ import {
   GLOW_SECONDARY,
   GRID_OPACITY_DESKTOP,
   GRID_OPACITY_MOBILE,
-  NEGATIVE_COLOR,
+  NEGATIVE,
   PANEL_MAX_W,
-  PROMOTED_COLOR,
+  PROMOTED,
   SCAN_LINE_DURATION,
 } from "./act-ii.constants";
 import { ACT_II, COMPANIES } from "@data";
@@ -32,7 +32,7 @@ describe("ACT_II data contract", () => {
   });
 
   it("color matches exported constant", () => {
-    expect(ACT_II.color).toBe(COLOR);
+    expect(ACT_II.color).toBe(ACT_BLUE);
   });
 });
 
@@ -103,35 +103,35 @@ describe("commit type colors", () => {
   });
 });
 
-describe("COLOR_RGBA helper", () => {
+describe("actBlueRgba helper", () => {
   it("returns valid rgba string", () => {
-    expect(COLOR_RGBA(0.5)).toMatch(/^rgba\(\d+,\d+,\d+,0\.5\)$/);
+    expect(actBlueRgba(0.5)).toMatch(/^rgba\(\d+,\d+,\d+,0\.5\)$/);
   });
 
   it("opacity 0 is transparent", () => {
-    expect(COLOR_RGBA(0)).toContain(",0)");
+    expect(actBlueRgba(0)).toContain(",0)");
   });
 
   it("opacity 1 is fully opaque", () => {
-    expect(COLOR_RGBA(1)).toContain(",1)");
+    expect(actBlueRgba(1)).toContain(",1)");
   });
 });
 
 describe("getStatColor helper", () => {
   it("returns green for + prefix", () => {
-    expect(getStatColor("+42%")).toBe(PROMOTED_COLOR);
+    expect(getStatColor("+42%")).toBe(PROMOTED);
   });
 
   it("returns green for → prefix", () => {
-    expect(getStatColor("→ Senior")).toBe(PROMOTED_COLOR);
+    expect(getStatColor("→ Senior")).toBe(PROMOTED);
   });
 
   it("returns red for - prefix", () => {
-    expect(getStatColor("-15%")).toBe(NEGATIVE_COLOR);
+    expect(getStatColor("-15%")).toBe(NEGATIVE);
   });
 
   it("returns blue for neutral values", () => {
-    expect(getStatColor("100%")).toBe(COLOR);
+    expect(getStatColor("100%")).toBe(ACT_BLUE);
   });
 });
 
