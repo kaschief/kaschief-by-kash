@@ -1,9 +1,9 @@
 "use client";
 
-import { motion, type MotionValue } from "framer-motion";
+import { motion, useReducedMotion, type MotionValue } from "framer-motion";
 
 import {
-  COLOR_RGBA,
+  actBlueRgba,
   GLOW_PRIMARY,
   GLOW_SECONDARY,
   GRID_OPACITY_DESKTOP,
@@ -21,6 +21,7 @@ interface TerminalAtmosphereProps {
 
 /** Grid texture, fog overlays, atmospheric glows, and scan line for Act II. */
 export function TerminalAtmosphere({ glowOpacity }: TerminalAtmosphereProps) {
+  const prefersReducedMotion = useReducedMotion();
   return (
     <>
       {/* Grid texture — mobile/tablet */}
@@ -28,8 +29,8 @@ export function TerminalAtmosphere({ glowOpacity }: TerminalAtmosphereProps) {
         className="pointer-events-none absolute inset-0 lg:hidden"
         style={{
           backgroundImage: `
-            linear-gradient(${COLOR_RGBA(GRID_OPACITY_MOBILE)} 1px, transparent 1px),
-            linear-gradient(90deg, ${COLOR_RGBA(GRID_OPACITY_MOBILE)} 1px, transparent 1px)
+            linear-gradient(${actBlueRgba(GRID_OPACITY_MOBILE)} 1px, transparent 1px),
+            linear-gradient(90deg, ${actBlueRgba(GRID_OPACITY_MOBILE)} 1px, transparent 1px)
           `,
           backgroundSize: GRID_SIZE,
           backgroundAttachment: "fixed",
@@ -40,8 +41,8 @@ export function TerminalAtmosphere({ glowOpacity }: TerminalAtmosphereProps) {
         className="pointer-events-none absolute inset-0 hidden lg:block"
         style={{
           backgroundImage: `
-            linear-gradient(${COLOR_RGBA(GRID_OPACITY_DESKTOP)} 1px, transparent 1px),
-            linear-gradient(90deg, ${COLOR_RGBA(GRID_OPACITY_DESKTOP)} 1px, transparent 1px)
+            linear-gradient(${actBlueRgba(GRID_OPACITY_DESKTOP)} 1px, transparent 1px),
+            linear-gradient(90deg, ${actBlueRgba(GRID_OPACITY_DESKTOP)} 1px, transparent 1px)
           `,
           backgroundSize: GRID_SIZE,
           backgroundAttachment: "fixed",
@@ -84,7 +85,7 @@ export function TerminalAtmosphere({ glowOpacity }: TerminalAtmosphereProps) {
             top: GLOW_PRIMARY.top,
             right: GLOW_PRIMARY.right,
             transform: "translate(0, -50%)",
-            background: `radial-gradient(circle, ${COLOR_RGBA(GLOW_PRIMARY.opacity)} 0%, transparent 65%)`,
+            background: `radial-gradient(circle, ${actBlueRgba(GLOW_PRIMARY.opacity)} 0%, transparent 65%)`,
           }}
         />
         <div
@@ -94,20 +95,22 @@ export function TerminalAtmosphere({ glowOpacity }: TerminalAtmosphereProps) {
             height: GLOW_SECONDARY.size,
             bottom: GLOW_SECONDARY.bottom,
             left: GLOW_SECONDARY.left,
-            background: `radial-gradient(circle, ${COLOR_RGBA(GLOW_SECONDARY.opacity)} 0%, transparent 65%)`,
+            background: `radial-gradient(circle, ${actBlueRgba(GLOW_SECONDARY.opacity)} 0%, transparent 65%)`,
           }}
         />
       </motion.div>
 
-      {/* Scan line */}
-      <motion.div
-        className="pointer-events-none absolute inset-x-0 h-px"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${COLOR_RGBA(SCAN_LINE_OPACITY)}, transparent)`,
-        }}
-        animate={{ top: ["0%", "100%"] }}
-        transition={{ duration: SCAN_LINE_DURATION, repeat: Infinity, ease: "linear" }}
-      />
+      {/* Scan line — hidden when user prefers reduced motion (WCAG 2.2.2) */}
+      {!prefersReducedMotion && (
+        <motion.div
+          className="pointer-events-none absolute inset-x-0 h-px"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${actBlueRgba(SCAN_LINE_OPACITY)}, transparent)`,
+          }}
+          animate={{ top: ["0%", "100%"] }}
+          transition={{ duration: SCAN_LINE_DURATION, repeat: Infinity, ease: "linear" }}
+        />
+      )}
     </>
   );
 }

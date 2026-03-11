@@ -5,13 +5,13 @@ import { motion } from "framer-motion";
 import { EASE, Z_INDEX } from "@utilities";
 
 import {
-  COLOR,
-  COLOR_HOVER,
-  COLOR_RGBA,
-  OVERLAY_BG,
+  ACT_BLUE,
+  ACT_BLUE_HOVER,
+  actBlueRgba,
   PANEL_BORDER,
   PANEL_HEADER_BG,
   PANEL_MAX_W,
+  SECTION_BG,
 } from "./act-ii.constants";
 import type { RepoPanelProps } from "./act-ii.types";
 import { RepoPanelHeader } from "./repo-panel-header";
@@ -41,7 +41,11 @@ export function RepoPanel({ company, onClose }: RepoPanelProps) {
     };
     window.addEventListener("keydown", handleKey);
 
-    window.history.pushState({ repoPanel: true }, "");
+    /* Only push history if no panel state is already on top — prevents
+     * stacking duplicate entries on rapid open/close cycles. */
+    if (!window.history.state?.repoPanel) {
+      window.history.pushState({ repoPanel: true }, "");
+    }
     const handlePopState = () => onClose();
     window.addEventListener("popstate", handlePopState);
 
@@ -71,7 +75,7 @@ export function RepoPanel({ company, onClose }: RepoPanelProps) {
       className="fixed inset-0 cursor-default overflow-y-auto overscroll-contain outline-none"
       style={{
         zIndex: Z_INDEX.repoPanel,
-        background: OVERLAY_BG,
+        background: SECTION_BG,
         WebkitOverflowScrolling: "touch",
       }}
       onClick={onClose}>
@@ -115,9 +119,9 @@ export function RepoPanel({ company, onClose }: RepoPanelProps) {
             rel="noopener noreferrer"
             className="inline-flex min-h-11 items-center justify-center rounded-md border px-6 py-2.5 font-mono text-xs no-underline transition-all active:scale-[0.97]"
             style={{
-              color: linkHovered ? COLOR_HOVER : COLOR,
-              borderColor: linkHovered ? COLOR_RGBA(0.5) : COLOR_RGBA(0.2),
-              backgroundColor: linkHovered ? COLOR_RGBA(0.06) : "transparent",
+              color: linkHovered ? ACT_BLUE_HOVER : ACT_BLUE,
+              borderColor: linkHovered ? actBlueRgba(0.5) : actBlueRgba(0.2),
+              backgroundColor: linkHovered ? actBlueRgba(0.06) : "transparent",
             }}
             onMouseEnter={() => setLinkHovered(true)}
             onMouseLeave={() => setLinkHovered(false)}

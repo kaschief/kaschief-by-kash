@@ -115,20 +115,11 @@ export const SPREAD_THRESHOLD = 0.72;
 /** Scroll progress threshold that also triggers spread */
 export const SCROLL_SPREAD_THRESHOLD = 0.6;
 
-/** Height of the scroll runway (keeps section pinned during auto-play) */
-export const DISTILLATION_HEIGHT = "450vh";
-
 /** Total animation duration in seconds */
 export const DISTILLATION_DURATION = 13;
 
 /** Replay speed multiplier (faster on subsequent views) */
 export const REPLAY_SPEED = 0.7;
-
-/* ── Hex duplicates of CSS vars — required for Framer Motion color interpolation ── */
-
-export const CREAM_HEX = "#F0E6D0";
-export const TEXT_FAINT_HEX = "#4A4640";
-export const BG_HEX = "#07070A";
 
 /* ── Per-company local dissolve thresholds (within 0–1 local progress) ── */
 

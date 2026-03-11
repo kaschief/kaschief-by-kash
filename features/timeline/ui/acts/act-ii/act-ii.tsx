@@ -10,21 +10,18 @@ import {
   useTransform,
 } from "framer-motion";
 import { ActLabel } from "@components";
-import { COMPANIES, type Company } from "@data";
+import { ACT_II, COMPANIES, type Company } from "@data";
 import { EASE, GLOW_OPACITY, SCROLL_RANGE, SECTION_ID } from "@utilities";
 import { NAVIGATION_SCROLL_EVENT } from "@hooks";
 
 import {
-  act,
-  body,
+  ACT_BLUE,
   BODY_MAX_W,
-  COLOR,
   CONTENT_MAX_W,
   SECTION_BG,
-  splash,
   SPLASH_MAX_W,
-  title,
   TERMINAL_BG,
+  TERMINAL_BORDER,
   TERMINAL_TITLE_BG,
 } from "./act-ii.constants";
 import { TerminalAtmosphere } from "./terminal-atmosphere";
@@ -81,12 +78,12 @@ export function ActII() {
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1, ease: EASE }}>
-          <ActLabel label={act} color={COLOR} inView={inView} />
+          <ActLabel label={ACT_II.act} color={ACT_BLUE} inView={inView} />
           <h2
             ref={titleRef}
             className="font-sans text-4xl font-bold tracking-[-0.03em] text-(--cream) sm:text-6xl md:text-8xl lg:text-[140px] lg:tracking-[-0.04em]">
             <ScrambleText
-              text={title.toUpperCase().replace(/I/, "1")}
+              text={ACT_II.title.toUpperCase().replace(/I/, "1")}
               active={titleInView}
               staggerMs={70}
               cyclesPerChar={6}
@@ -94,10 +91,10 @@ export function ActII() {
             />
           </h2>
           <p className="mx-auto mt-6 font-serif text-sm leading-relaxed text-(--cream-muted) italic sm:text-base md:text-lg lg:text-xl" style={{ maxWidth: SPLASH_MAX_W }}>
-            {splash}
+            {ACT_II.splash}
           </p>
           <p className="mx-auto mt-5 text-xs leading-[1.7] text-(--text-dim) sm:text-[13px] sm:mt-6 md:text-sm lg:text-base" style={{ maxWidth: BODY_MAX_W }}>
-            {body}
+            {ACT_II.body}
           </p>
         </motion.div>
 
@@ -105,8 +102,8 @@ export function ActII() {
         <motion.div ref={terminalRef} style={{ opacity: terminalOpacity }}>
           {/* Terminal title bar */}
           <motion.div
-            className="flex items-center gap-2 rounded-t-lg border border-b-0 border-(--stroke) px-4 py-2.5"
-            style={{ backgroundColor: TERMINAL_TITLE_BG }}
+            className="flex items-center gap-2 rounded-t-lg border border-b-0 px-4 py-2.5"
+            style={{ backgroundColor: TERMINAL_TITLE_BG, borderColor: TERMINAL_BORDER }}
             initial={{ opacity: 0, y: -15 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.3, ease: EASE }}>
@@ -120,8 +117,8 @@ export function ActII() {
 
           {/* Terminal body */}
           <motion.div
-            className="rounded-b-lg border border-(--stroke) p-4 sm:p-5 md:p-6 lg:p-8"
-            style={{ backgroundColor: TERMINAL_BG }}
+            className="rounded-b-lg border p-4 sm:p-5 md:p-6 lg:p-8"
+            style={{ backgroundColor: TERMINAL_BG, borderColor: TERMINAL_BORDER }}
             initial={{ opacity: 0, y: -10 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.4, ease: EASE }}>
@@ -131,13 +128,13 @@ export function ActII() {
               initial={{ opacity: 0 }}
               animate={inView ? { opacity: 1 } : {}}
               transition={{ duration: 0.6, delay: 0.5 }}>
-              <span style={{ color: COLOR }}>~/career</span>
+              <span style={{ color: ACT_BLUE }}>~/career</span>
               <span className="text-(--text-faint)"> $ </span>
               <span className="text-(--cream)">git log --graph --all</span>
               <span
                 className="ml-1 inline-block h-4 w-2"
                 style={{
-                  backgroundColor: COLOR,
+                  backgroundColor: ACT_BLUE,
                   animation: "cursor-blink 1s step-end infinite",
                 }}
               />
@@ -149,6 +146,7 @@ export function ActII() {
                 key={company.hash}
                 company={company}
                 index={i}
+                isLast={i === COMPANIES.length - 1}
                 onSelect={() => setSelectedCompany(company)}
               />
             ))}

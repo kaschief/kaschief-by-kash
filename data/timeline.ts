@@ -534,19 +534,19 @@ export const COMPANIES: readonly Company[] = [
     commits: [
       {
         type: "feat",
-        msg: "delivered a new advisor frontend for a platform used by 10K+ financial professionals",
+        msg: "build advisor platform for 10K+ financial professionals",
       },
       {
         type: "refactor",
-        msg: "modernized a fragile legacy frontend with Vue 3 and TypeScript",
+        msg: "modernized a fragile legacy frontend in Vue/TS",
       },
       {
         type: "test",
-        msg: "raised engineering quality by improving test coverage and code reliability across the platform",
+        msg: "raised code quality and test coverage across the platform",
       },
       {
         type: "perf",
-        msg: "improved and stabilized load times across the frontend architecture",
+        msg: "improved and stabilized load times across frontend architecture",
       },
     ],
     tags: [

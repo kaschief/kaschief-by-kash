@@ -3,6 +3,7 @@ import type { Company, ImpactMetric } from "@data";
 export interface CommitEntryProps {
   company: Company;
   index: number;
+  isLast: boolean;
   onSelect: () => void;
 }
 
@@ -27,8 +28,6 @@ export interface ScrambleTextProps {
   initiallyScrambled?: boolean;
   /** Delay before the unscramble begins (ms) */
   delayMs?: number;
-  /** Random idle glitches after decode finishes */
-  idleGlitch?: boolean;
   staggerMs?: number;
   cyclesPerChar?: number;
   intervalMs?: number;
