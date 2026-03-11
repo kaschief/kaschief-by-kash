@@ -393,7 +393,7 @@ export function Navigation() {
               background: "linear-gradient(to bottom, rgba(7,7,10,1) 0%, rgba(7,7,10,0.85) 40%, transparent 100%)",
             }}
           />
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+          <div className="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
             {/* Name — outside the pill, standalone */}
             <button
               onClick={() => scrollToTop()}
@@ -476,7 +476,7 @@ export function Navigation() {
             {/* Mobile toggle */}
             <button
               onClick={() => dispatch({ type: "TOGGLE_MOBILE_MENU" })}
-              className="cursor-pointer text-[var(--text-dim)] transition-colors hover:text-[var(--gold)] lg:hidden"
+              className="cursor-pointer text-[var(--cream)] transition-colors hover:text-[var(--gold)] lg:hidden"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}>
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
