@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { AnimatePresence, motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import gsap from "gsap";
 import type { Company } from "@data";
 import { NAVIGATION_SCROLL_EVENT } from "@hooks";
@@ -13,6 +13,7 @@ import {
   CREAM,
   CREAM_MUTED,
   GOLD,
+  GOLD_MUTED,
   PROMOTED,
   SECTION_BG,
   TAG_ALPHA_BG,
@@ -34,9 +35,39 @@ import {
 
 const SCROLL_PHASES = { flyStart: 0.35 } as const;
 
-/** Minimum projected scroll progress to commit to playing forward.
- *  Below this, snap returns to 0 (source entries). */
-const SNAP_COMMIT = 0.15;
+/* ── Word reveal hook for principle typing effect ── */
+function useWordReveal(text: string, active: boolean, delayMs = 600, wordIntervalMs = 80) {
+  const [visibleCount, setVisibleCount] = useState(0);
+  const words = text.split(" ");
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (!active) {
+      setVisibleCount(0);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
+    const timeout = setTimeout(() => {
+      let count = 0;
+      intervalRef.current = setInterval(() => {
+        count++;
+        setVisibleCount(count);
+        if (count >= words.length && intervalRef.current) clearInterval(intervalRef.current);
+      }, wordIntervalMs);
+    }, delayMs);
+    return () => { clearTimeout(timeout); if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [active, words.length, delayMs, wordIntervalMs]);
+
+  return { words, visibleCount };
+}
+
+/** Snap points — three stable states:
+ *  0    = source entries (start)
+ *  0.75 = questions settled, spotlight interactive
+ *  1    = unpin, scroll to takeaway */
+const SNAP_COMMIT = 0.15;   // below this → snap back to 0
+const SNAP_SETTLED = 0.75;  // questions fully formed, stay here for interaction
+const SNAP_EXIT = 0.88;     // above this from settled → snap forward to 1
 
 /* ══════════════════════════════════════════════════════════════
  * Types
@@ -61,6 +92,43 @@ export function WordDistillation({ companies, scrollTarget }: WordDistillationPr
   const targetRefs = useRef<Map<string, HTMLSpanElement>>(new Map());
 
   const prefersReducedMotion = useReducedMotion();
+
+  /** true once GSAP scrub reaches ~0.70 and questions are fully formed */
+  const [settled, setSettled] = useState(false);
+  const settledRef = useRef(false);
+
+  /** Full Takeover interaction state */
+  const [focused, setFocused] = useState<number | null>(null);
+  const [hovered, setHovered] = useState<number | null>(null);
+  const [answered, setAnswered] = useState<Set<number>>(new Set());
+  const revealDoneRef = useRef(false);
+  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleHover = useCallback((i: number) => {
+    if (leaveTimer.current) { clearTimeout(leaveTimer.current); leaveTimer.current = null; }
+    setHovered(i);
+    if (commitTimer.current) clearTimeout(commitTimer.current);
+    commitTimer.current = setTimeout(() => {
+      revealDoneRef.current = false;
+      setHovered(null);
+      setFocused(i);
+    }, 400);
+  }, []);
+
+  const handleLeave = useCallback(() => {
+    setHovered(null);
+    if (commitTimer.current) { clearTimeout(commitTimer.current); commitTimer.current = null; }
+    leaveTimer.current = setTimeout(() => {
+      setFocused((prev) => {
+        if (prev !== null && (revealDoneRef.current || answered.has(prev))) {
+          setAnswered((a) => new Set(a).add(prev));
+        }
+        revealDoneRef.current = false;
+        return null;
+      });
+    }, 80);
+  }, [answered]);
 
   /* Tracks which seed words have been claimed during this render.
    * Local variable (not ref) — safe in concurrent mode since it's
@@ -101,9 +169,25 @@ export function WordDistillation({ companies, scrollTarget }: WordDistillationPr
             /* Desktop: snap prevents parking in ugly mid-dissolve states.
              * Mobile: no snap — simple fade animation, no intermediate states to hide.
              * Snapping to 1 on mobile unpins the sticky container too early. */
+            onUpdate: (self) => {
+              const done = self.progress >= 0.70;
+              if (done !== settledRef.current) {
+                settledRef.current = done;
+                setSettled(done);
+                if (!done) {
+                  setFocused(null);
+                  setHovered(null);
+                  /* Keep answered state — principles persist across scroll cycles */
+                }
+              }
+            },
             ...(isPhone ? {} : {
               snap: {
-                snapTo: (end: number) => (end < SNAP_COMMIT ? 0 : 1),
+                snapTo: (end: number) => {
+                  if (end < SNAP_COMMIT) return 0;
+                  if (end < SNAP_EXIT) return SNAP_SETTLED;
+                  return 1;
+                },
                 duration: { min: 0.8, max: 2.0 },
                 ease: "power2.inOut",
               },
@@ -342,9 +426,18 @@ export function WordDistillation({ companies, scrollTarget }: WordDistillationPr
 
     /* Rebuild on resize — clone fly paths bake pixel positions from
      * getBoundingClientRect, so they go stale if the viewport changes.
-     * Debounced to avoid thrashing during continuous resize. */
+     * Debounced to avoid thrashing during continuous resize.
+     * Guard: only rebuild if the viewport actually changed size —
+     * ignore dimension shifts from overlay mount/unmount (settled toggle). */
     let resizeTimer: ReturnType<typeof setTimeout>;
+    let lastW = window.innerWidth;
+    let lastH = window.innerHeight;
     const observer = new ResizeObserver(() => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      if (w === lastW && h === lastH) return;
+      lastW = w;
+      lastH = h;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(buildTimeline, 200);
     });
@@ -365,7 +458,11 @@ export function WordDistillation({ companies, scrollTarget }: WordDistillationPr
         container.style.visibility = "";
         if (!timelineRef.current?.scrollTrigger) return;
         timelineRef.current.scrollTrigger.vars.snap = {
-          snapTo: (end: number) => (end < SNAP_COMMIT ? 0 : 1),
+          snapTo: (end: number) => {
+            if (end < SNAP_COMMIT) return 0;
+            if (end < SNAP_EXIT) return SNAP_SETTLED;
+            return 1;
+          },
           duration: { min: 0.8, max: 2.0 },
           ease: "power2.inOut",
         };
@@ -388,30 +485,18 @@ export function WordDistillation({ companies, scrollTarget }: WordDistillationPr
     };
   }, [companies, prefersReducedMotion, scrollTarget]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* ── Reduced motion: show final (questions) state immediately ── */
+  /* ── Reduced motion: show final state with Full Takeover interaction ── */
   if (prefersReducedMotion) {
     return (
-      <div className="relative w-full h-full">
-        <div className="flex h-full flex-col">
-          <div className="my-auto w-full max-w-xl mx-auto px-(--page-gutter)">
-            <div className="flex flex-col items-center gap-[2.5cqh]">
-              {companies.map((company) => {
-                const words = company.distillation.question.split(" ");
-                return (
-                  <p key={company.hash} className="text-center italic tracking-[-0.01em]"
-                    style={{ fontFamily: "var(--font-spectral)", fontSize: "clamp(14px, 3cqh, 26px)", lineHeight: 1.5, color: CREAM_MUTED }}>
-                    {words.map((word, wordIndex) => (
-                      <span key={wordIndex} className="inline-block">
-                        {word}{wordIndex < words.length - 1 ? " " : ""}
-                      </span>
-                    ))}
-                  </p>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
+      <FullTakeoverOverlay
+        companies={companies}
+        focused={focused}
+        hovered={hovered}
+        answered={answered}
+        onHover={handleHover}
+        onLeave={handleLeave}
+        onRevealDone={() => { revealDoneRef.current = true; }}
+      />
     );
   }
 
@@ -510,8 +595,12 @@ export function WordDistillation({ companies, scrollTarget }: WordDistillationPr
         </div>
       </div>
 
-      {/* ── Target: questions ── */}
-      <div data-target="" className="absolute inset-0 flex flex-col" style={{ visibility: "hidden" }}>
+      {/* ── Target: GSAP-driven question words (seeds fly in, fills appear) ── */}
+      <div
+        data-target=""
+        className="absolute inset-0 flex flex-col"
+        style={{ visibility: "hidden", opacity: settled ? 0 : undefined, transition: "opacity 0.4s ease" }}
+      >
         <div className="my-auto w-full max-w-xl mx-auto px-(--page-gutter)">
           <div className="flex flex-col items-center gap-[2.5cqh]">
             {companies.map((company) => {
@@ -519,34 +608,324 @@ export function WordDistillation({ companies, scrollTarget }: WordDistillationPr
               const words   = company.distillation.question.split(" ");
 
               return (
-                <p key={company.hash} data-question="" className="text-center italic tracking-[-0.01em]"
-                  style={{ fontFamily: "var(--font-spectral)", fontSize: "clamp(14px, 3cqh, 26px)", lineHeight: 1.5, color: CREAM_MUTED }}>
-                  {words.map((word, wordIndex) => {
-                    const stripped = word.toLowerCase().replace(/[^a-z]/g, "");
-                    const isSeed   = seedSet.has(stripped);
-                    const refKey   = `${company.hash}-${stripped}`;
+                <div key={company.hash} className="w-full text-center">
+                  <p data-question="" className="italic tracking-[-0.01em]"
+                    style={{ fontFamily: "var(--font-spectral)", fontSize: "clamp(14px, 3cqh, 26px)", lineHeight: 1.5, color: CREAM_MUTED }}>
+                    {words.map((word, wordIndex) => {
+                      const stripped = word.toLowerCase().replace(/[^a-z]/g, "");
+                      const isSeed  = seedSet.has(stripped);
+                      const refKey  = `${company.hash}-${stripped}`;
 
-                    return (
-                      <span key={wordIndex}>
-                        {isSeed ? (
-                          <span data-seed="" ref={(el) => { if (el) targetRefs.current.set(refKey, el); }}
-                            className="inline-block" style={{ color: CREAM, visibility: "hidden", opacity: 0 }}>
-                            {word}
-                          </span>
-                        ) : (
-                          <span data-fill="" className="inline-block" style={{ opacity: 0 }}>{word}</span>
-                        )}
-                        {wordIndex < words.length - 1 && " "}
-                      </span>
-                    );
-                  })}
-                </p>
+                      return (
+                        <span key={wordIndex}>
+                          {isSeed ? (
+                            <span data-seed="" ref={(el) => { if (el) targetRefs.current.set(refKey, el); }}
+                              className="inline-block" style={{ color: CREAM, visibility: "hidden", opacity: 0 }}>
+                              {word}
+                            </span>
+                          ) : (
+                            <span data-fill="" className="inline-block" style={{ opacity: 0 }}>{word}</span>
+                          )}
+                          {wordIndex < words.length - 1 && " "}
+                        </span>
+                      );
+                    })}
+                  </p>
+                </div>
               );
             })}
           </div>
         </div>
       </div>
 
+      {/* ── Full Takeover overlay — appears once settled ── */}
+      {settled && (
+        <FullTakeoverOverlay
+          companies={companies}
+          focused={focused}
+          hovered={hovered}
+          answered={answered}
+          onHover={handleHover}
+          onLeave={handleLeave}
+          onRevealDone={() => { revealDoneRef.current = true; }}
+        />
+      )}
+
     </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * Mouse repulsion — same physics as Act I chaos-to-order.
+ * Questions push away from cursor like water, spring-settle back.
+ * ══════════════════════════════════════════════════════════════ */
+
+const REPULSE_RADIUS = 400;
+const REPULSE_STRENGTH = 60;
+const REPULSE_MAX = 50;
+const REPULSE_SPRING = { stiffness: 35, damping: 10, mass: 2 };
+const REPULSE_WEIGHTS = [0.9, 1.2, 0.75, 1.05];
+
+function useMouseRepulsion(
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  itemRef: React.RefObject<HTMLDivElement | null>,
+  weight: number,
+) {
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+  const x = useSpring(rawX, REPULSE_SPRING);
+  const y = useSpring(rawY, REPULSE_SPRING);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onMove = (e: MouseEvent) => {
+      const el = itemRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = cx - e.clientX;
+      const dy = cy - e.clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < REPULSE_RADIUS && dist > 0) {
+        const t = 1 - dist / REPULSE_RADIUS;
+        const force = Math.min(t * t * REPULSE_STRENGTH * weight, REPULSE_MAX);
+        rawX.set((dx / dist) * force);
+        rawY.set((dy / dist) * force);
+      } else {
+        rawX.set(0);
+        rawY.set(0);
+      }
+    };
+
+    const onLeave = () => { rawX.set(0); rawY.set(0); };
+
+    container.addEventListener("mousemove", onMove);
+    container.addEventListener("mouseleave", onLeave);
+    return () => {
+      container.removeEventListener("mousemove", onMove);
+      container.removeEventListener("mouseleave", onLeave);
+    };
+  }, [containerRef, itemRef, rawX, rawY, weight]);
+
+  return { x, y };
+}
+
+function RepulsiveQuestion({
+  company, index, isAns, isHov, isDimmed, containerRef, onHover, onLeave,
+}: {
+  company: Company; index: number; isAns: boolean; isHov: boolean; isDimmed: boolean;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  onHover: () => void; onLeave: () => void;
+}) {
+  const itemRef = useRef<HTMLDivElement>(null);
+  const { x, y } = useMouseRepulsion(containerRef, itemRef, REPULSE_WEIGHTS[index] ?? 1);
+
+  return (
+    <motion.div ref={itemRef} style={{ x, y }}>
+      <motion.p
+        role="button"
+        tabIndex={0}
+        aria-label={isAns
+          ? `${company.distillation.principle} — hover to see the question and detail`
+          : `${company.distillation.question} — hover to reveal the answer`}
+        className={isAns ? "text-center tracking-[-0.01em]" : "text-center italic tracking-[-0.01em]"}
+        style={{
+          fontFamily: "var(--font-spectral)",
+          fontSize: "clamp(14px, 3cqh, 26px)",
+          lineHeight: 1.5,
+          letterSpacing: isAns ? "0.01em" : undefined,
+          cursor: "pointer",
+        }}
+        animate={{
+          color: isHov ? CREAM : isAns ? GOLD_MUTED : CREAM_MUTED,
+          opacity: isDimmed ? 0.35 : 1,
+        }}
+        transition={{ duration: 0.3 }}
+        onMouseEnter={onHover}
+        onMouseLeave={onLeave}
+        onFocus={onHover}
+        onBlur={onLeave}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onHover(); } }}
+      >
+        {isAns ? company.distillation.principle : company.distillation.question}
+      </motion.p>
+    </motion.div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * Full Takeover — post-settled interaction
+ *
+ * The entire view is one AnimatePresence. Idle = list of questions.
+ * Hover highlights one (400ms delay), then the whole view crossfades
+ * to that item's reveal (question → word-by-word principle → detail).
+ * Answered items show as gold principles in the idle list.
+ * Questions repel from cursor (chaos-to-order style spring physics).
+ * ══════════════════════════════════════════════════════════════ */
+
+function FullTakeoverOverlay({
+  companies,
+  focused,
+  hovered,
+  answered,
+  onHover,
+  onLeave,
+  onRevealDone,
+}: {
+  companies: readonly Company[];
+  focused: number | null;
+  hovered: number | null;
+  answered: Set<number>;
+  onHover: (i: number) => void;
+  onLeave: () => void;
+  onRevealDone: () => void;
+}) {
+  const activeCompany = focused !== null ? companies[focused] : null;
+  const repulseContainerRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <div ref={repulseContainerRef} className="absolute inset-0 z-20 flex flex-col" style={{ backgroundColor: "var(--bg, #07070A)" }}>
+      <div className="my-auto w-full max-w-xl mx-auto px-(--page-gutter)">
+        <AnimatePresence mode="wait">
+          {focused === null ? (
+            <motion.div
+              key="list"
+              className="flex flex-col items-center gap-[2.5cqh]"
+              initial={{ opacity: 0, filter: "blur(4px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, filter: "blur(4px)" }}
+              transition={{ duration: 0.5 }}
+            >
+              {companies.map((company, i) => (
+                <RepulsiveQuestion
+                  key={company.hash}
+                  company={company}
+                  index={i}
+                  isAns={answered.has(i)}
+                  isHov={hovered === i}
+                  isDimmed={hovered !== null && hovered !== i}
+                  containerRef={repulseContainerRef}
+                  onHover={() => onHover(i)}
+                  onLeave={onLeave}
+                />
+              ))}
+            </motion.div>
+          ) : (
+            <TakeoverReveal
+              key={`reveal-${focused}`}
+              company={activeCompany!}
+              isAnswered={answered.has(focused)}
+              onDone={onRevealDone}
+              onLeave={onLeave}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+function TakeoverReveal({
+  company,
+  isAnswered,
+  onDone,
+  onLeave,
+}: {
+  company: Company;
+  isAnswered: boolean;
+  onDone: () => void;
+  onLeave: () => void;
+}) {
+  const delay = isAnswered ? 100 : 400;
+  const interval = isAnswered ? 35 : 65;
+  const { words, visibleCount } = useWordReveal(company.distillation.principle, true, delay, interval);
+  const allRevealed = visibleCount >= words.length;
+  const notified = useRef(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (allRevealed && !notified.current) { notified.current = true; onDone(); }
+  }, [allRevealed, onDone]);
+
+  /* Click anywhere outside text → dismiss */
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (contentRef.current && !contentRef.current.contains(e.target as Node)) onLeave();
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [onLeave]);
+
+  /* ESC → dismiss */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onLeave(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onLeave]);
+
+  return (
+    <motion.div
+      className="flex flex-col items-center text-center"
+      initial={{ opacity: 0, filter: "blur(4px)" }}
+      animate={{ opacity: 1, filter: "blur(0px)" }}
+      exit={{ opacity: 0, filter: "blur(4px)" }}
+      transition={{ duration: 0.5 }}
+    >
+      <div ref={contentRef} className="w-fit" onMouseLeave={onLeave}>
+        {/* Question */}
+        <motion.p
+          className="italic tracking-[-0.01em] text-center"
+          style={{ fontFamily: "var(--font-spectral)", fontSize: "clamp(14px, 3cqh, 26px)", lineHeight: 1.5, color: CREAM }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          {company.distillation.question}
+        </motion.p>
+
+        {/* Principle — word by word */}
+        <p
+          className="mt-[2cqh] text-center"
+          style={{
+            fontFamily: "var(--font-spectral)",
+            fontSize: "clamp(16px, 3.5cqh, 32px)",
+            lineHeight: 1.4,
+            color: isAnswered ? GOLD_MUTED : CREAM,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {words.map((w, wi) => (
+            <motion.span
+              key={wi}
+              className="inline-block"
+              initial={{ opacity: 0, y: 5, filter: "blur(4px)" }}
+              animate={{
+                opacity: wi < visibleCount ? 1 : 0,
+                y: wi < visibleCount ? 0 : 5,
+                filter: wi < visibleCount ? "blur(0px)" : "blur(4px)",
+              }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+            >
+              {w}{wi < words.length - 1 ? "\u00A0" : ""}
+            </motion.span>
+          ))}
+        </p>
+
+        {/* Detail */}
+        <motion.p
+          className="mx-auto mt-[1.5cqh] max-w-lg text-center"
+          style={{ fontFamily: "var(--font-spectral)", fontSize: "clamp(11px, 1.8cqh, 15px)", lineHeight: 1.75, color: TEXT_DIM }}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: allRevealed ? 1 : 0, y: allRevealed ? 0 : 8 }}
+          transition={{ duration: 0.5 }}
+        >
+          {company.distillation.detail}
+        </motion.p>
+      </div>
+    </motion.div>
   );
 }
