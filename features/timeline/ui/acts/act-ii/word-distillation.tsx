@@ -85,6 +85,110 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
         const durationForcer = { v: 0 };
         timeline.set(durationForcer, { v: 1 }, 1);
 
+        const sourceDiv = container.querySelector("[data-source]") as HTMLElement;
+        const targetDiv = container.querySelector("[data-target]") as HTMLElement;
+        const entriesDiv = container.querySelector("[data-entries]") as HTMLElement;
+        const isPhone = container.clientWidth < 640;
+
+        /* ── Responsive fit ──
+         * If entries overflow vertically on a wide viewport,
+         * switch to a 2-column grid to use horizontal space.
+         * Branch lines/dots are hidden in grid mode since
+         * the vertical connector metaphor doesn't apply. */
+        if (entriesDiv && !isPhone) {
+          const sourceInner = entriesDiv.parentElement as HTMLElement | null;
+
+          /* Reset previous layout adjustments so we measure natural size */
+          entriesDiv.style.display = "";
+          entriesDiv.style.gridTemplateColumns = "";
+          entriesDiv.style.gap = "";
+          if (sourceInner) sourceInner.style.maxWidth = "";
+
+          const entryEls = entriesDiv.querySelectorAll<HTMLElement>("[data-entry]");
+          const branchEls = entriesDiv.querySelectorAll<HTMLElement>("[data-branch]");
+          const trimEls = entriesDiv.querySelectorAll<HTMLElement>("[data-trim]");
+          const commitLists = entriesDiv.querySelectorAll<HTMLElement>("ul");
+          entryEls.forEach((el) => {
+            el.style.marginLeft = ""; el.style.paddingLeft = "";
+            el.style.paddingTop = ""; el.style.paddingBottom = "";
+            el.style.fontSize = "";
+          });
+          branchEls.forEach((el) => { el.style.display = ""; });
+          trimEls.forEach((el) => { el.style.display = ""; });
+          commitLists.forEach((el) => { el.style.marginTop = ""; el.style.gap = ""; });
+
+          const entriesHeight = entriesDiv.scrollHeight;
+          const containerHeight = container.clientHeight;
+
+          if (entriesHeight > containerHeight * 0.92 && container.clientWidth >= 768) {
+            /* 2-column grid using horizontal space */
+            entriesDiv.style.display = "grid";
+            entriesDiv.style.gridTemplateColumns = "repeat(2, 1fr)";
+            entriesDiv.style.gap = "0 1.5rem";
+            if (sourceInner) sourceInner.style.maxWidth = "64rem";
+
+            /* Hide branch visuals (no vertical connector in grid) */
+            branchEls.forEach((el) => { el.style.display = "none"; });
+
+            /* Hide decorative metadata: hash, location/period, tags */
+            trimEls.forEach((el) => { el.style.display = "none"; });
+
+            /* Tighten entry padding & shrink text one notch */
+            entryEls.forEach((el) => {
+              el.style.marginLeft = "0";
+              el.style.paddingLeft = "0.75rem";
+              el.style.paddingTop = "0.625rem";
+              el.style.paddingBottom = "0.625rem";
+              el.style.fontSize = "0.8125rem"; /* 13px base — company names */
+            });
+
+            /* Tighten commit list spacing */
+            commitLists.forEach((el) => {
+              el.style.marginTop = "0.5rem";
+              el.style.gap = "0.125rem";
+            });
+          }
+        }
+
+        /* ── PHONE: seed words float in, then fill words complete questions ──
+         * Users already see commit entries in the terminal above.
+         * On mobile, seed words arrive first (the "essence"), then the
+         * surrounding words fade in to form the full questions. */
+        if (isPhone) {
+          if (sourceDiv) timeline.set(sourceDiv, { visibility: "hidden" }, 0);
+          if (targetDiv) {
+            timeline.set(targetDiv, { visibility: "visible" }, 0);
+
+            /* All words start hidden */
+            const seeds = targetDiv.querySelectorAll("[data-seed]");
+            const fills = targetDiv.querySelectorAll("[data-fill]");
+            timeline.set(seeds, { opacity: 0, visibility: "visible", y: 16, filter: "blur(4px)" }, 0);
+            timeline.set(fills, { opacity: 0, y: 6 }, 0);
+
+            /* Phase 1 (0.05 → 0.45): Seed words float up into place */
+            timeline.to(seeds, {
+              opacity: 1, y: 0, filter: "blur(0px)",
+              duration: 0.3,
+              stagger: { each: 0.015, from: "random" },
+              ease: "power2.out",
+            }, 0.05);
+
+            /* Phase 2 (0.40 → 0.80): Fill words fade in around the seeds */
+            timeline.to(fills, {
+              opacity: 1, y: 0,
+              duration: 0.2,
+              stagger: { each: 0.008, from: "random" },
+              ease: "power2.out",
+            }, 0.40);
+          }
+
+          timelineRef.current = timeline;
+          timeline.progress(Math.max(0, Math.min(1, progress.get())));
+          return;
+        }
+
+        /* ── TABLET/DESKTOP: full dissolve + fly animation ── */
+
         const flyStart = SCROLL_PHASES.flyStart;
         const flyDuration   = 1 - flyStart;
 
@@ -112,8 +216,6 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
         /* Show target at fly start. Source div stays visible — dissolved
          * content is already fading via tweens. Source hides late to avoid
          * abrupt snap (matches prototype where source hides at "done"). */
-        const sourceDiv = container.querySelector("[data-source]") as HTMLElement;
-        const targetDiv = container.querySelector("[data-target]") as HTMLElement;
         if (targetDiv) timeline.set(targetDiv, { visibility: "visible" }, flyStart);
         if (sourceDiv) timeline.set(sourceDiv, { visibility: "hidden" }, flyStart + flyDuration * 0.5);
 
@@ -245,7 +347,7 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
     return (
       <div className="relative w-full h-full">
         <div className="flex h-full flex-col">
-          <div className="my-auto w-full max-w-xl mx-auto px-6">
+          <div className="my-auto w-full max-w-xl mx-auto px-(--page-gutter)">
             <div className="flex flex-col items-center gap-[2.5cqh]">
               {companies.map((company) => {
                 const words = company.distillation.question.split(" ");
@@ -272,8 +374,8 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
 
       {/* ── Source: commit entries ── */}
       <div data-source="" className="absolute inset-0 flex flex-col">
-        <div className="my-auto w-full max-w-2xl mx-auto px-6 shrink-0">
-          <div className="flex flex-col">
+        <div className="my-auto w-full max-w-2xl mx-auto px-(--page-gutter) shrink-0">
+          <div data-entries="" className="flex flex-col">
             {companies.map((company, companyIndex) => {
               const isLast   = companyIndex === companies.length - 1;
               const dotColor = company.promoted ? PROMOTED : ACT_BLUE;
@@ -283,41 +385,41 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
                 <div
                   key={company.hash}
                   data-entry=""
-                  className="relative ml-[0.15cqh] py-[1.4cqh] pl-[2.8cqh] pr-[1.6cqh]"
+                  className="relative ml-1.5 py-5 pl-7 pr-4"
                 >
-                  {/* Branch line — dot-to-dot: starts at dot for first, ends at dot for last */}
+                  {/* Branch line */}
                   <div
-                    data-meta=""
+                    data-meta="" data-branch=""
                     className="absolute left-0 w-0.5"
                     style={{
-                      top: companyIndex === 0 ? "2.2cqh" : 0,
-                      bottom: isLast ? `calc(100% - 2.2cqh)` : 0,
+                      top: companyIndex === 0 ? "26px" : 0,
+                      bottom: isLast ? "calc(100% - 26px)" : 0,
                       backgroundColor: BRANCH_LINE,
                     }}
                   />
                   {/* Branch dot */}
                   <div
-                    data-meta=""
-                    className="absolute -left-1.75 top-[2.2cqh] h-[1.2cqh] w-[1.2cqh] rounded-full border-2"
+                    data-meta="" data-branch=""
+                    className="absolute -left-[7px] top-[26px] h-3 w-3 rounded-full border-2"
                     style={{ borderColor: dotColor, backgroundColor: company.promoted ? dotColor : SECTION_BG }}
                   />
 
-                  <div data-meta="" className="mb-[0.3cqh] font-mono text-[clamp(8px,1.0cqh,11px)] tracking-[0.05em]" style={{ color: GOLD }}>
+                  <div data-meta="" data-trim="" className="mb-1 font-mono text-[11px] tracking-[0.05em]" style={{ color: GOLD }}>
                     {company.hash}
                   </div>
-                  <div data-meta="" className="font-bold text-[clamp(12px,1.8cqh,18px)]" style={{ color: CREAM }}>
+                  <div data-meta="" className="text-sm font-bold sm:text-base lg:text-lg" style={{ color: CREAM }}>
                     {company.company}
                   </div>
-                  <div data-meta="" className="mt-[0.2cqh] font-mono text-[clamp(10px,1.3cqh,14px)]" style={{ color: ACT_BLUE }}>
+                  <div data-meta="" className="mt-0.5 font-mono text-xs" style={{ color: ACT_BLUE }}>
                     {company.role}
                   </div>
-                  <div data-meta="" className="mt-[0.3cqh] font-mono text-[clamp(8px,1.0cqh,11px)]" style={{ color: TEXT_DIM }}>
+                  <div data-meta="" data-trim="" className="mt-1 font-mono text-[11px]" style={{ color: TEXT_DIM }}>
                     {company.location} · {company.period}
                   </div>
 
-                  <ul className="mt-[0.8cqh] flex flex-col gap-[0.3cqh]">
+                  <ul className="mt-3 flex flex-col gap-1.5">
                     {company.commits.map((commit, commitIndex) => (
-                      <li key={commitIndex} className="font-mono text-[clamp(9px,1.05cqh,12px)] leading-[1.7]">
+                      <li key={commitIndex} className="font-mono text-[10px] leading-[1.7] sm:text-[11px] md:text-[12px]">
                         <span data-dissolve="" style={{ color: COMMIT_TYPE_COLORS[commit.type] ?? COMMIT_TYPE_FALLBACK }}>
                           {commit.type}
                         </span>
@@ -347,9 +449,9 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
                     ))}
                   </ul>
 
-                  <div data-meta="" className="mt-[0.8cqh] flex flex-wrap gap-[0.5cqh]">
+                  <div data-meta="" data-trim="" className="mt-3 flex flex-wrap gap-2">
                     {company.tags.map((tag) => (
-                      <span key={tag.text} className="rounded px-[0.8cqh] py-[0.2cqh] font-mono text-[clamp(8px,0.9cqh,10px)]"
+                      <span key={tag.text} className="rounded px-2 py-0.5 font-mono text-[10px]"
                         style={{ backgroundColor: `${tag.color}${TAG_ALPHA_BG}`, color: tag.color }}>
                         {tag.text}
                       </span>
@@ -364,14 +466,14 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
 
       {/* ── Target: questions ── */}
       <div data-target="" className="absolute inset-0 flex flex-col" style={{ visibility: "hidden" }}>
-        <div className="my-auto w-full max-w-xl mx-auto px-6">
+        <div className="my-auto w-full max-w-xl mx-auto px-(--page-gutter)">
           <div className="flex flex-col items-center gap-[2.5cqh]">
             {companies.map((company) => {
               const seedSet = new Set(company.distillation.seedWords);
               const words   = company.distillation.question.split(" ");
 
               return (
-                <p key={company.hash} className="text-center italic tracking-[-0.01em]"
+                <p key={company.hash} data-question="" className="text-center italic tracking-[-0.01em]"
                   style={{ fontFamily: "var(--font-spectral)", fontSize: "clamp(14px, 2.2cqh, 26px)", lineHeight: 1.5, color: CREAM_MUTED }}>
                   {words.map((word, wordIndex) => {
                     const stripped = word.toLowerCase().replace(/[^a-z]/g, "");
@@ -381,7 +483,7 @@ export function WordDistillation({ companies, progress }: WordDistillationProps)
                     return (
                       <span key={wordIndex}>
                         {isSeed ? (
-                          <span ref={(el) => { if (el) targetRefs.current.set(refKey, el); }}
+                          <span data-seed="" ref={(el) => { if (el) targetRefs.current.set(refKey, el); }}
                             className="inline-block" style={{ color: CREAM, visibility: "hidden", opacity: 0 }}>
                             {word}
                           </span>

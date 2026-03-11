@@ -53,7 +53,7 @@ export function TerminalAtmosphere({ glowOpacity }: TerminalAtmosphereProps) {
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background: `radial-gradient(ellipse at 50% 40%, transparent 40%, ${SECTION_BG} 85%)`,
+          background: `radial-gradient(ellipse at 50% 40%, transparent 55%, ${SECTION_BG} 90%)`,
         }}
       />
 

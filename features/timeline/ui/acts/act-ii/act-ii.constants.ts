@@ -96,7 +96,7 @@ export const STAT_MIN_W = "5.5rem";
 
 export const GRID_SIZE = "50px 50px";
 export const GRID_OPACITY_MOBILE = 0.12;
-export const GRID_OPACITY_DESKTOP = 0.06;
+export const GRID_OPACITY_DESKTOP = 0.10;
 
 /* ── Atmospheric Glows ── */
 
