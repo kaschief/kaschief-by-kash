@@ -21,6 +21,8 @@ export const TEXT_DIM = "#8A8478";
 export const TEXT_FAINT = "#4A4640";
 /** Accent — hashes, highlights, refactor/ship commit types */
 export const GOLD = "#C9A84C";
+/** Warm gold for answered/resolved principles */
+export const GOLD_MUTED = "#A89260";
 
 /* ══════════════════════════════════════════════════════════════
  * Section & surface backgrounds
