@@ -93,6 +93,17 @@ export interface Repo {
   readonly stack: readonly Tag[];
 }
 
+export interface Distillation {
+  /** Words preserved from commits that fly into the question */
+  readonly seedWords: readonly string[];
+  /** The question the seed words form */
+  readonly question: string;
+  /** One-sentence engineering principle this role crystallised */
+  readonly principle: string;
+  /** Longer narrative detail — shown in the interactive view */
+  readonly detail: string;
+}
+
 export interface Company {
   readonly hash: string;
   readonly company: string;
@@ -104,8 +115,8 @@ export interface Company {
   readonly tags: readonly Tag[];
   readonly promoted: boolean;
   readonly repo: Repo;
-  /** Single-sentence distillation — what this role taught */
-  readonly essence: string;
+  /** Word-distillation animation data */
+  readonly distillation: Distillation;
 }
 
 export interface SkillScenario {
@@ -390,11 +401,14 @@ export const COMPANIES: readonly Company[] = [
     period: "Sep 2018 — Oct 2019",
     industry: "Med-Ed",
     commits: [
-      { type: "feat", msg: "ship core React product for medical exam prep" },
+      {
+        type: "feat",
+        msg: "build core React product for 500K+ medical students",
+      },
       { type: "test", msg: "run A/B experiments on study and review flows" },
       {
         type: "collab",
-        msg: "translate research insights into product changes",
+        msg: "translate research insights into frontend decisions",
       },
       { type: "ship", msg: "help take the product from beta to production" },
     ],
@@ -433,7 +447,14 @@ export const COMPANIES: readonly Company[] = [
         { text: "Med-Ed", color: INDUSTRY_HEX },
       ],
     },
-    essence: "I understand the problem before I write the solution.",
+    distillation: {
+      seedWords: ["research", "decisions"],
+      question:
+        "How do you incorporate user research into your engineering decisions?",
+      principle: "I build from observed behaviour, not assumption.",
+      detail:
+        "I watched medical students use flows I thought were straightforward and saw where they hesitated, misread, or took the long way through. That changed how I build. What feels obvious in the code is not always obvious in the experience.",
+    },
   },
   {
     hash: "8c2e4d9",
@@ -445,20 +466,17 @@ export const COMPANIES: readonly Company[] = [
     commits: [
       {
         type: "feat",
-        msg: "build Vue comparison products with dynamic UI systems",
+        msg: "build Vue comparison pages for high-traffic products",
       },
       {
         type: "perf",
-        msg: "redesign loading strategy and reduce page latency",
+        msg: "improve page speed problems by reworking loading systems",
       },
       {
         type: "fix",
-        msg: "architect SEO improvements directly in the frontend layer",
+        msg: "integrate SEO requirements into the frontend architecture",
       },
-      {
-        type: "collab",
-        msg: "own the acquisition and conversion frontend end to end",
-      },
+      { type: "collab", msg: "work with Product to improve conversion flows" },
     ],
     tags: [
       { text: "Vue", color: ENGINEER_HEX },
@@ -496,7 +514,15 @@ export const COMPANIES: readonly Company[] = [
         { text: "Marketing", color: INDUSTRY_HEX },
       ],
     },
-    essence: "I leave things simpler and faster than I found them.",
+    distillation: {
+      seedWords: ["product", "systems"],
+      question:
+        "How do you tell the difference between a product problem and a systems problem?",
+      principle:
+        "I step back and check if we're solving the right problem first.",
+      detail:
+        "The page was still slow in the hand, even after the local fixes looked right on paper. I stepped back and looked at the loading flow itself, what was arriving too early, what could wait, and what was blocking the experience for no good reason. Once I reworked that layer, the improvement was something users could actually feel.",
+    },
   },
   {
     hash: "1f9a0c3",
@@ -508,19 +534,19 @@ export const COMPANIES: readonly Company[] = [
     commits: [
       {
         type: "feat",
-        msg: "build new frontend for advisor platform used by 10K+ people",
+        msg: "delivered a new advisor frontend for a platform used by 10K+ financial professionals",
       },
       {
         type: "refactor",
-        msg: "replace unstable legacy frontend with Vue 3 and TypeScript",
+        msg: "modernized a fragile legacy frontend with Vue 3 and TypeScript",
+      },
+      {
+        type: "test",
+        msg: "raised engineering quality by improving test coverage and code reliability across the platform",
       },
       {
         type: "perf",
-        msg: "reduce load time and stabilize the UI architecture",
-      },
-      {
-        type: "docs",
-        msg: "define architecture patterns the team kept building on",
+        msg: "improved and stabilized load times across the frontend architecture",
       },
     ],
     tags: [
@@ -557,7 +583,14 @@ export const COMPANIES: readonly Company[] = [
         { text: "Fintech", color: INDUSTRY_HEX },
       ],
     },
-    essence: "I take ownership of the task and the outcome.",
+    distillation: {
+      seedWords: ["raised", "quality", "code", "platform"],
+      question: "How do you get code quality raised across a platform?",
+      principle:
+        "I turn messy flows into something users and engineers can follow.",
+      detail:
+        "I value structure that makes the right path the easy path. Here, the frontend had drifted into something people edited carefully rather than extended confidently. I reduced one-off patterns, pulled repeated logic into clearer shared structures, added tests around the brittle flows, and cleaned up the places where small changes had too many side effects, so new work could build on the system instead of negotiating with it.",
+    },
   },
   {
     hash: "5e7d2a1",
@@ -569,19 +602,19 @@ export const COMPANIES: readonly Company[] = [
     commits: [
       {
         type: "refactor",
-        msg: "rebuild banking UI for millions of users in React/TS",
+        msg: "rebuild the banking platform for millions of users in React/TS",
       },
       {
         type: "test",
-        msg: "introduce Jest and Playwright for mission-critical reliability",
+        msg: "introduce Jest and Playwright to build safety into the pipeline",
       },
       {
         type: "collab",
-        msg: "partner with Product to identify and fix usability gaps",
+        msg: "partner with Product to identify and address usability gaps",
       },
       {
         type: "ship",
-        msg: "move releases from monthly to weekly with zero rollbacks",
+        msg: "increase speed from monthly to weekly deployments",
       },
     ],
     tags: [
@@ -623,7 +656,15 @@ export const COMPANIES: readonly Company[] = [
         { text: "Banking", color: INDUSTRY_HEX },
       ],
     },
-    essence: "I make the people around me more effective.",
+    distillation: {
+      seedWords: ["speed", "safety", "platform", "millions", "users"],
+      question:
+        "How do you balance speed and safety on a platform that millions of users depend on?",
+      principle:
+        "I put enough testing in place that we can ship without second-guessing ourselves.",
+      detail:
+        "I helped push testing into the release process because too much was being caught late and too much depended on people remembering things. With Jest and Playwright in place around critical flows, shipping became more regular, less tense, and easier for the team to trust.",
+    },
   },
 ];
 

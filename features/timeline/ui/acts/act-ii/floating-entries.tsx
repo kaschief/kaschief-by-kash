@@ -177,7 +177,7 @@ function DisplaceableEssence({
         animation: `essence-float ${FLOAT_PARAMS[gridIdx].duration} ease-in-out ${FLOAT_PARAMS[gridIdx].delay} infinite`,
         ["--float-y" as string]: FLOAT_PARAMS[gridIdx].y,
       }}>
-      {company.essence}
+      {company.distillation.principle}
     </motion.p>
   );
 }
@@ -234,7 +234,7 @@ function FloatingEntry({ company, index, wordProgress }: FloatingEntryProps) {
         className="mt-[0.5cqh] font-sans leading-[1.4] text-[clamp(14px,2cqh,20px)] text-(--cream)"
         style={{ opacity: essenceOpacity, filter: essenceFilter, y: essenceY, scale: essenceScale }}
         transition={SPREAD_TRANSITIONS[index]}>
-        {company.essence}
+        {company.distillation.principle}
       </motion.p>
     </motion.div>
   );
