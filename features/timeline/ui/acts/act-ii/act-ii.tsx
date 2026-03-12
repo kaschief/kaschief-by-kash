@@ -82,13 +82,17 @@ export function ActII() {
           <h2
             ref={titleRef}
             className="font-sans text-4xl font-bold tracking-[-0.03em] text-(--cream) sm:text-6xl md:text-8xl lg:text-[140px] lg:tracking-[-0.04em]">
-            <ScrambleText
-              text={ACT_II.title.toUpperCase().replace(/I/, "1")}
-              active={titleInView}
-              staggerMs={70}
-              cyclesPerChar={6}
-              intervalMs={70}
-            />
+            {ACT_II.title.toUpperCase().replace(/I/, "1").split(" ").map((word, i) => (
+              <span key={i} className="block">
+                <ScrambleText
+                  text={word}
+                  active={titleInView}
+                  staggerMs={70}
+                  cyclesPerChar={6}
+                  intervalMs={70}
+                />
+              </span>
+            ))}
           </h2>
           <p className="mx-auto mt-6 font-serif text-sm leading-relaxed text-(--cream-muted) italic sm:text-base md:text-lg lg:text-xl" style={{ maxWidth: SPLASH_MAX_W }}>
             {ACT_II.splash}
