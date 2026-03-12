@@ -152,7 +152,7 @@ export interface ActINurseContent {
 export const ACT_I: ActINurseContent = {
   act: "ACT I",
   title: `The ${nurseRole.label}`,
-  period: "2012 — 2017",
+  period: "2015 — 2018",
   location: "New York, NY",
   color: nurseRole.color,
   splash:
@@ -586,7 +586,7 @@ export const COMPANIES: readonly Company[] = [
       seedWords: ["raised", "quality", "code", "platform"],
       question: "How do you get code quality raised across a platform?",
       principle:
-        "I raise quality by shaping the code so good decisions are easier to make.",
+        "I raise quality by shaping the code so the right decisions are easier to make.",
       detail:
         "The frontend had drifted into something people edited carefully rather than extended confidently. I reduced one-off patterns, pulled logic into shared structures, and added tests around brittle flows so new work could build on the system instead of working around it.",
     },

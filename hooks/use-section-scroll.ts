@@ -106,6 +106,11 @@ export function useSectionScroll() {
       // Check if we need to skip past any pin zones
       const skipTarget = getPinSkipTarget(currentScroll, finalTarget);
 
+      // Also skip when the distance is large (> 2 viewports) — avoids
+      // scrubbing through intermediate sections (e.g. Leader → Engineer).
+      const distance = Math.abs(finalTarget - currentScroll);
+      const longJump = distance > window.innerHeight * 2;
+
       const finish = () => {
         // Recalculate after potential instant jump (element position may shift)
         const updatedTop = el.getBoundingClientRect().top + window.scrollY;
@@ -135,9 +140,21 @@ export function useSectionScroll() {
         });
         // Phase 2: smooth scroll to final target (after a frame for layout)
         requestAnimationFrame(() => finish());
+      } else if (longJump) {
+        // Long distance with no pins — instant jump to ~1vh before target,
+        // then smooth-finish the last bit for a polished landing.
+        const goingDown = finalTarget > currentScroll;
+        const nearTarget = goingDown
+          ? finalTarget - window.innerHeight * 0.8
+          : finalTarget + window.innerHeight * 0.8;
+
+        lenis.scrollTo(nearTarget, {
+          immediate: true,
+          force: true,
+        });
+        requestAnimationFrame(() => finish());
       } else {
-        // No pins in the way — smooth scroll directly
-        const distance = Math.abs(finalTarget - currentScroll);
+        // Short distance, no pins — smooth scroll directly
         const duration = Math.min(1.2, Math.max(0.5, distance / 3500));
 
         lenis.scrollTo(finalTarget, {
