@@ -1,4 +1,7 @@
+import { PERSONAL } from "@data";
+
 export function HomePageFallback() {
+  const { initials } = PERSONAL;
   return (
     <div
       className="fixed inset-0 flex items-center justify-center"
@@ -8,7 +11,7 @@ export function HomePageFallback() {
         <span
           className="animate-pulse font-serif text-2xl tracking-[0.3em]"
           style={{ color: "var(--gold-dim)" }}>
-          KS
+          {initials}
         </span>
         {/* Minimal loading bar */}
         <div
