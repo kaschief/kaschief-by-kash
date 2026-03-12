@@ -47,7 +47,7 @@ export function Distillation() {
       />
 
       {/* ── Screen 1: Word distillation (pinned full-screen, scroll-driven) ── */}
-      <div ref={scrollRef} className="relative h-[200vh] md:h-[300vh]">
+      <div ref={scrollRef} className="relative h-[650vh] md:h-[620vh]">
         <motion.div
           className="sticky top-0 flex h-screen flex-col pt-16 pb-8"
           style={{ opacity, overflowY: "clip" }}>

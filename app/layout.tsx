@@ -38,7 +38,6 @@ import {
   Work_Sans,
 } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { FontPackSwitcher } from "@components";
 import { Z_INDEX } from "@utilities";
 import type { Metadata, Viewport } from "next";
 const { scrollFade } = Z_INDEX;
@@ -359,7 +358,6 @@ export default function RootLayout({
           }}
         />
         {children}
-        <FontPackSwitcher />
         <Analytics />
       </body>
     </html>

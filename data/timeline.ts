@@ -518,10 +518,9 @@ export const COMPANIES: readonly Company[] = [
       seedWords: ["product", "systems"],
       question:
         "How do you tell the difference between a product problem and a systems problem?",
-      principle:
-        "I step back and check if we're solving the right problem first.",
+      principle: "I trace the issue to the layer that is creating it.",
       detail:
-        "The page was still slow in the hand, even after the local fixes looked right on paper. I stepped back and looked at the loading flow itself, what was arriving too early, what could wait, and what was blocking the experience for no good reason. Once I reworked that layer, the improvement was something users could actually feel.",
+        "The page was still slow, even after the local fixes looked right on paper. I stepped back and looked at the loading flow itself, what was arriving too early, what could wait, and what was blocking the experience. Once I reworked that layer, the improvement was real.",
     },
   },
   {
@@ -587,9 +586,9 @@ export const COMPANIES: readonly Company[] = [
       seedWords: ["raised", "quality", "code", "platform"],
       question: "How do you get code quality raised across a platform?",
       principle:
-        "I turn messy flows into something users and engineers can follow.",
+        "I raise quality by shaping the code so good decisions are easier to make.",
       detail:
-        "I value structure that makes the right path the easy path. Here, the frontend had drifted into something people edited carefully rather than extended confidently. I reduced one-off patterns, pulled repeated logic into clearer shared structures, added tests around the brittle flows, and cleaned up the places where small changes had too many side effects, so new work could build on the system instead of negotiating with it.",
+        "The frontend had drifted into something people edited carefully rather than extended confidently. I reduced one-off patterns, pulled logic into shared structures, and added tests around brittle flows so new work could build on the system instead of working around it.",
     },
   },
   {
@@ -661,7 +660,7 @@ export const COMPANIES: readonly Company[] = [
       question:
         "How do you balance speed and safety on a platform that millions of users depend on?",
       principle:
-        "I put enough testing in place that we can ship without second-guessing ourselves.",
+        "I put enough testing in place so that we can ship without second-guessing ourselves.",
       detail:
         "I helped push testing into the release process because too much was being caught late and too much depended on people remembering things. With Jest and Playwright in place around critical flows, shipping became more regular, less tense, and easier for the team to trust.",
     },
