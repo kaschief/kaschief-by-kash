@@ -9,12 +9,9 @@ const VARIANTS = [
   { href: "/forge-test-ref-funnel", label: "Funnel" },
   { href: "/forge-test-ref-particles", label: "Particles" },
   { href: "/forge-test-workstation", label: "Workstation" },
-  { href: "/forge-test-v8", label: "V8" },
-  { href: "/forge-test-v10", label: "V10" },
-  { href: "/forge-test-v11", label: "V11" },
-  { href: "/forge-test-v12", label: "V12" },
-  { href: "/forge-test-v13", label: "V13" },
-  { href: "/forge-test-v14", label: "V14" },
+  { href: "/forge-test-v15", label: "V15 Scribe" },
+  { href: "/forge-test-v16", label: "V16 Terminal" },
+  { href: "/forge-test-v19", label: "V19 Forge" },
 ];
 
 export function ForgeNav() {

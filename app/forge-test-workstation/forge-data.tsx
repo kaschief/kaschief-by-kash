@@ -26,7 +26,7 @@ export const ACT_BLUE = "#5B9EC2";
 export const CC = [
   [96, 165, 250],  // AMBOSS — blue
   [66, 184, 131],  // Compado — green
-  [49, 120, 198],  // CAPinside — ts blue
+  [6, 182, 212],   // CAPinside — cyan/teal
   [244, 114, 182], // DKB — pink
 ];
 
@@ -177,16 +177,13 @@ export const LOGOS: Record<string, ReactNode> = {
       </defs>
     </svg>
   ),
-  /* Playwright — three overlapping colored circles (chromium, firefox, webkit) */
+  /* Playwright — three colored vertical bars (chromium, firefox, webkit) */
   playwright: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <circle cx="13" cy="20" r="8" fill="#E2574C" fillOpacity="0.85" />
-      <circle cx="23" cy="20" r="8" fill="#2EAD33" fillOpacity="0.85" />
-      <circle cx="18" cy="12" r="8" fill="#4A90D9" fillOpacity="0.85" />
-      {/* Simplified browser dots in each circle */}
-      <circle cx="13" cy="21" r="1.2" fill="white" fillOpacity="0.9" />
-      <circle cx="23" cy="21" r="1.2" fill="white" fillOpacity="0.9" />
-      <circle cx="18" cy="13" r="1.2" fill="white" fillOpacity="0.9" />
+      <rect x="4" y="4" width="28" height="28" rx="4" fill="rgba(255,255,255,0.04)" />
+      <rect x="8" y="8" width="5" height="20" rx="1.5" fill="#E2574C" fillOpacity="0.9" />
+      <rect x="15.5" y="8" width="5" height="20" rx="1.5" fill="#2EAD33" fillOpacity="0.9" />
+      <rect x="23" y="8" width="5" height="20" rx="1.5" fill="#4A90D9" fillOpacity="0.9" />
     </svg>
   ),
   /* Jest — jester hat silhouette with J */
@@ -279,54 +276,85 @@ export const LOGOS: Record<string, ReactNode> = {
       <path d="M18 17 L6 24 L18 31 Z" fill="#8DD6F9" fillOpacity="0.1" />
     </svg>
   ),
-  // Company logos
+  // Company logos — 44px, prominent
   amboss: (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <circle cx="18" cy="18" r="14" stroke="#60A5FA" strokeWidth="1.5" fill="none" />
-      <path d="M12 24 L18 10 L24 24" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <line x1="14" y1="20" x2="22" y2="20" stroke="#60A5FA" strokeWidth="1.5" strokeLinecap="round" />
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+      <path d="M14 32 L22 10 L30 32" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <line x1="17" y1="25" x2="27" y2="25" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" />
     </svg>
   ),
   compado: (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <rect x="4" y="8" width="28" height="20" rx="4" stroke="#42B883" strokeWidth="1.5" fill="none" />
-      <circle cx="14" cy="18" r="4" stroke="#42B883" strokeWidth="1.2" fill="none" />
-      <circle cx="22" cy="18" r="4" stroke="#42B883" strokeWidth="1.2" fill="none" />
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+      <path d="M6 10 C6 7 8 5 11 5 L33 5 C36 5 38 7 38 10 L38 28 C38 31 36 33 33 33 L18 33 L12 39 L12 33 L11 33 C8 33 6 31 6 28 Z" stroke="#42B883" strokeWidth="1.5" fill="none" />
+      <path d="M15 17 L21 17 M19 15 L21 17 L19 19" stroke="#42B883" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       <path d="M17 15 L19 15" stroke="#42B883" strokeWidth="1" />
       <path d="M17 21 L19 21" stroke="#42B883" strokeWidth="1" />
     </svg>
   ),
   capinside: (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <rect x="3" y="3" width="30" height="30" rx="6" stroke="#3178C6" strokeWidth="1.5" fill="none" />
-      <text x="18" y="23" textAnchor="middle" fill="#3178C6" fontSize="14" fontWeight="700" fontFamily="var(--font-sans)">C</text>
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+      <rect x="4" y="4" width="36" height="36" rx="8" stroke="#06B6D4" strokeWidth="1.5" fill="none" />
+      <path d="M28 14 C25 11 19 11 16 14 C13 17 13 23 16 26 L14 30 C14 30 20 28 21 27.5 C24 28.5 28 27 30 24 C32 21 31 17 28 14 Z" stroke="#06B6D4" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   dkb: (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <rect x="3" y="8" width="30" height="20" rx="4" fill="#1A56DB" fillOpacity="0.15" stroke="#1A56DB" strokeWidth="1.2" />
-      <text x="18" y="22" textAnchor="middle" fill="#1A56DB" fontSize="11" fontWeight="700" fontFamily="var(--font-sans)" letterSpacing="0.08em">DKB</text>
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+      <rect x="2" y="10" width="40" height="24" rx="4" fill="#1A56DB" fillOpacity="0.12" stroke="#1A56DB" strokeWidth="1.4" />
+      <text x="22" y="27" textAnchor="middle" fill="#1A56DB" fontSize="14" fontWeight="800" fontFamily="var(--font-sans)" letterSpacing="0.1em">DKB</text>
     </svg>
   ),
   vscode: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <path d="M27 4 L27 32 L8 26 L27 4 Z" fill="#007ACC" fillOpacity="0.8" />
-      <path d="M8 26 L4 23 L4 13 L8 10 L21 20 L8 26 Z" fill="#007ACC" fillOpacity="0.6" />
-      <path d="M8 10 L21 20 L27 4 L8 10 Z" fill="#007ACC" fillOpacity="0.4" />
+      <path d="M27 3 L27 33 L9 27 L5 24 L5 12 L9 9 L27 3 Z" fill="#007ACC" fillOpacity="0.15" stroke="#007ACC" strokeWidth="1" />
+      <path d="M22 11 L12 18 L22 25" stroke="#007ACC" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d="M27 3 L27 33" stroke="#007ACC" strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   ),
-  claude: (
+  anthropic: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <circle cx="18" cy="18" r="14" fill="#D97706" fillOpacity="0.12" stroke="#D97706" strokeWidth="1.2" />
-      <circle cx="18" cy="15" r="5" stroke="#D97706" strokeWidth="1.5" fill="none" />
-      <path d="M11 25 C11 21 14 18 18 18 C22 18 25 21 25 25" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+      <path d="M18 6 L28 30 L23.5 30 L18 15.5 L12.5 30 L8 30 Z" fill="#D97706" />
+      <path d="M14 24 L22 24" stroke="#D97706" strokeWidth="2" strokeLinecap="round" />
     </svg>
   ),
   chatgpt: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <circle cx="18" cy="18" r="14" stroke="#10A37F" strokeWidth="1.2" fill="none" />
-      <path d="M12 18 L16 14 L20 18 L24 14" stroke="#10A37F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <path d="M12 22 L16 18 L20 22 L24 18" stroke="#10A37F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d="M18 4 C24 4 28 8 28 13 L28 20 C28 22 26 24 24 24 L18 24" stroke="#10A37F" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M18 32 C12 32 8 28 8 23 L8 16 C8 14 10 12 12 12 L18 12" stroke="#10A37F" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M10 8 C12 5 16 4 19 6 L24 9 C26 10 27 13 25 15 L21 18" stroke="#10A37F" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M26 28 C24 31 20 32 17 30 L12 27 C10 26 9 23 11 21 L15 18" stroke="#10A37F" strokeWidth="2" strokeLinecap="round" fill="none" />
+    </svg>
+  ),
+  miro: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <rect x="3" y="3" width="30" height="30" rx="5" fill="#FFD02F" />
+      <path d="M11 8 L15 8 L19 18 L23 8 L27 8 L21 28 L17 28 L11 8 Z" fill="#050038" />
+      <path d="M8 8 L12 8 L16 18 L12 28 L8 28 L8 8 Z" fill="#050038" />
+    </svg>
+  ),
+  figma: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <path d="M14 4 C11 4 8 7 8 10 C8 13 11 16 14 16 L18 16 L18 4 Z" fill="#F24E1E" />
+      <path d="M18 4 L22 4 C25 4 28 7 28 10 C28 13 25 16 22 16 L18 16 Z" fill="#FF7262" />
+      <path d="M14 16 C11 16 8 19 8 22 C8 25 11 28 14 28 L18 28 L18 16 Z" fill="#A259FF" />
+      <path d="M18 16 L22 16 C25 16 28 19 28 22 C28 25 25 28 22 28 C19 28 18 25 18 22 Z" fill="#1ABCFE" />
+      <path d="M14 28 C11 28 8 31 8 34 C8 34 11 36 14 36 C17 36 18 34 18 34 L18 28 Z" fill="#0ACF83" />
+    </svg>
+  ),
+  jira: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <path d="M33 17.4 L19.2 3.6 L18 2.4 L6.6 13.8 L3 17.4 C2.4 18 2.4 18.6 3 19.2 L13.2 29.4 L18 34.2 L29.4 22.8 L29.7 22.5 L33 19.2 C33.6 18.6 33.6 18 33 17.4 Z M18 23.4 L12.6 18 L18 12.6 L23.4 18 Z" fill="#2684FF" />
+      <path d="M18 12.6 C15 9.6 15 5.4 17.7 2.7 L6.6 13.8 L12.6 18 Z" fill="url(#jira-g1)" />
+      <path d="M23.4 18 L18 23.4 C21 26.4 21 30.6 18.3 33.3 L29.4 22.2 Z" fill="url(#jira-g2)" />
+      <defs>
+        <linearGradient id="jira-g1" x1="17" y1="8" x2="10" y2="15">
+          <stop stopColor="#0052CC" />
+          <stop offset="1" stopColor="#2684FF" />
+        </linearGradient>
+        <linearGradient id="jira-g2" x1="19" y1="28" x2="26" y2="21">
+          <stop stopColor="#0052CC" />
+          <stop offset="1" stopColor="#2684FF" />
+        </linearGradient>
+      </defs>
     </svg>
   ),
 };
@@ -339,11 +367,30 @@ export function createFragments(): Fragment[] {
   const frags: Fragment[] = [];
   let s = 0;
 
+  // Grid-based positioning to prevent overlap
+  const COLS = 8, ROWS = 7;
+  const usedCells = new Set<number>();
+
   function pos() {
     s++;
+    // Find an unused grid cell, with jitter for natural look
+    let cell: number;
+    let attempts = 0;
+    do {
+      cell = Math.floor(srand(s * 7.1 + attempts * 3.3) * COLS * ROWS);
+      attempts++;
+    } while (usedCells.has(cell) && attempts < 20);
+    usedCells.add(cell);
+    const col = cell % COLS;
+    const row = Math.floor(cell / COLS);
+    const cellW = 82 / COLS;
+    const cellH = 72 / ROWS;
+    // Position within grid cell + small jitter
+    const jitterX = (srand(s * 11.7) - 0.5) * cellW * 0.6;
+    const jitterY = (srand(s * 17.3) - 0.5) * cellH * 0.6;
     return {
-      x0: (srand(s * 7.1) - 0.5) * 82,
-      y0: (srand(s * 13.3) - 0.5) * 72,
+      x0: -41 + col * cellW + cellW / 2 + jitterX,
+      y0: -36 + row * cellH + cellH / 2 + jitterY,
       dx: (srand(s * 3.7) - 0.5) * 24,
       dy: (srand(s * 5.3) - 0.5) * 20,
       rot: (srand(s * 11.1) - 0.5) * 30,
@@ -404,22 +451,25 @@ export function createFragments(): Fragment[] {
   frags.push(code("await page.goto('/dashboard')", 3));
   frags.push(code("export function migrate(legacy: Schema)", 2));
 
-  // Logos
+  // Logos — ALL get labels except where text is already in the logo itself
   frags.push(logo("react", 0, "React", 34));
-  frags.push(logo("vue", 1, "Vue.js", 34));
-  frags.push(logo("typescript", 2, "TypeScript", 32));
+  frags.push(logo("vue", 1, "Vue", 34));
+  frags.push(logo("typescript", 2, "", 32));     // "TS" in logo
   frags.push(logo("git", 0, "Git", 30));
   frags.push(logo("nextjs", 3, "Next.js", 32));
   frags.push(logo("playwright", 3, "Playwright", 30));
   frags.push(logo("jest", 3, "Jest", 30));
   frags.push(logo("sentry", 1, "Sentry", 30));
   frags.push(logo("lighthouse", 0, "Lighthouse", 30));
-  frags.push(logo("css", 1, "CSS", 30));
+  frags.push(logo("css", 1, "", 30));            // "3" in logo
   frags.push(logo("node", 3, "Node.js", 30));
   frags.push(logo("webpack", 3, "Webpack", 28));
   frags.push(logo("vscode", 0, "VS Code", 30));
-  frags.push(logo("claude", 3, "Claude", 30));
+  frags.push(logo("anthropic", 3, "Anthropic", 30));
   frags.push(logo("chatgpt", 3, "ChatGPT", 30));
+  frags.push(logo("miro", 1, "", 30));           // "M" in logo
+  frags.push(logo("figma", 2, "Figma", 30));
+  frags.push(logo("jira", 3, "Jira", 30));
 
   // Commands
   frags.push(cmd("git push origin main", 0));
@@ -428,10 +478,12 @@ export function createFragments(): Fragment[] {
   frags.push(cmd("jest --coverage --watchAll", 3));
   frags.push(cmd("lighthouse https://app.amboss.com", 0));
 
-  // Seeds
-  COMPANIES.forEach((c, ci) => {
+  // Seeds — cycle through all 4 company colors for variety
+  let seedColorIdx = 0;
+  COMPANIES.forEach((c) => {
     c.distillation.seedWords.forEach((w) => {
-      frags.push(text(w, ci, "seed", 1.05, 600));
+      frags.push(text(w, seedColorIdx % 4, "seed", 1.05, 600));
+      seedColorIdx++;
     });
   });
 

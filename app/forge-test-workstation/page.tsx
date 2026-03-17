@@ -226,28 +226,7 @@ function buildFunnelSegments(): FSegment[] {
 
 const F_SEGMENTS = buildFunnelSegments();
 
-const WS_TIER_CAPTIONS = [
-  {
-    caption:
-      "The user is never an abstraction. The moment you treat them like one, the product starts lying to people.",
-    color: "#60A5FA",
-  },
-  {
-    caption:
-      "Load time is not a metric. It is a user\u2019s first impression of whether you respect their time.",
-    color: "#42B883",
-  },
-  {
-    caption:
-      "A codebase is a record of a team\u2019s habits. If you want to change the code, you have to change how the team works.",
-    color: "#3178C6",
-  },
-  {
-    caption:
-      "At a certain scale, the highest-leverage thing an engineer can do is make the right decision obvious.",
-    color: "#F472B6",
-  },
-];
+// Tier captions removed — storytelling moves to terminal replay section
 
 /* ================================================================== */
 /*  Scroll phases — single source of truth                             */
@@ -266,35 +245,35 @@ const vhToP = (scrollVh: number) => scrollVh / (CONTAINER_VH - 100);
 
 const PH = {
   // Title: must end BEFORE summary arrives
-  TITLE:       { start: vhToP(10),  end: vhToP(70) },    // ~0.005–0.037
+  TITLE: { start: vhToP(10), end: vhToP(70) }, // ~0.005–0.037
 
   // Forge fragments
-  FORGE:       { start: vhToP(60),  end: vhToP(400) },   // ~0.03–0.21
-  FORGE_GATE:  vhToP(475),                                 // fragments off at ~0.25
+  FORGE: { start: vhToP(60), end: vhToP(400) }, // ~0.03–0.21
+  FORGE_GATE: vhToP(475), // fragments off at ~0.25
 
   // Embers
-  EMBERS:      { start: vhToP(130), end: vhToP(460) },
+  EMBERS: { start: vhToP(130), end: vhToP(460) },
 
   // Forge atmosphere (glow, grid)
-  GLOW:        { start: vhToP(80),  end: vhToP(480) },
+  GLOW: { start: vhToP(80), end: vhToP(480) },
 
   // Thesis
-  THESIS:      { start: vhToP(320), end: vhToP(510) },   // ~0.17–0.27
+  THESIS: { start: vhToP(320), end: vhToP(510) }, // ~0.17–0.27
 
   // Particles → Funnel
-  PARTICLES:   { start: vhToP(490), end: vhToP(870) },   // ~0.26–0.46
-  CANVAS_OUT:  { start: vhToP(620), end: vhToP(680) },   // ~0.33–0.36
-  SVG_IN:      { start: vhToP(620), end: vhToP(660) },
-  DOTS_IN:     { start: vhToP(620), end: vhToP(680) },
-  LABELS_IN:   { start: vhToP(585), end: vhToP(660) },
+  PARTICLES: { start: vhToP(490), end: vhToP(870) }, // ~0.26–0.46
+  CANVAS_OUT: { start: vhToP(620), end: vhToP(680) }, // ~0.33–0.36
+  SVG_IN: { start: vhToP(620), end: vhToP(660) },
+  DOTS_IN: { start: vhToP(620), end: vhToP(680) },
+  LABELS_IN: { start: vhToP(585), end: vhToP(660) },
   RIBBON_TIERS: [
-    { start: vhToP(620), end: vhToP(680) },  // → AMBOSS
-    { start: vhToP(680), end: vhToP(740) },  // → Compado
-    { start: vhToP(740), end: vhToP(800) },  // → CAPinside
-    { start: vhToP(800), end: vhToP(840) },  // → DKB
+    { start: vhToP(620), end: vhToP(680) }, // → AMBOSS
+    { start: vhToP(680), end: vhToP(740) }, // → Compado
+    { start: vhToP(740), end: vhToP(800) }, // → CAPinside
+    { start: vhToP(800), end: vhToP(840) }, // → DKB
   ],
   CONVERGE_PT: { start: vhToP(800), end: vhToP(870) },
-  FUNNEL_OUT:  { start: vhToP(840), end: vhToP(900) },
+  FUNNEL_OUT: { start: vhToP(840), end: vhToP(900) },
   CAPTION_TIERS: [
     { start: vhToP(620), end: vhToP(700) },
     { start: vhToP(700), end: vhToP(760) },
@@ -304,17 +283,17 @@ const PH = {
 
   // Beats (scene → action → shift per company)
   BEATS: [
-    { start: vhToP(870),  end: vhToP(1060) },  // AMBOSS
-    { start: vhToP(1060), end: vhToP(1250) },  // Compado
-    { start: vhToP(1250), end: vhToP(1440) },  // CAPinside
-    { start: vhToP(1440), end: vhToP(1630) },  // DKB
+    { start: vhToP(870), end: vhToP(1060) }, // AMBOSS
+    { start: vhToP(1060), end: vhToP(1250) }, // Compado
+    { start: vhToP(1250), end: vhToP(1440) }, // CAPinside
+    { start: vhToP(1440), end: vhToP(1630) }, // DKB
   ],
 
   // Crystallize
   CRYSTALLIZE: { start: vhToP(1670), end: vhToP(1860) },
 
   // Chrome
-  CHROME_END:  vhToP(1750),
+  CHROME_END: vhToP(1750),
 };
 
 // Canvas particle local phases (0–1 within PARTICLES range)
@@ -392,7 +371,6 @@ export default function ForgeWorkstation() {
   const funnelNodeRefs = useRef<(SVGGElement | null)[]>([]);
   const funnelConvergeRef = useRef<SVGGElement | null>(null);
   const funnelBlurRef = useRef<SVGFEGaussianBlurElement | null>(null);
-  const funnelCaptionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   /* ---- Data ---- */
   const fragments = useMemo(createFragments, []);
@@ -428,7 +406,9 @@ export default function ForgeWorkstation() {
       progressBarEl.current.style.width = `${p * 100}%`;
     if (phaseEl.current) {
       phaseEl.current.textContent = phaseLabel(p);
-      phaseEl.current.style.opacity = String(p > PH.TITLE.start && p < PH.CHROME_END ? 0.3 : 0);
+      phaseEl.current.style.opacity = String(
+        p > PH.TITLE.start && p < PH.CHROME_END ? 0.3 : 0,
+      );
     }
 
     /* ---- Title fade out (MUST end before SUMMARY_ARRIVAL) ---- */
@@ -454,7 +434,7 @@ export default function ForgeWorkstation() {
             fadeOut = 1 - ss(0.18, 0.23, p);
           const drift = ss(0.05, 0.15, p),
             converge = ss(0.14, 0.21, p),
-            heat = ss(0.10, 0.18, p);
+            heat = ss(0.1, 0.18, p);
           const dX = f.x0 + f.dx * drift,
             dY = f.y0 + f.dy * drift;
           const x = lerp(dX, 0, converge),
@@ -695,22 +675,6 @@ export default function ForgeWorkstation() {
         }
       }
 
-      // Narrative captions — liquid glass cards per tier
-      const WS_CAP_THRESHOLDS = [
-        [0.33, 0.37],
-        [0.37, 0.4],
-        [0.4, 0.43],
-        [0.43, 0.46],
-      ];
-      for (let ni = 0; ni < WS_TIER_CAPTIONS.length; ni++) {
-        const el = funnelCaptionRefs.current[ni];
-        if (!el) continue;
-        const [ts, te] = WS_CAP_THRESHOLDS[ni];
-        const fadeIn = ss(lerpFn(ts, te, 0.15), lerpFn(ts, te, 0.45), p);
-        const fadeOut = 1 - ss(lerpFn(ts, te, 0.8), te + 0.01, p);
-        el.style.opacity = String(fadeIn * fadeOut);
-        el.style.transform = `translateY(${lerpFn(8, 0, fadeIn)}px)`;
-      }
     }
 
     /* ============================================================== */
@@ -814,27 +778,31 @@ export default function ForgeWorkstation() {
     /*  MOVEMENT 3: CRYSTALLIZE (0.88 — 0.98)                          */
     /* ============================================================== */
     {
-    const cS = PH.CRYSTALLIZE.start, cE = PH.CRYSTALLIZE.end, cD = cE - cS;
-    if (flashEl.current) {
-      const flash = ss(cS, cS + cD * 0.15, p) * (1 - ss(cS + cD * 0.15, cS + cD * 0.35, p));
-      flashEl.current.style.opacity = String(flash * 0.5);
-    }
-    if (crystLineEl.current) {
-      const appear = ss(cS + cD * 0.15, cS + cD * 0.35, p);
-      crystLineEl.current.style.opacity = String(appear * 0.3);
-      crystLineEl.current.style.transform = `translate(-50%, -50%) scaleX(${lerp(0, 1, appear)})`;
-    }
-    principles.forEach((pr, i) => {
-      const el = principleEls.current[i];
-      if (!el) return;
-      const stagger = i * cD * 0.06;
-      const fadeIn = ss(cS + cD * 0.2 + stagger, cS + cD * 0.55 + stagger, p);
-      const settle = ss(cS + cD * 0.35 + stagger, cS + cD * 0.85, p);
-      const y = lerp(pr.yOffset + 6, pr.yOffset, settle);
-      el.style.transform = `translate(-50%, calc(-50% + ${y}vh))`;
-      el.style.opacity = String(fadeIn);
-      el.style.filter = `blur(${lerp(6, 0, fadeIn)}px)`;
-    });
+      const cS = PH.CRYSTALLIZE.start,
+        cE = PH.CRYSTALLIZE.end,
+        cD = cE - cS;
+      if (flashEl.current) {
+        const flash =
+          ss(cS, cS + cD * 0.15, p) *
+          (1 - ss(cS + cD * 0.15, cS + cD * 0.35, p));
+        flashEl.current.style.opacity = String(flash * 0.5);
+      }
+      if (crystLineEl.current) {
+        const appear = ss(cS + cD * 0.15, cS + cD * 0.35, p);
+        crystLineEl.current.style.opacity = String(appear * 0.3);
+        crystLineEl.current.style.transform = `translate(-50%, -50%) scaleX(${lerp(0, 1, appear)})`;
+      }
+      principles.forEach((pr, i) => {
+        const el = principleEls.current[i];
+        if (!el) return;
+        const stagger = i * cD * 0.06;
+        const fadeIn = ss(cS + cD * 0.2 + stagger, cS + cD * 0.55 + stagger, p);
+        const settle = ss(cS + cD * 0.35 + stagger, cS + cD * 0.85, p);
+        const y = lerp(pr.yOffset + 6, pr.yOffset, settle);
+        el.style.transform = `translate(-50%, calc(-50% + ${y}vh))`;
+        el.style.opacity = String(fadeIn);
+        el.style.filter = `blur(${lerp(6, 0, fadeIn)}px)`;
+      });
     }
   });
 
@@ -1012,16 +980,16 @@ export default function ForgeWorkstation() {
             }}
           />
 
+          {/* Glow elements — no visible shape, just ambient color wash */}
           <div
             ref={glowEl}
             aria-hidden
             className="absolute left-1/2 top-1/2 pointer-events-none"
             style={{
-              width: "75vw",
-              height: "75vh",
-              borderRadius: "50%",
+              width: "100vw",
+              height: "100vh",
               background:
-                "radial-gradient(circle, rgba(91,158,194,0.08) 0%, rgba(91,158,194,0.03) 35%, transparent 65%)",
+                "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(91,158,194,0.04) 0%, transparent 70%)",
               opacity: 0,
               willChange: "transform, opacity",
             }}
@@ -1031,11 +999,10 @@ export default function ForgeWorkstation() {
             aria-hidden
             className="absolute left-1/2 top-1/2 pointer-events-none"
             style={{
-              width: "30vw",
-              height: "30vh",
-              borderRadius: "50%",
+              width: "100vw",
+              height: "100vh",
               background:
-                "radial-gradient(circle, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.04) 40%, transparent 70%)",
+                "radial-gradient(ellipse 40% 30% at 50% 50%, rgba(201,168,76,0.06) 0%, transparent 60%)",
               opacity: 0,
               willChange: "transform, opacity",
             }}
@@ -1057,9 +1024,8 @@ export default function ForgeWorkstation() {
             aria-hidden
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
             style={{
-              width: "80vw",
-              height: "80vh",
-              borderRadius: "50%",
+              width: "100vw",
+              height: "100vh",
               opacity: 0,
               willChange: "opacity, background",
             }}
@@ -1689,47 +1655,7 @@ export default function ForgeWorkstation() {
             </svg>
           </div>
 
-          {/* Narrative captions — liquid glass cards centered in tier rows */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{ zIndex: 7 }}>
-            {WS_TIER_CAPTIONS.map((cap, ni) => {
-              const tierTopFrac = [0.2, 0.38, 0.54, 0.72][ni];
-              return (
-                <div
-                  key={`caption-${ni}`}
-                  ref={(el) => {
-                    funnelCaptionRefs.current[ni] = el;
-                  }}
-                  className="absolute left-1/2 -translate-x-1/2 text-center"
-                  style={{
-                    top: `${tierTopFrac * 100}%`,
-                    maxWidth: "400px",
-                    opacity: 0,
-                    willChange: "transform, opacity",
-                    padding: "1rem 1.5rem",
-                    borderRadius: "12px",
-                    background: "rgba(14,14,20,0.45)",
-                    backdropFilter: "blur(20px) saturate(1.4)",
-                    WebkitBackdropFilter: "blur(20px) saturate(1.4)",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    boxShadow:
-                      "0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)",
-                  }}>
-                  <span
-                    className="font-serif block"
-                    style={{
-                      fontSize: "0.9rem",
-                      lineHeight: 1.6,
-                      color: "var(--cream, #F0E6D0)",
-                      opacity: 0.85,
-                    }}>
-                    {cap.caption}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+          {/* Captions removed — storytelling moves to terminal replay section */}
 
           {/* Chrome */}
           <div
@@ -1781,7 +1707,12 @@ export default function ForgeWorkstation() {
         <div
           ref={summaryPanelRef}
           className="relative flex flex-col items-center justify-center py-32 px-8"
-          style={{ background: "var(--bg)", zIndex: 10 }}>
+          style={{
+            background: "var(--bg)",
+            zIndex: 10,
+            paddingTop: "150px",
+            paddingBottom: "150px",
+          }}>
           <div
             className="w-12 h-px mb-16"
             style={{ background: "var(--gold-dim)" }}
