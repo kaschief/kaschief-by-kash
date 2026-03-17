@@ -83,6 +83,12 @@ export interface BeatData {
   learned: string;
   insight: string;
   companyIdx: number;
+  /** Scene: the situation you walked into */
+  scene: string;
+  /** What you actually did */
+  action: string;
+  /** What shifted in how you see engineering */
+  shift: string;
 }
 
 export interface WhisperData {
@@ -112,57 +118,215 @@ export interface EmberData {
 /* ================================================================== */
 
 export const LOGOS: Record<string, ReactNode> = {
+  /* React — atom orbits (already good, slightly refined) */
   react: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <circle cx="18" cy="18" r="3" fill="#61DAFB" />
-      <ellipse cx="18" cy="18" rx="14" ry="5.5" stroke="#61DAFB" strokeWidth="1.2" />
-      <ellipse cx="18" cy="18" rx="14" ry="5.5" stroke="#61DAFB" strokeWidth="1.2" transform="rotate(60 18 18)" />
-      <ellipse cx="18" cy="18" rx="14" ry="5.5" stroke="#61DAFB" strokeWidth="1.2" transform="rotate(120 18 18)" />
+      <circle cx="18" cy="18" r="2.8" fill="#61DAFB" />
+      <ellipse cx="18" cy="18" rx="14" ry="5.2" stroke="#61DAFB" strokeWidth="1" />
+      <ellipse cx="18" cy="18" rx="14" ry="5.2" stroke="#61DAFB" strokeWidth="1" transform="rotate(60 18 18)" />
+      <ellipse cx="18" cy="18" rx="14" ry="5.2" stroke="#61DAFB" strokeWidth="1" transform="rotate(120 18 18)" />
     </svg>
   ),
+  /* Vue — nested chevrons (already good, slightly tightened) */
   vue: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
       <path d="M18 30 L4 8 L10 8 L18 22 L26 8 L32 8 Z" fill="#42B883" />
       <path d="M18 24 L10 8 L14 8 L18 16 L22 8 L26 8 Z" fill="#35495E" />
     </svg>
   ),
+  /* TypeScript — blue rounded rect with proper T+S letterforms */
   typescript: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
       <rect x="3" y="3" width="30" height="30" rx="4" fill="#3178C6" />
-      <text x="18" y="24" textAnchor="middle" fill="white" fontSize="15" fontWeight="bold" fontFamily="var(--font-sans)">TS</text>
+      {/* T — crossbar and stem */}
+      <path d="M10 13 L21 13 L21 15.2 L16.8 15.2 L16.8 27 L14.2 27 L14.2 15.2 L10 15.2 Z" fill="white" />
+      {/* S — proper S curve */}
+      <path d="M24.5 15.2 C24.5 13.8 23.2 12.6 21.2 12.6 C19.2 12.6 17.8 13.7 17.8 15.3 C17.8 17.1 19.2 17.7 21 18.3 C23.2 19 25.2 19.8 25.2 22.2 C25.2 24.6 23.2 26.2 20.8 26.2 C18.2 26.2 16.4 24.8 16.2 22.8 L18.6 22.4 C18.7 23.8 19.6 24.6 20.9 24.6 C22.2 24.6 23 23.7 23 22.4 C23 20.8 21.6 20.2 19.8 19.5 C17.8 18.7 16.2 17.8 16.2 15.5 C16.2 13.1 18.2 11.4 21.1 11.4 C23.6 11.4 25.4 12.8 25.6 14.8 Z" fill="white" />
     </svg>
   ),
+  /* Git — the official Git diamond/rotated-square with branch icon */
   git: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <path d="M18 6 L18 30" stroke="#F05032" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="18" cy="10" r="3" stroke="#F05032" strokeWidth="1.5" fill="none" />
-      <circle cx="18" cy="26" r="3" stroke="#F05032" strokeWidth="1.5" fill="none" />
-      <path d="M18 18 Q24 18 26 13" stroke="#F05032" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-      <circle cx="27" cy="12" r="2.5" stroke="#F05032" strokeWidth="1.5" fill="none" />
+      {/* Rotated square background */}
+      <path d="M17.1 2.4 L33.6 17.1 C34.5 17.9 34.5 19.1 33.6 19.9 L19.9 33.6 C19.1 34.5 17.9 34.5 17.1 33.6 L2.4 19.9 C1.5 19.1 1.5 17.9 2.4 17.1 L17.1 2.4 Z" fill="#F05032" />
+      {/* F-shaped branch icon in white */}
+      <circle cx="18" cy="12" r="1.8" fill="white" />
+      <circle cx="18" cy="24" r="1.8" fill="white" />
+      <circle cx="24" cy="16" r="1.8" fill="white" />
+      <path d="M18 13.8 L18 22.2" stroke="white" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M18 17 C18 17 20 16 22.2 16" stroke="white" strokeWidth="1.6" strokeLinecap="round" fill="none" />
     </svg>
   ),
+  /* Next.js — filled black circle with N and gradient arrow */
   nextjs: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <circle cx="18" cy="18" r="15" stroke="white" strokeWidth="1.2" />
-      <path d="M14 12 L14 24 L25 12" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M23 18 L23 24" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="18" cy="18" r="16" fill="white" />
+      <circle cx="18" cy="18" r="15.2" fill="black" />
+      <path d="M14 12 L14 24" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <path d="M14 12 L25 26" stroke="url(#nj)" strokeWidth="2" strokeLinecap="round" />
+      <path d="M23 16 L23 24" stroke="url(#nj2)" strokeWidth="2" strokeLinecap="round" />
+      <defs>
+        <linearGradient id="nj" x1="14" y1="12" x2="25" y2="26">
+          <stop offset="0.6" stopColor="white" />
+          <stop offset="1" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="nj2" x1="23" y1="16" x2="23" y2="24">
+          <stop offset="0" stopColor="white" />
+          <stop offset="1" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+      </defs>
     </svg>
   ),
+  /* Playwright — three overlapping colored circles (chromium, firefox, webkit) */
   playwright: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <rect x="3" y="3" width="30" height="30" rx="4" stroke="#2EAD33" strokeWidth="1.5" fill="none" />
-      <text x="18" y="24" textAnchor="middle" fill="#2EAD33" fontSize="13" fontWeight="bold" fontFamily="var(--font-sans)">PW</text>
+      <circle cx="13" cy="20" r="8" fill="#E2574C" fillOpacity="0.85" />
+      <circle cx="23" cy="20" r="8" fill="#2EAD33" fillOpacity="0.85" />
+      <circle cx="18" cy="12" r="8" fill="#4A90D9" fillOpacity="0.85" />
+      {/* Simplified browser dots in each circle */}
+      <circle cx="13" cy="21" r="1.2" fill="white" fillOpacity="0.9" />
+      <circle cx="23" cy="21" r="1.2" fill="white" fillOpacity="0.9" />
+      <circle cx="18" cy="13" r="1.2" fill="white" fillOpacity="0.9" />
     </svg>
   ),
+  /* Jest — jester hat silhouette with J */
   jest: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <circle cx="18" cy="18" r="15" stroke="#C21325" strokeWidth="1.2" fill="none" />
-      <text x="18" y="24" textAnchor="middle" fill="#C21325" fontSize="16" fontWeight="bold" fontFamily="var(--font-serif)">J</text>
+      {/* Hat / arch shape */}
+      <path d="M8 17 C8 8 14 3 18 3 C22 3 28 8 28 17 L8 17 Z" fill="#C21325" />
+      {/* Three hat bumps */}
+      <circle cx="11" cy="5" r="2.5" fill="#C21325" />
+      <circle cx="18" cy="2.5" r="2.5" fill="#C21325" />
+      <circle cx="25" cy="5" r="2.5" fill="#C21325" />
+      {/* Hat brim */}
+      <rect x="7" y="16" width="22" height="2.5" rx="1.2" fill="#C21325" />
+      {/* Stem / J shape */}
+      <path d="M20 18.5 L20 27 C20 30 17 31 15 29" stroke="#C21325" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      {/* Chin circle */}
+      <circle cx="18" cy="33" r="2" fill="#C21325" />
     </svg>
   ),
+  /* Sentry — the distinctive curved/broken ring shape */
   sentry: (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-      <path d="M18 6 C14 12, 10 20, 8 28 L12 28 C13 22, 15 16, 18 12 C21 16, 23 22, 24 28 L28 28 C26 20, 22 12, 18 6 Z" fill="#362D59" stroke="#8B6CC1" strokeWidth="0.5" />
+      <path
+        d="M20.6 4.8 C19.5 3.1 17 3.1 15.9 4.8 L6.4 20.5 C5.3 22.1 6.5 24.2 8.4 24.2 L11.2 24.2 C11.2 20.4 13.4 17 16.8 15.2 L17.8 17 C15.4 18.4 13.8 21 13.8 24 L13.8 24.2 L22.8 24.2 L22.8 26.4 L13.8 26.4 C13.8 26.4 11.2 26.4 11.2 26.4 L8.4 26.4 C5.2 26.4 3 22.8 4.6 20 L14.2 4.2 C15.8 1.6 19.6 1.6 21.2 4.2 L25 10.4 L23.2 11.4 Z"
+        fill="#362D59"
+      />
+      {/* Small bottom-right connecting piece */}
+      <path d="M26 24.2 L26 26.4 L23.5 26.4 L23.5 24.2 Z" fill="#362D59" />
+      <path d="M28.5 24.2 L28.5 26.4 L27 26.4 L27 24.2 Z" fill="#362D59" />
+    </svg>
+  ),
+  /* Lighthouse — Google Lighthouse beacon */
+  lighthouse: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      {/* Light rays */}
+      <path d="M18 6 L14 10" stroke="#FFA000" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M18 6 L22 10" stroke="#FFA000" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M18 6 L18 3" stroke="#FFA000" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M18 6 L12 7" stroke="#FFA000" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M18 6 L24 7" stroke="#FFA000" strokeWidth="1.5" strokeLinecap="round" />
+      {/* Lantern housing */}
+      <rect x="15" y="6" width="6" height="5" rx="1" fill="#FFA000" />
+      {/* Tower body */}
+      <path d="M14 11 L13 30 L23 30 L22 11 Z" fill="#E53935" />
+      {/* Horizontal stripes */}
+      <rect x="13.5" y="16" width="9" height="2" fill="white" fillOpacity="0.9" />
+      <rect x="13.2" y="22" width="9.6" height="2" fill="white" fillOpacity="0.9" />
+      {/* Base */}
+      <rect x="11" y="30" width="14" height="3" rx="1" fill="#C62828" />
+    </svg>
+  ),
+  /* CSS3 — shield shape with "3" */
+  css: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      {/* Shield body */}
+      <path d="M5 4 L7 30 L18 34 L29 30 L31 4 Z" fill="#264DE4" />
+      {/* Inner shield highlight */}
+      <path d="M18 6.5 L18 31.5 L27.2 28.4 L28.8 6.5 Z" fill="#2965F1" />
+      {/* Number 3 in white */}
+      <path d="M13.5 12 L23 12 L22.5 14.5 L17 14.5 L17 17 L22 17 L21.5 24.5 L18 25.8 L14.5 24.5 L14.2 21 L16.8 21 L17 22.8 L18 23.2 L19 22.8 L19.3 19.5 L14 19.5 Z" fill="white" />
+    </svg>
+  ),
+  /* Node.js — hexagonal logo in green */
+  node: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      {/* Hexagon */}
+      <path d="M18 2 L31 10 L31 26 L18 34 L5 26 L5 10 Z" fill="#339933" />
+      {/* Stylized "n" in white */}
+      <path d="M13 14 L13 24 L15.5 24 L15.5 17.5 L20 24 L22.5 24 L22.5 14 L20 14 L20 20 L15.5 14 Z" fill="white" fillOpacity="0.95" />
+    </svg>
+  ),
+  /* Webpack — nested diamond/cube in blue */
+  webpack: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      {/* Outer diamond */}
+      <path d="M18 1 L35 10 L35 26 L18 35 L1 26 L1 10 Z" fill="#1C78C0" fillOpacity="0.3" stroke="#1C78C0" strokeWidth="0.8" />
+      {/* Inner facets — the "W" cube shape */}
+      <path d="M18 5 L30 12 L30 24 L18 31 L6 24 L6 12 Z" fill="none" stroke="#8DD6F9" strokeWidth="0.8" />
+      {/* Inner cube lines */}
+      <path d="M18 5 L18 17" stroke="#8DD6F9" strokeWidth="0.8" />
+      <path d="M18 17 L30 12" stroke="#8DD6F9" strokeWidth="0.8" />
+      <path d="M18 17 L6 12" stroke="#8DD6F9" strokeWidth="0.8" />
+      <path d="M18 17 L18 31" stroke="#8DD6F9" strokeWidth="0.8" />
+      <path d="M18 17 L30 24" stroke="#8DD6F9" strokeWidth="0.6" strokeOpacity="0.5" />
+      <path d="M18 17 L6 24" stroke="#8DD6F9" strokeWidth="0.6" strokeOpacity="0.5" />
+      {/* Center face fill */}
+      <path d="M18 5 L30 12 L18 17 Z" fill="#8DD6F9" fillOpacity="0.3" />
+      <path d="M18 5 L6 12 L18 17 Z" fill="#8DD6F9" fillOpacity="0.2" />
+      <path d="M18 17 L30 24 L18 31 Z" fill="#8DD6F9" fillOpacity="0.15" />
+      <path d="M18 17 L6 24 L18 31 Z" fill="#8DD6F9" fillOpacity="0.1" />
+    </svg>
+  ),
+  // Company logos
+  amboss: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="14" stroke="#60A5FA" strokeWidth="1.5" fill="none" />
+      <path d="M12 24 L18 10 L24 24" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <line x1="14" y1="20" x2="22" y2="20" stroke="#60A5FA" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+  compado: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <rect x="4" y="8" width="28" height="20" rx="4" stroke="#42B883" strokeWidth="1.5" fill="none" />
+      <circle cx="14" cy="18" r="4" stroke="#42B883" strokeWidth="1.2" fill="none" />
+      <circle cx="22" cy="18" r="4" stroke="#42B883" strokeWidth="1.2" fill="none" />
+      <path d="M17 15 L19 15" stroke="#42B883" strokeWidth="1" />
+      <path d="M17 21 L19 21" stroke="#42B883" strokeWidth="1" />
+    </svg>
+  ),
+  capinside: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <rect x="3" y="3" width="30" height="30" rx="6" stroke="#3178C6" strokeWidth="1.5" fill="none" />
+      <text x="18" y="23" textAnchor="middle" fill="#3178C6" fontSize="14" fontWeight="700" fontFamily="var(--font-sans)">C</text>
+    </svg>
+  ),
+  dkb: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <rect x="3" y="8" width="30" height="20" rx="4" fill="#1A56DB" fillOpacity="0.15" stroke="#1A56DB" strokeWidth="1.2" />
+      <text x="18" y="22" textAnchor="middle" fill="#1A56DB" fontSize="11" fontWeight="700" fontFamily="var(--font-sans)" letterSpacing="0.08em">DKB</text>
+    </svg>
+  ),
+  vscode: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <path d="M27 4 L27 32 L8 26 L27 4 Z" fill="#007ACC" fillOpacity="0.8" />
+      <path d="M8 26 L4 23 L4 13 L8 10 L21 20 L8 26 Z" fill="#007ACC" fillOpacity="0.6" />
+      <path d="M8 10 L21 20 L27 4 L8 10 Z" fill="#007ACC" fillOpacity="0.4" />
+    </svg>
+  ),
+  claude: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="14" fill="#D97706" fillOpacity="0.12" stroke="#D97706" strokeWidth="1.2" />
+      <circle cx="18" cy="15" r="5" stroke="#D97706" strokeWidth="1.5" fill="none" />
+      <path d="M11 25 C11 21 14 18 18 18 C22 18 25 21 25 25" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+    </svg>
+  ),
+  chatgpt: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="14" stroke="#10A37F" strokeWidth="1.2" fill="none" />
+      <path d="M12 18 L16 14 L20 18 L24 14" stroke="#10A37F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d="M12 22 L16 18 L20 22 L24 18" stroke="#10A37F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
     </svg>
   ),
 };
@@ -199,11 +363,11 @@ export function createFragments(): Fragment[] {
     type: "command", cmd: c, companyIdx: ci, isSeed: false, size, dissolveStart: 0.20, dissolveEnd: 0.30, ...pos(),
   });
 
-  // Companies
-  frags.push(text("AMBOSS", 0, "company", 1.5, 600, 0.24, 0.34));
-  frags.push(text("Compado", 1, "company", 1.5, 600, 0.24, 0.34));
-  frags.push(text("CAPinside", 2, "company", 1.5, 600, 0.24, 0.34));
-  frags.push(text("DKB", 3, "company", 1.7, 700, 0.25, 0.35));
+  // Companies (logos instead of text)
+  frags.push(logo("amboss", 0, "AMBOSS", 38));
+  frags.push(logo("compado", 1, "Compado", 38));
+  frags.push(logo("capinside", 2, "CAPinside", 38));
+  frags.push(logo("dkb", 3, "", 38));
 
   // Phrases
   frags.push(text("500K students", 0, "phrase", 0.85, 400, 0.22, 0.32));
@@ -221,12 +385,7 @@ export function createFragments(): Fragment[] {
   frags.push(text("5M users", 3, "phrase", 0.9, 500));
   frags.push(text("micro-frontends", 3, "phrase", 0.75));
 
-  // Tags
-  frags.push(text("React", 0, "tag", 0.7, 500, 0.20, 0.30));
-  frags.push(text("Vue", 1, "tag", 0.7, 500, 0.20, 0.30));
-  frags.push(text("TypeScript", 2, "tag", 0.7, 500, 0.20, 0.30));
-  frags.push(text("Playwright", 3, "tag", 0.7, 500, 0.20, 0.30));
-  frags.push(text("Jest", 3, "tag", 0.65, 500, 0.19, 0.29));
+  // Tags (only ones that DON'T have a logo equivalent)
   frags.push(text("Performance", 1, "tag", 0.65, 500, 0.20, 0.30));
   frags.push(text("Med-Ed", 0, "tag", 0.65, 500, 0.19, 0.29));
   frags.push(text("Fintech", 2, "tag", 0.65, 500, 0.20, 0.30));
@@ -254,6 +413,13 @@ export function createFragments(): Fragment[] {
   frags.push(logo("playwright", 3, "Playwright", 30));
   frags.push(logo("jest", 3, "Jest", 30));
   frags.push(logo("sentry", 1, "Sentry", 30));
+  frags.push(logo("lighthouse", 0, "Lighthouse", 30));
+  frags.push(logo("css", 1, "CSS", 30));
+  frags.push(logo("node", 3, "Node.js", 30));
+  frags.push(logo("webpack", 3, "Webpack", 28));
+  frags.push(logo("vscode", 0, "VS Code", 30));
+  frags.push(logo("claude", 3, "Claude", 30));
+  frags.push(logo("chatgpt", 3, "ChatGPT", 30));
 
   // Commands
   frags.push(cmd("git push origin main", 0));
@@ -279,6 +445,9 @@ export const BEATS: BeatData[] = [
     learned: "What I learned to see: the user is a real person with a real context",
     insight: "The user is never an abstraction. The moment you treat them like one, the product starts lying to people.",
     companyIdx: 0,
+    scene: "Half a million medical students. An app that was supposed to help them pass their exams. I came from the ward — I knew what it felt like when the system you depend on doesn\u2019t understand your context.",
+    action: "I helped migrate from vanilla JS to React. I introduced A/B testing to stop guessing what worked. I broke production once — and that taught me testing discipline. But the thing that mattered most: I brought the instinct from nursing. I could tell when a flow was lying to the user about what they\u2019d already reviewed.",
+    shift: "I learned that the gap between \u2018works technically\u2019 and \u2018works for the person\u2019 is where most products fail. And I was one of the only engineers who could see that gap.",
   },
   {
     company: "Compado",
@@ -286,6 +455,9 @@ export const BEATS: BeatData[] = [
     learned: "What I learned to see: performance is a product decision, not a technical one",
     insight: "Load time is not a metric. It is a user\u2019s first impression of whether you respect their time.",
     companyIdx: 1,
+    scene: "The sites were replicas of each other — same structure, different brands, different audiences. Every change meant touching six copies. Visitors arrived from search with zero loyalty and no patience.",
+    action: "I rebuilt the architecture so you could swap parts without duplicating everything. Component-driven design, shared across brands. Then I attacked load times: Lighthouse audits, CSS compression, lazy loading, infinite scroll. I built my first chatbot — not AI, but a conversational interface that brought the user closer to the product.",
+    shift: "I discovered that every millisecond is a user who stays or leaves. Performance isn\u2019t a technical achievement — it\u2019s a product decision. And I learned to think about audiences I\u2019d never meet.",
   },
   {
     company: "CAPinside",
@@ -293,6 +465,9 @@ export const BEATS: BeatData[] = [
     learned: "What I learned to see: code quality is a team behaviour, not a personal one",
     insight: "A codebase is a record of a team\u2019s habits. If you want to change the code, you have to change how the team works.",
     companyIdx: 2,
+    scene: "Ten thousand financial advisors depending on a platform that had grown fragile. Nobody reviewed code — the process existed on paper but nobody prioritized it. Tests were sparse. TypeScript was new to me. React on one side, Ruby and PHP on the other.",
+    action: "I learned to work across different systems. But more importantly, I started seeing something I hadn\u2019t seen before: the codebase wasn\u2019t just code. It was a record of how the team communicated. Every shortcut, every duplicated pattern, every skipped review — it was the team\u2019s habits, frozen in the repository.",
+    shift: "I realised you can\u2019t fix code without fixing process. This was my first time diagnosing a team through its codebase — reading the organisation through the code.",
   },
   {
     company: "DKB Code Factory",
@@ -300,6 +475,9 @@ export const BEATS: BeatData[] = [
     learned: "What I learned to see: at scale, judgment is the product",
     insight: "At a certain scale, the highest-leverage thing an engineer can do is make the right decision obvious.",
     companyIdx: 3,
+    scene: "Germany\u2019s largest direct bank. Five million users. A banking app moving from legacy to React and TypeScript. Monthly releases. Security, stability, regulations at every turn. And when I arrived: zero automated tests.",
+    action: "I introduced Playwright end-to-end testing and built the patterns the team adopted. Moved releases from monthly to weekly. Feature flags that let product toggle features without deployments. A shared design system. Multi-factor auth, session management. I cleaned the frontend into feature modules with unit tests. And somewhere along the way, I found myself in the product room — pushing back on flows that didn\u2019t feel right, shaping what got built.",
+    shift: "Production bugs dropped 30%. But the real shift was personal: I wasn\u2019t just building features anymore. I was shaping how the team worked, what we shipped, and why. Then they promoted me to engineering manager.",
   },
 ];
 
