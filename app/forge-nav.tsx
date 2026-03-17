@@ -9,7 +9,7 @@ const VARIANTS = [
   { href: "/forge-test-ref-funnel", label: "Funnel" },
   { href: "/forge-test-ref-particles", label: "Particles" },
   { href: "/forge-test-workstation", label: "Workstation" },
-  { href: "/forge-test-v7", label: "V7" },
+  { href: "/forge-test-v8", label: "V8" },
 ];
 
 export function ForgeNav() {

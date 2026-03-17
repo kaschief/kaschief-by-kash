@@ -25,7 +25,6 @@ import {
   smoothstep,
   lerp as lerpFn,
 } from "../forge-sankey-data";
-import { DL } from "../forge-element-map";
 import { ForgeNav } from "../forge-nav";
 import {
   ss,
@@ -103,28 +102,15 @@ function ScrambleWord({ text, active }: { text: string; active: boolean }) {
 /*  Particle types + funnel paths                                      */
 /* ================================================================== */
 
-interface Point {
-  x: number;
-  y: number;
-}
-
 interface Particle {
   streamIdx: number;
-  baseT: number;
-  explodeAngle: number;
-  explodeRadius: number;
+  angle: number;
+  radius: number;
   size: number;
-  wobblePhase: number;
-  wobbleAmp: number;
   color: string;
-  prevX: number;
-  prevY: number;
-  prev2X: number;
-  prev2Y: number;
 }
 
-
-const PARTICLES_PER_STREAM = 20;
+const PARTICLES_PER_STREAM = 12;
 
 /* ================================================================== */
 /*  Funnel layout (from funnel page, adapted for workstation)          */
@@ -176,6 +162,21 @@ function computeFunnelPositions(): Map<string, FTierPos[]> {
 
 const F_POSITIONS = computeFunnelPositions();
 
+// Pre-compute top-tier positions for each stream (targets for canvas particles)
+const F_TOP_POSITIONS = STREAMS.map((s) => F_POSITIONS.get(s.id)![0]);
+
+/** Map SVG viewBox coord to pixel coord using actual SVG bounding rect */
+function svgToPixel(
+  sx: number, sy: number,
+  svgRect: { left: number; top: number; width: number; height: number },
+): { px: number; py: number } {
+  const scale = Math.min(svgRect.width / FV_W, svgRect.height / FV_H);
+  const renderedW = FV_W * scale, renderedH = FV_H * scale;
+  const offX = svgRect.left + (svgRect.width - renderedW) / 2;
+  const offY = svgRect.top + (svgRect.height - renderedH) / 2;
+  return { px: offX + sx * scale, py: offY + sy * scale };
+}
+
 interface FSegment { streamId: string; color: string; fromTier: number; toTier: number; path: string; opacityEnd: number; }
 
 function buildFunnelSegments(): FSegment[] {
@@ -192,7 +193,7 @@ function buildFunnelSegments(): FSegment[] {
         `C ${p2.x + p2.w / 2} ${my}, ${p1.x + p1.w / 2} ${my}, ${p1.x + p1.w / 2} ${p1.y}`,
         `Z`,
       ].join(" ");
-      segments.push({ streamId: stream.id, color: stream.color, fromTier: i, toTier: i + 1, path, opacityEnd: 0.25 + (i + 1) * 0.08 });
+      segments.push({ streamId: stream.id, color: stream.color, fromTier: i, toTier: i + 1, path, opacityEnd: 0.4 + (i + 1) * 0.1 });
     }
   }
   return segments;
@@ -200,144 +201,32 @@ function buildFunnelSegments(): FSegment[] {
 
 const F_SEGMENTS = buildFunnelSegments();
 
+const WS_TIER_CAPTIONS = [
+  { caption: "The user is never an abstraction. The moment you treat them like one, the product starts lying to people.", color: "#60A5FA" },
+  { caption: "Load time is not a metric. It is a user\u2019s first impression of whether you respect their time.", color: "#42B883" },
+  { caption: "A codebase is a record of a team\u2019s habits. If you want to change the code, you have to change how the team works.", color: "#3178C6" },
+  { caption: "At a certain scale, the highest-leverage thing an engineer can do is make the right decision obvious.", color: "#F472B6" },
+];
+
 const PP = {
   CANVAS_IN: [0.0, 0.05] as const,
-  EXPLODE: [0.05, 0.15] as const,
-  FALL: [0.15, 0.3] as const,
-  FUNNEL: [0.3, 0.85] as const,
-  FADE_OUT: [0.82, 0.92] as const,
+  EXPLODE: [0.05, 0.20] as const,
+  CONVERGE: [0.20, 0.45] as const,  // converge to SVG dot positions
+  FADE_OUT: [0.40, 0.55] as const,  // fade as SVG dots appear
 };
 
-const FUNNEL_TIERS = {
-  entry: 0.12,
-  amboss: 0.28,
-  compado: 0.44,
-  capinside: 0.6,
-  dkb: 0.76,
-  converge: 0.9,
-};
-const FUNNEL_SPREAD = {
-  entry: 0.42,
-  amboss: 0.34,
-  compado: 0.24,
-  capinside: 0.16,
-  dkb: 0.08,
-  converge: 0.0,
-};
-
-function quadBezier(p0: Point, cp: Point, p1: Point, t: number): Point {
-  const mt = 1 - t;
-  return {
-    x: mt * mt * p0.x + 2 * mt * t * cp.x + t * t * p1.x,
-    y: mt * mt * p0.y + 2 * mt * t * cp.y + t * t * p1.y,
-  };
-}
-function sampleBezierPath(
-  p0: Point,
-  cp: Point,
-  p1: Point,
-  samples: number,
-): Point[] {
-  const pts: Point[] = [];
-  for (let i = 0; i <= samples; i++)
-    pts.push(quadBezier(p0, cp, p1, i / samples));
-  return pts;
-}
-function samplePath(points: Point[], t: number): Point {
-  if (points.length === 0) return { x: 0, y: 0 };
-  if (t <= 0) return points[0];
-  if (t >= 1) return points[points.length - 1];
-  const idx = t * (points.length - 1);
-  const i = Math.floor(idx);
-  const frac = idx - i;
-  if (i >= points.length - 1) return points[points.length - 1];
-  return {
-    x: points[i].x + (points[i + 1].x - points[i].x) * frac,
-    y: points[i].y + (points[i + 1].y - points[i].y) * frac,
-  };
-}
-function buildFunnelPaths(cw: number, ch: number): Point[][] {
-  const tierYs = [
-    FUNNEL_TIERS.entry,
-    FUNNEL_TIERS.amboss,
-    FUNNEL_TIERS.compado,
-    FUNNEL_TIERS.capinside,
-    FUNNEL_TIERS.dkb,
-    FUNNEL_TIERS.converge,
-  ];
-  const tierSpreads = [
-    FUNNEL_SPREAD.entry,
-    FUNNEL_SPREAD.amboss,
-    FUNNEL_SPREAD.compado,
-    FUNNEL_SPREAD.capinside,
-    FUNNEL_SPREAD.dkb,
-    FUNNEL_SPREAD.converge,
-  ];
-  const paths: Point[][] = [];
-  const n = STREAMS.length;
-  for (let si = 0; si < n; si++) {
-    const stream = STREAMS[si];
-    const wp: Point[] = [];
-    for (let ti = 0; ti < tierYs.length; ti++) {
-      const y = tierYs[ti] * ch,
-        spread = tierSpreads[ti];
-      if (ti === 0 || ti === tierYs.length - 1) {
-        const xF = n > 1 ? 0.5 - spread + (si / (n - 1)) * spread * 2 : 0.5;
-        wp.push({ x: xF * cw, y });
-      } else {
-        const ni = ti - 1,
-          passesThrough = stream.path.includes(ni);
-        if (passesThrough) {
-          const passing = STREAMS.filter((s) => s.path.includes(ni));
-          const pIdx = passing.indexOf(stream),
-            cnt = passing.length;
-          const xF =
-            cnt > 1 ? 0.5 - spread + (pIdx / (cnt - 1)) * spread * 2 : 0.5;
-          wp.push({ x: xF * cw, y });
-        } else {
-          const prevX = wp[wp.length - 1].x,
-            driftX = lerpFn(prevX, cw * 0.5, 0.35);
-          const maxDist = spread * 1.3 * cw;
-          const x =
-            Math.abs(driftX - cw * 0.5) > maxDist
-              ? cw * 0.5 + Math.sign(driftX - cw * 0.5) * maxDist
-              : driftX;
-          wp.push({ x, y });
-        }
-      }
-    }
-    const fullPath: Point[] = [];
-    for (let i = 0; i < wp.length - 1; i++) {
-      const p0 = wp[i],
-        p1 = wp[i + 1],
-        cp: Point = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
-      const seg = sampleBezierPath(p0, cp, p1, 30);
-      for (let j = i > 0 ? 1 : 0; j < seg.length; j++) fullPath.push(seg[j]);
-    }
-    paths.push(fullPath);
-  }
-  return paths;
-}
 function initParticles(): Particle[] {
   const particles: Particle[] = [];
   for (let si = 0; si < STREAMS.length; si++) {
-    const stream = STREAMS[si];
     for (let i = 0; i < PARTICLES_PER_STREAM; i++) {
       const seed = si * 100 + i;
       const baseAngle = (si / STREAMS.length) * Math.PI * 2;
       particles.push({
         streamIdx: si,
-        baseT: (i + srand(seed) * 0.5) / PARTICLES_PER_STREAM,
-        explodeAngle: baseAngle + (srand(seed + 10) - 0.5) * 1.2,
-        explodeRadius: 0.15 + srand(seed + 11) * 0.25,
-        size: 2 + srand(seed + 1) * 2,
-        wobblePhase: srand(seed + 2) * Math.PI * 2,
-        wobbleAmp: 1.5 + srand(seed + 3) * 2.5,
-        color: stream.color,
-        prevX: 0,
-        prevY: 0,
-        prev2X: 0,
-        prev2Y: 0,
+        angle: baseAngle + (srand(seed + 10) - 0.5) * 1.4,
+        radius: 0.12 + srand(seed + 11) * 0.28,
+        size: 2 + srand(seed + 1) * 2.5,
+        color: STREAMS[si].color,
       });
     }
   }
@@ -375,23 +264,23 @@ export default function ForgeWorkstation() {
   const phaseEl = useRef<HTMLDivElement>(null);
 
   /* ---- Particle refs ---- */
-  /* particleContainerRef removed — particles now in sticky viewport */
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particleProgressRef = useRef(0);
-  const timeRef = useRef(0);
   const sizeRef = useRef({ w: 0, h: 0 });
   const particlesRef = useRef<Particle[]>(initParticles());
-  const funnelPathsRef = useRef<Point[][]>([]);
   const canvasWrapRef = useRef<HTMLDivElement>(null);
-  /* funnelLabelRefs removed — replaced by SVG funnelStreamLabelRefs */
 
   /* ---- Funnel SVG refs ---- */
   const funnelSvgWrapRef = useRef<HTMLDivElement>(null);
+  const funnelSvgRef = useRef<SVGSVGElement>(null);
+  const svgRectRef = useRef({ left: 0, top: 0, width: 0, height: 0 });
+  const funnelDotRefs = useRef<(SVGGElement | null)[]>([]);
   const funnelSegmentRefs = useRef<(SVGPathElement | null)[]>([]);
   const funnelStreamLabelRefs = useRef<(SVGGElement | null)[]>([]);
   const funnelNodeRefs = useRef<(SVGGElement | null)[]>([]);
   const funnelConvergeRef = useRef<SVGGElement | null>(null);
   const funnelBlurRef = useRef<SVGFEGaussianBlurElement | null>(null);
+  const funnelCaptionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   /* ---- Data ---- */
   const fragments = useMemo(createFragments, []);
@@ -463,10 +352,10 @@ export default function ForgeWorkstation() {
           const curtainReveal = curtainTop >= vh ? 1 : Math.max(0, Math.min(1, (fragScreenY - curtainTop) / CURTAIN_FADE));
           el.style.transform = `translate(calc(-50% + ${x}vw), calc(-50% + ${y}vh)) rotate(${rot}deg) scale(${scale})`;
           el.style.opacity = String(fadeIn * fadeOut * curtainReveal);
-          el.style.filter = `blur(${lerp(1, 0, ss(0.03, 0.07, p))}px) brightness(${lerp(1, 1.8, heat)})`;
+          el.style.filter = `blur(${lerp(1, 0, ss(0.03, 0.07, p))}px)`;
           const glow =
             heat > 0.05
-              ? `0 0 ${lerp(0, 28, heat)}px ${fc(f.companyIdx, 0.9)}, 0 0 ${lerp(0, 56, heat)}px ${fc(f.companyIdx, 0.3)}`
+              ? `0 0 ${lerp(0, 12, heat)}px ${fc(f.companyIdx, 0.8)}`
               : "none";
           if (f.type === "seed") (el as HTMLElement).style.textShadow = glow;
           else (el as HTMLElement).style.boxShadow = glow;
@@ -481,17 +370,17 @@ export default function ForgeWorkstation() {
           let baseAlpha: number;
           switch (f.type) {
             case "company":
-              baseAlpha = 0.8;
+              baseAlpha = 1.0;
               break;
             case "code":
             case "command":
-              baseAlpha = 0.5;
+              baseAlpha = 0.75;
               break;
             case "logo":
-              baseAlpha = 0.6;
+              baseAlpha = 0.85;
               break;
             default:
-              baseAlpha = 0.5;
+              baseAlpha = 0.75;
           }
           const fragScreenY = vh * 0.5 + y * vh / 100;
           const curtainReveal = curtainTop >= vh ? 1 : Math.max(0, Math.min(1, (fragScreenY - curtainTop) / CURTAIN_FADE));
@@ -565,16 +454,17 @@ export default function ForgeWorkstation() {
     }
 
     /* ============================================================== */
-    /*  PARTICLES → RIBBONS (0.26 — 0.46)                             */
-    /*  One continuous system: particles settle, ribbons grow from     */
-    /*  them, labels appear alongside. No crossfade.                  */
+    /*  PARTICLES → DOTS → RIBBONS (0.26 — 0.47)                      */
+    /*  V7 approach: canvas particles converge to SVG dot positions,   */
+    /*  SVG dots appear as canvas fades, ribbons grow from dots.       */
     /*                                                                 */
-    /*  0.26–0.30: particles explode + fall into top-tier positions    */
-    /*  0.29–0.33: stream labels appear above settled particles        */
-    /*  0.31–0.42: ribbons grow downward from particle positions       */
-    /*             (particles shrink as ribbons absorb them)           */
-    /*  0.40–0.44: convergence point appears                          */
-    /*  0.44–0.47: everything fades out                               */
+    /*  0.26–0.28: canvas particles appear + explode from center       */
+    /*  0.28–0.32: particles converge to SVG top-tier dot positions    */
+    /*  0.30–0.34: canvas fades out, SVG dots appear (handoff)         */
+    /*  0.31–0.35: stream labels fade in                               */
+    /*  0.33–0.44: ribbons grow tier by tier                           */
+    /*  0.42–0.46: convergence point appears                           */
+    /*  0.44–0.47: everything fades out                                */
     /* ============================================================== */
     {
       // Canvas particles: full range 0.26–0.46 → local 0–1
@@ -582,74 +472,101 @@ export default function ForgeWorkstation() {
       const pt = Math.max(0, Math.min(1, (p - PART_START) / (PART_END - PART_START)));
       particleProgressRef.current = pt;
 
-      // Canvas stays visible through the whole phase (particles are the source)
+      // Canvas + SVG overlap at same positions for seamless handoff (like V7)
+      // Canvas fades out AS SVG dots fade in — no black gap
       if (canvasWrapRef.current) {
         const canvasIn = ss(0.26, 0.27, p);
-        const canvasOut = 1 - ss(0.44, 0.47, p);
+        const canvasOut = 1 - ss(0.33, 0.36, p);
         canvasWrapRef.current.style.opacity = String(canvasIn * canvasOut);
       }
 
-      // SVG funnel wrapper: appears once ribbons start growing, fades with everything
+      // SVG funnel wrapper: appears as canvas starts fading (simultaneous crossfade)
       if (funnelSvgWrapRef.current) {
-        const svgIn = ss(0.30, 0.32, p);
+        const svgIn = ss(0.33, 0.35, p);
         const svgOut = 1 - ss(0.44, 0.47, p);
         funnelSvgWrapRef.current.style.opacity = String(svgIn * svgOut);
       }
 
-      // Stream labels — appear early alongside particles settling
-      const labelT = ss(0.29, 0.33, p);
+      // SVG dots: appear as canvas particles arrive at same positions
+      for (let si = 0; si < STREAMS.length; si++) {
+        const el = funnelDotRefs.current[si];
+        if (!el) continue;
+        const stagger = si * 0.003;
+        const dotIn = ss(0.33 + stagger, 0.36 + stagger, p);
+        const dotOut = 1 - ss(0.44, 0.47, p);
+        const ribbonStart = ss(0.36, 0.40, p);
+        const scale = lerpFn(2, 1, ribbonStart);
+        const glowR = lerpFn(6, 3, ribbonStart);
+        el.style.opacity = String(dotIn * dotOut);
+        el.style.transform = `scale(${dotIn > 0 ? scale : 0})`;
+        const blur = el.querySelector("feGaussianBlur");
+        if (blur) blur.setAttribute("stdDeviation", String(glowR));
+      }
+
+      // Stream labels — appear at 0.31–0.35
       for (let si = 0; si < STREAMS.length; si++) {
         const el = funnelStreamLabelRefs.current[si];
         if (!el) continue;
+        const stagger = si * 0.004;
+        const labelIn = ss(0.31 + stagger, 0.35 + stagger, p);
         const labelOut = 1 - ss(0.44, 0.47, p);
-        el.style.opacity = String(labelT * labelOut);
-        el.style.transform = `translateY(${lerpFn(-8, 0, labelT)}px)`;
+        el.style.opacity = String(labelIn * labelOut);
+        el.style.transform = `translateY(${lerpFn(-10, 0, labelIn)}px)`;
       }
 
-      // Ribbon segments grow downward from top tier — scaleY from 0
-      // Each tier reveals progressively
+      // Ribbon segments grow tier by tier from 0.33–0.44
       const TIER_THRESHOLDS = [
-        [0.30, 0.33], // top spread → AMBOSS
-        [0.33, 0.36], // AMBOSS → Compado
-        [0.36, 0.39], // Compado → CAPinside
-        [0.39, 0.42], // CAPinside → DKB
+        [0.33, 0.36], // top spread → AMBOSS
+        [0.36, 0.39], // AMBOSS → Compado
+        [0.39, 0.42], // Compado → CAPinside
+        [0.42, 0.44], // CAPinside → DKB
       ];
       for (let i = 0; i < F_SEGMENTS.length; i++) {
         const el = funnelSegmentRefs.current[i];
         if (!el) continue;
         const seg = F_SEGMENTS[i];
-        // Segments connect fromTier→toTier, threshold is based on toTier index
         const threshIdx = Math.min(seg.toTier - 1, TIER_THRESHOLDS.length - 1);
         const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
         const t = ss(threshStart, threshEnd, p);
         const fadeOut = 1 - ss(0.44, 0.47, p);
         el.style.opacity = String(lerpFn(0, seg.opacityEnd, t) * fadeOut);
-        // Grow from the top (fromTier position) downward
         const scaleY = lerpFn(0, 1, t);
         el.style.transformOrigin = `${F_CENTER_X}px ${F_TIER_Y[seg.fromTier]}px`;
         el.style.transform = `scaleY(${scaleY})`;
       }
 
-      // Company node labels + lines — appear as ribbons reach each tier
+      // Company nodes — appear as ribbons reach them
       for (let ni = 0; ni < NODES.length; ni++) {
         const el = funnelNodeRefs.current[ni];
         if (!el) continue;
         const threshIdx = Math.min(ni, TIER_THRESHOLDS.length - 1);
         const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
-        const t = ss(threshStart, threshEnd, p);
+        const nodeT = ss(lerpFn(threshStart, threshEnd, 0.4), lerpFn(threshStart, threshEnd, 0.8), p);
         const fadeOut = 1 - ss(0.44, 0.47, p);
-        el.style.opacity = String(t * fadeOut);
-        el.style.transform = `translateY(${lerpFn(8, 0, t)}px)`;
+        el.style.opacity = String(nodeT * fadeOut);
+        el.style.transform = `translateY(${lerpFn(8, 0, nodeT)}px)`;
       }
 
-      // Convergence point — appears after all ribbons reach bottom
+      // Convergence point — 0.42–0.46
       if (funnelConvergeRef.current) {
-        const ct = ss(0.42, 0.44, p);
-        const fadeOut = 1 - ss(0.45, 0.47, p);
+        const ct = ss(0.42, 0.46, p);
+        const fadeOut = 1 - ss(0.44, 0.47, p);
         funnelConvergeRef.current.style.opacity = String(ct * fadeOut);
         if (funnelBlurRef.current) {
           funnelBlurRef.current.setAttribute("stdDeviation", String(lerpFn(0, 12, ct)));
         }
+      }
+
+      // Narrative captions — liquid glass cards per tier
+      const WS_CAP_THRESHOLDS = [[0.33, 0.37], [0.37, 0.40], [0.40, 0.43], [0.43, 0.46]];
+      for (let ni = 0; ni < WS_TIER_CAPTIONS.length; ni++) {
+        const el = funnelCaptionRefs.current[ni];
+        if (!el) continue;
+        const [ts, te] = WS_CAP_THRESHOLDS[ni];
+        const fadeIn = ss(lerpFn(ts, te, 0.15), lerpFn(ts, te, 0.45), p);
+        const fadeOut = 1 - ss(lerpFn(ts, te, 0.8), te + 0.01, p);
+        el.style.opacity = String(fadeIn * fadeOut);
+        el.style.transform = `translateY(${lerpFn(8, 0, fadeIn)}px)`;
       }
     }
 
@@ -745,7 +662,7 @@ export default function ForgeWorkstation() {
 
   /* ---- Particles now driven from forge progress (0.27–0.46 → 0–1) ---- */
 
-  /* ---- Resize (canvas) ---- */
+  /* ---- Resize (canvas + SVG rect cache) ---- */
   const handleResize = useCallback(() => {
     const w = window.innerWidth,
       h = window.innerHeight;
@@ -760,142 +677,89 @@ export default function ForgeWorkstation() {
       const ctx = canvas.getContext("2d");
       if (ctx) ctx.scale(dpr, dpr);
     }
-    funnelPathsRef.current = buildFunnelPaths(w, h);
+    if (funnelSvgRef.current) {
+      const r = funnelSvgRef.current.getBoundingClientRect();
+      svgRectRef.current = { left: r.left, top: r.top, width: r.width, height: r.height };
+    }
   }, []);
 
-  /* ---- Particle animation loop ---- */
+  /* ---- Particle animation loop (V7: explode → converge to SVG dots → fade) ---- */
   useEffect(() => {
     handleResize();
     window.addEventListener("resize", handleResize);
     let rafId: number;
+
     function draw() {
       const canvas = canvasRef.current,
         ctx = canvas?.getContext("2d");
-      if (!ctx || !canvas) {
-        rafId = requestAnimationFrame(draw);
-        return;
-      }
+      if (!ctx || !canvas) { rafId = requestAnimationFrame(draw); return; }
       const { w, h } = sizeRef.current;
-      if (w === 0 || h === 0) {
-        rafId = requestAnimationFrame(draw);
-        return;
-      }
-      timeRef.current += 0.016;
-      const time = timeRef.current,
-        p = particleProgressRef.current;
+      if (w === 0 || h === 0) { rafId = requestAnimationFrame(draw); return; }
+
+      const p = particleProgressRef.current;
       ctx.clearRect(0, 0, w, h);
-      const funnelPaths = funnelPathsRef.current,
-        particles = particlesRef.current;
 
-      // Canvas opacity + funnel labels now driven by forge scroll handler
-      const canvasOpacity = canvasWrapRef.current
-        ? parseFloat(canvasWrapRef.current.style.opacity || "0")
-        : 0;
+      // Only draw during explosion+convergence phases
+      if (p > PP.FADE_OUT[1]) { rafId = requestAnimationFrame(draw); return; }
 
-      if (canvasOpacity < 0.01) {
-        for (const particle of particles) {
-          particle.prevX = w * 0.5;
-          particle.prevY = h * 0.5;
-          particle.prev2X = w * 0.5;
-          particle.prev2Y = h * 0.5;
-        }
-        rafId = requestAnimationFrame(draw);
-        return;
-      }
+      const centerX = w * 0.5, centerY = h * 0.5;
+      const particles = particlesRef.current;
 
-      // Funnel node lines now rendered in SVG overlay
-
-      // Particles
-      ctx.save();
-      const centerX = w * 0.5,
-        centerY = h * 0.5;
       for (const particle of particles) {
         const si = particle.streamIdx;
-        let px = centerX,
-          py = centerY,
-          alpha = 0;
-        if (p < PP.EXPLODE[0]) {
-          alpha = 0;
-        } else if (p < PP.EXPLODE[1]) {
-          const explodeT = smoothstep(PP.EXPLODE[0], PP.EXPLODE[1], p);
-          const eased = 1 - (1 - explodeT) * (1 - explodeT);
-          const dist = particle.explodeRadius * Math.min(w, h) * eased;
-          px = centerX + Math.cos(particle.explodeAngle) * dist;
-          py = centerY + Math.sin(particle.explodeAngle) * dist;
-          alpha = smoothstep(PP.EXPLODE[0], PP.EXPLODE[0] + 0.02, p);
-        } else if (p < PP.FALL[1]) {
-          const fallT = smoothstep(PP.FALL[0], PP.FALL[1], p);
-          const dist = particle.explodeRadius * Math.min(w, h);
-          const ex = centerX + Math.cos(particle.explodeAngle) * dist,
-            ey = centerY + Math.sin(particle.explodeAngle) * dist;
-          const funnelPath = funnelPaths[si];
-          const entryPos =
-            funnelPath?.length > 0
-              ? funnelPath[0]
-              : { x: centerX, y: h * FUNNEL_TIERS.entry };
-          px = lerpFn(ex, entryPos.x, fallT);
-          py = lerpFn(ey, entryPos.y, fallT * fallT);
-          alpha = 1;
-        } else if (p < PP.FUNNEL[1]) {
-          const funnelT = smoothstep(PP.FUNNEL[0], PP.FUNNEL[1], p);
-          const funnelPath = funnelPaths[si];
-          if (funnelPath?.length > 0) {
-            const pos = samplePath(funnelPath, particle.baseT * funnelT);
-            px = pos.x;
-            py = pos.y;
-          }
-          alpha = 1 - smoothstep(PP.FADE_OUT[0], PP.FADE_OUT[1], p);
+        const target = F_TOP_POSITIONS[si];
+        const { px: targetX, py: targetY } = svgToPixel(target.x, target.y, svgRectRef.current);
+
+        let px: number, py: number, alpha: number;
+
+        if (p < PP.EXPLODE[1]) {
+          // Explode outward from center
+          const t = smoothstep(PP.EXPLODE[0], PP.EXPLODE[1], p);
+          const eased = 1 - (1 - t) * (1 - t);
+          const dist = particle.radius * Math.min(w, h) * eased;
+          px = centerX + Math.cos(particle.angle) * dist;
+          py = centerY + Math.sin(particle.angle) * dist;
+          alpha = smoothstep(0, 0.015, p);
         } else {
-          alpha = 0;
+          // Converge to target (SVG dot position)
+          const t = smoothstep(PP.CONVERGE[0], PP.CONVERGE[1], p);
+          const eased = t * t * (3 - 2 * t); // smoothstep easing
+          const dist = particle.radius * Math.min(w, h);
+          const explodedX = centerX + Math.cos(particle.angle) * dist;
+          const explodedY = centerY + Math.sin(particle.angle) * dist;
+          px = lerpFn(explodedX, targetX, eased);
+          py = lerpFn(explodedY, targetY, eased);
+          // Fade out as SVG dots fade in
+          alpha = 1 - smoothstep(PP.FADE_OUT[0], PP.FADE_OUT[1], p);
         }
 
-        if (alpha <= 0.01) {
-          particle.prevX = px;
-          particle.prevY = py;
-          particle.prev2X = px;
-          particle.prev2Y = py;
-          continue;
-        }
+        if (alpha <= 0.01) continue;
 
-        // Particles shrink as ribbons grow (ribbons absorb them)
-        const ribbonGrowth = smoothstep(PP.FUNNEL[0], PP.FUNNEL[0] + 0.3, p);
-        const shrinkFactor = lerpFn(1, 0.3, ribbonGrowth);
-
-        const wobble =
-          Math.sin(time * 1.2 + particle.wobblePhase) * particle.wobbleAmp * shrinkFactor;
-        const tdx = px - particle.prevX,
-          tdy = py - particle.prevY,
-          tlen = Math.sqrt(tdx * tdx + tdy * tdy) || 1;
-        const finalX = px + (-tdy / tlen) * wobble,
-          finalY = py + (tdx / tlen) * wobble;
-        const sizeM = 1 + Math.sin(time * 2 + particle.wobblePhase) * 0.15,
-          size = particle.size * sizeM * shrinkFactor;
+        // Shrink particles as they converge
+        const convergeT = smoothstep(PP.CONVERGE[0], PP.CONVERGE[1], p);
+        const size = lerpFn(particle.size, particle.size * 0.6, convergeT);
 
         ctx.beginPath();
-        ctx.arc(finalX, finalY, size, 0, Math.PI * 2);
+        ctx.arc(px, py, size, 0, Math.PI * 2);
         ctx.fillStyle = particle.color;
         ctx.globalAlpha = alpha * 0.85;
-        ctx.shadowColor = particle.color;
-        ctx.shadowBlur = 8;
         ctx.fill();
+
+        // Glow
         ctx.beginPath();
-        ctx.arc(particle.prevX, particle.prevY, size * 0.6, 0, Math.PI * 2);
-        ctx.globalAlpha = alpha * 0.3;
-        ctx.shadowBlur = 4;
+        ctx.arc(px, py, size * 3, 0, Math.PI * 2);
+        const grad = ctx.createRadialGradient(px, py, 0, px, py, size * 3);
+        grad.addColorStop(0, particle.color);
+        grad.addColorStop(1, "transparent");
+        ctx.fillStyle = grad;
+        ctx.globalAlpha = alpha * 0.25 * (1 - convergeT * 0.7);
         ctx.fill();
-        ctx.beginPath();
-        ctx.arc(particle.prev2X, particle.prev2Y, size * 0.35, 0, Math.PI * 2);
-        ctx.globalAlpha = alpha * 0.12;
-        ctx.shadowBlur = 2;
-        ctx.fill();
-        particle.prev2X = particle.prevX;
-        particle.prev2Y = particle.prevY;
-        particle.prevX = px;
-        particle.prevY = py;
       }
-      ctx.restore();
+
+      ctx.globalAlpha = 1;
       rafId = requestAnimationFrame(draw);
     }
+
     rafId = requestAnimationFrame(draw);
     return () => {
       cancelAnimationFrame(rafId);
@@ -950,7 +814,7 @@ export default function ForgeWorkstation() {
                 "radial-gradient(ellipse 60% 60% at 50% 50%, transparent 0%, var(--bg) 100%)",
             }}
           />
-          <DL style={{ top: "44%", left: "44%" }}>FORGE GLOW</DL>
+
           <div
             ref={glowEl}
             aria-hidden
@@ -960,7 +824,7 @@ export default function ForgeWorkstation() {
               height: "75vh",
               borderRadius: "50%",
               background:
-                "radial-gradient(circle, rgba(91,158,194,0.20) 0%, rgba(91,158,194,0.07) 35%, transparent 65%)",
+                "radial-gradient(circle, rgba(91,158,194,0.08) 0%, rgba(91,158,194,0.03) 35%, transparent 65%)",
               opacity: 0,
               willChange: "transform, opacity",
             }}
@@ -974,7 +838,7 @@ export default function ForgeWorkstation() {
               height: "30vh",
               borderRadius: "50%",
               background:
-                "radial-gradient(circle, rgba(201,168,76,0.4) 0%, rgba(201,168,76,0.12) 40%, transparent 70%)",
+                "radial-gradient(circle, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.04) 40%, transparent 70%)",
               opacity: 0,
               willChange: "transform, opacity",
             }}
@@ -1017,10 +881,6 @@ export default function ForgeWorkstation() {
           />
 
           {/* Embers */}
-          <DL
-            style={{ top: "14%", left: "50%", transform: "translateX(-50%)" }}>
-            EMBERS
-          </DL>
           {embers.map((e, i) => (
             <div
               key={`ember-${i}`}
@@ -1045,7 +905,6 @@ export default function ForgeWorkstation() {
             ref={titleRef}
             className="absolute inset-0 flex flex-col items-center justify-center"
             style={{ willChange: "transform, opacity" }}>
-            <DL style={{ top: 8, left: 8 }}>TITLE</DL>
             <div ref={titleInViewRef}>
               <motion.div
                 initial={{ opacity: 0, letterSpacing: "0.3em" }}
@@ -1085,9 +944,6 @@ export default function ForgeWorkstation() {
           </div>
 
           {/* Forge fragments */}
-          <DL style={{ top: "18%", right: 12 }}>
-            FORGE FRAGMENTS + SEED WORDS
-          </DL>
           {fragments.map((f, i) => {
             const setRef = (el: HTMLElement | null) => {
               fragmentEls.current[i] = el;
@@ -1107,19 +963,19 @@ export default function ForgeWorkstation() {
                       padding: "6px 12px",
                       borderRadius: "6px",
                       background: "rgba(14,14,20,0.85)",
-                      border: "1px solid rgba(91,158,194,0.15)",
+                      border: "1px solid rgba(91,158,194,0.25)",
                       fontSize: `${f.size}rem`,
                       fontFamily: "var(--font-sans)",
-                      color: fc(f.companyIdx, 0.7),
+                      color: fc(f.companyIdx, 0.95),
                       letterSpacing: "0.02em",
                       willChange: "transform, opacity, filter",
                     }}>
-                    <span style={{ color: "rgba(198,120,221,0.7)" }}>
+                    <span style={{ color: "rgba(198,120,221,0.9)" }}>
                       {f.code.match(
                         /^(const |let |var |export |async |await |function |interface |import )/,
                       )?.[0] ?? ""}
                     </span>
-                    <span style={{ color: fc(f.companyIdx, 0.65) }}>
+                    <span style={{ color: fc(f.companyIdx, 0.85) }}>
                       {f.code.replace(
                         /^(const |let |var |export |async |await |function |interface |import )/,
                         "",
@@ -1142,7 +998,7 @@ export default function ForgeWorkstation() {
                       style={{
                         width: f.logoSize,
                         height: f.logoSize,
-                        opacity: 0.7,
+                        opacity: 0.9,
                       }}>
                       {LOGOS[f.logoKey]}
                     </div>
@@ -1170,14 +1026,14 @@ export default function ForgeWorkstation() {
                       padding: "5px 10px",
                       borderRadius: "4px",
                       background: "rgba(7,7,10,0.9)",
-                      border: "1px solid rgba(74,222,128,0.12)",
+                      border: "1px solid rgba(74,222,128,0.2)",
                       fontSize: `${f.size}rem`,
                       fontFamily: "var(--font-sans)",
                       letterSpacing: "0.01em",
                       willChange: "transform, opacity, filter",
                     }}>
-                    <span style={{ color: "rgba(74,222,128,0.6)" }}>$ </span>
-                    <span style={{ color: "rgba(74,222,128,0.45)" }}>
+                    <span style={{ color: "rgba(74,222,128,0.85)" }}>$ </span>
+                    <span style={{ color: "rgba(74,222,128,0.7)" }}>
                       {f.cmd}
                     </span>
                   </div>
@@ -1192,7 +1048,7 @@ export default function ForgeWorkstation() {
                     style={{
                       fontSize: `${f.size}rem`,
                       fontWeight: f.weight,
-                      color: fc(f.companyIdx, 0.7),
+                      color: fc(f.companyIdx, 0.95),
                       opacity: 0,
                       letterSpacing:
                         f.type === "company"
@@ -1221,7 +1077,6 @@ export default function ForgeWorkstation() {
           })}
 
           {/* Thesis */}
-          <DL style={{ top: "42%", left: "20%" }}>THESIS</DL>
           {[
             "Most engineers learn to build things.",
             "Some learn to see them.",
@@ -1252,15 +1107,8 @@ export default function ForgeWorkstation() {
           ))}
 
           {/* Narrative beats */}
-          <DL style={{ top: "34%", right: 12 }}>NARRATIVE BEATS</DL>
           {BEATS.map((beat, bi) => (
             <div key={`beat-group-${bi}`}>
-              <DL
-                style={{
-                  top: -12,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                }}>{`BEAT ${bi + 1}: ${beat.company}`}</DL>
               <div
                 ref={(el) => {
                   beatLabelEls.current[bi] = el;
@@ -1318,7 +1166,6 @@ export default function ForgeWorkstation() {
           ))}
 
           {/* Whispers */}
-          <DL style={{ top: "22%", left: 12 }}>WHISPERS</DL>
           {whispers.map((w, i) => (
             <span
               key={`whisper-${i}`}
@@ -1339,10 +1186,6 @@ export default function ForgeWorkstation() {
           ))}
 
           {/* Principles (crystallize) */}
-          <DL
-            style={{ top: "30%", left: "50%", transform: "translateX(-50%)" }}>
-            PRINCIPLES (CRYSTALLIZE)
-          </DL>
           {principles.map((pr, i) => (
             <div
               key={`principle-${i}`}
@@ -1382,7 +1225,6 @@ export default function ForgeWorkstation() {
             ref={canvasWrapRef}
             className="absolute inset-0"
             style={{ opacity: 0, zIndex: 5 }}>
-            <DL style={{ top: 40, left: 8 }}>PARTICLES (CANVAS)</DL>
             <canvas ref={canvasRef} className="absolute inset-0" />
           </div>
           {/* Funnel SVG (crossfades in from canvas) */}
@@ -1391,16 +1233,23 @@ export default function ForgeWorkstation() {
             className="absolute inset-0 flex items-center justify-center pointer-events-none"
             style={{ opacity: 0, zIndex: 6 }}>
             <svg
+              ref={funnelSvgRef}
               viewBox={`0 0 ${FV_W} ${FV_H}`}
-              className="w-full h-full max-w-[1200px]"
+              className="w-full h-full max-w-300"
               preserveAspectRatio="xMidYMid meet"
               style={{ overflow: "visible" }}>
               <defs>
                 {STREAMS.map((s) => (
                   <linearGradient key={`fgrad-${s.id}`} id={`fgrad-${s.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={s.color} stopOpacity={0.3} />
-                    <stop offset="100%" stopColor={s.color} stopOpacity={0.65} />
+                    <stop offset="0%" stopColor={s.color} stopOpacity={0.45} />
+                    <stop offset="100%" stopColor={s.color} stopOpacity={0.8} />
                   </linearGradient>
+                ))}
+                {/* Per-dot glow filters */}
+                {STREAMS.map((_, si) => (
+                  <filter key={`wsdot-f-${si}`} id={`wsdot-${si}`} x="-200%" y="-200%" width="500%" height="500%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="8" />
+                  </filter>
                 ))}
                 <filter id="ws-gold-glow" x="-50%" y="-50%" width="200%" height="200%">
                   <feGaussianBlur
@@ -1410,20 +1259,6 @@ export default function ForgeWorkstation() {
                   />
                 </filter>
               </defs>
-
-              {/* Company node lines + labels */}
-              {NODES.map((node, ni) => {
-                const y = F_TIER_Y[ni + 1];
-                const spread = F_TIER_SPREAD[ni + 1];
-                return (
-                  <g key={`fnode-${node.id}`} ref={(el) => { funnelNodeRefs.current[ni] = el; }} opacity={0}>
-                    <line x1={F_CENTER_X - spread - 40} y1={y} x2={F_CENTER_X + spread + 40} y2={y} stroke={node.color} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 6" />
-                    <text x={F_CENTER_X - spread - 52} y={y - 12} textAnchor="end" className="font-sans" style={{ fontSize: "11px" }} fill={node.color} fillOpacity={0.7}>{node.label}</text>
-                    <text x={F_CENTER_X - spread - 52} y={y + 6} textAnchor="end" className="font-sans" style={{ fontSize: "8px" }} fill="#8A8478" fillOpacity={0.5}>{node.period}</text>
-                    <circle cx={F_CENTER_X} cy={y} r={3} fill={node.color} fillOpacity={0.35} />
-                  </g>
-                );
-              })}
 
               {/* Stream ribbon segments */}
               {F_SEGMENTS.map((seg, i) => (
@@ -1437,26 +1272,83 @@ export default function ForgeWorkstation() {
                 />
               ))}
 
+              {/* Company node lines + labels */}
+              {NODES.map((node, ni) => {
+                const y = F_TIER_Y[ni + 1];
+                const spread = F_TIER_SPREAD[ni + 1];
+                return (
+                  <g key={`fnode-${node.id}`} ref={(el) => { funnelNodeRefs.current[ni] = el; }} opacity={0}>
+                    <line x1={F_CENTER_X - spread - 40} y1={y} x2={F_CENTER_X + spread + 40} y2={y} stroke={node.color} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 6" />
+                    <text x={F_CENTER_X - spread - 52} y={y - 12} textAnchor="end" className="font-sans" style={{ fontSize: "11px", fontWeight: 600 }} fill={node.color} fillOpacity={0.9}>{node.label}</text>
+                    <text x={F_CENTER_X - spread - 52} y={y + 6} textAnchor="end" className="font-sans" style={{ fontSize: "8px" }} fill="#8A8478" fillOpacity={0.65}>{node.period}</text>
+                    <circle cx={F_CENTER_X} cy={y} r={3} fill={node.color} fillOpacity={0.5} />
+                  </g>
+                );
+              })}
+
+              {/* Top dots (V7 approved — glow + core + bright center) */}
+              {STREAMS.map((stream, si) => {
+                const pos = F_POSITIONS.get(stream.id)![0];
+                return (
+                  <g key={`fdot-${stream.id}`} ref={(el) => { funnelDotRefs.current[si] = el; }} opacity={0} style={{ transformOrigin: `${pos.x}px ${pos.y}px` }}>
+                    <circle cx={pos.x} cy={pos.y} r={5} fill={stream.color} filter={`url(#wsdot-${si})`} opacity={0.6} />
+                    <circle cx={pos.x} cy={pos.y} r={3.5} fill={stream.color} />
+                    <circle cx={pos.x} cy={pos.y} r={1.5} fill="white" opacity={0.5} />
+                  </g>
+                );
+              })}
+
               {/* Top stream labels */}
               {STREAMS.map((stream, si) => {
                 const pos = F_POSITIONS.get(stream.id)![0];
                 return (
                   <g key={`flabel-${stream.id}`} ref={(el) => { funnelStreamLabelRefs.current[si] = el; }} opacity={0}>
-                    <circle cx={pos.x} cy={pos.y - 18} r={2.5} fill={stream.color} fillOpacity={0.6} />
-                    <text x={pos.x} y={pos.y - 28} textAnchor="middle" className="font-sans" style={{ fontSize: "9px", letterSpacing: "0.02em" }} fill={stream.color} fillOpacity={0.6}>{stream.label}</text>
+                    <text x={pos.x} y={pos.y - 16} textAnchor="middle" className="font-sans" style={{ fontSize: "9px", letterSpacing: "0.04em", fontWeight: 500 }} fill={stream.color} fillOpacity={0.9}>{stream.label}</text>
                   </g>
                 );
               })}
 
-              {/* Convergence point */}
+              {/* Convergence point — single gold diamond + text */}
               <g ref={(el) => { funnelConvergeRef.current = el; }} opacity={0}>
-                <circle cx={F_CENTER_X} cy={F_CONVERGE_Y} r={6} fill="#C9A84C" filter="url(#ws-gold-glow)" />
-                <circle cx={F_CENTER_X} cy={F_CONVERGE_Y} r={3} fill="#F0E6D0" />
-                <line x1={F_CENTER_X - 50} y1={F_CONVERGE_Y} x2={F_CENTER_X - 8} y2={F_CONVERGE_Y} stroke="#C9A84C" strokeOpacity={0.3} strokeWidth={0.5} />
-                <line x1={F_CENTER_X + 8} y1={F_CONVERGE_Y} x2={F_CENTER_X + 50} y2={F_CONVERGE_Y} stroke="#C9A84C" strokeOpacity={0.3} strokeWidth={0.5} />
-                <text x={F_CENTER_X} y={F_CONVERGE_Y + 24} textAnchor="middle" className="font-serif" style={{ fontSize: "13px", letterSpacing: "0.04em" }} fill="#F0E6D0">The Engineer I Became</text>
+                <rect x={F_CENTER_X - 4} y={F_CONVERGE_Y - 4} width={8} height={8} rx={1} fill="#C9A84C" transform={`rotate(45 ${F_CENTER_X} ${F_CONVERGE_Y})`} />
+                <line x1={F_CENTER_X - 40} y1={F_CONVERGE_Y} x2={F_CENTER_X - 8} y2={F_CONVERGE_Y} stroke="#C9A84C" strokeOpacity={0.25} strokeWidth={0.5} />
+                <line x1={F_CENTER_X + 8} y1={F_CONVERGE_Y} x2={F_CENTER_X + 40} y2={F_CONVERGE_Y} stroke="#C9A84C" strokeOpacity={0.25} strokeWidth={0.5} />
+                <text x={F_CENTER_X} y={F_CONVERGE_Y + 22} textAnchor="middle" className="font-serif" style={{ fontSize: "12px", letterSpacing: "0.06em" }} fill="#C9A84C" fillOpacity={0.8}>The Engineer I Became</text>
               </g>
             </svg>
+          </div>
+
+          {/* Narrative captions — liquid glass cards centered in tier rows */}
+          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 7 }}>
+            {WS_TIER_CAPTIONS.map((cap, ni) => {
+              const tierTopFrac = [0.20, 0.38, 0.54, 0.72][ni];
+              return (
+                <div
+                  key={`caption-${ni}`}
+                  ref={(el) => { funnelCaptionRefs.current[ni] = el; }}
+                  className="absolute left-1/2 -translate-x-1/2 text-center"
+                  style={{
+                    top: `${tierTopFrac * 100}%`,
+                    maxWidth: "400px",
+                    opacity: 0,
+                    willChange: "transform, opacity",
+                    padding: "1rem 1.5rem",
+                    borderRadius: "12px",
+                    background: "rgba(14,14,20,0.45)",
+                    backdropFilter: "blur(20px) saturate(1.4)",
+                    WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)",
+                  }}>
+                  <span className="font-serif block" style={{
+                    fontSize: "0.9rem", lineHeight: 1.6,
+                    color: "var(--cream, #F0E6D0)", opacity: 0.85,
+                  }}>
+                    {cap.caption}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
           {/* Chrome */}
@@ -1511,41 +1403,34 @@ export default function ForgeWorkstation() {
           className="relative flex flex-col items-center justify-center py-32 px-8"
           style={{ background: "var(--bg)", zIndex: 10 }}>
           <div
-            className="w-12 h-px mb-12"
+            className="w-12 h-px mb-16"
             style={{ background: "var(--gold-dim)" }}
           />
-          <p
-            className="font-sans uppercase tracking-widest mb-16"
-            style={{
-              color: "var(--text-dim)",
-              fontSize: "0.6rem",
-              letterSpacing: "0.2em",
-            }}>
-            What four years of engineering crystallised
-          </p>
-          <div className="grid gap-14 max-w-2xl">
-            {principles.map((pr, i) => (
-              <div key={`sum-${i}`} className="text-center">
-                <p
-                  className="font-sans uppercase tracking-widest mb-3"
-                  style={{
-                    color: fc(i, 0.45),
-                    fontSize: "0.55rem",
-                    letterSpacing: "0.18em",
-                  }}>
-                  {COMPANIES[i].company}
-                </p>
-                <p
-                  className="font-serif"
-                  style={{
-                    color: "var(--cream)",
-                    fontSize: "1.1rem",
-                    lineHeight: 1.6,
-                  }}>
-                  {pr.text}
-                </p>
-              </div>
-            ))}
+          <div className="max-w-lg text-center">
+            <p
+              className="font-narrator"
+              style={{
+                color: "var(--cream-muted)",
+                fontSize: "1.05rem",
+                lineHeight: 1.75,
+                fontStyle: "italic",
+              }}>
+              Before there was code, there was a ward. Before there were components, there were patients.
+              The instinct to watch how people actually behave under pressure — not how you imagine they will —
+              that came from nursing. It never left. It just found a new medium: four companies, nine
+              streams of craft, and six years of building systems where every decision compounds.
+            </p>
+            <p
+              className="font-narrator mt-8"
+              style={{
+                color: "var(--text-dim)",
+                fontSize: "0.9rem",
+                lineHeight: 1.7,
+                fontStyle: "italic",
+              }}>
+              What follows is what that instinct became when it met React, Vue, TypeScript,
+              testing pipelines, and the pressure of five million users who never knew your name.
+            </p>
           </div>
           <div
             className="w-12 h-px mt-16"
