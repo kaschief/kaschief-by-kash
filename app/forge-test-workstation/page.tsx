@@ -32,7 +32,6 @@ import {
   fc,
   ACT_BLUE,
   LOGOS,
-  CC,
   createFragments,
   createEmbers,
   createWhispers,
@@ -452,12 +451,6 @@ export default function ForgeWorkstation() {
           el.style.transform = `translate(calc(-50% + ${x}vw), calc(-50% + ${y}vh)) rotate(${rot}deg) scale(${scale})`;
           el.style.opacity = String(fadeIn * fadeOut * curtainReveal);
           el.style.filter = `blur(${lerp(1, 0, ss(0.03, 0.07, p))}px)`;
-          const glow =
-            heat > 0.05
-              ? `0 0 ${lerp(0, 12, heat)}px ${fc(f.companyIdx, 0.8)}`
-              : "none";
-          if (f.type === "seed") (el as HTMLElement).style.textShadow = glow;
-          else (el as HTMLElement).style.boxShadow = glow;
         } else {
           const fadeIn = ss(0.02, 0.08, p),
             fadeOut = 1 - ss(f.dissolveStart * 0.7, f.dissolveEnd * 0.7, p);
@@ -515,22 +508,9 @@ export default function ForgeWorkstation() {
       el.style.opacity = String(active * (0.4 + Math.sin(p * 80 + i) * 0.3));
     });
 
-    /* ---- Forge atmosphere ---- */
-    if (glowEl.current) {
-      const heat = ss(0.04, 0.17, p),
-        cool = ss(0.19, 0.25, p);
-      glowEl.current.style.opacity = String(heat * (1 - cool * 0.7) * 0.75);
-      glowEl.current.style.transform = `translate(-50%, -50%) scale(${lerp(0.3, 1.4, heat)})`;
-    }
-    if (innerGlowEl.current) {
-      const heat = ss(0.08, 0.18, p),
-        cool = ss(0.19, 0.24, p);
-      const pulse = Math.sin(p * Math.PI * 20) * 0.1 + 1;
-      innerGlowEl.current.style.opacity = String(
-        heat * (1 - cool) * 0.85 * pulse,
-      );
-      innerGlowEl.current.style.transform = `translate(-50%, -50%) scale(${lerp(0.2, 1.1, heat) * pulse})`;
-    }
+    /* ---- Forge atmosphere — disabled, no visible glows ---- */
+    if (glowEl.current) glowEl.current.style.opacity = "0";
+    if (innerGlowEl.current) innerGlowEl.current.style.opacity = "0";
     if (gridEl.current) {
       const appear = ss(0.02, 0.06, p),
         fade = 1 - ss(0.18, 0.24, p);
@@ -747,32 +727,9 @@ export default function ForgeWorkstation() {
       el.style.transform = `translate(calc(-50% + ${w.x0 + w.dx * drift}vw), calc(-50% + ${w.y0 + w.dy * drift}vh))`;
     });
 
-    if (beatGlowEl.current) {
-      let glowOpacity = 0,
-        glowR = 0,
-        glowG = 0,
-        glowB = 0;
-      WS_BEAT_RANGES.forEach((range, bi) => {
-        const vis =
-          ss(range.start, range.start + 0.03, p) *
-          (1 - ss(range.end - 0.03, range.end, p));
-        if (vis > 0) {
-          const [r, g, b] = CC[bi];
-          glowR = lerp(glowR, r, vis);
-          glowG = lerp(glowG, g, vis);
-          glowB = lerp(glowB, b, vis);
-          glowOpacity = Math.max(glowOpacity, vis);
-        }
-      });
-      beatGlowEl.current.style.opacity = String(glowOpacity * 0.15);
-      beatGlowEl.current.style.background = `radial-gradient(circle, rgba(${Math.round(glowR)},${Math.round(glowG)},${Math.round(glowB)},0.2) 0%, transparent 65%)`;
-    }
-
-    if (vignetteEl.current) {
-      const forgeV = ss(0.08, 0.18, p) * (1 - ss(0.19, 0.24, p));
-      const beatV = p > 0.46 && p < 0.88 ? 0.3 : 0;
-      vignetteEl.current.style.opacity = String(Math.max(forgeV * 0.6, beatV));
-    }
+    // Beat glow + vignette disabled — clean dark background only
+    if (beatGlowEl.current) beatGlowEl.current.style.opacity = "0";
+    if (vignetteEl.current) vignetteEl.current.style.opacity = "0";
 
     /* ============================================================== */
     /*  MOVEMENT 3: CRYSTALLIZE (0.88 — 0.98)                          */
@@ -781,12 +738,7 @@ export default function ForgeWorkstation() {
       const cS = PH.CRYSTALLIZE.start,
         cE = PH.CRYSTALLIZE.end,
         cD = cE - cS;
-      if (flashEl.current) {
-        const flash =
-          ss(cS, cS + cD * 0.15, p) *
-          (1 - ss(cS + cD * 0.15, cS + cD * 0.35, p));
-        flashEl.current.style.opacity = String(flash * 0.5);
-      }
+      if (flashEl.current) flashEl.current.style.opacity = "0";
       if (crystLineEl.current) {
         const appear = ss(cS + cD * 0.15, cS + cD * 0.35, p);
         crystLineEl.current.style.opacity = String(appear * 0.3);
@@ -1152,29 +1104,32 @@ export default function ForgeWorkstation() {
                     key={`logo-${f.logoKey}-${i}`}
                     ref={setRef}
                     aria-hidden
-                    className={`${base} flex flex-col items-center gap-1`}
+                    className={`${base}`}
                     style={{
                       opacity: 0,
                       willChange: "transform, opacity, filter",
                     }}>
-                    <div
-                      style={{
-                        width: f.logoSize,
-                        height: f.logoSize,
-                        opacity: 0.9,
-                      }}>
+                    <svg
+                      width={f.logoSize}
+                      height={f.label ? f.logoSize * 1.5 : f.logoSize}
+                      viewBox={f.label ? "0 0 24 36" : "0 0 24 24"}
+                      fill="none"
+                      style={{ overflow: "visible" }}>
                       {LOGOS[f.logoKey]}
-                    </div>
-                    <span
-                      className="font-sans"
-                      style={{
-                        fontSize: "0.55rem",
-                        letterSpacing: "0.1em",
-                        color: "var(--text-dim)",
-                        textTransform: "uppercase",
-                      }}>
-                      {f.label}
-                    </span>
+                      {f.label && (
+                        <text
+                          x="12"
+                          y="31"
+                          textAnchor="middle"
+                          fill="#B0A890"
+                          fontSize="5"
+                          fontFamily="var(--font-sans)"
+                          letterSpacing="0.06em"
+                          style={{ textTransform: "uppercase" }}>
+                          {f.label}
+                        </text>
+                      )}
+                    </svg>
                   </div>
                 );
               case "command":
@@ -1451,8 +1406,8 @@ export default function ForgeWorkstation() {
                     y1="0"
                     x2="0"
                     y2="1">
-                    <stop offset="0%" stopColor={s.color} stopOpacity={0.45} />
-                    <stop offset="100%" stopColor={s.color} stopOpacity={0.8} />
+                    <stop offset="0%" stopColor={s.color} stopOpacity={0.6} />
+                    <stop offset="100%" stopColor={s.color} stopOpacity={0.95} />
                   </linearGradient>
                 ))}
                 {/* Per-dot glow filters */}
@@ -1538,13 +1493,6 @@ export default function ForgeWorkstation() {
                       fillOpacity={0.65}>
                       {node.period}
                     </text>
-                    <circle
-                      cx={F_CENTER_X}
-                      cy={y}
-                      r={3}
-                      fill={node.color}
-                      fillOpacity={0.5}
-                    />
                   </g>
                 );
               })}
@@ -1608,47 +1556,28 @@ export default function ForgeWorkstation() {
                 );
               })}
 
-              {/* Convergence point — single gold diamond + text */}
+              {/* Convergence point — diamond + white text */}
               <g
                 ref={(el) => {
                   funnelConvergeRef.current = el;
                 }}
                 opacity={0}>
                 <rect
-                  x={F_CENTER_X - 4}
-                  y={F_CONVERGE_Y - 4}
-                  width={8}
-                  height={8}
+                  x={F_CENTER_X - 3}
+                  y={F_CONVERGE_Y - 3}
+                  width={6}
+                  height={6}
                   rx={1}
                   fill="#C9A84C"
                   transform={`rotate(45 ${F_CENTER_X} ${F_CONVERGE_Y})`}
-                />
-                <line
-                  x1={F_CENTER_X - 40}
-                  y1={F_CONVERGE_Y}
-                  x2={F_CENTER_X - 8}
-                  y2={F_CONVERGE_Y}
-                  stroke="#C9A84C"
-                  strokeOpacity={0.25}
-                  strokeWidth={0.5}
-                />
-                <line
-                  x1={F_CENTER_X + 8}
-                  y1={F_CONVERGE_Y}
-                  x2={F_CENTER_X + 40}
-                  y2={F_CONVERGE_Y}
-                  stroke="#C9A84C"
-                  strokeOpacity={0.25}
-                  strokeWidth={0.5}
                 />
                 <text
                   x={F_CENTER_X}
                   y={F_CONVERGE_Y + 22}
                   textAnchor="middle"
                   className="font-serif"
-                  style={{ fontSize: "12px", letterSpacing: "0.06em" }}
-                  fill="#C9A84C"
-                  fillOpacity={0.8}>
+                  style={{ fontSize: "13px", letterSpacing: "0.06em" }}
+                  fill="white">
                   The Engineer I Became
                 </text>
               </g>
