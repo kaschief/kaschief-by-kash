@@ -126,6 +126,80 @@ interface Particle {
 
 const PARTICLES_PER_STREAM = 20;
 
+/* ================================================================== */
+/*  Funnel layout (from funnel page, adapted for workstation)          */
+/* ================================================================== */
+
+const FV_W = 1000, FV_H = 800;
+const F_TIER_Y = [80, 250, 400, 550, 700] as const;
+const F_CONVERGE_Y = 760;
+const F_TIER_SPREAD = [400, 300, 200, 120, 60] as const;
+const F_CENTER_X = 500;
+const F_UNIT_W = 4;
+
+interface FTierPos { x: number; y: number; w: number; }
+
+function computeFunnelPositions(): Map<string, FTierPos[]> {
+  const result = new Map<string, FTierPos[]>();
+  const sorted = [...STREAMS];
+  const topSpread = F_TIER_SPREAD[0];
+  const topStep = (topSpread * 2) / (sorted.length - 1);
+  for (let si = 0; si < sorted.length; si++) {
+    const stream = sorted[si];
+    const positions: FTierPos[] = [];
+    const w = stream.width * F_UNIT_W;
+    const topX = F_CENTER_X - topSpread + si * topStep;
+    positions.push({ x: topX, y: F_TIER_Y[0], w });
+    let prevX = topX;
+    for (let ni = 0; ni < NODES.length; ni++) {
+      const tierIdx = ni + 1;
+      const spread = F_TIER_SPREAD[tierIdx];
+      const passesThrough = stream.path.includes(ni);
+      const passingStreams = sorted.filter((s) => s.path.includes(ni));
+      const passingIndex = passingStreams.indexOf(stream);
+      let x: number;
+      if (passesThrough) {
+        const passingStep = passingStreams.length > 1 ? (spread * 2) / (passingStreams.length - 1) : 0;
+        x = F_CENTER_X - spread + passingIndex * passingStep;
+      } else {
+        x = lerpFn(prevX, F_CENTER_X, 0.35);
+        const maxDist = spread * 1.4;
+        if (Math.abs(x - F_CENTER_X) > maxDist) x = F_CENTER_X + Math.sign(x - F_CENTER_X) * maxDist;
+      }
+      positions.push({ x, y: F_TIER_Y[tierIdx], w });
+      prevX = x;
+    }
+    result.set(stream.id, positions);
+  }
+  return result;
+}
+
+const F_POSITIONS = computeFunnelPositions();
+
+interface FSegment { streamId: string; color: string; fromTier: number; toTier: number; path: string; opacityEnd: number; }
+
+function buildFunnelSegments(): FSegment[] {
+  const segments: FSegment[] = [];
+  for (const stream of STREAMS) {
+    const positions = F_POSITIONS.get(stream.id)!;
+    for (let i = 0; i < positions.length - 1; i++) {
+      const p1 = positions[i], p2 = positions[i + 1];
+      const my = (p1.y + p2.y) / 2;
+      const path = [
+        `M ${p1.x - p1.w / 2} ${p1.y}`,
+        `C ${p1.x - p1.w / 2} ${my}, ${p2.x - p2.w / 2} ${my}, ${p2.x - p2.w / 2} ${p2.y}`,
+        `L ${p2.x + p2.w / 2} ${p2.y}`,
+        `C ${p2.x + p2.w / 2} ${my}, ${p1.x + p1.w / 2} ${my}, ${p1.x + p1.w / 2} ${p1.y}`,
+        `Z`,
+      ].join(" ");
+      segments.push({ streamId: stream.id, color: stream.color, fromTier: i, toTier: i + 1, path, opacityEnd: 0.25 + (i + 1) * 0.08 });
+    }
+  }
+  return segments;
+}
+
+const F_SEGMENTS = buildFunnelSegments();
+
 const PP = {
   CANVAS_IN: [0.0, 0.05] as const,
   EXPLODE: [0.05, 0.15] as const,
@@ -309,7 +383,15 @@ export default function ForgeWorkstation() {
   const particlesRef = useRef<Particle[]>(initParticles());
   const funnelPathsRef = useRef<Point[][]>([]);
   const canvasWrapRef = useRef<HTMLDivElement>(null);
-  const funnelLabelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  /* funnelLabelRefs removed — replaced by SVG funnelStreamLabelRefs */
+
+  /* ---- Funnel SVG refs ---- */
+  const funnelSvgWrapRef = useRef<HTMLDivElement>(null);
+  const funnelSegmentRefs = useRef<(SVGPathElement | null)[]>([]);
+  const funnelStreamLabelRefs = useRef<(SVGGElement | null)[]>([]);
+  const funnelNodeRefs = useRef<(SVGGElement | null)[]>([]);
+  const funnelConvergeRef = useRef<SVGGElement | null>(null);
+  const funnelBlurRef = useRef<SVGFEGaussianBlurElement | null>(null);
 
   /* ---- Data ---- */
   const fragments = useMemo(createFragments, []);
@@ -483,31 +565,91 @@ export default function ForgeWorkstation() {
     }
 
     /* ============================================================== */
-    /*  PARTICLES (0.26 — 0.46) — driven from forge progress          */
+    /*  PARTICLES → RIBBONS (0.26 — 0.46)                             */
+    /*  One continuous system: particles settle, ribbons grow from     */
+    /*  them, labels appear alongside. No crossfade.                  */
+    /*                                                                 */
+    /*  0.26–0.30: particles explode + fall into top-tier positions    */
+    /*  0.29–0.33: stream labels appear above settled particles        */
+    /*  0.31–0.42: ribbons grow downward from particle positions       */
+    /*             (particles shrink as ribbons absorb them)           */
+    /*  0.40–0.44: convergence point appears                          */
+    /*  0.44–0.47: everything fades out                               */
     /* ============================================================== */
     {
-      // Map forge p [0.26, 0.46] → particle local t [0, 1]
+      // Canvas particles: full range 0.26–0.46 → local 0–1
       const PART_START = 0.26, PART_END = 0.46;
       const pt = Math.max(0, Math.min(1, (p - PART_START) / (PART_END - PART_START)));
       particleProgressRef.current = pt;
-      // Canvas visibility
+
+      // Canvas stays visible through the whole phase (particles are the source)
       if (canvasWrapRef.current) {
-        const canvasIn = ss(PART_START, PART_START + 0.02, p);
-        const canvasOut = 1 - ss(PART_END - 0.04, PART_END, p);
+        const canvasIn = ss(0.26, 0.27, p);
+        const canvasOut = 1 - ss(0.44, 0.47, p);
         canvasWrapRef.current.style.opacity = String(canvasIn * canvasOut);
       }
-      // Funnel labels
-      for (let ni = 0; ni < 4; ni++) {
-        const el = funnelLabelRefs.current[ni];
+
+      // SVG funnel wrapper: appears once ribbons start growing, fades with everything
+      if (funnelSvgWrapRef.current) {
+        const svgIn = ss(0.30, 0.32, p);
+        const svgOut = 1 - ss(0.44, 0.47, p);
+        funnelSvgWrapRef.current.style.opacity = String(svgIn * svgOut);
+      }
+
+      // Stream labels — appear early alongside particles settling
+      const labelT = ss(0.29, 0.33, p);
+      for (let si = 0; si < STREAMS.length; si++) {
+        const el = funnelStreamLabelRefs.current[si];
         if (!el) continue;
-        const labelFadeIn = smoothstep(
-          PP.FUNNEL[0] + ni * 0.04,
-          PP.FUNNEL[0] + ni * 0.04 + 0.06,
-          pt,
-        );
-        const labelFadeOut = 1 - smoothstep(PP.FADE_OUT[0], PP.FADE_OUT[1], pt);
-        el.style.opacity = String(labelFadeIn * labelFadeOut);
-        el.style.top = `${[FUNNEL_TIERS.amboss, FUNNEL_TIERS.compado, FUNNEL_TIERS.capinside, FUNNEL_TIERS.dkb][ni] * 100}%`;
+        const labelOut = 1 - ss(0.44, 0.47, p);
+        el.style.opacity = String(labelT * labelOut);
+        el.style.transform = `translateY(${lerpFn(-8, 0, labelT)}px)`;
+      }
+
+      // Ribbon segments grow downward from top tier — scaleY from 0
+      // Each tier reveals progressively
+      const TIER_THRESHOLDS = [
+        [0.30, 0.33], // top spread → AMBOSS
+        [0.33, 0.36], // AMBOSS → Compado
+        [0.36, 0.39], // Compado → CAPinside
+        [0.39, 0.42], // CAPinside → DKB
+      ];
+      for (let i = 0; i < F_SEGMENTS.length; i++) {
+        const el = funnelSegmentRefs.current[i];
+        if (!el) continue;
+        const seg = F_SEGMENTS[i];
+        // Segments connect fromTier→toTier, threshold is based on toTier index
+        const threshIdx = Math.min(seg.toTier - 1, TIER_THRESHOLDS.length - 1);
+        const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
+        const t = ss(threshStart, threshEnd, p);
+        const fadeOut = 1 - ss(0.44, 0.47, p);
+        el.style.opacity = String(lerpFn(0, seg.opacityEnd, t) * fadeOut);
+        // Grow from the top (fromTier position) downward
+        const scaleY = lerpFn(0, 1, t);
+        el.style.transformOrigin = `${F_CENTER_X}px ${F_TIER_Y[seg.fromTier]}px`;
+        el.style.transform = `scaleY(${scaleY})`;
+      }
+
+      // Company node labels + lines — appear as ribbons reach each tier
+      for (let ni = 0; ni < NODES.length; ni++) {
+        const el = funnelNodeRefs.current[ni];
+        if (!el) continue;
+        const threshIdx = Math.min(ni, TIER_THRESHOLDS.length - 1);
+        const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
+        const t = ss(threshStart, threshEnd, p);
+        const fadeOut = 1 - ss(0.44, 0.47, p);
+        el.style.opacity = String(t * fadeOut);
+        el.style.transform = `translateY(${lerpFn(8, 0, t)}px)`;
+      }
+
+      // Convergence point — appears after all ribbons reach bottom
+      if (funnelConvergeRef.current) {
+        const ct = ss(0.42, 0.44, p);
+        const fadeOut = 1 - ss(0.45, 0.47, p);
+        funnelConvergeRef.current.style.opacity = String(ct * fadeOut);
+        if (funnelBlurRef.current) {
+          funnelBlurRef.current.setAttribute("stdDeviation", String(lerpFn(0, 12, ct)));
+        }
       }
     }
 
@@ -650,13 +792,6 @@ export default function ForgeWorkstation() {
         ? parseFloat(canvasWrapRef.current.style.opacity || "0")
         : 0;
 
-      const tierYFracs = [
-        FUNNEL_TIERS.amboss,
-        FUNNEL_TIERS.compado,
-        FUNNEL_TIERS.capinside,
-        FUNNEL_TIERS.dkb,
-      ];
-
       if (canvasOpacity < 0.01) {
         for (const particle of particles) {
           particle.prevX = w * 0.5;
@@ -668,46 +803,7 @@ export default function ForgeWorkstation() {
         return;
       }
 
-      // Funnel node lines
-      const funnelActive = smoothstep(
-        PP.FUNNEL[0] - 0.02,
-        PP.FUNNEL[0] + 0.05,
-        p,
-      );
-      if (funnelActive > 0.01) {
-        ctx.save();
-        ctx.globalAlpha = funnelActive * 0.4;
-        ctx.setLineDash([4, 8]);
-        ctx.lineWidth = 1;
-        for (let ni = 0; ni < 4; ni++) {
-          const tierY = tierYFracs[ni] * h;
-          const tierSpread = [
-            FUNNEL_SPREAD.amboss,
-            FUNNEL_SPREAD.compado,
-            FUNNEL_SPREAD.capinside,
-            FUNNEL_SPREAD.dkb,
-          ][ni];
-          const lineT = smoothstep(
-            PP.FUNNEL[0] + ni * 0.04,
-            PP.FUNNEL[0] + ni * 0.04 + 0.05,
-            p,
-          );
-          if (lineT < 0.01) continue;
-          ctx.globalAlpha = lineT * 0.25;
-          ctx.strokeStyle = NODES[ni].color;
-          ctx.beginPath();
-          ctx.moveTo(w * (0.5 - tierSpread - 0.06), tierY);
-          ctx.lineTo(w * (0.5 + tierSpread + 0.06), tierY);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(w * 0.5, tierY, 2, 0, Math.PI * 2);
-          ctx.fillStyle = NODES[ni].color;
-          ctx.globalAlpha = lineT * 0.4;
-          ctx.fill();
-        }
-        ctx.setLineDash([]);
-        ctx.restore();
-      }
+      // Funnel node lines now rendered in SVG overlay
 
       // Particles
       ctx.save();
@@ -761,15 +857,19 @@ export default function ForgeWorkstation() {
           continue;
         }
 
+        // Particles shrink as ribbons grow (ribbons absorb them)
+        const ribbonGrowth = smoothstep(PP.FUNNEL[0], PP.FUNNEL[0] + 0.3, p);
+        const shrinkFactor = lerpFn(1, 0.3, ribbonGrowth);
+
         const wobble =
-          Math.sin(time * 1.2 + particle.wobblePhase) * particle.wobbleAmp;
+          Math.sin(time * 1.2 + particle.wobblePhase) * particle.wobbleAmp * shrinkFactor;
         const tdx = px - particle.prevX,
           tdy = py - particle.prevY,
           tlen = Math.sqrt(tdx * tdx + tdy * tdy) || 1;
         const finalX = px + (-tdy / tlen) * wobble,
           finalY = py + (tdx / tlen) * wobble;
         const sizeM = 1 + Math.sin(time * 2 + particle.wobblePhase) * 0.15,
-          size = particle.size * sizeM;
+          size = particle.size * sizeM * shrinkFactor;
 
         ctx.beginPath();
         ctx.arc(finalX, finalY, size, 0, Math.PI * 2);
@@ -1285,39 +1385,78 @@ export default function ForgeWorkstation() {
             <DL style={{ top: 40, left: 8 }}>PARTICLES (CANVAS)</DL>
             <canvas ref={canvasRef} className="absolute inset-0" />
           </div>
+          {/* Funnel SVG (crossfades in from canvas) */}
           <div
-            className="absolute inset-0 pointer-events-none"
-            style={{ zIndex: 6 }}>
-            <DL style={{ top: 40, right: "6%" }}>FUNNEL NODE LABELS</DL>
-            {NODES.map((node, ni) => (
-              <div
-                key={`funnel-label-${node.id}`}
-                ref={(el) => {
-                  funnelLabelRefs.current[ni] = el;
-                }}
-                className="absolute pointer-events-none"
-                style={{
-                  left: "6%",
-                  transform: "translateY(-50%)",
-                  opacity: 0,
-                  top: "28%",
-                }}>
-                <span
-                  className="font-sans uppercase tracking-widest"
-                  style={{ fontSize: "0.6rem", color: node.color }}>
-                  {node.label}
-                </span>
-                <span
-                  className="font-sans ml-2"
-                  style={{
-                    fontSize: "0.5rem",
-                    color: "var(--text-faint)",
-                    letterSpacing: "0.05em",
-                  }}>
-                  {node.period}
-                </span>
-              </div>
-            ))}
+            ref={funnelSvgWrapRef}
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            style={{ opacity: 0, zIndex: 6 }}>
+            <svg
+              viewBox={`0 0 ${FV_W} ${FV_H}`}
+              className="w-full h-full max-w-[1200px]"
+              preserveAspectRatio="xMidYMid meet"
+              style={{ overflow: "visible" }}>
+              <defs>
+                {STREAMS.map((s) => (
+                  <linearGradient key={`fgrad-${s.id}`} id={`fgrad-${s.id}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={s.color} stopOpacity={0.3} />
+                    <stop offset="100%" stopColor={s.color} stopOpacity={0.65} />
+                  </linearGradient>
+                ))}
+                <filter id="ws-gold-glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur
+                    ref={(el) => { funnelBlurRef.current = el; }}
+                    in="SourceGraphic"
+                    stdDeviation="0"
+                  />
+                </filter>
+              </defs>
+
+              {/* Company node lines + labels */}
+              {NODES.map((node, ni) => {
+                const y = F_TIER_Y[ni + 1];
+                const spread = F_TIER_SPREAD[ni + 1];
+                return (
+                  <g key={`fnode-${node.id}`} ref={(el) => { funnelNodeRefs.current[ni] = el; }} opacity={0}>
+                    <line x1={F_CENTER_X - spread - 40} y1={y} x2={F_CENTER_X + spread + 40} y2={y} stroke={node.color} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 6" />
+                    <text x={F_CENTER_X - spread - 52} y={y - 12} textAnchor="end" className="font-sans" style={{ fontSize: "11px" }} fill={node.color} fillOpacity={0.7}>{node.label}</text>
+                    <text x={F_CENTER_X - spread - 52} y={y + 6} textAnchor="end" className="font-sans" style={{ fontSize: "8px" }} fill="#8A8478" fillOpacity={0.5}>{node.period}</text>
+                    <circle cx={F_CENTER_X} cy={y} r={3} fill={node.color} fillOpacity={0.35} />
+                  </g>
+                );
+              })}
+
+              {/* Stream ribbon segments */}
+              {F_SEGMENTS.map((seg, i) => (
+                <path
+                  key={`fseg-${seg.streamId}-${seg.fromTier}-${seg.toTier}`}
+                  ref={(el) => { funnelSegmentRefs.current[i] = el; }}
+                  d={seg.path}
+                  fill={`url(#fgrad-${seg.streamId})`}
+                  opacity={0}
+                  style={{ willChange: "opacity, transform" }}
+                />
+              ))}
+
+              {/* Top stream labels */}
+              {STREAMS.map((stream, si) => {
+                const pos = F_POSITIONS.get(stream.id)![0];
+                return (
+                  <g key={`flabel-${stream.id}`} ref={(el) => { funnelStreamLabelRefs.current[si] = el; }} opacity={0}>
+                    <circle cx={pos.x} cy={pos.y - 18} r={2.5} fill={stream.color} fillOpacity={0.6} />
+                    <text x={pos.x} y={pos.y - 28} textAnchor="middle" className="font-sans" style={{ fontSize: "9px", letterSpacing: "0.02em" }} fill={stream.color} fillOpacity={0.6}>{stream.label}</text>
+                  </g>
+                );
+              })}
+
+              {/* Convergence point */}
+              <g ref={(el) => { funnelConvergeRef.current = el; }} opacity={0}>
+                <circle cx={F_CENTER_X} cy={F_CONVERGE_Y} r={6} fill="#C9A84C" filter="url(#ws-gold-glow)" />
+                <circle cx={F_CENTER_X} cy={F_CONVERGE_Y} r={3} fill="#F0E6D0" />
+                <line x1={F_CENTER_X - 50} y1={F_CONVERGE_Y} x2={F_CENTER_X - 8} y2={F_CONVERGE_Y} stroke="#C9A84C" strokeOpacity={0.3} strokeWidth={0.5} />
+                <line x1={F_CENTER_X + 8} y1={F_CONVERGE_Y} x2={F_CENTER_X + 50} y2={F_CONVERGE_Y} stroke="#C9A84C" strokeOpacity={0.3} strokeWidth={0.5} />
+                <text x={F_CENTER_X} y={F_CONVERGE_Y + 24} textAnchor="middle" className="font-serif" style={{ fontSize: "13px", letterSpacing: "0.04em" }} fill="#F0E6D0">The Engineer I Became</text>
+              </g>
+            </svg>
           </div>
 
           {/* Chrome */}
