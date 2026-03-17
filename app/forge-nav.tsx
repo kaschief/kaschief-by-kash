@@ -10,6 +10,11 @@ const VARIANTS = [
   { href: "/forge-test-ref-particles", label: "Particles" },
   { href: "/forge-test-workstation", label: "Workstation" },
   { href: "/forge-test-v8", label: "V8" },
+  { href: "/forge-test-v10", label: "V10" },
+  { href: "/forge-test-v11", label: "V11" },
+  { href: "/forge-test-v12", label: "V12" },
+  { href: "/forge-test-v13", label: "V13" },
+  { href: "/forge-test-v14", label: "V14" },
 ];
 
 export function ForgeNav() {
