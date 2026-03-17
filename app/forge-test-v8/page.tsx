@@ -1,18 +1,10 @@
 "use client";
 
 /**
- * V7: Particles → Dots → Ribbons Funnel
+ * V8: Particles → Dots → Ribbons + Narrative Captions
  *
- * Seamless transition from canvas particles to SVG funnel:
- *   Phase 0 (0.00–0.06): Particles explode from center on canvas
- *   Phase 1 (0.06–0.12): Particles converge to exact SVG dot positions
- *   Phase 2 (0.10–0.14): Canvas fades, SVG dots appear (imperceptible handoff)
- *   Phase 3 (0.12–0.18): Labels fade in above dots
- *   Phase 4 (0.18–0.34): Ribbons grow → AMBOSS
- *   Phase 5 (0.32–0.52): Ribbons → Compado
- *   Phase 6 (0.50–0.68): Ribbons → CAPinside
- *   Phase 7 (0.66–0.84): Ribbons → DKB
- *   Phase 8 (0.82–0.96): Convergence point
+ * V7 + scroll-triggered storytelling captions per stream/company.
+ * Captions appear as ribbons reach each company tier.
  */
 
 import { useRef, useEffect, useCallback } from "react";
@@ -72,8 +64,6 @@ function computePositions(): Map<string, TierPos[]> {
 }
 
 const POS = computePositions();
-
-// Pre-compute top-tier positions for each stream (targets for particles)
 const TOP_POSITIONS = STREAMS.map((s) => POS.get(s.id)![0]);
 
 /* ================================================================== */
@@ -96,7 +86,7 @@ function buildSegments(): Seg[] {
         `C ${p2.x + p2.w / 2} ${my}, ${p1.x + p1.w / 2} ${my}, ${p1.x + p1.w / 2} ${p1.y}`,
         `Z`,
       ].join(" ");
-      segs.push({ streamId: stream.id, color: stream.color, fromTier: i, toTier: i + 1, path, opEnd: 0.25 + (i + 1) * 0.08 });
+      segs.push({ streamId: stream.id, color: stream.color, fromTier: i, toTier: i + 1, path, opEnd: 0.4 + (i + 1) * 0.1 });
     }
   }
   return segs;
@@ -105,20 +95,41 @@ function buildSegments(): Seg[] {
 const SEGS = buildSegments();
 
 /* ================================================================== */
-/*  Particle data (for canvas explosion)                                */
+/*  Narrative captions per company tier                                 */
+/* ================================================================== */
+
+const TIER_CAPTIONS: { company: string; caption: string; color: string }[] = [
+  {
+    company: "AMBOSS",
+    caption: "The user is never an abstraction. The moment you treat them like one, the product starts lying to people.",
+    color: NODES[0].color,
+  },
+  {
+    company: "Compado",
+    caption: "Load time is not a metric. It is a user\u2019s first impression of whether you respect their time.",
+    color: NODES[1].color,
+  },
+  {
+    company: "CAPinside",
+    caption: "A codebase is a record of a team\u2019s habits. If you want to change the code, you have to change how the team works.",
+    color: NODES[2].color,
+  },
+  {
+    company: "DKB",
+    caption: "At a certain scale, the highest-leverage thing an engineer can do is make the right decision obvious.",
+    color: NODES[3].color,
+  },
+];
+
+/* ================================================================== */
+/*  Particles                                                           */
 /* ================================================================== */
 
 function srand(seed: number): number {
   return ((Math.sin(seed * 127.1 + seed * 311.7) * 43758.5453) % 1 + 1) % 1;
 }
 
-interface Particle {
-  streamIdx: number;
-  angle: number;
-  radius: number;
-  size: number;
-  color: string;
-}
+interface Particle { streamIdx: number; angle: number; radius: number; size: number; color: string }
 
 const PARTICLES_PER_STREAM = 12;
 
@@ -147,14 +158,14 @@ const PARTICLES = initParticles();
 /* ================================================================== */
 
 const PH = {
-  EXPLODE:  [0.00, 0.06],
-  CONVERGE: [0.06, 0.12],
-  HANDOFF:  [0.10, 0.14], // canvas out, SVG dots in
-  LABELS:   [0.12, 0.18],
-  TIER_1:   [0.18, 0.34],
-  TIER_2:   [0.32, 0.52],
-  TIER_3:   [0.50, 0.68],
-  TIER_4:   [0.66, 0.84],
+  EXPLODE:     [0.00, 0.06],
+  CONVERGE:    [0.06, 0.12],
+  HANDOFF:     [0.10, 0.14],
+  LABELS:      [0.12, 0.18],
+  TIER_1:      [0.18, 0.34],
+  TIER_2:      [0.32, 0.52],
+  TIER_3:      [0.50, 0.68],
+  TIER_4:      [0.66, 0.84],
   CONVERGE_PT: [0.82, 0.96],
 } as const;
 
@@ -164,12 +175,10 @@ const TIER_PHASES = [PH.TIER_1, PH.TIER_2, PH.TIER_3, PH.TIER_4];
 /*  SVG↔Canvas coordinate mapping                                      */
 /* ================================================================== */
 
-/** Map SVG viewBox coord to pixel coord using actual SVG bounding rect */
 function svgToPixel(
   sx: number, sy: number,
   svgRect: { left: number; top: number; width: number; height: number },
 ): { px: number; py: number } {
-  // SVG uses preserveAspectRatio="xMidYMid meet"
   const scale = Math.min(svgRect.width / VW, svgRect.height / VH);
   const renderedW = VW * scale, renderedH = VH * scale;
   const offX = svgRect.left + (svgRect.width - renderedW) / 2;
@@ -181,7 +190,7 @@ function svgToPixel(
 /*  Component                                                           */
 /* ================================================================== */
 
-export default function ForgeTestV7() {
+export default function ForgeTestV8() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasWrapRef = useRef<HTMLDivElement>(null);
@@ -191,6 +200,7 @@ export default function ForgeTestV7() {
   const labelRefs = useRef<(SVGGElement | null)[]>([]);
   const segRefs = useRef<(SVGPathElement | null)[]>([]);
   const nodeRefs = useRef<(SVGGElement | null)[]>([]);
+  const captionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const convergeRef = useRef<SVGGElement | null>(null);
   const blurRef = useRef<SVGFEGaussianBlurElement | null>(null);
   const progressRef = useRef(0);
@@ -201,7 +211,6 @@ export default function ForgeTestV7() {
     offset: ["start start", "end end"],
   });
 
-  /* ---- Canvas setup ---- */
   const handleResize = useCallback(() => {
     const w = window.innerWidth, h = window.innerHeight;
     sizeRef.current = { w, h };
@@ -235,8 +244,6 @@ export default function ForgeTestV7() {
 
       const p = progressRef.current;
       ctx.clearRect(0, 0, w, h);
-
-      // Only draw during explosion+convergence phases
       if (p > PH.HANDOFF[1]) { rafId = requestAnimationFrame(draw); return; }
 
       const centerX = w * 0.5, centerY = h * 0.5;
@@ -249,7 +256,6 @@ export default function ForgeTestV7() {
         let px: number, py: number, alpha: number;
 
         if (p < PH.EXPLODE[1]) {
-          // Explode outward from center
           const t = smoothstep(PH.EXPLODE[0], PH.EXPLODE[1], p);
           const eased = 1 - (1 - t) * (1 - t);
           const dist = particle.radius * Math.min(w, h) * eased;
@@ -257,21 +263,18 @@ export default function ForgeTestV7() {
           py = centerY + Math.sin(particle.angle) * dist;
           alpha = smoothstep(0, 0.015, p);
         } else {
-          // Converge to target (SVG dot position)
           const t = smoothstep(PH.CONVERGE[0], PH.CONVERGE[1], p);
-          const eased = t * t * (3 - 2 * t); // smoothstep easing
+          const eased = t * t * (3 - 2 * t);
           const dist = particle.radius * Math.min(w, h);
           const explodedX = centerX + Math.cos(particle.angle) * dist;
           const explodedY = centerY + Math.sin(particle.angle) * dist;
           px = lerp(explodedX, targetX, eased);
           py = lerp(explodedY, targetY, eased);
-          // Fade out as SVG dots fade in
           alpha = 1 - smoothstep(PH.HANDOFF[0], PH.HANDOFF[1], p);
         }
 
         if (alpha <= 0.01) continue;
 
-        // Shrink particles as they converge
         const convergeT = smoothstep(PH.CONVERGE[0], PH.CONVERGE[1], p);
         const size = lerp(particle.size, particle.size * 0.6, convergeT);
 
@@ -281,7 +284,6 @@ export default function ForgeTestV7() {
         ctx.globalAlpha = alpha * 0.85;
         ctx.fill();
 
-        // Glow
         ctx.beginPath();
         ctx.arc(px, py, size * 3, 0, Math.PI * 2);
         const grad = ctx.createRadialGradient(px, py, 0, px, py, size * 3);
@@ -300,17 +302,16 @@ export default function ForgeTestV7() {
     return () => { window.removeEventListener("resize", handleResize); cancelAnimationFrame(rafId); };
   }, [handleResize]);
 
-  /* ---- Scroll-driven SVG update ---- */
+  /* ---- Scroll update ---- */
   const update = useCallback((p: number) => {
     progressRef.current = p;
 
-    // Canvas wrapper opacity
     if (canvasWrapRef.current) {
       const fadeOut = 1 - smoothstep(PH.HANDOFF[0], PH.HANDOFF[1], p);
       canvasWrapRef.current.style.opacity = String(fadeOut);
     }
 
-    // --- SVG Dots: appear during handoff, start slightly big then settle ---
+    // SVG Dots
     for (let si = 0; si < STREAMS.length; si++) {
       const el = dotRefs.current[si];
       if (!el) continue;
@@ -325,7 +326,7 @@ export default function ForgeTestV7() {
       if (blur) blur.setAttribute("stdDeviation", String(glowR));
     }
 
-    // --- Labels ---
+    // Labels
     for (let si = 0; si < STREAMS.length; si++) {
       const el = labelRefs.current[si];
       if (!el) continue;
@@ -335,7 +336,7 @@ export default function ForgeTestV7() {
       el.style.transform = `translateY(${lerp(-10, 0, t)}px)`;
     }
 
-    // --- Ribbon segments ---
+    // Ribbon segments
     for (let i = 0; i < SEGS.length; i++) {
       const el = segRefs.current[i];
       if (!el) continue;
@@ -348,7 +349,7 @@ export default function ForgeTestV7() {
       el.style.transform = `scaleY(${t})`;
     }
 
-    // --- Company nodes ---
+    // Company nodes
     for (let ni = 0; ni < NODES.length; ni++) {
       const el = nodeRefs.current[ni];
       if (!el) continue;
@@ -358,7 +359,18 @@ export default function ForgeTestV7() {
       el.style.transform = `translateY(${lerp(8, 0, t)}px)`;
     }
 
-    // --- Convergence ---
+    // Narrative captions — appear as ribbons reach each tier, hold, then fade
+    for (let ni = 0; ni < TIER_CAPTIONS.length; ni++) {
+      const el = captionRefs.current[ni];
+      if (!el) continue;
+      const [phaseStart, phaseEnd] = TIER_PHASES[ni];
+      const fadeIn = smoothstep(lerp(phaseStart, phaseEnd, 0.3), lerp(phaseStart, phaseEnd, 0.5), p);
+      const fadeOut = 1 - smoothstep(lerp(phaseStart, phaseEnd, 0.85), phaseEnd + 0.02, p);
+      el.style.opacity = String(fadeIn * fadeOut);
+      el.style.transform = `translateY(${lerp(12, 0, fadeIn)}px)`;
+    }
+
+    // Convergence
     if (convergeRef.current) {
       const t = smoothstep(PH.CONVERGE_PT[0], PH.CONVERGE_PT[1], p);
       convergeRef.current.style.opacity = String(t);
@@ -377,12 +389,12 @@ export default function ForgeTestV7() {
       <ForgeNav />
 
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
-        {/* Canvas layer — particles (behind SVG) */}
+        {/* Canvas */}
         <div ref={canvasWrapRef} className="absolute inset-0" style={{ zIndex: 1 }}>
           <canvas ref={canvasRef} className="absolute inset-0" />
         </div>
 
-        {/* SVG layer — dots, ribbons, labels, convergence */}
+        {/* SVG */}
         <svg
           ref={svgRef}
           viewBox={`0 0 ${VW} ${VH}`}
@@ -391,17 +403,17 @@ export default function ForgeTestV7() {
           style={{ overflow: "visible", zIndex: 2 }}>
           <defs>
             {STREAMS.map((s) => (
-              <linearGradient key={`g-${s.id}`} id={`v7g-${s.id}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={s.color} stopOpacity={0.3} />
-                <stop offset="100%" stopColor={s.color} stopOpacity={0.65} />
+              <linearGradient key={`g-${s.id}`} id={`v8g-${s.id}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={s.color} stopOpacity={0.45} />
+                <stop offset="100%" stopColor={s.color} stopOpacity={0.8} />
               </linearGradient>
             ))}
             {STREAMS.map((_, si) => (
-              <filter key={`df-${si}`} id={`v7dot-${si}`} x="-200%" y="-200%" width="500%" height="500%">
+              <filter key={`df-${si}`} id={`v8dot-${si}`} x="-200%" y="-200%" width="500%" height="500%">
                 <feGaussianBlur in="SourceGraphic" stdDeviation="8" />
               </filter>
             ))}
-            <filter id="v7-gold-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <filter id="v8-gold-glow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur ref={(el) => { blurRef.current = el; }} in="SourceGraphic" stdDeviation="0" />
             </filter>
           </defs>
@@ -412,7 +424,7 @@ export default function ForgeTestV7() {
               key={`seg-${seg.streamId}-${seg.toTier}`}
               ref={(el) => { segRefs.current[i] = el; }}
               d={seg.path}
-              fill={`url(#v7g-${seg.streamId})`}
+              fill={`url(#v8g-${seg.streamId})`}
               opacity={0}
               style={{ willChange: "opacity, transform" }}
             />
@@ -424,10 +436,10 @@ export default function ForgeTestV7() {
             const spread = TIER_SPREAD[ni + 1];
             return (
               <g key={`node-${node.id}`} ref={(el) => { nodeRefs.current[ni] = el; }} opacity={0}>
-                <line x1={CX - spread - 40} y1={y} x2={CX + spread + 40} y2={y} stroke={node.color} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 6" />
-                <text x={CX - spread - 52} y={y - 12} textAnchor="end" className="font-sans" style={{ fontSize: "11px" }} fill={node.color} fillOpacity={0.7}>{node.label}</text>
-                <text x={CX - spread - 52} y={y + 6} textAnchor="end" className="font-sans" style={{ fontSize: "8px" }} fill="#8A8478" fillOpacity={0.5}>{node.period}</text>
-                <circle cx={CX} cy={y} r={3} fill={node.color} fillOpacity={0.35} />
+                <line x1={CX - spread - 40} y1={y} x2={CX + spread + 40} y2={y} stroke={node.color} strokeOpacity={0.35} strokeWidth={1} strokeDasharray="4 6" />
+                <text x={CX - spread - 52} y={y - 12} textAnchor="end" className="font-sans" style={{ fontSize: "11px", fontWeight: 600 }} fill={node.color} fillOpacity={0.85}>{node.label}</text>
+                <text x={CX - spread - 52} y={y + 6} textAnchor="end" className="font-sans" style={{ fontSize: "8px" }} fill="#8A8478" fillOpacity={0.6}>{node.period}</text>
+                <circle cx={CX} cy={y} r={3} fill={node.color} fillOpacity={0.5} />
               </g>
             );
           })}
@@ -437,7 +449,7 @@ export default function ForgeTestV7() {
             const pos = POS.get(stream.id)![0];
             return (
               <g key={`dot-${stream.id}`} ref={(el) => { dotRefs.current[si] = el; }} opacity={0} style={{ transformOrigin: `${pos.x}px ${pos.y}px` }}>
-                <circle cx={pos.x} cy={pos.y} r={5} fill={stream.color} filter={`url(#v7dot-${si})`} opacity={0.6} />
+                <circle cx={pos.x} cy={pos.y} r={5} fill={stream.color} filter={`url(#v8dot-${si})`} opacity={0.6} />
                 <circle cx={pos.x} cy={pos.y} r={3.5} fill={stream.color} />
                 <circle cx={pos.x} cy={pos.y} r={1.5} fill="white" opacity={0.5} />
               </g>
@@ -449,20 +461,60 @@ export default function ForgeTestV7() {
             const pos = POS.get(stream.id)![0];
             return (
               <g key={`label-${stream.id}`} ref={(el) => { labelRefs.current[si] = el; }} opacity={0}>
-                <text x={pos.x} y={pos.y - 22} textAnchor="middle" className="font-sans" style={{ fontSize: "9px", letterSpacing: "0.04em" }} fill={stream.color} fillOpacity={0.7}>{stream.label}</text>
+                <text x={pos.x} y={pos.y - 22} textAnchor="middle" className="font-sans" style={{ fontSize: "9px", letterSpacing: "0.04em", fontWeight: 500 }} fill={stream.color} fillOpacity={0.9}>{stream.label}</text>
               </g>
             );
           })}
 
           {/* Convergence point */}
           <g ref={(el) => { convergeRef.current = el; }} opacity={0}>
-            <circle cx={CX} cy={CONVERGE_Y} r={6} fill="#C9A84C" filter="url(#v7-gold-glow)" />
+            <circle cx={CX} cy={CONVERGE_Y} r={6} fill="#C9A84C" filter="url(#v8-gold-glow)" />
             <circle cx={CX} cy={CONVERGE_Y} r={3} fill="#F0E6D0" />
             <line x1={CX - 50} y1={CONVERGE_Y} x2={CX - 8} y2={CONVERGE_Y} stroke="#C9A84C" strokeOpacity={0.3} strokeWidth={0.5} />
             <line x1={CX + 8} y1={CONVERGE_Y} x2={CX + 50} y2={CONVERGE_Y} stroke="#C9A84C" strokeOpacity={0.3} strokeWidth={0.5} />
             <text x={CX} y={CONVERGE_Y + 24} textAnchor="middle" className="font-serif" style={{ fontSize: "13px", letterSpacing: "0.04em" }} fill="#F0E6D0">The Engineer I Became</text>
           </g>
         </svg>
+
+        {/* Narrative captions — centered in each tier's row area */}
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 3 }}>
+          {TIER_CAPTIONS.map((cap, ni) => {
+            // Position each caption at the vertical center of its tier row
+            // TIER_Y in SVG coords: [80, 250, 400, 550, 700]
+            // Midpoint between tier ni+1 and tier ni+2 (or converge)
+            const tierTopFrac = [0.20, 0.38, 0.54, 0.72][ni]; // approximate screen fractions
+            return (
+              <div
+                key={`caption-${ni}`}
+                ref={(el) => { captionRefs.current[ni] = el; }}
+                className="absolute left-1/2 -translate-x-1/2 text-center"
+                style={{
+                  top: `${tierTopFrac * 100}%`,
+                  maxWidth: "400px",
+                  opacity: 0,
+                  willChange: "transform, opacity",
+                  padding: "1rem 1.5rem",
+                  borderRadius: "12px",
+                  background: "rgba(14,14,20,0.45)",
+                  backdropFilter: "blur(20px) saturate(1.4)",
+                  WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)",
+                }}>
+                <span
+                  className="font-serif block"
+                  style={{
+                    fontSize: "0.9rem",
+                    lineHeight: 1.6,
+                    color: "var(--cream, #F0E6D0)",
+                    opacity: 0.85,
+                  }}>
+                  {cap.caption}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
