@@ -225,7 +225,13 @@ function buildFunnelSegments(): FSegment[] {
 
 const F_SEGMENTS = buildFunnelSegments();
 
-// Tier captions removed — storytelling moves to terminal replay section
+// Narrator panels — 4 glass cards that accompany the funnel, NOT company-labeled
+const FUNNEL_NARRATOR = [
+  "It started with an instinct from the ward — watching how people actually behave under pressure, not how you imagine they will. That instinct found its first codebase.",
+  "The tools multiplied. Each one resharpened the instinct. Vue for speed. React for structure. Lighthouse for the milliseconds that separate staying from leaving.",
+  "Somewhere along the way, the code stopped being the point. The codebase became a mirror — reflecting how teams communicate, where habits calcify, what nobody dares to touch.",
+  "At scale, every stream thickened. Testing, architecture, design systems, product partnership. The question shifted from what to build to what to protect.",
+];
 
 /* ================================================================== */
 /*  Scroll phases — single source of truth                             */
@@ -370,6 +376,7 @@ export default function ForgeWorkstation() {
   const funnelNodeRefs = useRef<(SVGGElement | null)[]>([]);
   const funnelConvergeRef = useRef<SVGGElement | null>(null);
   const funnelBlurRef = useRef<SVGFEGaussianBlurElement | null>(null);
+  const funnelNarratorRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   /* ---- Data ---- */
   const fragments = useMemo(createFragments, []);
@@ -653,6 +660,23 @@ export default function ForgeWorkstation() {
             String(lerpFn(0, 12, ct)),
           );
         }
+      }
+
+      // Narrator glass panels — positioned right, slide down with tiers
+      const NAR_THRESHOLDS = [
+        [0.33, 0.37],
+        [0.37, 0.40],
+        [0.40, 0.43],
+        [0.43, 0.46],
+      ];
+      for (let ni = 0; ni < FUNNEL_NARRATOR.length; ni++) {
+        const el = funnelNarratorRefs.current[ni];
+        if (!el) continue;
+        const [ts, te] = NAR_THRESHOLDS[ni];
+        const fadeIn = ss(lerpFn(ts, te, 0.1), lerpFn(ts, te, 0.35), p);
+        const fadeOut = 1 - ss(lerpFn(ts, te, 0.8), te + 0.005, p);
+        el.style.opacity = String(fadeIn * fadeOut);
+        el.style.transform = `translateY(${lerpFn(12, 0, fadeIn)}px)`;
       }
 
     }
@@ -1584,7 +1608,43 @@ export default function ForgeWorkstation() {
             </svg>
           </div>
 
-          {/* Captions removed — storytelling moves to terminal replay section */}
+          {/* Narrator glass panels — right side, accompanying funnel */}
+          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 7 }}>
+            {FUNNEL_NARRATOR.map((text, ni) => {
+              const topFrac = [0.15, 0.33, 0.52, 0.72][ni];
+              return (
+                <div
+                  key={`narrator-${ni}`}
+                  ref={(el) => { funnelNarratorRefs.current[ni] = el; }}
+                  className="absolute"
+                  style={{
+                    right: "5%",
+                    top: `${topFrac * 100}%`,
+                    maxWidth: "280px",
+                    opacity: 0,
+                    willChange: "transform, opacity",
+                    padding: "0.85rem 1.1rem",
+                    borderRadius: "10px",
+                    background: "rgba(14,14,20,0.4)",
+                    backdropFilter: "blur(16px) saturate(1.3)",
+                    WebkitBackdropFilter: "blur(16px) saturate(1.3)",
+                    border: "1px solid rgba(255,255,255,0.05)",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.03)",
+                  }}>
+                  <span
+                    className="font-narrator block"
+                    style={{
+                      fontSize: "0.8rem",
+                      lineHeight: 1.65,
+                      color: "var(--cream-muted, #B0A890)",
+                      fontStyle: "italic",
+                    }}>
+                    {text}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
 
           {/* Chrome */}
           <div

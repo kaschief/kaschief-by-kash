@@ -4,9 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const VARIANTS = [
-  { href: "/forge-test-v0", label: "V0" },
   { href: "/forge-test-ref-horizontal", label: "Horiz" },
-  { href: "/forge-test-ref-funnel", label: "Funnel" },
   { href: "/forge-test-ref-particles", label: "Particles" },
   { href: "/forge-test-workstation", label: "Workstation" },
   { href: "/forge-test-v15", label: "V15 Scribe" },
