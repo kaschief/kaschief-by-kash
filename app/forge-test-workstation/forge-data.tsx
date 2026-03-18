@@ -6,9 +6,18 @@ export { clamp, ss, lerp } from "./math";
 /*  Seeded random                                                      */
 /* ================================================================== */
 
-export function srand(seed: number): number {
+/** Deterministic hash → [0,1). Same seed always returns same value.
+ *  Used to generate stable random-looking positions/sizes without Math.random().
+ *  The numeric constants (127.1, 311.7, 43758.5453) are from the standard GLSL
+ *  sin-hash trick — they produce good distribution and must not be changed, as
+ *  all fragment/ember positions depend on them. Callers vary input with prime
+ *  multipliers (e.g. seed * 7.3, seed * 11.1) to get uncorrelated outputs for
+ *  different properties (x, y, rotation, etc.) from the same base seed. */
+export function hashToUnit(seed: number): number {
   return ((Math.sin(seed * 127.1 + seed * 311.7) * 43758.5453) % 1 + 1) % 1;
 }
+/** @deprecated Use hashToUnit — kept as alias for migration */
+export const srand = hashToUnit;
 
 /* ================================================================== */
 /*  Colors                                                             */
@@ -62,10 +71,19 @@ export function fcExt(ci: number, a: number): string {
 export interface FragmentBase {
   companyIdx: number;
   isSeed: boolean;
-  x0: number; y0: number;
-  dx: number; dy: number;
+  /** Initial X position (vw offset from center) */
+  x0: number;
+  /** Initial Y position (vh offset from center) */
+  y0: number;
+  /** Horizontal drift distance during scroll (vw) */
+  dx: number;
+  /** Vertical drift distance during scroll (vh) */
+  dy: number;
+  /** Initial rotation in degrees */
   rot: number;
+  /** Scroll progress [0–1] at which dissolve blur begins */
   dissolveStart: number;
+  /** Scroll progress [0–1] at which dissolve blur completes */
   dissolveEnd: number;
 }
 
@@ -179,13 +197,36 @@ export const LOGOS: Record<string, ReactNode> = {
 /*  Data factories                                                     */
 /* ================================================================== */
 
+// Fragment grid layout — prevents overlapping by assigning to grid cells
+const FRAG_GRID_COLS         = 12;
+const FRAG_GRID_ROWS         = 10;
+const FRAG_GRID_WIDTH_VW     = 82;     // total grid width in vw (centered)
+const FRAG_GRID_HEIGHT_VH    = 72;     // total grid height in vh (centered)
+const FRAG_GRID_ORIGIN_X     = -41;    // left edge offset from center (half of width)
+const FRAG_GRID_ORIGIN_Y     = -36;    // top edge offset from center (half of height)
+const FRAG_JITTER_FACTOR     = 0.6;    // jitter as fraction of cell size
+const FRAG_MAX_DRIFT_X       = 24;     // max horizontal drift in vw
+const FRAG_MAX_DRIFT_Y       = 20;     // max vertical drift in vh
+const FRAG_MAX_ROTATION      = 30;     // max initial rotation in degrees
+const FRAG_GRID_MAX_ATTEMPTS = 20;     // max retries to find unused cell
+
+// Default dissolve ranges per fragment type (scroll progress fractions)
+const DISSOLVE_DEFAULT       = { start: 0.22, end: 0.32 };
+const DISSOLVE_CODE          = { start: 0.23, end: 0.33 };
+const DISSOLVE_LOGO          = { start: 0.18, end: 0.28 };
+const DISSOLVE_COMMAND       = { start: 0.20, end: 0.30 };
+
+// Default sizes
+const CODE_DEFAULT_SIZE      = 0.65;
+const CMD_DEFAULT_SIZE       = 0.65;
+
 export function createFragments(): Fragment[] {
   const frags: Fragment[] = [];
   let s = 0;
 
-  // Grid-based positioning to prevent overlap
-  const COLS = 12, ROWS = 10;
   const usedCells = new Set<number>();
+  const cellW = FRAG_GRID_WIDTH_VW / FRAG_GRID_COLS;
+  const cellH = FRAG_GRID_HEIGHT_VH / FRAG_GRID_ROWS;
 
   function pos() {
     s++;
@@ -193,23 +234,20 @@ export function createFragments(): Fragment[] {
     let cell: number;
     let attempts = 0;
     do {
-      cell = Math.floor(srand(s * 7.1 + attempts * 3.3) * COLS * ROWS);
+      cell = Math.floor(hashToUnit(s * 7.1 + attempts * 3.3) * FRAG_GRID_COLS * FRAG_GRID_ROWS);
       attempts++;
-    } while (usedCells.has(cell) && attempts < 20);
+    } while (usedCells.has(cell) && attempts < FRAG_GRID_MAX_ATTEMPTS);
     usedCells.add(cell);
-    const col = cell % COLS;
-    const row = Math.floor(cell / COLS);
-    const cellW = 82 / COLS;
-    const cellH = 72 / ROWS;
-    // Position within grid cell + small jitter
-    const jitterX = (srand(s * 11.7) - 0.5) * cellW * 0.6;
-    const jitterY = (srand(s * 17.3) - 0.5) * cellH * 0.6;
+    const col = cell % FRAG_GRID_COLS;
+    const row = Math.floor(cell / FRAG_GRID_COLS);
+    const jitterX = (hashToUnit(s * 11.7) - 0.5) * cellW * FRAG_JITTER_FACTOR;
+    const jitterY = (hashToUnit(s * 17.3) - 0.5) * cellH * FRAG_JITTER_FACTOR;
     return {
-      x0: -41 + col * cellW + cellW / 2 + jitterX,
-      y0: -36 + row * cellH + cellH / 2 + jitterY,
-      dx: (srand(s * 3.7) - 0.5) * 24,
-      dy: (srand(s * 5.3) - 0.5) * 20,
-      rot: (srand(s * 11.1) - 0.5) * 30,
+      x0: FRAG_GRID_ORIGIN_X + col * cellW + cellW / 2 + jitterX,
+      y0: FRAG_GRID_ORIGIN_Y + row * cellH + cellH / 2 + jitterY,
+      dx: (hashToUnit(s * 3.7) - 0.5) * FRAG_MAX_DRIFT_X,
+      dy: (hashToUnit(s * 5.3) - 0.5) * FRAG_MAX_DRIFT_Y,
+      rot: (hashToUnit(s * 11.1) - 0.5) * FRAG_MAX_ROTATION,
     };
   }
 
@@ -217,17 +255,18 @@ export function createFragments(): Fragment[] {
   let colorIdx = 0;
   const randColor = () => { const c = colorIdx % CC_EXT.length; colorIdx++; return c; };
 
-  const text = (t: string, _ci: number, kind: TextFrag["type"], size: number, weight = 400, ds = 0.22, de = 0.32): TextFrag => ({
+  // _ci kept for call-site consistency with logo() which uses its company index
+  const text = (t: string, _ci: number, kind: TextFrag["type"], size: number, weight = 400, ds = DISSOLVE_DEFAULT.start, de = DISSOLVE_DEFAULT.end): TextFrag => ({
     type: kind, text: t, companyIdx: randColor(), isSeed: kind === "seed", size, weight, dissolveStart: ds, dissolveEnd: de, ...pos(),
   });
-  const code = (c: string, _ci: number, size = 0.65): CodeFrag => ({
-    type: "code", code: c, companyIdx: randColor(), isSeed: false, size, dissolveStart: 0.23, dissolveEnd: 0.33, ...pos(),
+  const code = (c: string, _ci: number, size = CODE_DEFAULT_SIZE): CodeFrag => ({
+    type: "code", code: c, companyIdx: randColor(), isSeed: false, size, dissolveStart: DISSOLVE_CODE.start, dissolveEnd: DISSOLVE_CODE.end, ...pos(),
   });
   const logo = (key: string, ci: number, label: string, logoSize = 34): LogoFrag => ({
-    type: "logo", logoKey: key, label, companyIdx: ci, isSeed: false, logoSize, dissolveStart: 0.18, dissolveEnd: 0.28, ...pos(),
+    type: "logo", logoKey: key, label, companyIdx: ci, isSeed: false, logoSize, dissolveStart: DISSOLVE_LOGO.start, dissolveEnd: DISSOLVE_LOGO.end, ...pos(),
   });
-  const cmd = (c: string, _ci: number, size = 0.65): CommandFrag => ({
-    type: "command", cmd: c, companyIdx: randColor(), isSeed: false, size, dissolveStart: 0.20, dissolveEnd: 0.30, ...pos(),
+  const cmd = (c: string, _ci: number, size = CMD_DEFAULT_SIZE): CommandFrag => ({
+    type: "command", cmd: c, companyIdx: randColor(), isSeed: false, size, dissolveStart: DISSOLVE_COMMAND.start, dissolveEnd: DISSOLVE_COMMAND.end, ...pos(),
   });
 
   // Companies (logos instead of text)
@@ -363,14 +402,27 @@ export function createPrinciples(): PrincipleData[] {
   }));
 }
 
+// Ember layout constants
+const EMBER_COUNT            = 20;
+const EMBER_SEED_OFFSET      = 50;     // hash seed offset to avoid colliding with fragment seeds
+const EMBER_SPREAD_X         = 60;     // horizontal spread in vw
+const EMBER_SPREAD_Y         = 40;     // vertical spread in vh
+const EMBER_ORIGIN_Y         = 10;     // vertical offset from center
+const EMBER_DRIFT_X          = 8;      // horizontal drift range in vw
+const EMBER_SPEED_MIN        = 15;     // minimum rise speed
+const EMBER_SPEED_RANGE      = 30;     // additional random speed
+const EMBER_SIZE_MIN         = 1.5;    // minimum ember size in px
+const EMBER_SIZE_RANGE        = 3;      // additional random size
+const EMBER_MAX_DELAY        = 0.08;   // max stagger delay (scroll fraction)
+
 export function createEmbers(): EmberData[] {
-  return Array.from({ length: 20 }, (_, i) => ({
-    x0: (srand((i + 50) * 7.3) - 0.5) * 60,
-    y0: srand((i + 50) * 11.1) * 40 + 10,
-    dx: (srand((i + 50) * 3.9) - 0.5) * 8,
-    speed: srand((i + 50) * 5.7) * 30 + 15,
-    size: srand((i + 50) * 9.1) * 3 + 1.5,
-    delay: srand((i + 50) * 2.3) * 0.08,
+  return Array.from({ length: EMBER_COUNT }, (_, i) => ({
+    x0: (hashToUnit((i + EMBER_SEED_OFFSET) * 7.3) - 0.5) * EMBER_SPREAD_X,
+    y0: hashToUnit((i + EMBER_SEED_OFFSET) * 11.1) * EMBER_SPREAD_Y + EMBER_ORIGIN_Y,
+    dx: (hashToUnit((i + EMBER_SEED_OFFSET) * 3.9) - 0.5) * EMBER_DRIFT_X,
+    speed: hashToUnit((i + EMBER_SEED_OFFSET) * 5.7) * EMBER_SPEED_RANGE + EMBER_SPEED_MIN,
+    size: hashToUnit((i + EMBER_SEED_OFFSET) * 9.1) * EMBER_SIZE_RANGE + EMBER_SIZE_MIN,
+    delay: hashToUnit((i + EMBER_SEED_OFFSET) * 2.3) * EMBER_MAX_DELAY,
   }));
 }
 
