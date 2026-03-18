@@ -34,7 +34,7 @@ import {
   createEmbers,
   createPrinciples,
   phaseLabel,
-  srand,
+  hashToUnit,
 } from "./forge-data";
 import { BREAKPOINTS } from "@utilities";
 
@@ -291,7 +291,9 @@ function buildLines(co: CompanyBlock): TermLine[] {
   return lines;
 }
 
-const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+// Intentional: terminal section uses real monospace for code authenticity.
+// The rest of the site avoids mono (--font-mono remapped to Urbanist).
+const TERMINAL_FONT = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
 /** Pre-build all company lines once (module-level). */
 const ALL_COMPANY_LINES = TERM_COMPANIES.map(buildLines);
@@ -975,9 +977,9 @@ function initParticles(): Particle[] {
       const baseAngle = (si / STREAMS.length) * Math.PI * 2;
       particles.push({
         streamIdx: si,
-        angle: baseAngle + (srand(seed + 10) - 0.5) * PARTICLE_ANGLE_SPREAD,
-        radius: PARTICLE_RADIUS_MIN + srand(seed + 11) * PARTICLE_RADIUS_RANGE,
-        size: PARTICLE_SIZE_MIN + srand(seed + 1) * PARTICLE_SIZE_RANGE,
+        angle: baseAngle + (hashToUnit(seed + 10) - 0.5) * PARTICLE_ANGLE_SPREAD,
+        radius: PARTICLE_RADIUS_MIN + hashToUnit(seed + 11) * PARTICLE_RADIUS_RANGE,
+        size: PARTICLE_SIZE_MIN + hashToUnit(seed + 1) * PARTICLE_SIZE_RANGE,
         color: STREAMS[si].color,
       });
     }
@@ -1254,17 +1256,11 @@ export default function ForgeWorkstation() {
     }
 
     /* ============================================================== */
-    /*  PARTICLES → DOTS → RIBBONS (0.26 — 0.47)                      */
-    /*  V7 approach: canvas particles converge to SVG dot positions,   */
-    /*  SVG dots appear as canvas fades, ribbons grow from dots.       */
-    /*                                                                 */
-    /*  0.26–0.28: canvas particles appear + explode from center       */
-    /*  0.28–0.32: particles converge to SVG top-tier dot positions    */
-    /*  0.30–0.34: canvas fades out, SVG dots appear (handoff)         */
-    /*  0.31–0.35: stream labels fade in                               */
-    /*  0.33–0.44: ribbons grow tier by tier                           */
-    /*  0.42–0.46: convergence point appears                           */
-    /*  0.44–0.47: everything fades out                                */
+    /*  PARTICLES → DOTS → RIBBONS                                     */
+    /*  Range: PH.PARTICLES.start → PH.FUNNEL_OUT.end                  */
+    /*  Canvas particles converge to SVG dot positions (V7 approach),   */
+    /*  SVG dots appear as canvas fades, ribbons grow from dots.        */
+    /*  All sub-phase timings defined in PP_* and CANVAS/SVG constants. */
     /* ============================================================== */
     {
       // Canvas particles: full range → local 0–1
@@ -1672,7 +1668,7 @@ export default function ForgeWorkstation() {
     if (vignetteEl.current) vignetteEl.current.style.opacity = "0";
 
     /* ============================================================== */
-    /*  MOVEMENT 3: CRYSTALLIZE (0.88 — 0.98)                          */
+    /*  MOVEMENT 3: CRYSTALLIZE (PH.CRYSTALLIZE range)                  */
     /* ============================================================== */
     {
       const cS = PH.CRYSTALLIZE.start,
@@ -1701,7 +1697,7 @@ export default function ForgeWorkstation() {
     }
   });
 
-  /* ---- Particles now driven from forge progress (0.27–0.46 → 0–1) ---- */
+  /* ---- Particles driven from scroll progress (PARTICLES range → local 0–1) ---- */
 
   /* ---- Resize (canvas + SVG rect cache) ---- */
   const handleResize = useCallback(() => {
@@ -1710,6 +1706,11 @@ export default function ForgeWorkstation() {
     sizeRef.current = { w, h };
     const canvas = canvasRef.current;
     if (canvas) {
+      // Scale canvas backing store to device pixel ratio for crisp rendering
+      // on Retina/HiDPI displays. CSS size stays at logical pixels; the
+      // scale() call lets draw commands use logical coords while the backing
+      // buffer has enough physical pixels. Must re-apply on every resize
+      // because resetting canvas.width clears the context transform.
       const dpr = window.devicePixelRatio || 1;
       canvas.width = w * dpr;
       canvas.height = h * dpr;
@@ -1729,7 +1730,11 @@ export default function ForgeWorkstation() {
     }
   }, []);
 
-  /* ---- Particle animation loop — only runs when in active scroll range ---- */
+  /* ---- Particle animation loop ----
+     Gated by scroll progress: starts only when particleProgressRef enters
+     (0, PP.FADE_OUT[1]] (triggered in the scroll callback), self-terminates
+     when progress leaves that range. No IntersectionObserver needed — the
+     scroll callback is the single authority on when particles are active. */
   useEffect(() => {
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -2065,7 +2070,7 @@ export default function ForgeWorkstation() {
                           x="12"
                           y="31"
                           textAnchor="middle"
-                          fill="#C0B8A0"
+                          fill="var(--cream-muted)"
                           fontSize="5"
                           fontFamily="var(--font-sans)"
                           letterSpacing="0.06em"
@@ -2220,7 +2225,7 @@ export default function ForgeWorkstation() {
                   background: TC.bg,
                   border: "1px solid rgba(255,255,255,0.06)",
                   boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-                  fontFamily: MONO,
+                  fontFamily: TERMINAL_FONT,
                   fontSize: "clamp(10px, 1.6cqh, 13px)",
                   position: "relative",
                   flexShrink: 0,
@@ -2502,7 +2507,7 @@ export default function ForgeWorkstation() {
                               style={{
                                 padding: "8px 10px",
                                 margin: 0,
-                                fontFamily: MONO,
+                                fontFamily: TERMINAL_FONT,
                                 fontSize: "10px",
                                 lineHeight: 1.7,
                                 color: TC.text,
@@ -2747,7 +2752,7 @@ export default function ForgeWorkstation() {
                       textAnchor="end"
                       className="font-sans"
                       style={{ fontSize: "8px" }}
-                      fill="#C0B8A0"
+                      fill="var(--cream-muted)"
                       fillOpacity={0.7}>
                       {node.period}
                     </text>
