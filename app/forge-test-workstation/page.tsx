@@ -693,6 +693,18 @@ const PARTICLE_RADIUS_RANGE     = 0.28;   // additional random distance on top o
 const PARTICLE_SIZE_MIN         = 2;      // smallest dot size in px
 const PARTICLE_SIZE_RANGE       = 2.5;    // additional random size in px
 
+// Canvas dot render constants
+const PARTICLE_APPEAR_DUR       = 0.015;  // dots fade in over first 1.5% of particle progress
+const PARTICLE_ALPHA_CUTOFF     = 0.01;   // skip drawing dots below this alpha (perf)
+const PARTICLE_CONVERGE_SHRINK  = 0.6;    // dots shrink to 60% size as they converge
+const PARTICLE_DOT_OPACITY      = 0.85;   // core dot opacity
+const PARTICLE_GLOW_OPACITY     = 0.25;   // soft glow halo around each dot
+const PARTICLE_GLOW_FADE        = 0.7;    // glow fades out by this factor during convergence
+const PARTICLE_GLOW_RADIUS      = 3;      // glow extends to Nx dot size
+
+// Narrator panel vertical positions (fraction of funnel container height)
+const NARRATOR_TOP_FRACS        = [0.28, 0.42, 0.58, 0.74] as const;
+
 // Canvas → SVG crossfade timing offsets — relative to PARTICLES_START
 const CANVAS_IN_DURATION        = 0.01;   // canvas wrapper fades in quickly
 const CANVAS_OUT_FRAC           = 0.35;   // canvas starts fading at 35% of particle duration
@@ -1013,6 +1025,9 @@ export default function ForgeWorkstation() {
   /* ---- Particle refs ---- */
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particleProgressRef = useRef(0);
+  const particleAnimating = useRef(false);   // true when rAF loop is running
+  const particleFrameId = useRef<number>(0);   // current rAF handle
+  const drawParticles = useRef<() => void>(() => {});  // stable ref for draw fn
   const sizeRef = useRef({ w: 0, h: 0 });
   const particlesRef = useRef<Particle[]>(initParticles());
   const canvasWrapRef = useRef<HTMLDivElement>(null);
@@ -1260,6 +1275,11 @@ export default function ForgeWorkstation() {
         Math.min(1, (p - PART_START) / (PART_END - PART_START)),
       );
       particleProgressRef.current = pt;
+
+      if (pt > 0 && pt <= PP.FADE_OUT[1] && !particleAnimating.current) {
+        particleAnimating.current = true;
+        particleFrameId.current = requestAnimationFrame(drawParticles.current);
+      }
 
       // Canvas + SVG overlap at same positions for seamless handoff (like V7)
       // Canvas fades out AS SVG dots fade in — no black gap
@@ -1695,8 +1715,8 @@ export default function ForgeWorkstation() {
       canvas.height = h * dpr;
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      const ctx = canvas.getContext("2d");
-      if (ctx) ctx.scale(dpr, dpr);
+      const canvasContext = canvas.getContext("2d");
+      if (canvasContext) canvasContext.scale(dpr, dpr);
     }
     if (funnelSvgRef.current) {
       const r = funnelSvgRef.current.getBoundingClientRect();
@@ -1709,100 +1729,96 @@ export default function ForgeWorkstation() {
     }
   }, []);
 
-  /* ---- Particle animation loop (V7: explode → converge to SVG dots → fade) ---- */
+  /* ---- Particle animation loop — only runs when in active scroll range ---- */
   useEffect(() => {
     handleResize();
     window.addEventListener("resize", handleResize);
-    let rafId: number;
 
     function draw() {
       const canvas = canvasRef.current,
-        ctx = canvas?.getContext("2d");
-      if (!ctx || !canvas) {
-        rafId = requestAnimationFrame(draw);
+        canvasCtx = canvas?.getContext("2d");
+      if (!canvasCtx || !canvas) {
+        particleAnimating.current = false;
         return;
       }
-      const { w, h } = sizeRef.current;
-      if (w === 0 || h === 0) {
-        rafId = requestAnimationFrame(draw);
-        return;
-      }
-
-      const p = particleProgressRef.current;
-      ctx.clearRect(0, 0, w, h);
-
-      // Only draw during explosion+convergence phases
-      if (p > PP.FADE_OUT[1]) {
-        rafId = requestAnimationFrame(draw);
+      const { w: viewportW, h: viewportH } = sizeRef.current;
+      if (viewportW === 0 || viewportH === 0) {
+        particleAnimating.current = false;
         return;
       }
 
-      const centerX = w * 0.5,
-        centerY = h * 0.5;
+      const progress = particleProgressRef.current;
+      canvasCtx.clearRect(0, 0, viewportW, viewportH);
+
+      if (progress <= 0 || progress > PP.FADE_OUT[1]) {
+        particleAnimating.current = false;
+        return;
+      }
+
+      const centerX = viewportW * 0.5,
+        centerY = viewportH * 0.5;
       const particles = particlesRef.current;
+      const minDim = Math.min(viewportW, viewportH);
 
       for (const particle of particles) {
-        const si = particle.streamIdx;
-        const target = F_TOP_POSITIONS[si];
+        const target = F_TOP_POSITIONS[particle.streamIdx];
         const { px: targetX, py: targetY } = svgToPixel(
           target.x,
           target.y,
           svgRectRef.current,
         );
 
-        let px: number, py: number, alpha: number;
+        let dotX: number, dotY: number, alpha: number;
 
-        if (p < PP.EXPLODE[1]) {
-          // Explode outward from center
-          const t = smoothstep(PP.EXPLODE[0], PP.EXPLODE[1], p);
-          const eased = 1 - (1 - t) * (1 - t);
-          const dist = particle.radius * Math.min(w, h) * eased;
-          px = centerX + Math.cos(particle.angle) * dist;
-          py = centerY + Math.sin(particle.angle) * dist;
-          alpha = smoothstep(0, 0.015, p);
+        if (progress < PP.EXPLODE[1]) {
+          const explodeT = smoothstep(PP.EXPLODE[0], PP.EXPLODE[1], progress);
+          const eased = 1 - (1 - explodeT) * (1 - explodeT);
+          const dist = particle.radius * minDim * eased;
+          dotX = centerX + Math.cos(particle.angle) * dist;
+          dotY = centerY + Math.sin(particle.angle) * dist;
+          alpha = smoothstep(0, PARTICLE_APPEAR_DUR, progress);
         } else {
-          // Converge to target (SVG dot position)
-          const t = smoothstep(PP.CONVERGE[0], PP.CONVERGE[1], p);
-          const eased = t * t * (3 - 2 * t); // smoothstep easing
-          const dist = particle.radius * Math.min(w, h);
+          const convergeT = smoothstep(PP.CONVERGE[0], PP.CONVERGE[1], progress);
+          const eased = convergeT * convergeT * (3 - 2 * convergeT);
+          const dist = particle.radius * minDim;
           const explodedX = centerX + Math.cos(particle.angle) * dist;
           const explodedY = centerY + Math.sin(particle.angle) * dist;
-          px = lerp(explodedX, targetX, eased);
-          py = lerp(explodedY, targetY, eased);
-          // Fade out as SVG dots fade in
-          alpha = 1 - smoothstep(PP.FADE_OUT[0], PP.FADE_OUT[1], p);
+          dotX = lerp(explodedX, targetX, eased);
+          dotY = lerp(explodedY, targetY, eased);
+          alpha = 1 - smoothstep(PP.FADE_OUT[0], PP.FADE_OUT[1], progress);
         }
 
-        if (alpha <= 0.01) continue;
+        if (alpha <= PARTICLE_ALPHA_CUTOFF) continue;
 
-        // Shrink particles as they converge
-        const convergeT = smoothstep(PP.CONVERGE[0], PP.CONVERGE[1], p);
-        const size = lerp(particle.size, particle.size * 0.6, convergeT);
+        const convergeT = smoothstep(PP.CONVERGE[0], PP.CONVERGE[1], progress);
+        const dotSize = lerp(particle.size, particle.size * PARTICLE_CONVERGE_SHRINK, convergeT);
 
-        ctx.beginPath();
-        ctx.arc(px, py, size, 0, Math.PI * 2);
-        ctx.fillStyle = particle.color;
-        ctx.globalAlpha = alpha * 0.85;
-        ctx.fill();
+        canvasCtx.beginPath();
+        canvasCtx.arc(dotX, dotY, dotSize, 0, Math.PI * 2);
+        canvasCtx.fillStyle = particle.color;
+        canvasCtx.globalAlpha = alpha * PARTICLE_DOT_OPACITY;
+        canvasCtx.fill();
 
-        // Glow
-        ctx.beginPath();
-        ctx.arc(px, py, size * 3, 0, Math.PI * 2);
-        const grad = ctx.createRadialGradient(px, py, 0, px, py, size * 3);
-        grad.addColorStop(0, particle.color);
-        grad.addColorStop(1, "transparent");
-        ctx.fillStyle = grad;
-        ctx.globalAlpha = alpha * 0.25 * (1 - convergeT * 0.7);
-        ctx.fill();
+        const glowSize = dotSize * PARTICLE_GLOW_RADIUS;
+        canvasCtx.beginPath();
+        canvasCtx.arc(dotX, dotY, glowSize, 0, Math.PI * 2);
+        const glowGradient = canvasCtx.createRadialGradient(dotX, dotY, 0, dotX, dotY, glowSize);
+        glowGradient.addColorStop(0, particle.color);
+        glowGradient.addColorStop(1, "transparent");
+        canvasCtx.fillStyle = glowGradient;
+        canvasCtx.globalAlpha = alpha * PARTICLE_GLOW_OPACITY * (1 - convergeT * PARTICLE_GLOW_FADE);
+        canvasCtx.fill();
       }
 
-      ctx.globalAlpha = 1;
-      rafId = requestAnimationFrame(draw);
+      canvasCtx.globalAlpha = 1;
+      particleFrameId.current = requestAnimationFrame(draw);
     }
 
-    rafId = requestAnimationFrame(draw);
+    drawParticles.current = draw;
+
     return () => {
-      cancelAnimationFrame(rafId);
+      cancelAnimationFrame(particleFrameId.current);
+      particleAnimating.current = false;
       window.removeEventListener("resize", handleResize);
     };
   }, [handleResize]);
@@ -2835,7 +2851,7 @@ export default function ForgeWorkstation() {
             className="absolute inset-0 pointer-events-none"
             style={{ zIndex: 7, overflow: "visible" }}>
             {FUNNEL_NARRATOR.map((text, ni) => {
-              const topFrac = [0.28, 0.42, 0.58, 0.74][ni];
+              const topFrac = NARRATOR_TOP_FRACS[ni];
               return (
                 <div
                   key={`narrator-${ni}`}
