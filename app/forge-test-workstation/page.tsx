@@ -4,7 +4,7 @@
  * ForgeWorkstation — Single-file workstation build.
  *
  * Structure:
- *   Container (1000vh)
+ *   Container (2000vh — see CONTAINER_VH)
  *     └─ Sticky viewport (V0's complete scroll: forge + thesis + beats + crystallize)
  *     └─ Summary panel (inside container, scrolls up over sticky — exactly like V0)
  *   ParticleSection (800vh)
@@ -19,20 +19,16 @@ import {
   useInView,
 } from "framer-motion";
 import { COMPANIES, ACT_II } from "@data";
-import {
-  STREAMS,
-  NODES,
-  smoothstep,
-  lerp as lerpFn,
-} from "../forge-sankey-data";
+import { STREAMS, NODES } from "../forge-sankey-data";
 import { ForgeNav } from "../forge-nav";
+import { ss, smoothstep, lerp, remap } from "./math";
 import {
-  ss,
-  lerp,
   fc,
   fcExt,
   CC_EXT,
   ACT_BLUE,
+  COMPANY_COLORS,
+  COMPANY_ROLES,
   LOGOS,
   createFragments,
   createEmbers,
@@ -48,26 +44,18 @@ import { BREAKPOINTS } from "@utilities";
 
 function useBreakpointRefs() {
   const isLg = useRef(false);
-  const isSm = useRef(false);
   useEffect(() => {
     const mqLg = window.matchMedia(`(min-width: ${BREAKPOINTS.lg}px)`);
-    const mqSm = window.matchMedia(`(min-width: ${BREAKPOINTS.sm}px)`);
     isLg.current = mqLg.matches;
-    isSm.current = mqSm.matches;
     const lgH = (e: MediaQueryListEvent) => {
       isLg.current = e.matches;
     };
-    const smH = (e: MediaQueryListEvent) => {
-      isSm.current = e.matches;
-    };
     mqLg.addEventListener("change", lgH);
-    mqSm.addEventListener("change", smH);
     return () => {
       mqLg.removeEventListener("change", lgH);
-      mqSm.removeEventListener("change", smH);
     };
   }, []);
-  return { isLg, isSm };
+  return { isLg };
 }
 
 /* ================================================================== */
@@ -258,19 +246,14 @@ function buildLines(co: CompanyBlock): TermLine[] {
     style: "keyword",
     phase: 1,
   });
-  const roles: Record<string, string> = {
-    AMBOSS: "Frontend Engineer",
-    Compado: "Senior Frontend Engineer",
-    CAPinside: "Senior Frontend Engineer",
-    DKB: "Engineering Manager",
-  };
+  /* roles map replaced by COMPANY_ROLES from forge-data (P1.2) */
   lines.push({
     text: `Author: Kash <${co.authorEmail}>`,
     style: "text",
     phase: 1,
   });
   lines.push({
-    text: `Role:   ${roles[co.company] || "Frontend Engineer"}`,
+    text: `Role:   ${COMPANY_ROLES[co.company] || "Frontend Engineer"}`,
     style: "string",
     phase: 1,
   });
@@ -368,17 +351,7 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/** Map value from [inMin,inMax] to [outMin,outMax], clamped. */
-function remap(
-  value: number,
-  inMin: number,
-  inMax: number,
-  outMin: number,
-  outMax: number,
-) {
-  const t = Math.max(0, Math.min(1, (value - inMin) / (inMax - inMin)));
-  return outMin + (outMax - outMin) * t;
-}
+/* remap() imported from ./math */
 
 /* ================================================================== */
 /*  V0: ScrambleText                                                   */
@@ -493,7 +466,7 @@ function computeFunnelPositions(): Map<string, FTierPos[]> {
             : 0;
         x = F_CENTER_X - spread + passingIndex * passingStep;
       } else {
-        x = lerpFn(prevX, F_CENTER_X, 0.35);
+        x = lerp(prevX, F_CENTER_X, 0.35);
         const maxDist = spread * 1.4;
         if (Math.abs(x - F_CENTER_X) > maxDist)
           x = F_CENTER_X + Math.sign(x - F_CENTER_X) * maxDist;
@@ -653,7 +626,7 @@ const FRAG_FADE_IN_DURATION     = 0.05;   // dark pill fade-in length
 const FRAG_DISSOLVE_SPEED       = 0.7;    // multiplier on per-pill dissolve range (faster = sooner gone)
 const FRAG_DRIFT_INSET          = 0.01;   // drift starts/ends inset from forge boundaries
 const FRAG_ROT_DRIFT_FACTOR     = 0.3;    // pill rotation increases by 30% during drift
-const FRAG_ALPHA_COMPANY        = 1.0;    // company name pills: full opacity
+/* FRAG_ALPHA_COMPANY removed — "company" fragment type was dead code (P1.6) */
 const FRAG_ALPHA_CODE           = 0.75;   // code snippet pills: 75% opacity
 const FRAG_ALPHA_LOGO           = 0.85;   // logo pills: 85% opacity
 const FRAG_ALPHA_DEFAULT        = 0.75;   // other pill types: 75% opacity
@@ -1005,9 +978,7 @@ function initParticles(): Particle[] {
 /* ================================================================== */
 
 export default function ForgeWorkstation() {
-  const { isLg, isSm: isSmRef } = useBreakpointRefs();
-  // isSmRef used in fragments, funnel camera-track, crystallize
-  void isSmRef;
+  const { isLg } = useBreakpointRefs();
 
   /* ---- V0 refs ---- */
   const forgeStickyRef = useRef<HTMLDivElement>(null);
@@ -1035,7 +1006,7 @@ export default function ForgeWorkstation() {
   const vignetteEl = useRef<HTMLDivElement>(null);
   const beatGlowEl = useRef<HTMLDivElement>(null);
   const crystLineEl = useRef<HTMLDivElement>(null);
-  const scrollHintEl = useRef<HTMLDivElement>(null);
+  /* scrollHintEl removed — ref was never rendered (P0.2) */
   const progressBarEl = useRef<HTMLDivElement>(null);
   const phaseEl = useRef<HTMLDivElement>(null);
 
@@ -1076,7 +1047,7 @@ export default function ForgeWorkstation() {
     if (titleInView) setTitleActive(true);
   }, [titleInView]);
 
-  /* ---- Forge scroll (V0 — 1000vh) ---- */
+  /* ---- Forge scroll (V0 — 2000vh) ---- */
   const { scrollYProgress: forgeProgress } = useScroll({
     target: forgeContainerRef,
     offset: ["start start", "end end"],
@@ -1091,8 +1062,7 @@ export default function ForgeWorkstation() {
     }
 
     /* ---- Chrome ---- */
-    if (scrollHintEl.current)
-      scrollHintEl.current.style.opacity = String(1 - ss(0, PH.TITLE.start, p));
+    /* scrollHintEl removed — was never rendered */
     if (progressBarEl.current)
       progressBarEl.current.style.width = `${p * 100}%`;
     if (phaseEl.current) {
@@ -1178,9 +1148,6 @@ export default function ForgeWorkstation() {
             rot = f.rot * (1 + drift * FRAG_ROT_DRIFT_FACTOR);
           let baseAlpha: number;
           switch (f.type) {
-            case "company":
-              baseAlpha = FRAG_ALPHA_COMPANY;
-              break;
             case "code":
             case "command":
               baseAlpha = FRAG_ALPHA_CODE;
@@ -1317,8 +1284,8 @@ export default function ForgeWorkstation() {
         const dotIn = ss(DOTS_IN_START + stagger, DOTS_IN_END + stagger, p);
         const dotOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
         const ribbonStart = ss(RIBBON_TIERS[0].start, RIBBON_TIERS[0].end, p);
-        const scale = lerpFn(DOT_SCALE_START, DOT_SCALE_END, ribbonStart);
-        const glowR = lerpFn(DOT_GLOW_START, DOT_GLOW_END, ribbonStart);
+        const scale = lerp(DOT_SCALE_START, DOT_SCALE_END, ribbonStart);
+        const glowR = lerp(DOT_GLOW_START, DOT_GLOW_END, ribbonStart);
         el.style.opacity = String(dotIn * dotOut);
         el.style.transform = `scale(${dotIn > 0 ? scale : 0})`;
         const blur = el.querySelector("feGaussianBlur");
@@ -1337,7 +1304,7 @@ export default function ForgeWorkstation() {
         );
         const labelOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
         el.style.opacity = String(labelIn * labelOut);
-        el.style.transform = `translateY(${lerpFn(LABEL_SLIDE_Y, 0, labelIn)}px)`;
+        el.style.transform = `translateY(${lerp(LABEL_SLIDE_Y, 0, labelIn)}px)`;
       }
 
       // Ribbon segments grow tier by tier
@@ -1352,8 +1319,8 @@ export default function ForgeWorkstation() {
         const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
         const t = ss(threshStart, threshEnd, p);
         const fadeOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
-        el.style.opacity = String(lerpFn(0, seg.opacityEnd, t) * fadeOut);
-        const scaleY = lerpFn(0, 1, t);
+        el.style.opacity = String(lerp(0, seg.opacityEnd, t) * fadeOut);
+        const scaleY = lerp(0, 1, t);
         el.style.transformOrigin = `${F_CENTER_X}px ${F_TIER_Y[seg.fromTier]}px`;
         el.style.transform = `scaleY(${scaleY})`;
       }
@@ -1364,10 +1331,10 @@ export default function ForgeWorkstation() {
         if (!el) continue;
         const threshIdx = Math.min(ni, TIER_THRESHOLDS.length - 1);
         const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
-        const nodeT = ss(lerpFn(threshStart, threshEnd, NODE_APPEAR_FRAC), threshEnd, p);
+        const nodeT = ss(lerp(threshStart, threshEnd, NODE_APPEAR_FRAC), threshEnd, p);
         const fadeOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
         el.style.opacity = String(nodeT * fadeOut);
-        el.style.transform = `translateY(${lerpFn(NODE_SLIDE_Y, 0, nodeT)}px)`;
+        el.style.transform = `translateY(${lerp(NODE_SLIDE_Y, 0, nodeT)}px)`;
       }
 
       // Convergence point — appears after ribbons complete
@@ -1381,7 +1348,7 @@ export default function ForgeWorkstation() {
         if (funnelBlurRef.current) {
           funnelBlurRef.current.setAttribute(
             "stdDeviation",
-            String(lerpFn(0, CONVERGE_MAX_BLUR, convergenceAppear)),
+            String(lerp(0, CONVERGE_MAX_BLUR, convergenceAppear)),
           );
         }
       }
@@ -1393,13 +1360,13 @@ export default function ForgeWorkstation() {
         const { start: narratorStart, end: narratorEnd } = NARRATOR_TIERS[ni];
         const narratorFadeIn = ss(
           narratorStart,
-          lerpFn(narratorStart, narratorEnd, NARRATOR_FADE_IN_FRAC),
+          lerp(narratorStart, narratorEnd, NARRATOR_FADE_IN_FRAC),
           p,
         );
         const narratorFadeOut =
-          1 - ss(lerpFn(narratorStart, narratorEnd, NARRATOR_FADE_OUT_FRAC), narratorEnd, p);
+          1 - ss(lerp(narratorStart, narratorEnd, NARRATOR_FADE_OUT_FRAC), narratorEnd, p);
         el.style.opacity = String(narratorFadeIn * narratorFadeOut * NARRATOR_MAX_OPACITY);
-        el.style.transform = `translateY(${lerpFn(NARRATOR_SLIDE_Y, 0, narratorFadeIn)}px)`;
+        el.style.transform = `translateY(${lerp(NARRATOR_SLIDE_Y, 0, narratorFadeIn)}px)`;
       }
 
       /* ---- Mobile camera-track (phone only) ---- */
@@ -1423,8 +1390,8 @@ export default function ForgeWorkstation() {
           const skillFadeOut =
             1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
           const fromLeft = si % 2 === 0;
-          const slideX = lerpFn(fromLeft ? -CAMERA_SKILL_SLIDE_X : CAMERA_SKILL_SLIDE_X, 0, skillFadeIn);
-          const scale = lerpFn(CAMERA_SKILL_SCALE_START, 1, skillFadeIn);
+          const slideX = lerp(fromLeft ? -CAMERA_SKILL_SLIDE_X : CAMERA_SKILL_SLIDE_X, 0, skillFadeIn);
+          const scale = lerp(CAMERA_SKILL_SCALE_START, 1, skillFadeIn);
           el.style.opacity = String(Math.max(0, skillFadeIn * skillFadeOut));
           el.style.transform = `translateX(${slideX}px) scale(${scale})`;
         }
@@ -1483,7 +1450,7 @@ export default function ForgeWorkstation() {
             if (card) card.style.opacity = ci === companyIdx ? "1" : "0";
           }
           // Update dot indicators
-          const CC4 = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"];
+          const CC4 = COMPANY_COLORS;
           termProgressRefs.current.forEach((dot, i) => {
             if (!dot) return;
             dot.style.width = i === companyIdx ? DOT_ACTIVE_WIDTH : DOT_INACTIVE_WIDTH;
@@ -1630,8 +1597,7 @@ export default function ForgeWorkstation() {
             narEl.style.opacity = String(1 - fadeOut);
 
             const nameEl = narEl.querySelector<HTMLElement>("[data-role=name]");
-            const periodEl =
-              narEl.querySelector<HTMLElement>("[data-role=period]");
+            /* periodEl removed — no JSX element has data-role="period" (P2.5) */
             const sceneEl =
               narEl.querySelector<HTMLElement>("[data-role=scene]");
             const actionEl =
@@ -1644,15 +1610,10 @@ export default function ForgeWorkstation() {
                 TERM_COMPANIES[companyIdx].company +
                 " · " +
                 TERM_COMPANIES[companyIdx].location;
-              nameEl.style.color = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"][
-                companyIdx
-              ];
+              nameEl.style.color = COMPANY_COLORS[companyIdx];
               nameEl.style.opacity = String(ss(0, NAR_HEADER_FADE_END, narP));
             }
-            if (periodEl) {
-              periodEl.textContent = TERM_COMPANIES[companyIdx].dates;
-              periodEl.style.opacity = String(ss(0, NAR_HEADER_FADE_END, narP));
-            }
+            /* periodEl block removed — dead code path (P2.5) */
             if (sceneEl && nar) {
               sceneEl.textContent = nar.scene;
               const clipRight = 100 - sceneReveal * 100;
@@ -1671,7 +1632,7 @@ export default function ForgeWorkstation() {
           }
 
           // Dot indicator — active dot is pill, others are circles
-          const DOT_COLORS = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"];
+          const DOT_COLORS = COMPANY_COLORS;
           for (let pi = 0; pi < TERM_COMPANY_COUNT; pi++) {
             const dot = termProgressRefs.current[pi];
             if (!dot) continue;
@@ -1806,8 +1767,8 @@ export default function ForgeWorkstation() {
           const dist = particle.radius * Math.min(w, h);
           const explodedX = centerX + Math.cos(particle.angle) * dist;
           const explodedY = centerY + Math.sin(particle.angle) * dist;
-          px = lerpFn(explodedX, targetX, eased);
-          py = lerpFn(explodedY, targetY, eased);
+          px = lerp(explodedX, targetX, eased);
+          py = lerp(explodedY, targetY, eased);
           // Fade out as SVG dots fade in
           alpha = 1 - smoothstep(PP.FADE_OUT[0], PP.FADE_OUT[1], p);
         }
@@ -1816,7 +1777,7 @@ export default function ForgeWorkstation() {
 
         // Shrink particles as they converge
         const convergeT = smoothstep(PP.CONVERGE[0], PP.CONVERGE[1], p);
-        const size = lerpFn(particle.size, particle.size * 0.6, convergeT);
+        const size = lerp(particle.size, particle.size * 0.6, convergeT);
 
         ctx.beginPath();
         ctx.arc(px, py, size, 0, Math.PI * 2);
@@ -1855,7 +1816,7 @@ export default function ForgeWorkstation() {
       <ForgeNav />
 
       {/* ============================================================ */}
-      {/*  FORGE CONTAINER (1000vh) — V0's complete sequence            */}
+      {/*  FORGE CONTAINER (2000vh) — V0's complete sequence            */}
       {/* ============================================================ */}
       <div
         ref={forgeContainerRef}
@@ -2136,15 +2097,11 @@ export default function ForgeWorkstation() {
                       color: fcExt(f.companyIdx, 0.95),
                       opacity: 0,
                       letterSpacing:
-                        f.type === "company"
-                          ? "0.1em"
-                          : f.type === "tag"
-                            ? "0.06em"
-                            : f.type === "seed"
-                              ? "0.04em"
-                              : "0.02em",
-                      textTransform:
-                        f.type === "company" ? "uppercase" : undefined,
+                        f.type === "tag"
+                          ? "0.06em"
+                          : f.type === "seed"
+                            ? "0.04em"
+                            : "0.02em",
                       willChange: "transform, opacity, filter",
                       ...(f.type === "tag"
                         ? {
@@ -2384,18 +2341,7 @@ export default function ForgeWorkstation() {
 
             {/* Mobile carousel — static swipeable cards, lg:hidden */}
             {(() => {
-              const COMPANY_COLORS = [
-                "#60A5FA",
-                "#42B883",
-                "#06B6D4",
-                "#F472B6",
-              ];
-              const ROLES: Record<string, string> = {
-                AMBOSS: "Frontend Engineer",
-                Compado: "Senior Frontend Engineer",
-                CAPinside: "Senior Frontend Engineer",
-                DKB: "Senior Frontend Engineer",
-              };
+              /* COMPANY_COLORS + COMPANY_ROLES imported from forge-data */
               return (
                 <div
                   ref={mobileCarouselRef}
@@ -2441,7 +2387,7 @@ export default function ForgeWorkstation() {
                               marginTop: "0.25rem",
                               letterSpacing: "0.04em",
                             }}>
-                            {ROLES[co.company]}
+                            {COMPANY_ROLES[co.company]}
                           </div>
                         </div>
                         {/* Glass card container */}

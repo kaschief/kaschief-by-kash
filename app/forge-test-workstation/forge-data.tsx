@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { COMPANIES } from "@data";
+export { clamp, ss, lerp } from "./math";
 
 /* ================================================================== */
 /*  Seeded random                                                      */
@@ -10,37 +11,38 @@ export function srand(seed: number): number {
 }
 
 /* ================================================================== */
-/*  Math (V0 local versions)                                           */
-/* ================================================================== */
-
-export function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)); }
-export function ss(e0: number, e1: number, x: number) { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); }
-export function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-
-/* ================================================================== */
 /*  Colors                                                             */
 /* ================================================================== */
 
 export const ACT_BLUE = "#5B9EC2";
 
+/** Hex colors for the 4 companies: AMBOSS, Compado/Finleap, CAPinside, DKB */
+export const COMPANY_COLORS = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"] as const;
+
+/** Roles per company — single source of truth (DKB = Engineering Manager per promotion) */
+export const COMPANY_ROLES: Record<string, string> = {
+  AMBOSS: "Frontend Engineer",
+  Compado: "Senior Frontend Engineer",
+  CAPinside: "Senior Frontend Engineer",
+  DKB: "Engineering Manager",
+};
+
+/** Base RGB palette (4 company colors) for rgba() usage */
 export const CC = [
-  [96, 165, 250],  // blue
-  [66, 184, 131],  // green
-  [6, 182, 212],   // cyan/teal
-  [244, 114, 182], // pink
+  [96, 165, 250],  // blue  — AMBOSS
+  [66, 184, 131],  // green — Compado
+  [6, 182, 212],   // cyan  — CAPinside
+  [244, 114, 182], // pink  — DKB
 ];
 
-/** Extended palette for fragments — more color variety */
-export const CC_EXT = [
-  [96, 165, 250],  // blue
-  [66, 184, 131],  // green
-  [6, 182, 212],   // cyan
-  [244, 114, 182], // pink
+/** Extended RGB palette for fragments — base 4 + extra variety */
+const CC_EXTRA = [
   [224, 82, 82],   // red (act-red)
   [139, 92, 246],  // purple
   [245, 158, 11],  // amber
   [94, 187, 115],  // emerald
 ];
+export const CC_EXT = [...CC, ...CC_EXTRA];
 
 export function fc(ci: number, a: number): string {
   const [r, g, b] = CC[ci % CC.length];
@@ -68,7 +70,7 @@ export interface FragmentBase {
 }
 
 export interface TextFrag extends FragmentBase {
-  type: "company" | "phrase" | "tag" | "seed";
+  type: "phrase" | "tag" | "seed";
   text: string;
   size: number;
   weight: number;
@@ -109,15 +111,7 @@ export interface BeatData {
   shift: string;
 }
 
-export interface WhisperData {
-  text: string;
-  beatIdx: number;
-  x0: number;
-  y0: number;
-  dx: number;
-  dy: number;
-  size: number;
-}
+/* WhisperData removed — createWhispers was never imported (P1.5) */
 
 export interface PrincipleData {
   text: string;
@@ -359,35 +353,7 @@ export const BEATS: BeatData[] = [
   },
 ];
 
-export function createWhispers(): WhisperData[] {
-  const whispers: WhisperData[] = [];
-  let s = 200;
-
-  const add = (text: string, beatIdx: number) => {
-    s++;
-    const side = srand(s * 2.1) > 0.5 ? 1 : -1;
-    whispers.push({
-      text,
-      beatIdx,
-      x0: side * (srand(s * 7.7) * 18 + 22),
-      y0: (srand(s * 11.3) - 0.5) * 50,
-      dx: (srand(s * 3.1) - 0.5) * 6,
-      dy: (srand(s * 5.9) - 0.5) * 4,
-      size: srand(s * 9.3) * 0.2 + 0.6,
-    });
-  };
-
-  add("React", 0); add("500K", 0); add("Berlin 2018", 0);
-  add("A/B", 0); add("clinical", 0);
-  add("Vue", 1); add("+50%", 1); add("Berlin 2019", 1);
-  add("SEO", 1); add("speed", 1);
-  add("TypeScript", 2); add("10K", 2); add("Hamburg", 2);
-  add("legacy", 2); add("rewrite", 2);
-  add("Playwright", 3); add("5M", 3); add("Berlin 2021", 3);
-  add("weekly", 3); add("testing", 3);
-
-  return whispers;
-}
+/* createWhispers removed — was never imported (P1.5) */
 
 export function createPrinciples(): PrincipleData[] {
   return COMPANIES.map((c, i) => ({
@@ -412,12 +378,7 @@ export function createEmbers(): EmberData[] {
 /*  Beat timing                                                        */
 /* ================================================================== */
 
-export const BEAT_RANGES = [
-  { fadeIn: [0.32, 0.37], hold: [0.37, 0.44], fadeOut: [0.44, 0.49] },
-  { fadeIn: [0.47, 0.52], hold: [0.52, 0.59], fadeOut: [0.59, 0.64] },
-  { fadeIn: [0.62, 0.67], hold: [0.67, 0.74], fadeOut: [0.74, 0.79] },
-  { fadeIn: [0.77, 0.82], hold: [0.82, 0.88], fadeOut: [0.88, 0.92] },
-] as const;
+/* BEAT_RANGES removed — was never imported (P1.5) */
 
 /* ================================================================== */
 /*  Phase labels                                                       */
