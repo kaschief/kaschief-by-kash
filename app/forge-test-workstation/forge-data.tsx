@@ -24,14 +24,32 @@ export function lerp(a: number, b: number, t: number) { return a + (b - a) * t; 
 export const ACT_BLUE = "#5B9EC2";
 
 export const CC = [
-  [96, 165, 250],  // AMBOSS — blue
-  [66, 184, 131],  // Compado — green
-  [6, 182, 212],   // CAPinside — cyan/teal
-  [244, 114, 182], // DKB — pink
+  [96, 165, 250],  // blue
+  [66, 184, 131],  // green
+  [6, 182, 212],   // cyan/teal
+  [244, 114, 182], // pink
+];
+
+/** Extended palette for fragments — more color variety */
+export const CC_EXT = [
+  [96, 165, 250],  // blue
+  [66, 184, 131],  // green
+  [6, 182, 212],   // cyan
+  [244, 114, 182], // pink
+  [224, 82, 82],   // red (act-red)
+  [139, 92, 246],  // purple
+  [245, 158, 11],  // amber
+  [94, 187, 115],  // emerald
 ];
 
 export function fc(ci: number, a: number): string {
-  const [r, g, b] = CC[ci];
+  const [r, g, b] = CC[ci % CC.length];
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+/** Fragment color — uses extended palette */
+export function fcExt(ci: number, a: number): string {
+  const [r, g, b] = CC_EXT[ci % CC_EXT.length];
   return `rgba(${r},${g},${b},${a})`;
 }
 
@@ -172,7 +190,7 @@ export function createFragments(): Fragment[] {
   let s = 0;
 
   // Grid-based positioning to prevent overlap
-  const COLS = 10, ROWS = 8;
+  const COLS = 12, ROWS = 10;
   const usedCells = new Set<number>();
 
   function pos() {
@@ -201,17 +219,21 @@ export function createFragments(): Fragment[] {
     };
   }
 
-  const text = (t: string, ci: number, kind: TextFrag["type"], size: number, weight = 400, ds = 0.22, de = 0.32): TextFrag => ({
-    type: kind, text: t, companyIdx: ci, isSeed: kind === "seed", size, weight, dissolveStart: ds, dissolveEnd: de, ...pos(),
+  // Cycle through extended palette evenly
+  let colorIdx = 0;
+  const randColor = () => { const c = colorIdx % CC_EXT.length; colorIdx++; return c; };
+
+  const text = (t: string, _ci: number, kind: TextFrag["type"], size: number, weight = 400, ds = 0.22, de = 0.32): TextFrag => ({
+    type: kind, text: t, companyIdx: randColor(), isSeed: kind === "seed", size, weight, dissolveStart: ds, dissolveEnd: de, ...pos(),
   });
-  const code = (c: string, ci: number, size = 0.65): CodeFrag => ({
-    type: "code", code: c, companyIdx: ci, isSeed: false, size, dissolveStart: 0.23, dissolveEnd: 0.33, ...pos(),
+  const code = (c: string, _ci: number, size = 0.65): CodeFrag => ({
+    type: "code", code: c, companyIdx: randColor(), isSeed: false, size, dissolveStart: 0.23, dissolveEnd: 0.33, ...pos(),
   });
   const logo = (key: string, ci: number, label: string, logoSize = 34): LogoFrag => ({
     type: "logo", logoKey: key, label, companyIdx: ci, isSeed: false, logoSize, dissolveStart: 0.18, dissolveEnd: 0.28, ...pos(),
   });
-  const cmd = (c: string, ci: number, size = 0.65): CommandFrag => ({
-    type: "command", cmd: c, companyIdx: ci, isSeed: false, size, dissolveStart: 0.20, dissolveEnd: 0.30, ...pos(),
+  const cmd = (c: string, _ci: number, size = 0.65): CommandFrag => ({
+    type: "command", cmd: c, companyIdx: randColor(), isSeed: false, size, dissolveStart: 0.20, dissolveEnd: 0.30, ...pos(),
   });
 
   // Companies (logos instead of text)

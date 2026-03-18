@@ -30,7 +30,8 @@ import {
   ss,
   lerp,
   fc,
-  CC,
+  fcExt,
+  CC_EXT,
   ACT_BLUE,
   LOGOS,
   createFragments,
@@ -39,6 +40,31 @@ import {
   phaseLabel,
   srand,
 } from "./forge-data";
+import { BREAKPOINTS } from "@utilities";
+
+/* ================================================================== */
+/*  Breakpoint refs (no-re-render, matches Act I pattern)              */
+/* ================================================================== */
+
+function useBreakpointRefs() {
+  const isLg = useRef(false);
+  const isSm = useRef(false);
+  useEffect(() => {
+    const mqLg = window.matchMedia(`(min-width: ${BREAKPOINTS.lg}px)`);
+    const mqSm = window.matchMedia(`(min-width: ${BREAKPOINTS.sm}px)`);
+    isLg.current = mqLg.matches;
+    isSm.current = mqSm.matches;
+    const lgH = (e: MediaQueryListEvent) => { isLg.current = e.matches; };
+    const smH = (e: MediaQueryListEvent) => { isSm.current = e.matches; };
+    mqLg.addEventListener("change", lgH);
+    mqSm.addEventListener("change", smH);
+    return () => {
+      mqLg.removeEventListener("change", lgH);
+      mqSm.removeEventListener("change", smH);
+    };
+  }, []);
+  return { isLg, isSm };
+}
 
 /* ================================================================== */
 /*  Terminal replay — colors, data, line builder (from V16)            */
@@ -245,7 +271,7 @@ function buildLines(co: CompanyBlock): TermLine[] {
     phase: 1,
   });
   lines.push({
-    text: `Date:   ${co.location}, ${co.dates}`,
+    text: `Date:   ${co.dates}`,
     style: "text",
     phase: 1,
   });
@@ -326,7 +352,7 @@ const TERM_NARRATIVES = [
       "Germany\u2019s largest direct bank. Five million users. Monthly releases. Zero automated tests when I arrived.",
     action:
       "Introduced Playwright. Monthly to weekly releases. Feature flags. Found myself in the product room shaping what got built.",
-    shift: "Then they promoted me to engineering manager.",
+    shift: "Confidence to ship weekly comes from tests, not from courage.",
   },
 ];
 
@@ -641,6 +667,10 @@ function initParticles(): Particle[] {
 /* ================================================================== */
 
 export default function ForgeWorkstation() {
+  const { isLg, isSm: isSmRef } = useBreakpointRefs();
+  // isSmRef used in fragments, funnel camera-track, crystallize
+  void isSmRef;
+
   /* ---- V0 refs ---- */
   const forgeStickyRef = useRef<HTMLDivElement>(null);
   const summaryPanelRef = useRef<HTMLDivElement>(null);
@@ -688,7 +718,12 @@ export default function ForgeWorkstation() {
   const funnelConvergeRef = useRef<SVGGElement | null>(null);
   const funnelBlurRef = useRef<SVGFEGaussianBlurElement | null>(null);
   const funnelNarratorRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // Mobile camera-track refs
+  const cameraTrackRef = useRef<HTMLDivElement>(null);
+  const cameraNodeRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const cameraSkillRefs = useRef<(HTMLDivElement | null)[]>([]);
   const mobileCarouselRef = useRef<HTMLDivElement>(null);
+  const mobileCardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   /* ---- Data ---- */
   const fragments = useMemo(createFragments, []);
@@ -770,7 +805,7 @@ export default function ForgeWorkstation() {
                   Math.min(1, (fragScreenY - curtainTop) / CURTAIN_FADE),
                 );
           const goldT = ss(0.7, 1, converge);
-          const [cr, cg, cb] = CC[f.companyIdx];
+          const [cr, cg, cb] = CC_EXT[f.companyIdx % CC_EXT.length];
           const cm = goldT * goldT;
           el.style.color = `rgb(${Math.round(lerp(cr, 201, cm))},${Math.round(lerp(cg, 168, cm))},${Math.round(lerp(cb, 76, cm))})`;
           const dissolve = ss(0.17, 0.19, p);
@@ -847,26 +882,31 @@ export default function ForgeWorkstation() {
     }
 
     /* ---- Thesis (0.17 — 0.27) ---- */
+    // Mobile: wider y-spacing + maxWidth to prevent overlap with wrapped text
+    const lg = isLg.current;
     if (thesisEls.current[0]) {
       const fadeIn = ss(0.17, 0.2, p),
         fadeOut = 1 - ss(0.24, 0.27, p);
       thesisEls.current[0].style.opacity = String(fadeIn * fadeOut);
-      thesisEls.current[0].style.transform = `translate(-50%, calc(-50% + ${lerp(4, -2, ss(0.17, 0.27, p))}vh))`;
+      thesisEls.current[0].style.transform = `translate(-50%, calc(-50% + ${lerp(lg ? 2 : -6, lg ? -5 : -12, ss(0.17, 0.27, p))}vh))`;
       thesisEls.current[0].style.filter = `blur(${lerp(6, 0, fadeIn)}px)`;
+      thesisEls.current[0].style.maxWidth = lg ? "60vw" : "85vw";
     }
     if (thesisEls.current[1]) {
       const fadeIn = ss(0.19, 0.22, p),
         fadeOut = 1 - ss(0.24, 0.27, p);
       thesisEls.current[1].style.opacity = String(fadeIn * fadeOut);
-      thesisEls.current[1].style.transform = `translate(-50%, calc(-50% + ${lerp(9, 3, ss(0.19, 0.27, p))}vh))`;
+      thesisEls.current[1].style.transform = `translate(-50%, calc(-50% + ${lerp(lg ? 12 : 10, lg ? 6 : 4, ss(0.19, 0.27, p))}vh))`;
       thesisEls.current[1].style.filter = `blur(${lerp(6, 0, fadeIn)}px)`;
+      thesisEls.current[1].style.maxWidth = lg ? "60vw" : "85vw";
     }
     if (thesisEls.current[2]) {
       const fadeIn = ss(0.21, 0.24, p),
         fadeOut = 1 - ss(0.25, 0.27, p);
       thesisEls.current[2].style.opacity = String(fadeIn * fadeOut);
-      thesisEls.current[2].style.transform = `translate(-50%, calc(-50% + ${lerp(16, 12, ss(0.21, 0.27, p))}vh))`;
+      thesisEls.current[2].style.transform = `translate(-50%, calc(-50% + ${lerp(lg ? 22 : 26, lg ? 17 : 22, ss(0.21, 0.27, p))}vh))`;
       thesisEls.current[2].style.filter = `blur(${lerp(4, 0, fadeIn)}px)`;
+      thesisEls.current[2].style.maxWidth = lg ? "40vw" : "80vw";
     }
 
     /* ============================================================== */
@@ -1000,6 +1040,40 @@ export default function ForgeWorkstation() {
         el.style.opacity = String(fadeIn * fadeOut * 0.75);
         el.style.transform = `translateY(${lerpFn(12, 0, fadeIn)}px)`;
       }
+
+      /* ---- Mobile camera-track (phone only) ---- */
+      if (!lg) {
+        // Camera track wrapper: same timing as SVG funnel
+        if (cameraTrackRef.current) {
+          const trackIn = ss(0.28, 0.31, p);
+          const trackOut = 1 - ss(0.475, 0.49, p);
+          cameraTrackRef.current.style.opacity = String(trackIn * trackOut);
+        }
+        // (track line removed — content alone carries the convergence)
+        // Skills accumulate progressively — staggered by first company tier
+        const SKILL_TIERS = [0.30, 0.35, 0.39, 0.43]; // matching company tiers
+        for (let si = 0; si < STREAMS.length; si++) {
+          const el = cameraSkillRefs.current[si];
+          if (!el) continue;
+          const firstTier = STREAMS[si].path[0];
+          const stagger = si * 0.005;
+          const tierStart = SKILL_TIERS[firstTier] + stagger;
+          const fadeIn = ss(tierStart, tierStart + 0.02, p);
+          const fadeOut = 1 - ss(0.46, 0.48, p);
+          const fromLeft = si % 2 === 0;
+          const slideX = lerpFn(fromLeft ? -40 : 40, 0, fadeIn);
+          const scale = lerpFn(0.8, 1, fadeIn);
+          el.style.opacity = String(Math.max(0, fadeIn * fadeOut));
+          el.style.transform = `translateX(${slideX}px) scale(${scale})`;
+        }
+        // Convergence diamond — appears after most skills are in
+        const convEl = cameraNodeRefs.current[0];
+        if (convEl) {
+          const convIn = ss(0.44, 0.46, p);
+          const convOut = 1 - ss(0.47, 0.48, p);
+          convEl.style.opacity = String(convIn * convOut);
+        }
+      }
     }
 
     /* ---- Mid narrator: "Let me show you what I've done" ---- */
@@ -1021,15 +1095,20 @@ export default function ForgeWorkstation() {
       const termContent = termContentRef.current;
       const termWipe = termWipeRef.current;
 
-      if (termEl && termContent && termWipe) {
-        // Fade terminal in/out
+        // Terminal + mobile carousel timing (shared scroll phase)
         const termStart = PH.BEATS[0].start;
         const termEnd = PH.BEATS[3].end;
         const termIn = ss(termStart, termStart + 0.01, p);
         const termOut = 1 - ss(termEnd - 0.01, termEnd, p);
-        termEl.style.opacity = String(termIn * termOut);
+
+        // Fade desktop terminal
+        if (termEl) termEl.style.opacity = String(termIn * termOut);
         if (termProgressWrapRef.current) {
           termProgressWrapRef.current.style.opacity = String(termIn * termOut);
+        }
+        // Fade mobile carousel wrapper
+        if (!lg && mobileCarouselRef.current) {
+          mobileCarouselRef.current.style.opacity = String(termIn * termOut);
         }
 
         if (termIn > 0 && termOut > 0) {
@@ -1038,6 +1117,24 @@ export default function ForgeWorkstation() {
           const localP = Math.max(0, Math.min(1, (p - termStart) / totalDur));
           const companyIdx = Math.min(Math.floor(localP * 4), 3);
           const companyProgress = (localP - companyIdx / 4) * 4;
+
+          // Mobile: show/hide stacked cards based on scroll progress
+          if (!lg) {
+            for (let ci = 0; ci < 4; ci++) {
+              const card = mobileCardRefs.current[ci];
+              if (card) card.style.opacity = ci === companyIdx ? "1" : "0";
+            }
+            // Update dot indicators
+            const CC4 = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"];
+            termProgressRefs.current.forEach((dot, i) => {
+              if (!dot) return;
+              dot.style.width = i === companyIdx ? "20px" : "6px";
+              dot.style.opacity = i === companyIdx ? "1" : "0.35";
+              dot.style.background = i === companyIdx ? CC4[companyIdx] : "var(--text-dim)";
+            });
+          }
+
+      if (termEl && termContent && termWipe) {
 
           // Phase boundaries — terminal types in first half, narrative reveals in second
           const P1_END = 0.2,
@@ -1133,7 +1230,7 @@ export default function ForgeWorkstation() {
                   : "";
               if (isPartial) cursorPlaced = true;
 
-              html += `<div style="background:${bg};min-height:1.5em;line-height:1.5;padding:0 1ch;${italic ? "font-style:italic;" : ""}">${numStr}<span style="color:${fg};">${visibleText}</span>${cursor}</div>`;
+              html += `<div style="background:${bg};min-height:1.5em;line-height:1.5;padding:0 1ch;">${numStr}<span style="color:${fg};${italic ? "font-style:italic;" : ""}">${visibleText}</span>${cursor}</div>`;
 
               charsSoFar += lineLen;
               lineNum++;
@@ -1185,17 +1282,14 @@ export default function ForgeWorkstation() {
               narEl.querySelector<HTMLElement>("[data-role=shift]");
 
             if (nameEl) {
-              nameEl.textContent = TERM_COMPANIES[companyIdx].company;
+              nameEl.textContent = TERM_COMPANIES[companyIdx].company + " · " + TERM_COMPANIES[companyIdx].location;
               nameEl.style.color = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"][
                 companyIdx
               ];
               nameEl.style.opacity = String(ss(0, 0.1, narP));
             }
             if (periodEl) {
-              periodEl.textContent =
-                TERM_COMPANIES[companyIdx].location +
-                ", " +
-                TERM_COMPANIES[companyIdx].dates;
+              periodEl.textContent = TERM_COMPANIES[companyIdx].dates;
               periodEl.style.opacity = String(ss(0, 0.1, narP));
             }
             if (sceneEl && nar) {
@@ -1252,10 +1346,13 @@ export default function ForgeWorkstation() {
         const stagger = i * cD * 0.06;
         const fadeIn = ss(cS + cD * 0.2 + stagger, cS + cD * 0.55 + stagger, p);
         const settle = ss(cS + cD * 0.35 + stagger, cS + cD * 0.85, p);
-        const y = lerp(pr.yOffset + 6, pr.yOffset, settle);
+        // Mobile: wider spacing between principles
+        const mobileYOffset = lg ? pr.yOffset : (i - 1.5) * 20;
+        const y = lerp(mobileYOffset + 6, mobileYOffset, settle);
         el.style.transform = `translate(-50%, calc(-50% + ${y}vh))`;
         el.style.opacity = String(fadeIn);
         el.style.filter = `blur(${lerp(6, 0, fadeIn)}px)`;
+        el.style.maxWidth = lg ? "44vw" : "min(320px, 85vw)";
       });
     }
   });
@@ -1403,7 +1500,7 @@ export default function ForgeWorkstation() {
         className="relative">
         <div
           ref={forgeStickyRef}
-          className="sticky top-0 h-screen w-full overflow-hidden [container-type:size]"
+          className="sticky top-0 h-screen w-full overflow-hidden [container-type:size] [--frag-scale:0.6] sm:[--frag-scale:0.85]"
           style={{ background: "var(--bg)", zIndex: 1 }}>
           <div
             aria-hidden
@@ -1554,13 +1651,13 @@ export default function ForgeWorkstation() {
                 animate={titleActive ? { opacity: 1 } : {}}
                 transition={{ duration: 1, delay: 0.8 }}
                 className="font-serif text-sm italic text-center mt-6 mx-auto sm:text-base"
-                style={{ color: "var(--cream-muted)", maxWidth: 500 }}>
+                style={{ color: "var(--cream-muted)", maxWidth: "min(500px, 85vw)" }}>
                 {ACT_II.splash}
               </motion.p>
             </div>
           </div>
 
-          {/* Forge fragments */}
+          {/* Forge fragments — scale down on mobile for less clutter */}
           {fragments.map((f, i) => {
             const setRef = (el: HTMLElement | null) => {
               fragmentEls.current[i] = el;
@@ -1580,10 +1677,10 @@ export default function ForgeWorkstation() {
                       padding: "6px 12px",
                       borderRadius: "6px",
                       background: "rgba(14,14,20,0.85)",
-                      border: "1px solid rgba(91,158,194,0.25)",
-                      fontSize: `${f.size}rem`,
+                      border: `1px solid ${fcExt(f.companyIdx, 0.25)}`,
+                      fontSize: `calc(${f.size}rem * var(--frag-scale))`,
                       fontFamily: "var(--font-sans)",
-                      color: fc(f.companyIdx, 0.95),
+                      color: fcExt(f.companyIdx, 0.95),
                       letterSpacing: "0.02em",
                       willChange: "transform, opacity, filter",
                     }}>
@@ -1592,7 +1689,7 @@ export default function ForgeWorkstation() {
                         /^(const |let |var |export |async |await |function |interface |import )/,
                       )?.[0] ?? ""}
                     </span>
-                    <span style={{ color: fc(f.companyIdx, 0.85) }}>
+                    <span style={{ color: fcExt(f.companyIdx, 0.85) }}>
                       {f.code.replace(
                         /^(const |let |var |export |async |await |function |interface |import )/,
                         "",
@@ -1606,17 +1703,19 @@ export default function ForgeWorkstation() {
                     key={`logo-${f.logoKey}-${i}`}
                     ref={setRef}
                     aria-hidden
-                    className={`${base}`}
+                    className={`${base} `}
                     style={{
                       opacity: 0,
                       willChange: "transform, opacity, filter",
                     }}>
                     <svg
-                      width={f.logoSize}
-                      height={f.label ? f.logoSize * 1.5 : f.logoSize}
                       viewBox={f.label ? "0 0 24 36" : "0 0 24 24"}
                       fill="none"
-                      style={{ overflow: "visible" }}>
+                      style={{
+                        overflow: "visible",
+                        width: `calc(${f.logoSize}px * var(--frag-scale))`,
+                        height: `calc(${f.label ? f.logoSize * 1.5 : f.logoSize}px * var(--frag-scale))`,
+                      }}>
                       {LOGOS[f.logoKey]}
                       {f.label && (
                         <text
@@ -1640,20 +1739,20 @@ export default function ForgeWorkstation() {
                     key={`cmd-${i}`}
                     ref={setRef}
                     aria-hidden
-                    className={`${base} whitespace-nowrap`}
+                    className={`${base} whitespace-nowrap `}
                     style={{
                       opacity: 0,
                       padding: "5px 10px",
                       borderRadius: "4px",
                       background: "rgba(7,7,10,0.9)",
-                      border: "1px solid rgba(74,222,128,0.2)",
-                      fontSize: `${f.size}rem`,
+                      border: `1px solid ${fcExt(f.companyIdx, 0.2)}`,
+                      fontSize: `calc(${f.size}rem * var(--frag-scale))`,
                       fontFamily: "var(--font-sans)",
                       letterSpacing: "0.01em",
                       willChange: "transform, opacity, filter",
                     }}>
-                    <span style={{ color: "rgba(74,222,128,0.85)" }}>$ </span>
-                    <span style={{ color: "rgba(74,222,128,0.7)" }}>
+                    <span style={{ color: fcExt(f.companyIdx, 0.85) }}>$ </span>
+                    <span style={{ color: fcExt(f.companyIdx, 0.7) }}>
                       {f.cmd}
                     </span>
                   </div>
@@ -1664,11 +1763,11 @@ export default function ForgeWorkstation() {
                     key={`${f.type}-${f.text}-${i}`}
                     ref={setRef as (el: HTMLSpanElement | null) => void}
                     aria-hidden
-                    className={`${base} whitespace-nowrap font-sans`}
+                    className={`${base} whitespace-nowrap font-sans `}
                     style={{
-                      fontSize: `${f.size}rem`,
+                      fontSize: `calc(${f.size}rem * var(--frag-scale))`,
                       fontWeight: f.weight,
-                      color: fc(f.companyIdx, 0.95),
+                      color: fcExt(f.companyIdx, 0.95),
                       opacity: 0,
                       letterSpacing:
                         f.type === "company"
@@ -1685,8 +1784,8 @@ export default function ForgeWorkstation() {
                         ? {
                             padding: "2px 8px",
                             borderRadius: "3px",
-                            border: `1px solid ${fc(f.companyIdx, 0.2)}`,
-                            background: fc(f.companyIdx, 0.05),
+                            border: `1px solid ${fcExt(f.companyIdx, 0.2)}`,
+                            background: fcExt(f.companyIdx, 0.05),
                           }
                         : {}),
                     }}>
@@ -1737,7 +1836,7 @@ export default function ForgeWorkstation() {
                 fontSize: "clamp(1.2rem, 2.5vw, 1.8rem)",
                 lineHeight: 1.5,
                 color: "var(--cream, #F0E6D0)",
-                maxWidth: "500px",
+                maxWidth: "min(500px, 85vw)",
                 fontStyle: "italic",
               }}>
               Let me show you where I've been.
@@ -1755,16 +1854,15 @@ export default function ForgeWorkstation() {
             {/* LEFT: Terminal */}
             <div
               style={{
-                width: "min(92vw, 560px)",
-                minHeight: "clamp(220px, 35cqh, 560px)",
-                maxHeight: "clamp(300px, 45vh, 560px)",
+                width: "clamp(560px, 38vw, 720px)",
+                minHeight: "clamp(400px, 50cqh, 560px)",
                 borderRadius: "8px",
                 overflow: "hidden",
                 background: TC.bg,
                 border: "1px solid rgba(255,255,255,0.06)",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
                 fontFamily: MONO,
-                fontSize: "clamp(8px, 1.6cqh, 13px)",
+                fontSize: "clamp(10px, 1.6cqh, 13px)",
                 position: "relative",
                 flexShrink: 0,
                 display: "flex",
@@ -1824,7 +1922,7 @@ export default function ForgeWorkstation() {
                     overflow: "hidden",
                     color: TC.text,
                     lineHeight: 1.5,
-                    fontSize: "clamp(8px, 1.5cqh, 13px)",
+                    fontSize: "clamp(10px, 1.5cqh, 13px)",
                     whiteSpace: "pre-wrap",
                     wordBreak: "break-word" as const,
                   }}
@@ -1845,10 +1943,9 @@ export default function ForgeWorkstation() {
             {/* RIGHT: V15-style narrative reveal */}
             <div
               ref={termNarrativeRef}
-              className="w-full max-w-[min(92vw,480px)] lg:max-w-[320px] lg:w-[36%] px-4 lg:px-0"
-              style={{ padding: "0" }}>
+              style={{ width: "clamp(340px, 22vw, 420px)", padding: "0" }}>
               {/* Company label — name only (dates are in terminal) */}
-              <div style={{ marginBottom: "clamp(0.75rem, 2vw, 1.5rem)" }}>
+              <div style={{ marginBottom: "1.5rem" }}>
                 <span
                   data-role="name"
                   className="font-sans"
@@ -1864,10 +1961,10 @@ export default function ForgeWorkstation() {
                 data-role="scene"
                 className="font-serif"
                 style={{
-                  fontSize: "clamp(0.75rem, 2.2vw, 1.05rem)",
+                  fontSize: "1.05rem",
                   lineHeight: 1.7,
                   color: "var(--cream, #F0E6D0)",
-                  marginBottom: "clamp(0.6rem, 1.8vw, 1.25rem)",
+                  marginBottom: "1.25rem",
                   clipPath: "inset(0 100% 0 0)",
                 }}
               />
@@ -1876,10 +1973,10 @@ export default function ForgeWorkstation() {
                 data-role="action"
                 className="font-sans"
                 style={{
-                  fontSize: "clamp(0.65rem, 1.8vw, 0.85rem)",
+                  fontSize: "0.85rem",
                   lineHeight: 1.65,
                   color: "var(--cream-muted, #B0A890)",
-                  marginBottom: "clamp(0.6rem, 1.8vw, 1.25rem)",
+                  marginBottom: "1.25rem",
                   opacity: 0,
                 }}
               />
@@ -1888,7 +1985,7 @@ export default function ForgeWorkstation() {
                 data-role="shift"
                 className="font-serif"
                 style={{
-                  fontSize: "clamp(0.7rem, 2vw, 0.95rem)",
+                  fontSize: "0.95rem",
                   lineHeight: 1.6,
                   fontStyle: "italic",
                   color: "var(--cream, #F0E6D0)",
@@ -1905,79 +2002,85 @@ export default function ForgeWorkstation() {
               AMBOSS: "Frontend Engineer",
               Compado: "Senior Frontend Engineer",
               CAPinside: "Senior Frontend Engineer",
-              DKB: "Engineering Manager",
+              DKB: "Senior Frontend Engineer",
             };
             return (
               <div
-                className="absolute inset-0 lg:hidden flex flex-col"
+                ref={mobileCarouselRef}
+                className="absolute inset-0 lg:hidden"
                 style={{ background: "var(--bg)" }}>
-                {/* Scrollable cards — peek edges to hint scrollability */}
-                <div
-                  ref={mobileCarouselRef}
-                  className="flex-1 flex snap-x snap-mandatory overflow-x-auto"
-                  style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}
-                  onScroll={(e) => {
-                    const el = e.currentTarget;
-                    const idx = Math.round(el.scrollLeft / el.clientWidth);
-                    termProgressRefs.current.forEach((dot, i) => {
-                      if (!dot) return;
-                      dot.style.width = i === idx ? "20px" : "6px";
-                      dot.style.opacity = i === idx ? "1" : "0.35";
-                      dot.style.background = i === idx ? COMPANY_COLORS[idx] : "var(--text-dim)";
-                    });
-                  }}>
+                {/* Stacked cards — scroll-driven, one visible at a time */}
                   {TERM_COMPANIES.map((co, ci) => {
                     const nar = TERM_NARRATIVES[ci];
                     return (
                       <div
                         key={co.company}
-                        className="snap-center shrink-0 h-full flex flex-col items-center justify-center"
-                        style={{ width: "85vw", marginLeft: ci === 0 ? "7.5vw" : "0", marginRight: ci === 3 ? "7.5vw" : "5vw" }}>
-                        {/* Mini terminal */}
+                        ref={(el) => { mobileCardRefs.current[ci] = el; }}
+                        className="absolute inset-0 flex flex-col items-center px-6"
+                        style={{ opacity: ci === 0 ? 1 : 0, paddingTop: "clamp(60px, 12vh, 120px)", willChange: "opacity", transition: "opacity 0.3s ease" }}>
+                        {/* Company label + role — above the card */}
+                        <div style={{ marginBottom: "0.6rem", textAlign: "center" }}>
+                          <div className="font-ui" style={{ fontSize: "0.7rem", letterSpacing: "0.18em", textTransform: "uppercase", color: COMPANY_COLORS[ci] }}>
+                            {co.company} &middot; {co.location}
+                          </div>
+                          <div className="font-sans" style={{ fontSize: "0.6rem", color: "var(--text-dim)", marginTop: "0.25rem", letterSpacing: "0.04em" }}>
+                            {ROLES[co.company]}
+                          </div>
+                        </div>
+                        {/* Glass card container */}
                         <div
                           style={{
                             width: "100%",
-                            borderRadius: "10px",
-                            overflow: "hidden",
-                            background: TC.bg,
+                            borderRadius: "16px",
+                            padding: "clamp(16px, 3vh, 24px)",
+                            background: "rgba(14,14,20,0.45)",
+                            backdropFilter: "blur(20px) saturate(1.3)",
+                            WebkitBackdropFilter: "blur(20px) saturate(1.3)",
                             border: "1px solid rgba(255,255,255,0.06)",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
-                            marginBottom: "clamp(0.8rem, 2vh, 1.2rem)",
+                            boxShadow: "0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03)",
                           }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 10px", background: TC.topBar }}>
-                            {[TC.dotRed, TC.dotYellow, TC.dotGreen].map((c) => (
-                              <div key={c} style={{ width: 7, height: 7, borderRadius: "50%", background: c }} />
-                            ))}
+                          {/* Narrative text — clear 3-tier hierarchy */}
+                          <div style={{ width: "100%", marginBottom: "clamp(0.8rem, 2vh, 1.2rem)" }}>
+                            <p className="font-serif" style={{ fontSize: "1.05rem", lineHeight: 1.55, color: "var(--cream)", marginBottom: "0.75rem" }}>
+                              {nar.scene}
+                            </p>
+                            <p className="font-sans" style={{ fontSize: "0.82rem", lineHeight: 1.6, color: "var(--cream-muted)", marginBottom: "0.75rem" }}>
+                              {nar.action}
+                            </p>
+                            <p className="font-narrator" style={{ fontSize: "0.88rem", lineHeight: 1.5, fontStyle: "italic", color: "var(--gold-dim)" }}>
+                              &ldquo;{nar.shift}&rdquo;
+                            </p>
                           </div>
-                          <pre style={{ padding: "8px 10px", margin: 0, fontFamily: MONO, fontSize: "9px", lineHeight: 1.5, color: TC.text, whiteSpace: "pre-wrap" }}>
-                            <span style={{ color: TC.keyword }}>{`commit ${co.hash} (HEAD → main)`}</span>
-                            {"\n"}<span style={{ color: TC.string }}>{`Role:   ${ROLES[co.company]}`}</span>
-                            {"\n"}<span>{`Date:   ${co.location}, ${co.dates}`}</span>
-                            {"\n"}<span style={{ color: TC.keyword }}>{`    ${co.commitType}: ${co.commitMsg}`}</span>
-                            {co.insight.map((line, li) => (
-                              <span key={li}>{"\n"}<span style={{ color: TC.comment }}>{line}</span></span>
-                            ))}
-                          </pre>
-                        </div>
-                        {/* Narrative */}
-                        <div style={{ width: "100%" }}>
-                          <div className="font-sans" style={{ fontSize: "0.55rem", letterSpacing: "0.2em", textTransform: "uppercase", color: COMPANY_COLORS[ci], marginBottom: "0.5rem" }}>
-                            {co.company}
+                          {/* Mini terminal — role + key takeaway instead of commit */}
+                          <div
+                            style={{
+                              width: "100%",
+                              borderRadius: "10px",
+                              overflow: "hidden",
+                              background: TC.bg,
+                              border: "1px solid rgba(255,255,255,0.06)",
+                              boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+                            }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 10px", background: TC.topBar }}>
+                              {[TC.dotRed, TC.dotYellow, TC.dotGreen].map((c) => (
+                                <div key={c} style={{ width: 7, height: 7, borderRadius: "50%", background: c }} />
+                              ))}
+                              <span className="font-sans" style={{ marginLeft: "auto", fontSize: "8px", color: "var(--text-dim)", letterSpacing: "0.05em" }}>~/career</span>
+                            </div>
+                            <pre style={{ padding: "8px 10px", margin: 0, fontFamily: MONO, fontSize: "10px", lineHeight: 1.7, color: TC.text, whiteSpace: "pre-wrap" }}>
+                              <span style={{ color: TC.keyword }}>{co.commitType}: {co.commitMsg}</span>
+                              {co.insight.map((line, li) => (
+                                <span key={li}>{"\n"}<span style={{ color: TC.comment }}>{line}</span></span>
+                              ))}
+                              {co.promotion && (
+                                <span>{"\n"}<span style={{ color: "#FBBF24", background: "rgba(251,191,36,0.08)", padding: "0 4px", borderRadius: "2px" }}>{co.promotion}</span></span>
+                              )}
+                            </pre>
                           </div>
-                          <p className="font-serif" style={{ fontSize: "0.78rem", lineHeight: 1.55, color: "var(--cream)", marginBottom: "0.5rem" }}>
-                            {nar.scene}
-                          </p>
-                          <p className="font-sans" style={{ fontSize: "0.68rem", lineHeight: 1.5, color: "var(--cream-muted)", marginBottom: "0.5rem" }}>
-                            {nar.action}
-                          </p>
-                          <p className="font-narrator" style={{ fontSize: "0.72rem", lineHeight: 1.45, fontStyle: "italic", color: "var(--cream)" }}>
-                            {nar.shift}
-                          </p>
                         </div>
                       </div>
                     );
                   })}
-                </div>
               </div>
             );
           })()}
@@ -2066,17 +2169,17 @@ export default function ForgeWorkstation() {
             </div>
           ))}
 
-          {/* Particle canvas (inside sticky, driven by forge progress) */}
+          {/* Particle canvas (inside sticky, driven by forge progress) — hidden on phone */}
           <div
             ref={canvasWrapRef}
-            className="absolute inset-0"
+            className="absolute inset-0 hidden sm:block"
             style={{ opacity: 0, zIndex: 5 }}>
             <canvas ref={canvasRef} className="absolute inset-0" />
           </div>
-          {/* Funnel SVG (crossfades in from canvas) */}
+          {/* Funnel SVG (crossfades in from canvas) — hidden on phone */}
           <div
             ref={funnelSvgWrapRef}
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            className="absolute inset-0 flex items-center justify-center pointer-events-none hidden sm:flex"
             style={{ opacity: 0, zIndex: 6, padding: "5vh 4vw" }}>
             <svg
               ref={funnelSvgRef}
@@ -2327,6 +2430,61 @@ export default function ForgeWorkstation() {
             })}
           </div>
 
+          {/* Mobile skill convergence — phone only, replaces SVG funnel */}
+          <div
+            ref={cameraTrackRef}
+            className="absolute inset-0 sm:hidden pointer-events-none"
+            style={{ opacity: 0, zIndex: 6 }}>
+            {/* Skills accumulate center-screen as you scroll */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-8">
+              <div className="flex flex-wrap justify-center gap-2.5 max-w-[320px]">
+                {STREAMS.map((stream, si) => (
+                  <div
+                    key={`mobile-skill-${stream.id}`}
+                    ref={(el) => { cameraSkillRefs.current[si] = el; }}
+                    className="font-sans"
+                    style={{
+                      fontSize: "0.75rem",
+                      padding: "5px 14px",
+                      borderRadius: "16px",
+                      border: `1px solid ${stream.color}50`,
+                      background: `${stream.color}10`,
+                      color: stream.color,
+                      letterSpacing: "0.03em",
+                      opacity: 0,
+                      willChange: "transform, opacity",
+                    }}>
+                    {stream.label}
+                  </div>
+                ))}
+              </div>
+              {/* Convergence diamond — appears after all skills */}
+              <div
+                ref={(el) => { cameraNodeRefs.current[0] = el; }}
+                className="flex flex-col items-center gap-2 mt-2"
+                style={{ opacity: 0, willChange: "opacity" }}>
+                <div
+                  className="rotate-45"
+                  style={{
+                    width: 11,
+                    height: 11,
+                    background: "var(--gold)",
+                    boxShadow: "0 0 18px rgba(201,168,76,0.45)",
+                  }}
+                />
+                <span
+                  className="font-ui tracking-widest uppercase"
+                  style={{
+                    fontSize: "0.6rem",
+                    color: "var(--gold-dim)",
+                    letterSpacing: "0.2em",
+                  }}>
+                  The Engineer I Became
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Chrome */}
           <div
             className="absolute top-8 left-1/2 -translate-x-1/2 font-sans tracking-widest uppercase"
@@ -2365,12 +2523,12 @@ export default function ForgeWorkstation() {
         {/* ---- Post-section summary (INSIDE container, scrolls up over sticky) ---- */}
         <div
           ref={summaryPanelRef}
-          className="relative flex flex-col items-center justify-center py-32 px-8"
+          className="relative flex flex-col items-center justify-center py-32 px-6 sm:px-8"
           style={{
             background: "var(--bg)",
             zIndex: 10,
-            paddingTop: "150px",
-            paddingBottom: "150px",
+            paddingTop: "min(150px, 20vh)",
+            paddingBottom: "min(150px, 20vh)",
           }}>
           <div
             className="w-12 h-px mb-16"
