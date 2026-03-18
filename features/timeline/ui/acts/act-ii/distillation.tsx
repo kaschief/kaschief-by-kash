@@ -6,7 +6,7 @@ import { ACT_II, COMPANIES } from "@data";
 import { CONTENT_MAX_W } from "./act-ii.constants";
 import { WordDistillation } from "./word-distillation";
 
-/** Scroll runway — pinned scrub distance = height − 100vh.
+/** Scroll runway — pinned scrub distance = height − viewport height.
  *  Desktop: 300vh → 200vh scrub (full dissolve + fly animation).
  *  Mobile:  200vh → 100vh scrub (seed-then-fill animation). */
 
@@ -49,7 +49,7 @@ export function Distillation() {
       {/* ── Screen 1: Word distillation (pinned full-screen, scroll-driven) ── */}
       <div ref={scrollRef} className="relative h-[650vh] md:h-[620vh]">
         <motion.div
-          className="sticky top-0 flex h-screen flex-col pt-16 pb-8"
+          className="sticky top-0 flex h-screen h-[100svh] flex-col pt-16 pb-8"
           style={{ opacity, overflowY: "clip" }}>
           {/* Inner div sized to usable area — cqh resolves from containerType: size */}
           <div
@@ -63,7 +63,7 @@ export function Distillation() {
       {/* ── Screen 2: Takeaway ── */}
       <div
         ref={takeawayRef}
-        className="relative flex min-h-screen items-center justify-center px-(--page-gutter)"
+        className="relative flex min-h-screen min-h-[100svh] items-center justify-center px-(--page-gutter)"
         style={{ backgroundColor: "var(--bg)" }}>
         <motion.h3
           className="mx-auto max-w-2xl text-center font-(family-name:--font-spectral) text-[clamp(22px,3vw,36px)] italic leading-[1.35] tracking-[-0.01em] text-(--cream)"

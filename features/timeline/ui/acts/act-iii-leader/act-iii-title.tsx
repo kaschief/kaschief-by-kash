@@ -21,7 +21,7 @@ export function ActIIITitle() {
   return (
     <div
       ref={sceneRef}
-      className="relative flex min-h-screen items-center justify-center overflow-hidden"
+      className="relative flex min-h-screen min-h-[100svh] items-center justify-center overflow-hidden"
       style={{ backgroundColor: WARM_BG }}>
       {/* Fog — top */}
       <div

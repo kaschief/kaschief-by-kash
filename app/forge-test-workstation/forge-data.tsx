@@ -158,7 +158,6 @@ export const LOGOS: Record<string, ReactNode> = {
   amboss: (<g transform="scale(1.05) translate(0.5, 0.5)"><path d="M17.4788 21.3322H4.99195l.78912-1.4388H16.6897l.7891 1.4388ZM12.8926 6.92824l6.3223 11.52646h-1.6664l-4.6651-8.50512-.824 1.50192 3.8413 7.0032H6.57019l6.32241-11.52646ZM21.6519 19.8934L12.8833 3.90691l-.8147 1.51905L4.9222 18.4547H3.25582l8.80338-16.05046-.824-1.50196L.81871 19.8934h3.31437L2.55484 22.7709h17.361L18.3376 19.8934h3.3143Z" fill="#0AA6B8" /></g>),
 
   compado: (<><path d="M3 5.5 C3 4 4 3 5.5 3 L18.5 3 C20 3 21 4 21 5.5 L21 15.5 C21 17 20 18 18.5 18 L10 18 L7 21 L7 18 L5.5 18 C4 18 3 17 3 15.5 Z" stroke="#42B883" strokeWidth="1" fill="none" /><path d="M8.5 9.5 L11.5 9.5 M10.5 8.5 L11.5 9.5 L10.5 10.5" stroke="#42B883" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" /><path d="M15.5 12 L12.5 12 M13.5 11 L12.5 12 L13.5 13" stroke="#42B883" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" /></>),
-
   capinside: (<g transform="scale(0.428) translate(0, -0.5)"><path d="M.115 25.863H26.44V0H.115v25.863Zm2.659-2.612H23.78V2.612H2.774v20.639ZM55.906 0H29.583v25.863h9.041v6.041l6.924-6.04h10.358V0Zm-2.658 2.612v20.639h-8.71l-.755.659-2.5 2.18v-2.839h-9.041V2.612h21.006Z" fill="white" /></g>),
 
   dkb: (<text x="12" y="16" textAnchor="middle" fill="#148DEA" fontSize="11" fontWeight="900" fontFamily="var(--font-sans)" letterSpacing="0.08em">DKB</text>),

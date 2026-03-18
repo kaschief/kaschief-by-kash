@@ -193,8 +193,7 @@ export function Methods() {
       {/* ── Desktop: ScrollTrigger pinned panels ── */}
       <div
         ref={stickyRef}
-        className="hidden xl:block"
-        style={{ height: "100vh", overflow: "hidden" }}>
+        className="hidden h-screen h-[100svh] overflow-hidden xl:block">
         <SectionGlow color={gold} size="lg" />
         <motion.div
           style={{ position: "relative", width: "100%", height: "100%" }}

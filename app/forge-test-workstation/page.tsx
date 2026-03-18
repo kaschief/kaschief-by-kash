@@ -30,16 +30,325 @@ import {
   ss,
   lerp,
   fc,
+  CC,
   ACT_BLUE,
   LOGOS,
   createFragments,
   createEmbers,
-  createWhispers,
   createPrinciples,
-  BEATS,
   phaseLabel,
   srand,
 } from "./forge-data";
+
+/* ================================================================== */
+/*  Terminal replay — colors, data, line builder (from V16)            */
+/* ================================================================== */
+
+const TC = {
+  bg: "#0D1117",
+  topBar: "#161B22",
+  dotRed: "#FF5F57",
+  dotYellow: "#FFBD2E",
+  dotGreen: "#28C840",
+  lineNum: "#484f58",
+  text: "#c9d1d9",
+  keyword: "#79c0ff",
+  addedFg: "#7ee787",
+  addedBg: "rgba(46,160,67,0.15)",
+  removedFg: "#ff7b72",
+  removedBg: "rgba(248,81,73,0.1)",
+  comment: "#8b949e",
+  string: "#a5d6ff",
+} as const;
+
+interface CompanyBlock {
+  hash: string;
+  company: string;
+  authorEmail: string;
+  location: string;
+  dates: string;
+  commitType: string;
+  commitMsg: string;
+  commitBody: string;
+  diff: { type: "add" | "remove" | "context"; text: string }[];
+  insight: string[];
+  promotion?: string; // e.g. "→ Promoted to Senior Engineer"
+}
+
+const TERM_COMPANIES: CompanyBlock[] = [
+  {
+    hash: "a3f7e2d",
+    company: "AMBOSS",
+    authorEmail: "kash@amboss.com",
+    location: "Berlin",
+    dates: "2018-2019",
+    commitType: "feat",
+    commitMsg: "migrate study flows from vanilla JS to React",
+    commitBody:
+      "Half a million medical students depending on this app.\nBrought nursing instinct to every user flow decision.",
+    diff: [
+      { type: "remove", text: "// guess what users want" },
+      { type: "remove", text: "function showNext() { return random(); }" },
+      { type: "add", text: "// A/B test what actually works" },
+      { type: "add", text: "function showNext(variant: 'A' | 'B') {" },
+      { type: "add", text: "  return trackAndServe(variant);" },
+      { type: "add", text: "}" },
+    ],
+    insight: [
+      "// What I learned:",
+      "// The gap between 'works technically' and 'works for the person'",
+      "// is where most products fail.",
+    ],
+  },
+  {
+    hash: "b8c4f19",
+    company: "Compado",
+    authorEmail: "kash@compado.com",
+    location: "Berlin",
+    dates: "2019-2021",
+    commitType: "fix",
+    commitMsg: "replace duplicated sites with component system",
+    commitBody:
+      "12 white-label sites, each a copy-paste fork.\nBuilt a shared component library, cut deploy time 80%.",
+    diff: [
+      { type: "remove", text: "// site-a/header.tsx — copy #7 of 12" },
+      {
+        type: "remove",
+        text: "export const Header = () => <div>Logo A</div>;",
+      },
+      { type: "remove", text: "// site-b/header.tsx — copy #8 of 12" },
+      {
+        type: "remove",
+        text: "export const Header = () => <div>Logo B</div>;",
+      },
+      { type: "add", text: "// shared/header.tsx — single source of truth" },
+      {
+        type: "add",
+        text: "export const Header = ({ brand }: Props) => (",
+      },
+      { type: "add", text: "  <div><Logo brand={brand} /></div>" },
+      { type: "add", text: ");" },
+    ],
+    insight: [
+      "// What I learned:",
+      "// Duplication is debt with compound interest.",
+      "// A component system pays dividends forever.",
+    ],
+    promotion: "✦ promoted to Senior Frontend Engineer",
+  },
+  {
+    hash: "c2e6a03",
+    company: "CAPinside",
+    authorEmail: "kash@capinside.com",
+    location: "Hamburg",
+    dates: "2021-2023",
+    commitType: "feat",
+    commitMsg: "introduce TypeScript + code review process",
+    commitBody:
+      "Legacy jQuery codebase, no types, no reviews.\nMigrated to TypeScript, established PR culture.",
+    diff: [
+      { type: "remove", text: "// @ts-nocheck" },
+      { type: "remove", text: "function calcReturns(data) {" },
+      {
+        type: "remove",
+        text: '  return data.map(d => d.val * 0.01); // "good enough"',
+      },
+      { type: "remove", text: "}" },
+      {
+        type: "add",
+        text: "interface FundReturn { val: number; date: string; }",
+      },
+      {
+        type: "add",
+        text: "function calcReturns(data: FundReturn[]): number[] {",
+      },
+      { type: "add", text: "  return data.map(d => d.val / 100);" },
+      { type: "add", text: "}" },
+    ],
+    insight: [
+      "// What I learned:",
+      "// Types don't slow you down — they stop you",
+      "// from shipping the wrong thing fast.",
+    ],
+  },
+  {
+    hash: "d9f1b77",
+    company: "DKB",
+    authorEmail: "kash@dkb.de",
+    location: "Berlin",
+    dates: "2021-2024",
+    commitType: "feat",
+    commitMsg: "add Playwright tests + feature flags + weekly releases",
+    commitBody:
+      "Germany's largest direct bank, zero frontend tests.\nIntroduced E2E coverage, feature flags, weekly ship cadence.",
+    diff: [
+      { type: "remove", text: '// "we test in production"' },
+      { type: "remove", text: "// release: once a month, fingers crossed" },
+      { type: "remove", text: "const isReady = true; // TODO: actually check" },
+      { type: "add", text: "import { test, expect } from '@playwright/test';" },
+      { type: "add", text: "" },
+      {
+        type: "add",
+        text: "test('transfer flow completes', async ({ page }) => {",
+      },
+      { type: "add", text: "  await page.goto('/transfer');" },
+      {
+        type: "add",
+        text: "  await expect(page.getByText('Confirmed')).toBeVisible();",
+      },
+      { type: "add", text: "});" },
+    ],
+    insight: [
+      "// What I learned:",
+      "// Confidence to ship weekly comes from tests,",
+      "// not from courage.",
+    ],
+    promotion: "✦ promoted to Engineering Manager",
+  },
+];
+
+interface TermLine {
+  text: string;
+  style:
+    | "keyword"
+    | "text"
+    | "add"
+    | "remove"
+    | "comment"
+    | "string"
+    | "blank"
+    | "promotion";
+  phase: 1 | 2 | 3;
+}
+
+function buildLines(co: CompanyBlock): TermLine[] {
+  const lines: TermLine[] = [];
+  lines.push({
+    text: `commit ${co.hash} (HEAD -> main)`,
+    style: "keyword",
+    phase: 1,
+  });
+  const roles: Record<string, string> = {
+    AMBOSS: "Frontend Engineer",
+    Compado: "Senior Frontend Engineer",
+    CAPinside: "Senior Frontend Engineer",
+    DKB: "Engineering Manager",
+  };
+  lines.push({
+    text: `Author: Kash <${co.authorEmail}>`,
+    style: "text",
+    phase: 1,
+  });
+  lines.push({
+    text: `Role:   ${roles[co.company] || "Frontend Engineer"}`,
+    style: "string",
+    phase: 1,
+  });
+  lines.push({
+    text: `Date:   ${co.location}, ${co.dates}`,
+    style: "text",
+    phase: 1,
+  });
+  lines.push({
+    text: `    ${co.commitType}: ${co.commitMsg}`,
+    style: "keyword",
+    phase: 1,
+  });
+  lines.push({ text: "", style: "blank", phase: 1 });
+  for (const bodyLine of co.commitBody.split("\n")) {
+    lines.push({ text: `    ${bodyLine}`, style: "text", phase: 1 });
+  }
+  lines.push({ text: "---", style: "text", phase: 2 });
+  for (const d of co.diff) {
+    const prefix = d.type === "add" ? "+ " : d.type === "remove" ? "- " : "  ";
+    lines.push({
+      text: `${prefix}${d.text}`,
+      style: d.type === "add" ? "add" : d.type === "remove" ? "remove" : "text",
+      phase: 2,
+    });
+  }
+  lines.push({ text: "", style: "blank", phase: 2 });
+  for (const c of co.insight) {
+    lines.push({ text: c, style: "comment", phase: 3 });
+  }
+  // Promotion banner — appears last, special yellow styling
+  if (co.promotion) {
+    lines.push({ text: co.promotion, style: "promotion", phase: 3 });
+  }
+  return lines;
+}
+
+const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+
+/** Pre-build all company lines once (module-level). */
+const ALL_COMPANY_LINES = TERM_COMPANIES.map(buildLines);
+
+/** Pre-compute char counts per phase for each company. */
+const CHAR_COUNTS = ALL_COMPANY_LINES.map((lines) => {
+  let p1 = 0,
+    p2 = 0,
+    p3 = 0;
+  for (const l of lines) {
+    const len = l.text.length + 1;
+    if (l.phase === 1) p1 += len;
+    else if (l.phase === 2) p2 += len;
+    else p3 += len;
+  }
+  return { p1, p2, p3, total: p1 + p2 + p3 };
+});
+
+// Narrative text for right side (V15 style reveal)
+const TERM_NARRATIVES = [
+  {
+    scene:
+      "Half a million medical students. I came from the ward \u2014 I knew what it felt like when the system you depend on doesn\u2019t understand your context.",
+    action:
+      "Migrated vanilla JS to React. Introduced A/B testing. Broke production once \u2014 learned testing discipline.",
+    shift:
+      "The gap between \u2018works technically\u2019 and \u2018works for the person\u2019 is where most products fail.",
+  },
+  {
+    scene:
+      "Sites were replicas of each other. Every change meant touching six copies. Visitors arrived from search with zero loyalty.",
+    action:
+      "Rebuilt as swappable components. Attacked load times: Lighthouse, lazy loading, CSS compression. Built first chatbot interface.",
+    shift: "Every millisecond is a user who stays or leaves.",
+  },
+  {
+    scene:
+      "Ten thousand financial advisors on a fragile platform. Nobody reviewed code. Tests were sparse. TypeScript was new to me.",
+    action:
+      "Started seeing the codebase as a record of how the team communicated. Every shortcut was a frozen habit.",
+    shift: "You can\u2019t fix code without fixing process.",
+  },
+  {
+    scene:
+      "Germany\u2019s largest direct bank. Five million users. Monthly releases. Zero automated tests when I arrived.",
+    action:
+      "Introduced Playwright. Monthly to weekly releases. Feature flags. Found myself in the product room shaping what got built.",
+    shift: "Then they promoted me to engineering manager.",
+  },
+];
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** Map value from [inMin,inMax] to [outMin,outMax], clamped. */
+function remap(
+  value: number,
+  inMin: number,
+  inMax: number,
+  outMin: number,
+  outMax: number,
+) {
+  const t = Math.max(0, Math.min(1, (value - inMin) / (inMax - inMin)));
+  return outMin + (outMax - outMin) * t;
+}
 
 /* ================================================================== */
 /*  V0: ScrambleText                                                   */
@@ -288,10 +597,10 @@ const PH = {
 
   // Beats (scene → action → shift per company)
   BEATS: [
-    { start: vhToP(870), end: vhToP(1060) }, // AMBOSS
-    { start: vhToP(1060), end: vhToP(1250) }, // Compado
-    { start: vhToP(1250), end: vhToP(1440) }, // CAPinside
-    { start: vhToP(1440), end: vhToP(1630) }, // DKB
+    { start: vhToP(950), end: vhToP(1120) }, // AMBOSS
+    { start: vhToP(1120), end: vhToP(1290) }, // Compado
+    { start: vhToP(1290), end: vhToP(1460) }, // CAPinside
+    { start: vhToP(1460), end: vhToP(1630) }, // DKB
   ],
 
   // Crystallize
@@ -341,12 +650,14 @@ export default function ForgeWorkstation() {
   const fragmentEls = useRef<(HTMLElement | null)[]>([]);
   const emberEls = useRef<(HTMLDivElement | null)[]>([]);
   const thesisEls = useRef<(HTMLDivElement | null)[]>([]);
-  const beatEls = useRef<(HTMLDivElement | null)[]>([]);
-  const beatLabelEls = useRef<(HTMLDivElement | null)[]>([]);
-  const beatSceneEls = useRef<(HTMLDivElement | null)[]>([]);
-  const beatActionEls = useRef<(HTMLDivElement | null)[]>([]);
-  const beatShiftEls = useRef<(HTMLDivElement | null)[]>([]);
-  const whisperEls = useRef<(HTMLElement | null)[]>([]);
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const termContentRef = useRef<HTMLPreElement>(null);
+  const termWipeRef = useRef<HTMLDivElement>(null);
+  const termNarrativeRef = useRef<HTMLDivElement>(null);
+  const termLastStateRef = useRef({ company: -1, chars: -1 });
+  const midNarratorRef = useRef<HTMLDivElement>(null);
+  const termProgressRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const termProgressWrapRef = useRef<HTMLDivElement>(null);
   const principleEls = useRef<(HTMLDivElement | null)[]>([]);
   const glowEl = useRef<HTMLDivElement>(null);
   const innerGlowEl = useRef<HTMLDivElement>(null);
@@ -380,7 +691,6 @@ export default function ForgeWorkstation() {
 
   /* ---- Data ---- */
   const fragments = useMemo(createFragments, []);
-  const whispers = useMemo(createWhispers, []);
   const principles = useMemo(createPrinciples, []);
   const embers = useMemo(createEmbers, []);
 
@@ -436,8 +746,7 @@ export default function ForgeWorkstation() {
         const el = fragmentEls.current[i];
         if (!el) return;
         if (f.isSeed) {
-          const fadeIn = ss(0.03, 0.08, p),
-            fadeOut = 1 - ss(0.18, 0.23, p);
+          const fadeIn = ss(0.03, 0.08, p);
           const drift = ss(0.05, 0.15, p),
             converge = ss(0.14, 0.21, p),
             heat = ss(0.1, 0.18, p);
@@ -455,9 +764,17 @@ export default function ForgeWorkstation() {
                   0,
                   Math.min(1, (fragScreenY - curtainTop) / CURTAIN_FADE),
                 );
+          const goldT = ss(0.7, 1, converge);
+          const [cr, cg, cb] = CC[f.companyIdx];
+          const cm = goldT * goldT;
+          el.style.color = `rgb(${Math.round(lerp(cr, 201, cm))},${Math.round(lerp(cg, 168, cm))},${Math.round(lerp(cb, 76, cm))})`;
+          const dissolve = ss(0.17, 0.19, p);
+          const dissolveBlur = lerp(0, 12, dissolve);
+          const dissolveAlpha = lerp(1, 0.1, dissolve);
+          const baseBlur = lerp(lerp(1, 0, ss(0.03, 0.07, p)), 3, goldT);
           el.style.transform = `translate(calc(-50% + ${x}vw), calc(-50% + ${y}vh)) rotate(${rot}deg) scale(${scale})`;
-          el.style.opacity = String(fadeIn * fadeOut * curtainReveal);
-          el.style.filter = `blur(${lerp(1, 0, ss(0.03, 0.07, p))}px)`;
+          el.style.opacity = String(fadeIn * dissolveAlpha * curtainReveal);
+          el.style.filter = `blur(${baseBlur + dissolveBlur}px)`;
         } else {
           const fadeIn = ss(0.02, 0.08, p),
             fadeOut = 1 - ss(f.dissolveStart * 0.7, f.dissolveEnd * 0.7, p);
@@ -581,7 +898,7 @@ export default function ForgeWorkstation() {
       // SVG funnel wrapper: appears as canvas starts fading (simultaneous crossfade)
       if (funnelSvgWrapRef.current) {
         const svgIn = ss(0.33, 0.35, p);
-        const svgOut = 1 - ss(0.44, 0.47, p);
+        const svgOut = 1 - ss(0.46, 0.49, p);
         funnelSvgWrapRef.current.style.opacity = String(svgIn * svgOut);
       }
 
@@ -591,7 +908,7 @@ export default function ForgeWorkstation() {
         if (!el) continue;
         const stagger = si * 0.003;
         const dotIn = ss(0.33 + stagger, 0.36 + stagger, p);
-        const dotOut = 1 - ss(0.44, 0.47, p);
+        const dotOut = 1 - ss(0.46, 0.49, p);
         const ribbonStart = ss(0.36, 0.4, p);
         const scale = lerpFn(2, 1, ribbonStart);
         const glowR = lerpFn(6, 3, ribbonStart);
@@ -601,13 +918,13 @@ export default function ForgeWorkstation() {
         if (blur) blur.setAttribute("stdDeviation", String(glowR));
       }
 
-      // Stream labels — appear at 0.31–0.35
+      // Stream labels — appear at 0.30–0.33, tighter stagger
       for (let si = 0; si < STREAMS.length; si++) {
         const el = funnelStreamLabelRefs.current[si];
         if (!el) continue;
-        const stagger = si * 0.004;
-        const labelIn = ss(0.31 + stagger, 0.35 + stagger, p);
-        const labelOut = 1 - ss(0.44, 0.47, p);
+        const stagger = si * 0.002;
+        const labelIn = ss(0.30 + stagger, 0.32 + stagger, p);
+        const labelOut = 1 - ss(0.46, 0.49, p);
         el.style.opacity = String(labelIn * labelOut);
         el.style.transform = `translateY(${lerpFn(-10, 0, labelIn)}px)`;
       }
@@ -626,7 +943,7 @@ export default function ForgeWorkstation() {
         const threshIdx = Math.min(seg.toTier - 1, TIER_THRESHOLDS.length - 1);
         const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
         const t = ss(threshStart, threshEnd, p);
-        const fadeOut = 1 - ss(0.44, 0.47, p);
+        const fadeOut = 1 - ss(0.46, 0.49, p);
         el.style.opacity = String(lerpFn(0, seg.opacityEnd, t) * fadeOut);
         const scaleY = lerpFn(0, 1, t);
         el.style.transformOrigin = `${F_CENTER_X}px ${F_TIER_Y[seg.fromTier]}px`;
@@ -644,15 +961,15 @@ export default function ForgeWorkstation() {
           lerpFn(threshStart, threshEnd, 0.8),
           p,
         );
-        const fadeOut = 1 - ss(0.44, 0.47, p);
+        const fadeOut = 1 - ss(0.46, 0.49, p);
         el.style.opacity = String(nodeT * fadeOut);
         el.style.transform = `translateY(${lerpFn(8, 0, nodeT)}px)`;
       }
 
-      // Convergence point — 0.42–0.46
+      // Convergence point — appears after ribbons complete
       if (funnelConvergeRef.current) {
-        const ct = ss(0.42, 0.46, p);
-        const fadeOut = 1 - ss(0.44, 0.47, p);
+        const ct = ss(0.42, 0.44, p);
+        const fadeOut = 1 - ss(0.47, 0.49, p);
         funnelConvergeRef.current.style.opacity = String(ct * fadeOut);
         if (funnelBlurRef.current) {
           funnelBlurRef.current.setAttribute(
@@ -664,10 +981,10 @@ export default function ForgeWorkstation() {
 
       // Narrator glass panels — positioned right, slide down with tiers
       const NAR_THRESHOLDS = [
-        [0.33, 0.37],
-        [0.37, 0.40],
-        [0.40, 0.43],
-        [0.43, 0.46],
+        [0.36, 0.39],
+        [0.39, 0.42],
+        [0.42, 0.455],
+        [0.455, 0.49],
       ];
       for (let ni = 0; ni < FUNNEL_NARRATOR.length; ni++) {
         const el = funnelNarratorRefs.current[ni];
@@ -675,81 +992,240 @@ export default function ForgeWorkstation() {
         const [ts, te] = NAR_THRESHOLDS[ni];
         const fadeIn = ss(lerpFn(ts, te, 0.1), lerpFn(ts, te, 0.35), p);
         const fadeOut = 1 - ss(lerpFn(ts, te, 0.8), te + 0.005, p);
-        el.style.opacity = String(fadeIn * fadeOut);
+        el.style.opacity = String(fadeIn * fadeOut * 0.75);
         el.style.transform = `translateY(${lerpFn(12, 0, fadeIn)}px)`;
       }
+    }
 
+    /* ---- Mid narrator: "Let me show you what I've done" ---- */
+    if (midNarratorRef.current) {
+      // Tight: funnel gone at 0.46, narrator immediately, terminal at 0.505
+      const midStart = 0.465,
+        midEnd = 0.5;
+      const midIn = ss(midStart, midStart + 0.005, p);
+      const midOut = 1 - ss(midEnd - 0.005, midEnd, p);
+      midNarratorRef.current.style.opacity = String(midIn * midOut);
+      midNarratorRef.current.style.transform = `translateY(${lerp(10, 0, midIn)}px)`;
     }
 
     /* ============================================================== */
-    /*  MOVEMENT 2: THE SIGHT (0.46 — 0.88)                            */
-    /*  Each beat: scene → action → shift (3 phases per company)       */
+    /*  MOVEMENT 2: TERMINAL REPLAY (replaces beats)                   */
     /* ============================================================== */
-    const WS_BEAT_RANGES = PH.BEATS;
-    WS_BEAT_RANGES.forEach((range, bi) => {
-      const labelEl = beatLabelEls.current[bi];
-      const sceneEl = beatSceneEls.current[bi];
-      const actionEl = beatActionEls.current[bi];
-      const shiftEl = beatShiftEls.current[bi];
-      const beatEl = beatEls.current[bi]; // insight (appears with shift)
-      if (!labelEl) return;
+    {
+      const termEl = terminalRef.current;
+      const termContent = termContentRef.current;
+      const termWipe = termWipeRef.current;
 
-      const dur = range.end - range.start;
-      // Label: visible throughout the beat
-      const labelIn = ss(range.start, range.start + dur * 0.08, p);
-      const labelOut = 1 - ss(range.end - dur * 0.05, range.end, p);
-      labelEl.style.opacity = String(labelIn * labelOut * 0.5);
-      labelEl.style.transform = `translate(-50%, calc(-50% - 18vh))`;
+      if (termEl && termContent && termWipe) {
+        // Fade terminal in/out
+        const termStart = PH.BEATS[0].start;
+        const termEnd = PH.BEATS[3].end;
+        const termIn = ss(termStart, termStart + 0.01, p);
+        const termOut = 1 - ss(termEnd - 0.01, termEnd, p);
+        termEl.style.opacity = String(termIn * termOut);
+        if (termProgressWrapRef.current) {
+          termProgressWrapRef.current.style.opacity = String(termIn * termOut);
+        }
 
-      // Scene: first third (0-35%)
-      if (sceneEl) {
-        const sIn = ss(range.start + dur * 0.02, range.start + dur * 0.12, p);
-        const sOut =
-          1 - ss(range.start + dur * 0.3, range.start + dur * 0.38, p);
-        sceneEl.style.opacity = String(sIn * sOut);
-        sceneEl.style.transform = `translate(-50%, calc(-50% + ${lerp(4, 0, sIn)}vh))`;
-        sceneEl.style.filter = `blur(${lerp(4, 0, sIn)}px)`;
+        if (termIn > 0 && termOut > 0) {
+          // Determine which company
+          const totalDur = termEnd - termStart;
+          const localP = Math.max(0, Math.min(1, (p - termStart) / totalDur));
+          const companyIdx = Math.min(Math.floor(localP * 4), 3);
+          const companyProgress = (localP - companyIdx / 4) * 4;
+
+          // Phase boundaries — terminal types in first half, narrative reveals in second
+          const P1_END = 0.2,
+            P2_END = 0.35,
+            P3_END = 0.48;
+          const NAR_START = 0.5,
+            NAR_END = 0.88;
+
+          // Wipe — only at very end, AFTER narrative finishes
+          const wipeProgress = ss(0.9, 0.97, companyProgress);
+          termWipe.style.opacity =
+            wipeProgress > 0 && wipeProgress < 1 ? "1" : "0";
+          termWipe.style.transform = `translateY(${(1 - wipeProgress) * 100}%)`;
+
+          if (wipeProgress >= 0.99) {
+            if (termLastStateRef.current.chars !== -2) {
+              termContent.innerHTML = "";
+              termLastStateRef.current = { company: companyIdx, chars: -2 };
+            }
+          } else {
+            const lines = ALL_COMPANY_LINES[companyIdx];
+            const cc = CHAR_COUNTS[companyIdx];
+
+            // How many chars to reveal
+            let charsToShow = 0;
+            if (companyProgress <= P1_END) {
+              charsToShow = Math.floor(
+                remap(companyProgress, 0, P1_END, 0, cc.p1),
+              );
+            } else if (companyProgress <= P2_END) {
+              charsToShow =
+                cc.p1 +
+                Math.floor(remap(companyProgress, P1_END, P2_END, 0, cc.p2));
+            } else if (companyProgress <= P3_END) {
+              charsToShow =
+                cc.p1 +
+                cc.p2 +
+                Math.floor(remap(companyProgress, P2_END, P3_END, 0, cc.p3));
+            } else {
+              charsToShow = cc.total;
+            }
+
+            // Build HTML
+            let html = "";
+            let charsSoFar = 0;
+            let lineNum = 1;
+            let cursorPlaced = false;
+
+            for (const line of lines) {
+              const lineLen = line.text.length + 1;
+              if (charsSoFar >= charsToShow) break;
+
+              const visibleChars = Math.min(
+                line.text.length,
+                charsToShow - charsSoFar,
+              );
+              const visibleText = escapeHtml(line.text.slice(0, visibleChars));
+              const isPartial = visibleChars < line.text.length;
+
+              const numStr = `<span style="color:${TC.lineNum};user-select:none;display:inline-block;width:3ch;text-align:right;margin-right:1.5ch;">${lineNum}</span>`;
+
+              let fg: string = TC.text;
+              let bg: string = "transparent";
+              let italic = false;
+              switch (line.style) {
+                case "keyword":
+                  fg = TC.keyword;
+                  break;
+                case "add":
+                  fg = TC.addedFg;
+                  bg = TC.addedBg;
+                  break;
+                case "remove":
+                  fg = TC.removedFg;
+                  bg = TC.removedBg;
+                  break;
+                case "comment":
+                  fg = TC.comment;
+                  italic = true;
+                  break;
+                case "promotion":
+                  fg = "#FBBF24";
+                  bg = "rgba(251,191,36,0.08)";
+                  break;
+                case "string":
+                  fg = TC.string;
+                  break;
+              }
+
+              const cursor =
+                isPartial && !cursorPlaced
+                  ? `<span style="color:${TC.text};animation:blink 1s step-end infinite;">█</span>`
+                  : "";
+              if (isPartial) cursorPlaced = true;
+
+              html += `<div style="background:${bg};min-height:1.5em;line-height:1.5;padding:0 1ch;${italic ? "font-style:italic;" : ""}">${numStr}<span style="color:${fg};">${visibleText}</span>${cursor}</div>`;
+
+              charsSoFar += lineLen;
+              lineNum++;
+            }
+
+            // Cursor only during active typing — not after all content is shown
+            // (prevents extra empty line)
+
+            // Only update DOM when content actually changed (preserves cursor blink animation)
+            if (
+              termLastStateRef.current.company !== companyIdx ||
+              termLastStateRef.current.chars !== charsToShow
+            ) {
+              termContent.innerHTML = html;
+              termLastStateRef.current = {
+                company: companyIdx,
+                chars: charsToShow,
+              };
+            }
+          }
+
+          // V15-style narrative reveal — starts AFTER terminal finishes
+          const narEl = termNarrativeRef.current;
+          if (narEl) {
+            const nar = TERM_NARRATIVES[companyIdx];
+            // Map NAR_START..NAR_END to 0..1
+            const narP = Math.max(
+              0,
+              Math.min(
+                1,
+                (companyProgress - NAR_START) / (NAR_END - NAR_START),
+              ),
+            );
+            const sceneReveal = ss(0, 0.4, narP);
+            const actionFade = ss(0.42, 0.6, narP);
+            const shiftFade = ss(0.62, 0.8, narP);
+            const fadeOut =
+              companyProgress > 0.9 ? ss(0.9, 0.95, companyProgress) : 0;
+            narEl.style.opacity = String(1 - fadeOut);
+
+            const nameEl = narEl.querySelector<HTMLElement>("[data-role=name]");
+            const periodEl =
+              narEl.querySelector<HTMLElement>("[data-role=period]");
+            const sceneEl =
+              narEl.querySelector<HTMLElement>("[data-role=scene]");
+            const actionEl =
+              narEl.querySelector<HTMLElement>("[data-role=action]");
+            const shiftEl =
+              narEl.querySelector<HTMLElement>("[data-role=shift]");
+
+            if (nameEl) {
+              nameEl.textContent = TERM_COMPANIES[companyIdx].company;
+              nameEl.style.color = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"][
+                companyIdx
+              ];
+              nameEl.style.opacity = String(ss(0, 0.1, narP));
+            }
+            if (periodEl) {
+              periodEl.textContent =
+                TERM_COMPANIES[companyIdx].location +
+                ", " +
+                TERM_COMPANIES[companyIdx].dates;
+              periodEl.style.opacity = String(ss(0, 0.1, narP));
+            }
+            if (sceneEl && nar) {
+              sceneEl.textContent = nar.scene;
+              const clipRight = 100 - sceneReveal * 100;
+              sceneEl.style.clipPath = `inset(0 ${clipRight}% 0 0)`;
+            }
+            if (actionEl && nar) {
+              actionEl.textContent = nar.action;
+              actionEl.style.opacity = String(actionFade);
+              actionEl.style.transform = `translateY(${lerp(8, 0, actionFade)}px)`;
+            }
+            if (shiftEl && nar) {
+              shiftEl.textContent = nar.shift;
+              shiftEl.style.opacity = String(shiftFade);
+              shiftEl.style.transform = `translateY(${lerp(8, 0, shiftFade)}px)`;
+            }
+          }
+
+          // Progress bars — find the fill div inside data-bar
+          for (let pi = 0; pi < 4; pi++) {
+            const barWrap =
+              termProgressRefs.current[pi]?.querySelector<HTMLElement>(
+                "[data-bar]",
+              );
+            const fill = barWrap?.firstElementChild as HTMLElement | null;
+            if (!fill) continue;
+            if (pi < companyIdx) fill.style.width = "100%";
+            else if (pi === companyIdx)
+              fill.style.width = `${companyProgress * 100}%`;
+            else fill.style.width = "0%";
+          }
+        }
       }
-
-      // Action: middle third (30-65%)
-      if (actionEl) {
-        const aIn = ss(range.start + dur * 0.32, range.start + dur * 0.42, p);
-        const aOut =
-          1 - ss(range.start + dur * 0.6, range.start + dur * 0.68, p);
-        actionEl.style.opacity = String(aIn * aOut);
-        actionEl.style.transform = `translate(-50%, calc(-50% + ${lerp(4, 0, aIn)}vh))`;
-        actionEl.style.filter = `blur(${lerp(4, 0, aIn)}px)`;
-      }
-
-      // Shift + insight: final third (62-100%)
-      if (shiftEl) {
-        const shIn = ss(range.start + dur * 0.64, range.start + dur * 0.74, p);
-        const shOut = 1 - ss(range.end - dur * 0.08, range.end, p);
-        shiftEl.style.opacity = String(shIn * shOut);
-        shiftEl.style.transform = `translate(-50%, calc(-50% + ${lerp(4, -2, shIn)}vh))`;
-        shiftEl.style.filter = `blur(${lerp(3, 0, shIn)}px)`;
-      }
-
-      // Insight principle: appears briefly at the very end
-      if (beatEl) {
-        const iIn = ss(range.start + dur * 0.8, range.start + dur * 0.88, p);
-        const iOut = 1 - ss(range.end - dur * 0.04, range.end, p);
-        beatEl.style.opacity = String(iIn * iOut * 0.6);
-        beatEl.style.transform = `translate(-50%, calc(-50% + 12vh))`;
-      }
-    });
-
-    // Whispers still tied to beats
-    whispers.forEach((w, i) => {
-      const el = whisperEls.current[i];
-      if (!el) return;
-      const range = WS_BEAT_RANGES[w.beatIdx];
-      const fadeIn = ss(range.start + 0.01, range.start + 0.04, p);
-      const fadeOut = 1 - ss(range.end - 0.04, range.end, p);
-      const drift = ss(range.start, range.end, p);
-      el.style.opacity = String(fadeIn * fadeOut * 0.15);
-      el.style.transform = `translate(calc(-50% + ${w.x0 + w.dx * drift}vw), calc(-50% + ${w.y0 + w.dy * drift}vh))`;
-    });
+    }
 
     // Beat glow + vignette disabled — clean dark background only
     if (beatGlowEl.current) beatGlowEl.current.style.opacity = "0";
@@ -925,7 +1401,7 @@ export default function ForgeWorkstation() {
         className="relative">
         <div
           ref={forgeStickyRef}
-          className="sticky top-0 h-screen w-full overflow-hidden"
+          className="sticky top-0 h-screen w-full overflow-hidden [container-type:size]"
           style={{ background: "var(--bg)", zIndex: 1 }}>
           <div
             aria-hidden
@@ -1145,7 +1621,7 @@ export default function ForgeWorkstation() {
                           x="12"
                           y="31"
                           textAnchor="middle"
-                          fill="#B0A890"
+                          fill="#C0B8A0"
                           fontSize="5"
                           fontFamily="var(--font-sans)"
                           letterSpacing="0.06em"
@@ -1248,125 +1724,250 @@ export default function ForgeWorkstation() {
             </div>
           ))}
 
-          {/* Narrative beats — scene → action → shift per company */}
-          {BEATS.map((beat, bi) => (
-            <div key={`beat-group-${bi}`}>
-              {/* Company label (stays throughout beat) */}
+          {/* Mid narrator — between funnel and terminal */}
+          <div
+            ref={midNarratorRef}
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ opacity: 0, zIndex: 8, pointerEvents: "none" }}>
+            <p
+              className="font-serif text-center"
+              style={{
+                fontSize: "clamp(1.2rem, 2.5vw, 1.8rem)",
+                lineHeight: 1.5,
+                color: "var(--cream, #F0E6D0)",
+                maxWidth: "500px",
+                fontStyle: "italic",
+              }}>
+              Let me show you where I've been.
+            </p>
+          </div>
+
+          {/* Terminal + Narrative split (replaces beats) */}
+          <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
+          <div
+            ref={terminalRef}
+            className="absolute inset-0 flex items-center justify-center flex-col sm:flex-row"
+            style={{ opacity: 0, zIndex: 8, padding: "0 5vw", gap: "4vw" }}>
+            {/* LEFT: Terminal */}
+            <div
+              style={{
+                width: "min(90vw, 620px)",
+                minHeight: "clamp(400px, 50cqh, 560px)",
+                borderRadius: "8px",
+                overflow: "hidden",
+                background: TC.bg,
+                border: "1px solid rgba(255,255,255,0.06)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                fontFamily: MONO,
+                fontSize: "clamp(10px, 1.6cqh, 13px)",
+                position: "relative",
+                flexShrink: 0,
+                display: "flex",
+                flexDirection: "column" as const,
+              }}>
+              {/* Top bar */}
               <div
-                ref={(el) => {
-                  beatLabelEls.current[bi] = el;
-                }}
-                className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none font-sans"
                 style={{
-                  opacity: 0,
-                  fontSize: "0.6rem",
-                  letterSpacing: "0.2em",
-                  textTransform: "uppercase",
-                  color: fc(beat.companyIdx, 0.7),
-                  willChange: "transform, opacity",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "8px 12px",
+                  background: TC.topBar,
+                  borderBottom: "1px solid rgba(255,255,255,0.04)",
                 }}>
-                <span style={{ display: "block", marginBottom: "0.25rem" }}>
-                  {beat.company}
-                </span>
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background: TC.dotRed,
+                  }}
+                />
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background: TC.dotYellow,
+                  }}
+                />
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background: TC.dotGreen,
+                  }}
+                />
                 <span
-                  style={{ fontSize: "0.55rem", color: "var(--text-faint)" }}>
-                  {beat.period}
+                  style={{
+                    marginLeft: "auto",
+                    color: "#8b949e",
+                    fontSize: "10px",
+                  }}>
+                  ~/career — zsh
                 </span>
               </div>
-
-              {/* Scene: the situation */}
+              {/* Terminal content + wipe (wipe only covers content, not header) */}
               <div
-                ref={(el) => {
-                  beatSceneEls.current[bi] = el;
-                }}
-                className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
-                style={{
-                  opacity: 0,
-                  fontFamily: "var(--font-serif)",
-                  fontSize: "clamp(0.9rem, 1.6vw, 1.15rem)",
-                  lineHeight: 1.7,
-                  color: "var(--cream)",
-                  maxWidth: "44vw",
-                  willChange: "transform, opacity, filter",
-                }}>
-                {beat.scene}
-              </div>
-
-              {/* Action: what you did */}
-              <div
-                ref={(el) => {
-                  beatActionEls.current[bi] = el;
-                }}
-                className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
-                style={{
-                  opacity: 0,
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "clamp(0.8rem, 1.2vw, 0.95rem)",
-                  lineHeight: 1.7,
-                  color: "var(--cream-muted)",
-                  maxWidth: "44vw",
-                  willChange: "transform, opacity, filter",
-                }}>
-                {beat.action}
-              </div>
-
-              {/* Shift: what changed */}
-              <div
-                ref={(el) => {
-                  beatShiftEls.current[bi] = el;
-                }}
-                className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
-                style={{
-                  opacity: 0,
-                  fontFamily: "var(--font-serif)",
-                  fontSize: "clamp(1rem, 1.8vw, 1.2rem)",
-                  lineHeight: 1.6,
-                  fontStyle: "italic",
-                  color: "var(--cream)",
-                  maxWidth: "44vw",
-                  willChange: "transform, opacity, filter",
-                }}>
-                {beat.shift}
-              </div>
-
-              {/* Insight principle (brief flash at end) */}
-              <div
-                ref={(el) => {
-                  beatEls.current[bi] = el;
-                }}
-                className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none font-sans"
-                style={{
-                  opacity: 0,
-                  fontSize: "clamp(0.6rem, 0.8vw, 0.7rem)",
-                  letterSpacing: "0.06em",
-                  color: fc(beat.companyIdx, 0.5),
-                  maxWidth: "40vw",
-                  willChange: "transform, opacity",
-                }}>
-                {beat.insight}
+                style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+                <pre
+                  ref={termContentRef}
+                  style={{
+                    padding: "12px 0",
+                    margin: 0,
+                    overflow: "hidden",
+                    color: TC.text,
+                    lineHeight: 1.5,
+                    fontSize: "clamp(10px, 1.5cqh, 13px)",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word" as const,
+                  }}
+                />
+                <div
+                  ref={termWipeRef}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: TC.bg,
+                    opacity: 0,
+                    pointerEvents: "none",
+                  }}
+                />
               </div>
             </div>
-          ))}
 
-          {/* Whispers */}
-          {whispers.map((w, i) => (
-            <span
-              key={`whisper-${i}`}
-              ref={(el) => {
-                whisperEls.current[i] = el;
-              }}
-              aria-hidden
-              className="absolute left-1/2 top-1/2 whitespace-nowrap font-sans select-none pointer-events-none"
-              style={{
-                opacity: 0,
-                fontSize: `${w.size}rem`,
-                color: fc(BEATS[w.beatIdx].companyIdx, 0.35),
-                letterSpacing: "0.06em",
-                willChange: "transform, opacity",
-              }}>
-              {w.text}
-            </span>
-          ))}
+            {/* RIGHT: V15-style narrative reveal */}
+            <div
+              ref={termNarrativeRef}
+              style={{ width: "min(36%, 340px)", padding: "0" }}>
+              {/* Company label — name only (dates are in terminal) */}
+              <div style={{ marginBottom: "1.5rem" }}>
+                <span
+                  data-role="name"
+                  className="font-sans"
+                  style={{
+                    fontSize: "0.65rem",
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase" as const,
+                  }}
+                />
+              </div>
+              {/* Scene — clip-path reveal left-to-right */}
+              <p
+                data-role="scene"
+                className="font-serif"
+                style={{
+                  fontSize: "1.05rem",
+                  lineHeight: 1.7,
+                  color: "var(--cream, #F0E6D0)",
+                  marginBottom: "1.25rem",
+                  clipPath: "inset(0 100% 0 0)",
+                }}
+              />
+              {/* Action — fade in */}
+              <p
+                data-role="action"
+                className="font-sans"
+                style={{
+                  fontSize: "0.85rem",
+                  lineHeight: 1.65,
+                  color: "var(--cream-muted, #B0A890)",
+                  marginBottom: "1.25rem",
+                  opacity: 0,
+                }}
+              />
+              {/* Shift — fade in italic */}
+              <p
+                data-role="shift"
+                className="font-serif"
+                style={{
+                  fontSize: "0.95rem",
+                  lineHeight: 1.6,
+                  fontStyle: "italic",
+                  color: "var(--cream, #F0E6D0)",
+                  opacity: 0,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Progress: 4 clickable segments — only visible during terminal phase */}
+          <div
+            ref={termProgressWrapRef}
+            style={{
+              position: "absolute",
+              bottom: "5vh",
+              left: "50%",
+              transform: "translateX(-50%)",
+              display: "flex",
+              gap: "4px",
+              width: "140px",
+              zIndex: 10,
+              pointerEvents: "auto",
+              opacity: 0,
+            }}>
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={`tp-${i}`}
+                ref={(el) => {
+                  termProgressRefs.current[i] = el;
+                }}
+                onClick={() => {
+                  // Jump to ~10% into the company so terminal has ~5 lines visible
+                  const beatDur = PH.BEATS[i].end - PH.BEATS[i].start;
+                  const target = PH.BEATS[i].start + beatDur * 0.1;
+                  const container = forgeContainerRef.current;
+                  if (!container) return;
+                  const containerTop =
+                    container.getBoundingClientRect().top + window.scrollY;
+                  const containerH =
+                    container.offsetHeight - window.innerHeight;
+                  window.scrollTo({
+                    top: containerTop + target * containerH,
+                    behavior: "smooth",
+                  });
+                }}
+                style={{
+                  flex: 1,
+                  padding: "6px 0",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onMouseEnter={(e) => {
+                  const bar =
+                    e.currentTarget.querySelector<HTMLElement>("[data-bar]");
+                  if (bar) bar.style.background = "rgba(255,255,255,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  const bar =
+                    e.currentTarget.querySelector<HTMLElement>("[data-bar]");
+                  if (bar) bar.style.background = "rgba(255,255,255,0.06)";
+                }}>
+                <div
+                  data-bar
+                  style={{
+                    width: "100%",
+                    height: "2px",
+                    borderRadius: "1px",
+                    background: "rgba(255,255,255,0.06)",
+                    overflow: "hidden",
+                    transition: "background 0.2s",
+                  }}>
+                  <div
+                    style={{
+                      width: "0%",
+                      height: "100%",
+                      borderRadius: "1px",
+                      background: "rgba(255,255,255,0.35)",
+                      transition: "width 0.15s linear",
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
 
           {/* Principles (crystallize) */}
           {principles.map((pr, i) => (
@@ -1414,13 +2015,18 @@ export default function ForgeWorkstation() {
           <div
             ref={funnelSvgWrapRef}
             className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            style={{ opacity: 0, zIndex: 6 }}>
+            style={{ opacity: 0, zIndex: 6, padding: "5vh 4vw" }}>
             <svg
               ref={funnelSvgRef}
               viewBox={`0 0 ${FV_W} ${FV_H}`}
-              className="w-full h-full max-w-300"
+              className="max-w-300"
               preserveAspectRatio="xMidYMid meet"
-              style={{ overflow: "visible" }}>
+              style={{
+                overflow: "visible",
+                width: "100%",
+                height: "100%",
+                maxHeight: "80vh",
+              }}>
               <defs>
                 {STREAMS.map((s) => (
                   <linearGradient
@@ -1431,7 +2037,11 @@ export default function ForgeWorkstation() {
                     x2="0"
                     y2="1">
                     <stop offset="0%" stopColor={s.color} stopOpacity={0.6} />
-                    <stop offset="100%" stopColor={s.color} stopOpacity={0.95} />
+                    <stop
+                      offset="100%"
+                      stopColor={s.color}
+                      stopOpacity={0.95}
+                    />
                   </linearGradient>
                 ))}
                 {/* Per-dot glow filters */}
@@ -1513,8 +2123,8 @@ export default function ForgeWorkstation() {
                       textAnchor="end"
                       className="font-sans"
                       style={{ fontSize: "8px" }}
-                      fill="#8A8478"
-                      fillOpacity={0.65}>
+                      fill="#C0B8A0"
+                      fillOpacity={0.7}>
                       {node.period}
                     </text>
                   </g>
@@ -1568,7 +2178,7 @@ export default function ForgeWorkstation() {
                       textAnchor="middle"
                       className="font-sans"
                       style={{
-                        fontSize: "9px",
+                        fontSize: "12px",
                         letterSpacing: "0.04em",
                         fontWeight: 500,
                       }}
@@ -1600,8 +2210,12 @@ export default function ForgeWorkstation() {
                   y={F_CONVERGE_Y + 22}
                   textAnchor="middle"
                   className="font-serif"
-                  style={{ fontSize: "13px", letterSpacing: "0.06em" }}
-                  fill="white">
+                  style={{
+                    fontSize: "16px",
+                    letterSpacing: "0.1em",
+                    fontWeight: 600,
+                  }}
+                  fill="var(--cream)">
                   The Engineer I Became
                 </text>
               </g>
@@ -1609,34 +2223,39 @@ export default function ForgeWorkstation() {
           </div>
 
           {/* Narrator glass panels — right side, accompanying funnel */}
-          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 7 }}>
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ zIndex: 7 }}>
             {FUNNEL_NARRATOR.map((text, ni) => {
-              const topFrac = [0.15, 0.33, 0.52, 0.72][ni];
+              const topFrac = [0.28, 0.42, 0.58, 0.74][ni];
               return (
                 <div
                   key={`narrator-${ni}`}
-                  ref={(el) => { funnelNarratorRefs.current[ni] = el; }}
+                  ref={(el) => {
+                    funnelNarratorRefs.current[ni] = el;
+                  }}
                   className="absolute"
                   style={{
-                    right: "5%",
+                    right: "25%",
                     top: `${topFrac * 100}%`,
-                    maxWidth: "280px",
+                    maxWidth: "180px",
                     opacity: 0,
                     willChange: "transform, opacity",
-                    padding: "0.85rem 1.1rem",
+                    padding: "0.65rem 0.9rem",
                     borderRadius: "10px",
-                    background: "rgba(14,14,20,0.4)",
-                    backdropFilter: "blur(16px) saturate(1.3)",
-                    WebkitBackdropFilter: "blur(16px) saturate(1.3)",
-                    border: "1px solid rgba(255,255,255,0.05)",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.03)",
+                    background: "rgba(14,14,20,0.45)",
+                    backdropFilter: "blur(20px) saturate(1.4)",
+                    WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    boxShadow:
+                      "0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.2)",
                   }}>
                   <span
                     className="font-narrator block"
                     style={{
-                      fontSize: "0.8rem",
-                      lineHeight: 1.65,
-                      color: "var(--cream-muted, #B0A890)",
+                      fontSize: "0.78rem",
+                      lineHeight: 1.6,
+                      color: "rgba(192,184,160,0.92)",
                       fontStyle: "italic",
                     }}>
                     {text}
@@ -1666,17 +2285,6 @@ export default function ForgeWorkstation() {
               opacity: 0,
             }}
           />
-          <div
-            ref={scrollHintEl}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 font-sans tracking-widest uppercase"
-            style={{
-              color: "var(--text-faint)",
-              fontSize: "0.6rem",
-              letterSpacing: "0.15em",
-              animation: "breathe 3s ease-in-out infinite",
-            }}>
-            scroll to begin
-          </div>
           <div
             className="absolute bottom-0 left-0 right-0 h-px"
             style={{ background: "var(--stroke)" }}>
