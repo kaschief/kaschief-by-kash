@@ -902,7 +902,7 @@ export default function ForgeWorkstation() {
       // SVG funnel wrapper: appears as canvas starts fading (simultaneous crossfade)
       if (funnelSvgWrapRef.current) {
         const svgIn = ss(0.33, 0.35, p);
-        const svgOut = 1 - ss(0.46, 0.49, p);
+        const svgOut = 1 - ss(0.45, 0.47, p);
         funnelSvgWrapRef.current.style.opacity = String(svgIn * svgOut);
       }
 
@@ -912,7 +912,7 @@ export default function ForgeWorkstation() {
         if (!el) continue;
         const stagger = si * 0.003;
         const dotIn = ss(0.33 + stagger, 0.36 + stagger, p);
-        const dotOut = 1 - ss(0.46, 0.49, p);
+        const dotOut = 1 - ss(0.45, 0.47, p);
         const ribbonStart = ss(0.36, 0.4, p);
         const scale = lerpFn(2, 1, ribbonStart);
         const glowR = lerpFn(6, 3, ribbonStart);
@@ -928,7 +928,7 @@ export default function ForgeWorkstation() {
         if (!el) continue;
         const stagger = si * 0.002;
         const labelIn = ss(0.30 + stagger, 0.32 + stagger, p);
-        const labelOut = 1 - ss(0.46, 0.49, p);
+        const labelOut = 1 - ss(0.45, 0.47, p);
         el.style.opacity = String(labelIn * labelOut);
         el.style.transform = `translateY(${lerpFn(-10, 0, labelIn)}px)`;
       }
@@ -947,25 +947,25 @@ export default function ForgeWorkstation() {
         const threshIdx = Math.min(seg.toTier - 1, TIER_THRESHOLDS.length - 1);
         const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
         const t = ss(threshStart, threshEnd, p);
-        const fadeOut = 1 - ss(0.46, 0.49, p);
+        const fadeOut = 1 - ss(0.45, 0.47, p);
         el.style.opacity = String(lerpFn(0, seg.opacityEnd, t) * fadeOut);
         const scaleY = lerpFn(0, 1, t);
         el.style.transformOrigin = `${F_CENTER_X}px ${F_TIER_Y[seg.fromTier]}px`;
         el.style.transform = `scaleY(${scaleY})`;
       }
 
-      // Company nodes — appear as ribbons reach them
+      // Company nodes — appear just before ribbons reach their tier (late in the threshold)
       for (let ni = 0; ni < NODES.length; ni++) {
         const el = funnelNodeRefs.current[ni];
         if (!el) continue;
         const threshIdx = Math.min(ni, TIER_THRESHOLDS.length - 1);
         const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
         const nodeT = ss(
-          lerpFn(threshStart, threshEnd, 0.4),
-          lerpFn(threshStart, threshEnd, 0.8),
+          lerpFn(threshStart, threshEnd, 0.7),
+          threshEnd,
           p,
         );
-        const fadeOut = 1 - ss(0.46, 0.49, p);
+        const fadeOut = 1 - ss(0.45, 0.47, p);
         el.style.opacity = String(nodeT * fadeOut);
         el.style.transform = `translateY(${lerpFn(8, 0, nodeT)}px)`;
       }
@@ -973,7 +973,7 @@ export default function ForgeWorkstation() {
       // Convergence point — appears after ribbons complete
       if (funnelConvergeRef.current) {
         const ct = ss(0.42, 0.44, p);
-        const fadeOut = 1 - ss(0.47, 0.49, p);
+        const fadeOut = 1 - ss(0.45, 0.47, p);
         funnelConvergeRef.current.style.opacity = String(ct * fadeOut);
         if (funnelBlurRef.current) {
           funnelBlurRef.current.setAttribute(
@@ -985,17 +985,17 @@ export default function ForgeWorkstation() {
 
       // Narrator glass panels — positioned right, slide down with tiers
       const NAR_THRESHOLDS = [
-        [0.36, 0.39],
-        [0.39, 0.42],
-        [0.42, 0.455],
-        [0.455, 0.49],
+        [0.35, 0.38],
+        [0.38, 0.41],
+        [0.41, 0.44],
+        [0.44, 0.46],
       ];
       for (let ni = 0; ni < FUNNEL_NARRATOR.length; ni++) {
         const el = funnelNarratorRefs.current[ni];
         if (!el) continue;
         const [ts, te] = NAR_THRESHOLDS[ni];
-        const fadeIn = ss(lerpFn(ts, te, 0.1), lerpFn(ts, te, 0.35), p);
-        const fadeOut = 1 - ss(lerpFn(ts, te, 0.8), te + 0.005, p);
+        const fadeIn = ss(ts, lerpFn(ts, te, 0.15), p);
+        const fadeOut = 1 - ss(lerpFn(ts, te, 0.85), te, p);
         el.style.opacity = String(fadeIn * fadeOut * 0.75);
         el.style.transform = `translateY(${lerpFn(12, 0, fadeIn)}px)`;
       }
@@ -1750,12 +1750,12 @@ export default function ForgeWorkstation() {
           <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
           <div
             ref={terminalRef}
-            className="absolute inset-0 flex items-center justify-center flex-col sm:flex-row"
-            style={{ opacity: 0, zIndex: 8, padding: "0 5vw", gap: "4vw" }}>
+            className="absolute inset-0 flex items-center justify-center flex-col lg:flex-row"
+            style={{ opacity: 0, zIndex: 8, padding: "0 4vw", gap: "3vw" }}>
             {/* LEFT: Terminal */}
             <div
               style={{
-                width: "min(90vw, 620px)",
+                width: "min(88vw, 560px)",
                 minHeight: "clamp(400px, 50cqh, 560px)",
                 borderRadius: "8px",
                 overflow: "hidden",
@@ -1844,7 +1844,8 @@ export default function ForgeWorkstation() {
             {/* RIGHT: V15-style narrative reveal */}
             <div
               ref={termNarrativeRef}
-              style={{ width: "min(36%, 340px)", padding: "0" }}>
+              className="w-full lg:w-auto"
+              style={{ maxWidth: "min(36%, 320px)", padding: "0" }}>
               {/* Company label — name only (dates are in terminal) */}
               <div style={{ marginBottom: "1.5rem" }}>
                 <span
@@ -2229,7 +2230,7 @@ export default function ForgeWorkstation() {
           {/* Narrator glass panels — right side, accompanying funnel */}
           <div
             className="absolute inset-0 pointer-events-none"
-            style={{ zIndex: 7 }}>
+            style={{ zIndex: 7, overflow: "visible" }}>
             {FUNNEL_NARRATOR.map((text, ni) => {
               const topFrac = [0.28, 0.42, 0.58, 0.74][ni];
               return (
@@ -2238,26 +2239,26 @@ export default function ForgeWorkstation() {
                   ref={(el) => {
                     funnelNarratorRefs.current[ni] = el;
                   }}
-                  className="absolute"
+                  className="absolute hidden lg:block"
                   style={{
-                    right: "25%",
+                    right: "4%",
                     top: `${topFrac * 100}%`,
-                    maxWidth: "180px",
+                    maxWidth: "170px",
                     opacity: 0,
                     willChange: "transform, opacity",
-                    padding: "0.65rem 0.9rem",
+                    padding: "0.6rem 0.85rem",
                     borderRadius: "10px",
-                    background: "rgba(14,14,20,0.45)",
-                    backdropFilter: "blur(20px) saturate(1.4)",
-                    WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+                    background: "rgba(14,14,20,0.5)",
+                    backdropFilter: "blur(24px) saturate(1.4)",
+                    WebkitBackdropFilter: "blur(24px) saturate(1.4)",
                     border: "1px solid rgba(255,255,255,0.06)",
                     boxShadow:
-                      "0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.2)",
+                      "0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.2)",
                   }}>
                   <span
                     className="font-narrator block"
                     style={{
-                      fontSize: "0.78rem",
+                      fontSize: "0.75rem",
                       lineHeight: 1.6,
                       color: "rgba(192,184,160,0.92)",
                       fontStyle: "italic",
