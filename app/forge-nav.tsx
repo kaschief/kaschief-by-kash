@@ -9,6 +9,10 @@ const VARIANTS = [
   { href: "/forge-test-workstation", label: "Workstation" },
   { href: "/forge-test-v16", label: "V16 Terminal" },
   { href: "/forge-test-v19", label: "V19 Forge" },
+  { href: "/forge-test-v21", label: "V21 Panels" },
+  { href: "/forge-test-v23", label: "V23 WordType" },
+  { href: "/forge-test-v26", label: "V26 Curtain" },
+  { href: "/forge-test-v29", label: "V29 Focus" },
 ];
 
 export function ForgeNav() {

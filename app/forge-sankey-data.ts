@@ -21,14 +21,14 @@ export interface SankeyNode {
 
 export const STREAMS: SankeyStream[] = [
   { id: "empathy",      label: "User Empathy",     color: "#E05252", path: [0, 1, 2, 3], width: 3 },
-  { id: "react",        label: "React",            color: "#61DAFB", path: [0, 3],       width: 4 },
-  { id: "vue",          label: "Vue",              color: "#42B883", path: [1, 2],       width: 3 },
-  { id: "typescript",   label: "TypeScript",       color: "#3178C6", path: [2, 3],       width: 4 },
-  { id: "performance",  label: "Performance",      color: "#F59E0B", path: [1, 2, 3],    width: 2 },
+  { id: "evidence",     label: "Evidence",         color: "#61DAFB", path: [0, 3],       width: 4 },
+  { id: "speed",        label: "Speed",            color: "#42B883", path: [1, 2],       width: 3 },
+  { id: "diagnosis",    label: "Diagnosis",        color: "#3178C6", path: [2, 3],       width: 4 },
+  { id: "process",      label: "Process",          color: "#F59E0B", path: [1, 2, 3],    width: 2 },
   { id: "testing",      label: "Testing",          color: "#2EAD33", path: [0, 3],       width: 3 },
   { id: "architecture", label: "Architecture",     color: "#8B5CF6", path: [1, 2, 3],    width: 3 },
   { id: "product",      label: "Product Sense",    color: "#EC4899", path: [0, 1, 2, 3], width: 2 },
-  { id: "quality",      label: "Code Quality",     color: "#06B6D4", path: [2, 3],       width: 2 },
+  { id: "judgment",     label: "Judgment",         color: "#06B6D4", path: [2, 3],       width: 2 },
 ];
 
 export const NODES: SankeyNode[] = [
