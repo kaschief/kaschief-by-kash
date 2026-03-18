@@ -197,36 +197,56 @@ export const LOGOS: Record<string, ReactNode> = {
 /*  Data factories                                                     */
 /* ================================================================== */
 
-// Fragment grid layout — prevents overlapping by assigning to grid cells
-const FRAG_GRID_COLS         = 12;
-const FRAG_GRID_ROWS         = 10;
-const FRAG_GRID_WIDTH_VW     = 82;     // total grid width in vw (centered)
-const FRAG_GRID_HEIGHT_VH    = 72;     // total grid height in vh (centered)
-const FRAG_GRID_ORIGIN_X     = -41;    // left edge offset from center (half of width)
-const FRAG_GRID_ORIGIN_Y     = -36;    // top edge offset from center (half of height)
-const FRAG_JITTER_FACTOR     = 0.6;    // jitter as fraction of cell size
-const FRAG_MAX_DRIFT_X       = 24;     // max horizontal drift in vw
-const FRAG_MAX_DRIFT_Y       = 20;     // max vertical drift in vh
-const FRAG_MAX_ROTATION      = 30;     // max initial rotation in degrees
-const FRAG_GRID_MAX_ATTEMPTS = 20;     // max retries to find unused cell
+/** Fragment grid layout — prevents overlapping by assigning to grid cells */
+const FRAGMENT_GRID = {
+  cols:          12,
+  rows:          10,
+  widthVw:       82,      // total grid width in vw (centered)
+  heightVh:      72,      // total grid height in vh (centered)
+  originX:       -41,     // left edge offset from center (half of width)
+  originY:       -36,     // top edge offset from center (half of height)
+  jitterFactor:  0.6,     // jitter as fraction of cell size
+  maxDriftX:     24,      // max horizontal drift in vw
+  maxDriftY:     20,      // max vertical drift in vh
+  maxRotation:   30,      // max initial rotation in degrees
+  maxAttempts:   20,      // max retries to find unused cell
+} as const;
 
-// Default dissolve ranges per fragment type (scroll progress fractions)
-const DISSOLVE_DEFAULT       = { start: 0.22, end: 0.32 };
-const DISSOLVE_CODE          = { start: 0.23, end: 0.33 };
-const DISSOLVE_LOGO          = { start: 0.18, end: 0.28 };
-const DISSOLVE_COMMAND       = { start: 0.20, end: 0.30 };
+/** Dissolve ranges per fragment type (scroll progress fractions) */
+const DISSOLVE = {
+  default:  { start: 0.22, end: 0.32 },
+  code:     { start: 0.23, end: 0.33 },
+  logo:     { start: 0.18, end: 0.28 },
+  command:  { start: 0.20, end: 0.30 },
+  tagEarly: { start: 0.19, end: 0.29 },  // tags that dissolve slightly before others
+} as const;
 
-// Default sizes
-const CODE_DEFAULT_SIZE      = 0.65;
-const CMD_DEFAULT_SIZE       = 0.65;
+/** Default sizes and weights per fragment type */
+const FRAGMENT_DEFAULTS = {
+  codeSize:     0.65,
+  cmdSize:      0.65,
+  tagSize:      0.65,
+  tagWeight:    500,
+  logoSize:     34,       // default logo size in px
+  companyLogo:  38,       // company logo size (slightly larger)
+  seedSize:     1.05,
+  seedWeight:   600,
+} as const;
+
+/** Principle card layout */
+const PRINCIPLE_LAYOUT = {
+  spacingVh:     11,      // vertical spacing between cards
+  centerOffset:  1.5,     // centering offset (places 4 cards around center)
+} as const;
 
 export function createFragments(): Fragment[] {
   const frags: Fragment[] = [];
   let s = 0;
 
   const usedCells = new Set<number>();
-  const cellW = FRAG_GRID_WIDTH_VW / FRAG_GRID_COLS;
-  const cellH = FRAG_GRID_HEIGHT_VH / FRAG_GRID_ROWS;
+  const G = FRAGMENT_GRID;
+  const cellW = G.widthVw / G.cols;
+  const cellH = G.heightVh / G.rows;
 
   function pos() {
     s++;
@@ -234,20 +254,20 @@ export function createFragments(): Fragment[] {
     let cell: number;
     let attempts = 0;
     do {
-      cell = Math.floor(hashToUnit(s * 7.1 + attempts * 3.3) * FRAG_GRID_COLS * FRAG_GRID_ROWS);
+      cell = Math.floor(hashToUnit(s * 7.1 + attempts * 3.3) * G.cols * G.rows);
       attempts++;
-    } while (usedCells.has(cell) && attempts < FRAG_GRID_MAX_ATTEMPTS);
+    } while (usedCells.has(cell) && attempts < G.maxAttempts);
     usedCells.add(cell);
-    const col = cell % FRAG_GRID_COLS;
-    const row = Math.floor(cell / FRAG_GRID_COLS);
-    const jitterX = (hashToUnit(s * 11.7) - 0.5) * cellW * FRAG_JITTER_FACTOR;
-    const jitterY = (hashToUnit(s * 17.3) - 0.5) * cellH * FRAG_JITTER_FACTOR;
+    const col = cell % G.cols;
+    const row = Math.floor(cell / G.cols);
+    const jitterX = (hashToUnit(s * 11.7) - 0.5) * cellW * G.jitterFactor;
+    const jitterY = (hashToUnit(s * 17.3) - 0.5) * cellH * G.jitterFactor;
     return {
-      x0: FRAG_GRID_ORIGIN_X + col * cellW + cellW / 2 + jitterX,
-      y0: FRAG_GRID_ORIGIN_Y + row * cellH + cellH / 2 + jitterY,
-      dx: (hashToUnit(s * 3.7) - 0.5) * FRAG_MAX_DRIFT_X,
-      dy: (hashToUnit(s * 5.3) - 0.5) * FRAG_MAX_DRIFT_Y,
-      rot: (hashToUnit(s * 11.1) - 0.5) * FRAG_MAX_ROTATION,
+      x0: G.originX + col * cellW + cellW / 2 + jitterX,
+      y0: G.originY + row * cellH + cellH / 2 + jitterY,
+      dx: (hashToUnit(s * 3.7) - 0.5) * G.maxDriftX,
+      dy: (hashToUnit(s * 5.3) - 0.5) * G.maxDriftY,
+      rot: (hashToUnit(s * 11.1) - 0.5) * G.maxRotation,
     };
   }
 
@@ -256,27 +276,29 @@ export function createFragments(): Fragment[] {
   const randColor = () => { const c = colorIdx % CC_EXT.length; colorIdx++; return c; };
 
   // _ci kept for call-site consistency with logo() which uses its company index
-  const text = (t: string, _ci: number, kind: TextFrag["type"], size: number, weight = 400, ds = DISSOLVE_DEFAULT.start, de = DISSOLVE_DEFAULT.end): TextFrag => ({
+  const D = DISSOLVE;
+  const FD = FRAGMENT_DEFAULTS;
+  const text = (t: string, _ci: number, kind: TextFrag["type"], size: number, weight: number = 400, ds: number = D.default.start, de: number = D.default.end): TextFrag => ({
     type: kind, text: t, companyIdx: randColor(), isSeed: kind === "seed", size, weight, dissolveStart: ds, dissolveEnd: de, ...pos(),
   });
-  const code = (c: string, _ci: number, size = CODE_DEFAULT_SIZE): CodeFrag => ({
-    type: "code", code: c, companyIdx: randColor(), isSeed: false, size, dissolveStart: DISSOLVE_CODE.start, dissolveEnd: DISSOLVE_CODE.end, ...pos(),
+  const code = (c: string, _ci: number, size: number = FD.codeSize): CodeFrag => ({
+    type: "code", code: c, companyIdx: randColor(), isSeed: false, size, dissolveStart: D.code.start, dissolveEnd: D.code.end, ...pos(),
   });
-  const logo = (key: string, ci: number, label: string, logoSize = 34): LogoFrag => ({
-    type: "logo", logoKey: key, label, companyIdx: ci, isSeed: false, logoSize, dissolveStart: DISSOLVE_LOGO.start, dissolveEnd: DISSOLVE_LOGO.end, ...pos(),
+  const logo = (key: string, ci: number, label: string, logoSize: number = FD.logoSize): LogoFrag => ({
+    type: "logo", logoKey: key, label, companyIdx: ci, isSeed: false, logoSize, dissolveStart: D.logo.start, dissolveEnd: D.logo.end, ...pos(),
   });
-  const cmd = (c: string, _ci: number, size = CMD_DEFAULT_SIZE): CommandFrag => ({
-    type: "command", cmd: c, companyIdx: randColor(), isSeed: false, size, dissolveStart: DISSOLVE_COMMAND.start, dissolveEnd: DISSOLVE_COMMAND.end, ...pos(),
+  const cmd = (c: string, _ci: number, size: number = FD.cmdSize): CommandFrag => ({
+    type: "command", cmd: c, companyIdx: randColor(), isSeed: false, size, dissolveStart: D.command.start, dissolveEnd: D.command.end, ...pos(),
   });
 
   // Companies (logos instead of text)
-  frags.push(logo("amboss", 0, "AMBOSS", 38));
-  frags.push(logo("compado", 1, "Compado", 38));
-  frags.push(logo("capinside", 2, "CAPinside", 38));
-  frags.push(logo("dkb", 3, "", 38));
+  frags.push(logo("amboss", 0, "AMBOSS", FD.companyLogo));
+  frags.push(logo("compado", 1, "Compado", FD.companyLogo));
+  frags.push(logo("capinside", 2, "CAPinside", FD.companyLogo));
+  frags.push(logo("dkb", 3, "", FD.companyLogo));
 
   // Phrases
-  frags.push(text("500K students", 0, "phrase", 0.85, 400, 0.22, 0.32));
+  frags.push(text("500K students", 0, "phrase", 0.85));
   frags.push(text("A/B experiments", 0, "phrase", 0.8));
   frags.push(text("beta to production", 0, "phrase", 0.75));
   frags.push(text("page speed", 1, "phrase", 0.85));
@@ -292,11 +314,11 @@ export function createFragments(): Fragment[] {
   frags.push(text("micro-frontends", 3, "phrase", 0.75));
 
   // Tags (only ones that DON'T have a logo equivalent)
-  frags.push(text("Performance", 1, "tag", 0.65, 500, 0.20, 0.30));
-  frags.push(text("Med-Ed", 0, "tag", 0.65, 500, 0.19, 0.29));
-  frags.push(text("Fintech", 2, "tag", 0.65, 500, 0.20, 0.30));
-  frags.push(text("Banking", 3, "tag", 0.65, 500, 0.20, 0.30));
-  frags.push(text("SEO", 1, "tag", 0.65, 500, 0.19, 0.29));
+  frags.push(text("Performance", 1, "tag", FD.tagSize, FD.tagWeight, D.command.start, D.command.end));
+  frags.push(text("Med-Ed", 0, "tag", FD.tagSize, FD.tagWeight, D.tagEarly.start, D.tagEarly.end));
+  frags.push(text("Fintech", 2, "tag", FD.tagSize, FD.tagWeight, D.command.start, D.command.end));
+  frags.push(text("Banking", 3, "tag", FD.tagSize, FD.tagWeight, D.command.start, D.command.end));
+  frags.push(text("SEO", 1, "tag", FD.tagSize, FD.tagWeight, D.tagEarly.start, D.tagEarly.end));
 
   // Code
   frags.push(code("const isReady = await pipeline.validate()", 3));
@@ -341,7 +363,7 @@ export function createFragments(): Fragment[] {
   let seedColorIdx = 0;
   COMPANIES.forEach((c) => {
     c.distillation.seedWords.forEach((w) => {
-      frags.push(text(w, seedColorIdx % 4, "seed", 1.05, 600));
+      frags.push(text(w, seedColorIdx % 4, "seed", FD.seedSize, FD.seedWeight));
       seedColorIdx++;
     });
   });
@@ -398,31 +420,34 @@ export function createPrinciples(): PrincipleData[] {
   return COMPANIES.map((c, i) => ({
     text: c.distillation.principle,
     companyIdx: i,
-    yOffset: (i - 1.5) * 11,
+    yOffset: (i - PRINCIPLE_LAYOUT.centerOffset) * PRINCIPLE_LAYOUT.spacingVh,
   }));
 }
 
-// Ember layout constants
-const EMBER_COUNT            = 20;
-const EMBER_SEED_OFFSET      = 50;     // hash seed offset to avoid colliding with fragment seeds
-const EMBER_SPREAD_X         = 60;     // horizontal spread in vw
-const EMBER_SPREAD_Y         = 40;     // vertical spread in vh
-const EMBER_ORIGIN_Y         = 10;     // vertical offset from center
-const EMBER_DRIFT_X          = 8;      // horizontal drift range in vw
-const EMBER_SPEED_MIN        = 15;     // minimum rise speed
-const EMBER_SPEED_RANGE      = 30;     // additional random speed
-const EMBER_SIZE_MIN         = 1.5;    // minimum ember size in px
-const EMBER_SIZE_RANGE        = 3;      // additional random size
-const EMBER_MAX_DELAY        = 0.08;   // max stagger delay (scroll fraction)
+/** Ember spawn layout — tiny rising sparks during forge phase */
+const EMBER_SPAWN = {
+  count:       20,
+  seedOffset:  50,      // hash seed offset to avoid colliding with fragment seeds
+  spreadX:     60,      // horizontal spread in vw
+  spreadY:     40,      // vertical spread in vh
+  originY:     10,      // vertical offset from center
+  driftX:      8,       // horizontal drift range in vw
+  speedMin:    15,      // minimum rise speed
+  speedRange:  30,      // additional random speed
+  sizeMin:     1.5,     // minimum size in px
+  sizeRange:   3,       // additional random size
+  maxDelay:    0.08,    // max stagger delay (scroll fraction)
+} as const;
 
 export function createEmbers(): EmberData[] {
-  return Array.from({ length: EMBER_COUNT }, (_, i) => ({
-    x0: (hashToUnit((i + EMBER_SEED_OFFSET) * 7.3) - 0.5) * EMBER_SPREAD_X,
-    y0: hashToUnit((i + EMBER_SEED_OFFSET) * 11.1) * EMBER_SPREAD_Y + EMBER_ORIGIN_Y,
-    dx: (hashToUnit((i + EMBER_SEED_OFFSET) * 3.9) - 0.5) * EMBER_DRIFT_X,
-    speed: hashToUnit((i + EMBER_SEED_OFFSET) * 5.7) * EMBER_SPEED_RANGE + EMBER_SPEED_MIN,
-    size: hashToUnit((i + EMBER_SEED_OFFSET) * 9.1) * EMBER_SIZE_RANGE + EMBER_SIZE_MIN,
-    delay: hashToUnit((i + EMBER_SEED_OFFSET) * 2.3) * EMBER_MAX_DELAY,
+  const E = EMBER_SPAWN;
+  return Array.from({ length: E.count }, (_, i) => ({
+    x0: (hashToUnit((i + E.seedOffset) * 7.3) - 0.5) * E.spreadX,
+    y0: hashToUnit((i + E.seedOffset) * 11.1) * E.spreadY + E.originY,
+    dx: (hashToUnit((i + E.seedOffset) * 3.9) - 0.5) * E.driftX,
+    speed: hashToUnit((i + E.seedOffset) * 5.7) * E.speedRange + E.speedMin,
+    size: hashToUnit((i + E.seedOffset) * 9.1) * E.sizeRange + E.sizeMin,
+    delay: hashToUnit((i + E.seedOffset) * 2.3) * E.maxDelay,
   }));
 }
 
