@@ -38,20 +38,8 @@ export const NODES: SankeyNode[] = [
   { id: "dkb",       label: "DKB",        period: "2021 — 2024", color: "#F472B6" },
 ];
 
-/* ---- Math helpers ---- */
-
-export function smoothstep(edge0: number, edge1: number, x: number): number {
-  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
-}
-
-export function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
-}
-
-export function clamp(v: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, v));
-}
+/* ---- Math helpers (re-exported from canonical source) ---- */
+export { smoothstep, lerp, clamp } from "./forge-test-workstation/math";
 
 /* ---- SVG path generator for a Sankey flow (horizontal) ---- */
 
