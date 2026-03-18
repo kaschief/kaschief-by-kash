@@ -688,6 +688,7 @@ export default function ForgeWorkstation() {
   const funnelConvergeRef = useRef<SVGGElement | null>(null);
   const funnelBlurRef = useRef<SVGFEGaussianBlurElement | null>(null);
   const funnelNarratorRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const mobileCarouselRef = useRef<HTMLDivElement>(null);
 
   /* ---- Data ---- */
   const fragments = useMemo(createFragments, []);
@@ -1214,18 +1215,15 @@ export default function ForgeWorkstation() {
             }
           }
 
-          // Progress bars — find the fill div inside data-bar
+          // Dot indicator — active dot is pill, others are circles
+          const DOT_COLORS = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"];
           for (let pi = 0; pi < 4; pi++) {
-            const barWrap =
-              termProgressRefs.current[pi]?.querySelector<HTMLElement>(
-                "[data-bar]",
-              );
-            const fill = barWrap?.firstElementChild as HTMLElement | null;
-            if (!fill) continue;
-            if (pi < companyIdx) fill.style.width = "100%";
-            else if (pi === companyIdx)
-              fill.style.width = `${companyProgress * 100}%`;
-            else fill.style.width = "0%";
+            const dot = termProgressRefs.current[pi];
+            if (!dot) continue;
+            const isActive = pi === companyIdx;
+            dot.style.width = isActive ? "20px" : "6px";
+            dot.style.opacity = isActive ? "1" : "0.35";
+            dot.style.background = isActive ? DOT_COLORS[pi] : "var(--text-dim)";
           }
         }
       }
@@ -1746,24 +1744,27 @@ export default function ForgeWorkstation() {
             </p>
           </div>
 
-          {/* Terminal + Narrative split (replaces beats) */}
+          {/* Terminal + Narrative (replaces beats) */}
           <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
           <div
             ref={terminalRef}
-            className="absolute inset-0 flex items-center justify-center flex-col lg:flex-row"
-            style={{ opacity: 0, zIndex: 8, padding: "0 4vw", gap: "3vw" }}>
+            className="absolute inset-0"
+            style={{ opacity: 0, zIndex: 8 }}>
+            {/* Desktop: Terminal + Narrative side by side */}
+            <div className="hidden lg:flex absolute inset-0 items-center justify-center flex-row" style={{ padding: "0 4vw", gap: "3vw" }}>
             {/* LEFT: Terminal */}
             <div
               style={{
-                width: "min(88vw, 560px)",
-                minHeight: "clamp(400px, 50cqh, 560px)",
+                width: "min(92vw, 560px)",
+                minHeight: "clamp(220px, 35cqh, 560px)",
+                maxHeight: "clamp(300px, 45vh, 560px)",
                 borderRadius: "8px",
                 overflow: "hidden",
                 background: TC.bg,
                 border: "1px solid rgba(255,255,255,0.06)",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
                 fontFamily: MONO,
-                fontSize: "clamp(10px, 1.6cqh, 13px)",
+                fontSize: "clamp(8px, 1.6cqh, 13px)",
                 position: "relative",
                 flexShrink: 0,
                 display: "flex",
@@ -1823,7 +1824,7 @@ export default function ForgeWorkstation() {
                     overflow: "hidden",
                     color: TC.text,
                     lineHeight: 1.5,
-                    fontSize: "clamp(10px, 1.5cqh, 13px)",
+                    fontSize: "clamp(8px, 1.5cqh, 13px)",
                     whiteSpace: "pre-wrap",
                     wordBreak: "break-word" as const,
                   }}
@@ -1844,10 +1845,10 @@ export default function ForgeWorkstation() {
             {/* RIGHT: V15-style narrative reveal */}
             <div
               ref={termNarrativeRef}
-              className="w-full lg:w-auto"
-              style={{ maxWidth: "min(36%, 320px)", padding: "0" }}>
+              className="w-full max-w-[min(92vw,480px)] lg:max-w-[320px] lg:w-[36%] px-4 lg:px-0"
+              style={{ padding: "0" }}>
               {/* Company label — name only (dates are in terminal) */}
-              <div style={{ marginBottom: "1.5rem" }}>
+              <div style={{ marginBottom: "clamp(0.75rem, 2vw, 1.5rem)" }}>
                 <span
                   data-role="name"
                   className="font-sans"
@@ -1863,10 +1864,10 @@ export default function ForgeWorkstation() {
                 data-role="scene"
                 className="font-serif"
                 style={{
-                  fontSize: "1.05rem",
+                  fontSize: "clamp(0.75rem, 2.2vw, 1.05rem)",
                   lineHeight: 1.7,
                   color: "var(--cream, #F0E6D0)",
-                  marginBottom: "1.25rem",
+                  marginBottom: "clamp(0.6rem, 1.8vw, 1.25rem)",
                   clipPath: "inset(0 100% 0 0)",
                 }}
               />
@@ -1875,10 +1876,10 @@ export default function ForgeWorkstation() {
                 data-role="action"
                 className="font-sans"
                 style={{
-                  fontSize: "0.85rem",
+                  fontSize: "clamp(0.65rem, 1.8vw, 0.85rem)",
                   lineHeight: 1.65,
                   color: "var(--cream-muted, #B0A890)",
-                  marginBottom: "1.25rem",
+                  marginBottom: "clamp(0.6rem, 1.8vw, 1.25rem)",
                   opacity: 0,
                 }}
               />
@@ -1887,7 +1888,7 @@ export default function ForgeWorkstation() {
                 data-role="shift"
                 className="font-serif"
                 style={{
-                  fontSize: "0.95rem",
+                  fontSize: "clamp(0.7rem, 2vw, 0.95rem)",
                   lineHeight: 1.6,
                   fontStyle: "italic",
                   color: "var(--cream, #F0E6D0)",
@@ -1895,9 +1896,94 @@ export default function ForgeWorkstation() {
                 }}
               />
             </div>
-          </div>
+            </div>{/* close desktop wrapper */}
 
-          {/* Progress: 4 clickable segments — only visible during terminal phase */}
+          {/* Mobile carousel — static swipeable cards, lg:hidden */}
+          {(() => {
+            const COMPANY_COLORS = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"];
+            const ROLES: Record<string, string> = {
+              AMBOSS: "Frontend Engineer",
+              Compado: "Senior Frontend Engineer",
+              CAPinside: "Senior Frontend Engineer",
+              DKB: "Engineering Manager",
+            };
+            return (
+              <div
+                className="absolute inset-0 lg:hidden flex flex-col"
+                style={{ background: "var(--bg)" }}>
+                {/* Scrollable cards — peek edges to hint scrollability */}
+                <div
+                  ref={mobileCarouselRef}
+                  className="flex-1 flex snap-x snap-mandatory overflow-x-auto"
+                  style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}
+                  onScroll={(e) => {
+                    const el = e.currentTarget;
+                    const idx = Math.round(el.scrollLeft / el.clientWidth);
+                    termProgressRefs.current.forEach((dot, i) => {
+                      if (!dot) return;
+                      dot.style.width = i === idx ? "20px" : "6px";
+                      dot.style.opacity = i === idx ? "1" : "0.35";
+                      dot.style.background = i === idx ? COMPANY_COLORS[idx] : "var(--text-dim)";
+                    });
+                  }}>
+                  {TERM_COMPANIES.map((co, ci) => {
+                    const nar = TERM_NARRATIVES[ci];
+                    return (
+                      <div
+                        key={co.company}
+                        className="snap-center shrink-0 h-full flex flex-col items-center justify-center"
+                        style={{ width: "85vw", marginLeft: ci === 0 ? "7.5vw" : "0", marginRight: ci === 3 ? "7.5vw" : "5vw" }}>
+                        {/* Mini terminal */}
+                        <div
+                          style={{
+                            width: "100%",
+                            borderRadius: "10px",
+                            overflow: "hidden",
+                            background: TC.bg,
+                            border: "1px solid rgba(255,255,255,0.06)",
+                            boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+                            marginBottom: "clamp(0.8rem, 2vh, 1.2rem)",
+                          }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 10px", background: TC.topBar }}>
+                            {[TC.dotRed, TC.dotYellow, TC.dotGreen].map((c) => (
+                              <div key={c} style={{ width: 7, height: 7, borderRadius: "50%", background: c }} />
+                            ))}
+                          </div>
+                          <pre style={{ padding: "8px 10px", margin: 0, fontFamily: MONO, fontSize: "9px", lineHeight: 1.5, color: TC.text, whiteSpace: "pre-wrap" }}>
+                            <span style={{ color: TC.keyword }}>{`commit ${co.hash} (HEAD → main)`}</span>
+                            {"\n"}<span style={{ color: TC.string }}>{`Role:   ${ROLES[co.company]}`}</span>
+                            {"\n"}<span>{`Date:   ${co.location}, ${co.dates}`}</span>
+                            {"\n"}<span style={{ color: TC.keyword }}>{`    ${co.commitType}: ${co.commitMsg}`}</span>
+                            {co.insight.map((line, li) => (
+                              <span key={li}>{"\n"}<span style={{ color: TC.comment }}>{line}</span></span>
+                            ))}
+                          </pre>
+                        </div>
+                        {/* Narrative */}
+                        <div style={{ width: "100%" }}>
+                          <div className="font-sans" style={{ fontSize: "0.55rem", letterSpacing: "0.2em", textTransform: "uppercase", color: COMPANY_COLORS[ci], marginBottom: "0.5rem" }}>
+                            {co.company}
+                          </div>
+                          <p className="font-serif" style={{ fontSize: "0.78rem", lineHeight: 1.55, color: "var(--cream)", marginBottom: "0.5rem" }}>
+                            {nar.scene}
+                          </p>
+                          <p className="font-sans" style={{ fontSize: "0.68rem", lineHeight: 1.5, color: "var(--cream-muted)", marginBottom: "0.5rem" }}>
+                            {nar.action}
+                          </p>
+                          <p className="font-narrator" style={{ fontSize: "0.72rem", lineHeight: 1.45, fontStyle: "italic", color: "var(--cream)" }}>
+                            {nar.shift}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+          </div>{/* close terminalRef outer */}
+
+          {/* Dot indicator — Apple-style, all devices */}
           <div
             ref={termProgressWrapRef}
             style={{
@@ -1906,8 +1992,8 @@ export default function ForgeWorkstation() {
               left: "50%",
               transform: "translateX(-50%)",
               display: "flex",
-              gap: "4px",
-              width: "140px",
+              alignItems: "center",
+              gap: "8px",
               zIndex: 10,
               pointerEvents: "auto",
               opacity: 0,
@@ -1919,7 +2005,6 @@ export default function ForgeWorkstation() {
                   termProgressRefs.current[i] = el;
                 }}
                 onClick={() => {
-                  // Jump to ~10% into the company so terminal has ~5 lines visible
                   const beatDur = PH.BEATS[i].end - PH.BEATS[i].start;
                   const target = PH.BEATS[i].start + beatDur * 0.1;
                   const container = forgeContainerRef.current;
@@ -1934,43 +2019,15 @@ export default function ForgeWorkstation() {
                   });
                 }}
                 style={{
-                  flex: 1,
-                  padding: "6px 0",
+                  height: "6px",
+                  width: i === 0 ? "20px" : "6px",
+                  borderRadius: "3px",
+                  background: i === 0 ? "var(--gold)" : "var(--text-dim)",
+                  opacity: i === 0 ? 1 : 0.35,
                   cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
+                  transition: "width 0.3s, opacity 0.3s, background 0.3s",
                 }}
-                onMouseEnter={(e) => {
-                  const bar =
-                    e.currentTarget.querySelector<HTMLElement>("[data-bar]");
-                  if (bar) bar.style.background = "rgba(255,255,255,0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  const bar =
-                    e.currentTarget.querySelector<HTMLElement>("[data-bar]");
-                  if (bar) bar.style.background = "rgba(255,255,255,0.06)";
-                }}>
-                <div
-                  data-bar
-                  style={{
-                    width: "100%",
-                    height: "2px",
-                    borderRadius: "1px",
-                    background: "rgba(255,255,255,0.06)",
-                    overflow: "hidden",
-                    transition: "background 0.2s",
-                  }}>
-                  <div
-                    style={{
-                      width: "0%",
-                      height: "100%",
-                      borderRadius: "1px",
-                      background: "rgba(255,255,255,0.35)",
-                      transition: "width 0.15s linear",
-                    }}
-                  />
-                </div>
-              </div>
+              />
             ))}
           </div>
 
