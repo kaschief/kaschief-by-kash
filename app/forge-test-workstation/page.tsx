@@ -573,71 +573,158 @@ const FUNNEL_NARRATOR = [
 ];
 
 /* ================================================================== */
-/*  Scroll phases — single source of truth                             */
+/*  Scroll phases — RELATIVE CHAIN                                     */
+/*                                                                     */
+/*  Each phase is defined by DURATION + GAP to next phase.             */
+/*  Change one duration → everything downstream shifts automatically.  */
 /*                                                                     */
 /*  CONSTRAINT: summary panel is in normal flow after the sticky       */
-/*  (100vh). It arrives on screen at SUMMARY_ARRIVAL progress.         */
-/*  Title MUST be fully hidden before that point.                      */
+/*  (100vh). Title MUST be fully hidden before it arrives (~0.053).    */
 /* ================================================================== */
 
 const CONTAINER_VH = 2000;
-/** Progress value at which N viewport-heights have been scrolled */
-const vhToP = (scrollVh: number) => scrollVh / (CONTAINER_VH - 100);
 
-/** Summary panel arrives ~100vh into the scroll */
-// Summary panel arrives at ~vhToP(100) ≈ 0.053. Title MUST end before this.
+/* ---- Phase durations (as fraction of total scroll 0–1) ---- */
+const TITLE_DURATION            = 0.032;
+const FORGE_DURATION            = 0.18;
+const FORGE_TAIL                = 0.04;   // forge lingers past main end
+const SEED_CONVERGE_OVERSHOOT   = 0.01;   // seeds visible past FORGE end
+const THESIS_DURATION           = 0.08;
+const THESIS_TO_PARTICLES_GAP   = 0.0;    // no gap — particles follow thesis immediately
+const PARTICLES_DURATION        = 0.14;   // canvas explode → converge → handoff
+const FUNNEL_DURATION           = 0.10;   // SVG ribbons grow tier by tier
+const FUNNEL_LINGER             = 0.02;   // funnel holds after last tier before fade
+const FUNNEL_FADE_DURATION      = 0.025;
+const FUNNEL_TO_TERMINAL_GAP    = 0.015;
+const TERMINAL_COMPANY_DURATION = 0.085;  // each company in terminal
+const TERMINAL_TO_CRYSTAL_GAP   = 0.015;
+const CRYSTALLIZE_DURATION      = 0.08;
 
+/* ---- Anchor: title starts near the top ---- */
+const TITLE_START = 0.005;
+const TITLE_END   = TITLE_START + TITLE_DURATION;
+
+/* ---- Forge overlaps with title (starts slightly after) ---- */
+const FORGE_START = TITLE_START + 0.025;
+const FORGE_END   = FORGE_START + FORGE_DURATION;
+const FORGE_GATE  = FORGE_END + FORGE_TAIL;
+
+/* ---- Embers accompany the forge ---- */
+const EMBERS_START = FORGE_START + 0.04;
+const EMBERS_END   = FORGE_GATE;
+
+/* ---- Atmosphere accompanies forge ---- */
+const GLOW_START = FORGE_START + 0.02;
+const GLOW_END   = FORGE_GATE + 0.01;
+
+/* ---- Thesis: crossfades in as seeds finish converging ---- */
+const THESIS_START = FORGE_END - 0.01;  // slight overlap for crossfade
+const THESIS_END   = THESIS_START + THESIS_DURATION;
+
+/* ---- Seed sub-phases (within FORGE range) ---- */
+const SEED_FADE_IN_START   = FORGE_START;
+const SEED_FADE_IN_END     = FORGE_START + 0.05;
+const SEED_DRIFT_START     = FORGE_START + 0.02;
+const SEED_DRIFT_END       = FORGE_END - 0.03;
+const SEED_CONVERGE_START  = FORGE_END - 0.07;
+const SEED_CONVERGE_END    = FORGE_END;
+const SEED_HEAT_START      = FORGE_START + 0.07;
+const SEED_HEAT_END        = FORGE_END - 0.02;
+const SEED_DISSOLVE_START  = FORGE_END - 0.01;
+const SEED_DISSOLVE_END    = FORGE_END + SEED_CONVERGE_OVERSHOOT;
+const SEED_SCALE_SHRINK_START = FORGE_END + 0.005;
+const SEED_SCALE_SHRINK_END   = FORGE_GATE;
+
+/* ---- Non-seed fragment sub-phases ---- */
+const FRAG_FADE_IN_START  = FORGE_START - 0.01;
+const FRAG_FADE_IN_END    = FORGE_START + 0.05;
+
+/* ---- Particles: canvas explode + converge + handoff to SVG ---- */
+const PARTICLES_START = THESIS_END + THESIS_TO_PARTICLES_GAP;
+const PARTICLES_END   = PARTICLES_START + PARTICLES_DURATION;
+
+/* ---- Canvas sub-phases ---- */
+const CANVAS_IN_START  = PARTICLES_START;
+const CANVAS_IN_END    = PARTICLES_START + 0.01;
+const CANVAS_OUT_START = PARTICLES_START + PARTICLES_DURATION * 0.35;
+const CANVAS_OUT_END   = PARTICLES_START + PARTICLES_DURATION * 0.5;
+
+/* ---- SVG funnel ---- */
+const SVG_IN_START    = CANVAS_OUT_START;
+const SVG_IN_END      = CANVAS_OUT_START + 0.02;
+const DOTS_IN_START   = SVG_IN_START;
+const DOTS_IN_END     = SVG_IN_START + 0.03;
+const LABELS_IN_START = SVG_IN_START - 0.02;
+const LABELS_IN_END   = SVG_IN_START + 0.02;
+
+/* ---- Funnel ribbon tiers ---- */
+const RIBBON_START  = SVG_IN_END;
+const TIER_DURATION = FUNNEL_DURATION / 4;
+const RIBBON_TIERS  = [0, 1, 2, 3].map((i) => ({
+  start: RIBBON_START + i * TIER_DURATION,
+  end:   RIBBON_START + (i + 1) * TIER_DURATION,
+}));
+const FUNNEL_COMPLETE = RIBBON_TIERS[3].end;
+
+/* ---- Convergence point + funnel fade ---- */
+const CONVERGE_PT_START = RIBBON_TIERS[3].start;
+const CONVERGE_PT_END   = FUNNEL_COMPLETE + 0.02;
+const FUNNEL_OUT_START  = FUNNEL_COMPLETE + FUNNEL_LINGER;
+const FUNNEL_OUT_END    = FUNNEL_OUT_START + FUNNEL_FADE_DURATION;
+
+/* ---- Narrator panels (tied to funnel tiers) ---- */
+const NARRATOR_TIERS = RIBBON_TIERS.map((tier) => ({
+  start: tier.start + TIER_DURATION * 0.4,
+  end:   tier.end + TIER_DURATION * 0.3,
+}));
+
+/* ---- Caption tiers ---- */
+const CAPTION_TIERS = RIBBON_TIERS.map((tier) => ({
+  start: tier.start,
+  end:   tier.end + TIER_DURATION * 0.3,
+}));
+
+/* ---- Mid narrator ("Let me show you...") ---- */
+const MID_NARRATOR_START = FUNNEL_OUT_END + 0.005;
+const MID_NARRATOR_END   = MID_NARRATOR_START + 0.035;
+
+/* ---- Terminal / Beats ---- */
+const BEATS_START = MID_NARRATOR_END + FUNNEL_TO_TERMINAL_GAP;
+const BEATS = [0, 1, 2, 3].map((i) => ({
+  start: BEATS_START + i * TERMINAL_COMPANY_DURATION,
+  end:   BEATS_START + (i + 1) * TERMINAL_COMPANY_DURATION,
+}));
+const BEATS_END = BEATS[3].end;
+
+/* ---- Crystallize ---- */
+const CRYSTALLIZE_START = BEATS_END + TERMINAL_TO_CRYSTAL_GAP;
+const CRYSTALLIZE_END   = CRYSTALLIZE_START + CRYSTALLIZE_DURATION;
+
+/* ---- Chrome ---- */
+const CHROME_END = CRYSTALLIZE_START;
+
+/* ---- Assembled PH object (consumed by scroll callback) ---- */
 const PH = {
-  // Title: must end BEFORE summary arrives
-  TITLE: { start: vhToP(10), end: vhToP(70) }, // ~0.005–0.037
-
-  // Forge fragments
-  FORGE: { start: vhToP(60), end: vhToP(400) }, // ~0.03–0.21
-  FORGE_GATE: vhToP(475), // fragments off at ~0.25
-
-  // Embers
-  EMBERS: { start: vhToP(130), end: vhToP(460) },
-
-  // Forge atmosphere (glow, grid)
-  GLOW: { start: vhToP(80), end: vhToP(480) },
-
-  // Thesis
-  THESIS: { start: vhToP(320), end: vhToP(510) }, // ~0.17–0.27
-
-  // Particles → Funnel
-  PARTICLES: { start: vhToP(490), end: vhToP(870) }, // ~0.26–0.46
-  CANVAS_OUT: { start: vhToP(620), end: vhToP(680) }, // ~0.33–0.36
-  SVG_IN: { start: vhToP(620), end: vhToP(660) },
-  DOTS_IN: { start: vhToP(620), end: vhToP(680) },
-  LABELS_IN: { start: vhToP(585), end: vhToP(660) },
-  RIBBON_TIERS: [
-    { start: vhToP(620), end: vhToP(680) }, // → AMBOSS
-    { start: vhToP(680), end: vhToP(740) }, // → Compado
-    { start: vhToP(740), end: vhToP(800) }, // → CAPinside
-    { start: vhToP(800), end: vhToP(840) }, // → DKB
-  ],
-  CONVERGE_PT: { start: vhToP(800), end: vhToP(870) },
-  FUNNEL_OUT: { start: vhToP(840), end: vhToP(900) },
-  CAPTION_TIERS: [
-    { start: vhToP(620), end: vhToP(700) },
-    { start: vhToP(700), end: vhToP(760) },
-    { start: vhToP(760), end: vhToP(820) },
-    { start: vhToP(820), end: vhToP(880) },
-  ],
-
-  // Beats (scene → action → shift per company)
-  BEATS: [
-    { start: vhToP(950), end: vhToP(1120) }, // AMBOSS
-    { start: vhToP(1120), end: vhToP(1290) }, // Compado
-    { start: vhToP(1290), end: vhToP(1460) }, // CAPinside
-    { start: vhToP(1460), end: vhToP(1630) }, // DKB
-  ],
-
-  // Crystallize
-  CRYSTALLIZE: { start: vhToP(1670), end: vhToP(1860) },
-
-  // Chrome
-  CHROME_END: vhToP(1750),
+  TITLE:        { start: TITLE_START, end: TITLE_END },
+  FORGE:        { start: FORGE_START, end: FORGE_END },
+  FORGE_GATE,
+  EMBERS:       { start: EMBERS_START, end: EMBERS_END },
+  GLOW:         { start: GLOW_START, end: GLOW_END },
+  THESIS:       { start: THESIS_START, end: THESIS_END },
+  PARTICLES:    { start: PARTICLES_START, end: PARTICLES_END },
+  CANVAS_OUT:   { start: CANVAS_OUT_START, end: CANVAS_OUT_END },
+  SVG_IN:       { start: SVG_IN_START, end: SVG_IN_END },
+  DOTS_IN:      { start: DOTS_IN_START, end: DOTS_IN_END },
+  LABELS_IN:    { start: LABELS_IN_START, end: LABELS_IN_END },
+  RIBBON_TIERS,
+  CONVERGE_PT:  { start: CONVERGE_PT_START, end: CONVERGE_PT_END },
+  FUNNEL_OUT:   { start: FUNNEL_OUT_START, end: FUNNEL_OUT_END },
+  CAPTION_TIERS,
+  NARRATOR_TIERS,
+  MID_NARRATOR: { start: MID_NARRATOR_START, end: MID_NARRATOR_END },
+  BEATS,
+  CRYSTALLIZE:  { start: CRYSTALLIZE_START, end: CRYSTALLIZE_END },
+  CHROME_END,
 };
 
 // Canvas particle local phases (0–1 within PARTICLES range)
@@ -796,16 +883,16 @@ export default function ForgeWorkstation() {
         const el = fragmentEls.current[i];
         if (!el) return;
         if (f.isSeed) {
-          const fadeIn = ss(0.03, 0.08, p);
-          const drift = ss(0.05, 0.15, p),
-            converge = ss(0.14, 0.21, p),
-            heat = ss(0.1, 0.18, p);
+          const fadeIn = ss(SEED_FADE_IN_START, SEED_FADE_IN_END, p);
+          const drift = ss(SEED_DRIFT_START, SEED_DRIFT_END, p),
+            converge = ss(SEED_CONVERGE_START, SEED_CONVERGE_END, p),
+            heat = ss(SEED_HEAT_START, SEED_HEAT_END, p);
           const dX = f.x0 + f.dx * drift,
             dY = f.y0 + f.dy * drift;
           const x = lerp(dX, 0, converge),
             y = lerp(dY, 0, converge);
           const rot = lerp(f.rot, 0, converge);
-          const scale = lerp(1, 1.3, heat) * lerp(1, 0.5, ss(0.19, 0.23, p));
+          const scale = lerp(1, 1.3, heat) * lerp(1, 0.5, ss(SEED_SCALE_SHRINK_START, SEED_SCALE_SHRINK_END, p));
           const fragScreenY = vh * 0.5 + (y * vh) / 100;
           const curtainReveal =
             curtainTop >= vh
@@ -818,17 +905,17 @@ export default function ForgeWorkstation() {
           const [cr, cg, cb] = CC_EXT[f.companyIdx % CC_EXT.length];
           const cm = goldT * goldT;
           el.style.color = `rgb(${Math.round(lerp(cr, 201, cm))},${Math.round(lerp(cg, 168, cm))},${Math.round(lerp(cb, 76, cm))})`;
-          const dissolve = ss(0.16, 0.18, p);
+          const dissolve = ss(SEED_DISSOLVE_START, SEED_DISSOLVE_END, p);
           const dissolveBlur = lerp(0, 12, dissolve);
           const dissolveAlpha = lerp(1, 0, dissolve);
-          const baseBlur = lerp(lerp(1, 0, ss(0.03, 0.07, p)), 3, goldT);
+          const baseBlur = lerp(lerp(1, 0, ss(SEED_FADE_IN_START, SEED_FADE_IN_START + 0.04, p)), 3, goldT);
           el.style.transform = `translate(calc(-50% + ${x}vw), calc(-50% + ${y}vh)) rotate(${rot}deg) scale(${scale})`;
           el.style.opacity = String(fadeIn * dissolveAlpha * curtainReveal);
           el.style.filter = `blur(${baseBlur + dissolveBlur}px)`;
         } else {
-          const fadeIn = ss(0.02, 0.08, p),
+          const fadeIn = ss(FRAG_FADE_IN_START, FRAG_FADE_IN_END, p),
             fadeOut = 1 - ss(f.dissolveStart * 0.7, f.dissolveEnd * 0.7, p);
-          const drift = ss(0.04, 0.19, p),
+          const drift = ss(FORGE_START + 0.01, FORGE_END - 0.01, p),
             dissolve = ss(f.dissolveStart * 0.7, f.dissolveEnd * 0.7, p);
           const x = f.x0 + f.dx * drift,
             y = f.y0 + f.dy * drift,
@@ -874,10 +961,10 @@ export default function ForgeWorkstation() {
     embers.forEach((e, i) => {
       const el = emberEls.current[i];
       if (!el) return;
-      const heat = ss(0.07 + e.delay, 0.15, p),
-        cool = ss(0.19, 0.24, p),
+      const heat = ss(EMBERS_START + e.delay, EMBERS_START + 0.08, p),
+        cool = ss(EMBERS_END - 0.05, EMBERS_END, p),
         active = heat * (1 - cool);
-      const rise = ss(0.08 + e.delay, 0.21, p);
+      const rise = ss(EMBERS_START + 0.01 + e.delay, EMBERS_END, p);
       el.style.transform = `translate(calc(-50% + ${e.x0 + e.dx * rise}vw), calc(-50% + ${lerp(e.y0, -e.speed, rise)}vh))`;
       el.style.opacity = String(active * (0.4 + Math.sin(p * 80 + i) * 0.3));
     });
@@ -886,23 +973,27 @@ export default function ForgeWorkstation() {
     if (glowEl.current) glowEl.current.style.opacity = "0";
     if (innerGlowEl.current) innerGlowEl.current.style.opacity = "0";
     if (gridEl.current) {
-      const appear = ss(0.02, 0.06, p),
-        fade = 1 - ss(0.18, 0.24, p);
+      const appear = ss(GLOW_START, GLOW_START + 0.04, p),
+        fade = 1 - ss(GLOW_END - 0.06, GLOW_END, p);
       gridEl.current.style.opacity = String(appear * fade * 0.05);
     }
 
-    /* ---- Thesis (0.17 — 0.27) with sequential word highlights ---- */
+    /* ---- Thesis ---- */
     const lg = isLg.current;
     if (thesisEls.current[0]) {
-      const fadeIn = ss(0.17, 0.2, p),
-        fadeOut = 1 - ss(0.24, 0.27, p);
+      const thesisFadeInEnd = THESIS_START + THESIS_DURATION * 0.3;
+      const thesisFadeOutStart = THESIS_END - THESIS_DURATION * 0.3;
+      const fadeIn = ss(THESIS_START, thesisFadeInEnd, p),
+        fadeOut = 1 - ss(thesisFadeOutStart, THESIS_END, p);
+      const driftEnd = THESIS_START + THESIS_DURATION * 0.3;
       thesisEls.current[0].style.opacity = String(fadeIn * fadeOut);
-      thesisEls.current[0].style.transform = `translate(-50%, calc(-50% + ${lerp(lg ? 2 : -6, lg ? -5 : -12, ss(0.17, 0.20, p))}vh))`;
+      thesisEls.current[0].style.transform = `translate(-50%, calc(-50% + ${lerp(lg ? 2 : -6, lg ? -5 : -12, ss(THESIS_START, driftEnd, p))}vh))`;
       thesisEls.current[0].style.filter = `blur(${lerp(6, 0, fadeIn)}px)`;
       thesisEls.current[0].style.maxWidth = lg ? "60vw" : "85vw";
 
       // Sequential word reveal: users, structure, clarity, scale
-      const WORD_THRESHOLDS = [0.205, 0.215, 0.225, 0.235];
+      const wordRevealStart = THESIS_START + THESIS_DURATION * 0.35;
+      const WORD_THRESHOLDS = [0, 1, 2, 3].map((i) => wordRevealStart + i * 0.01);
       for (let wi = 0; wi < 4; wi++) {
         const w = thesisWordRefs.current[wi];
         if (!w) continue;
@@ -938,15 +1029,15 @@ export default function ForgeWorkstation() {
       // Canvas + SVG overlap at same positions for seamless handoff (like V7)
       // Canvas fades out AS SVG dots fade in — no black gap
       if (canvasWrapRef.current) {
-        const canvasIn = ss(0.26, 0.27, p);
-        const canvasOut = 1 - ss(0.33, 0.36, p);
+        const canvasIn = ss(CANVAS_IN_START, CANVAS_IN_END, p);
+        const canvasOut = 1 - ss(CANVAS_OUT_START, CANVAS_OUT_END, p);
         canvasWrapRef.current.style.opacity = String(canvasIn * canvasOut);
       }
 
       // SVG funnel wrapper: appears as canvas starts fading (simultaneous crossfade)
       if (funnelSvgWrapRef.current) {
-        const svgIn = ss(0.33, 0.35, p);
-        const svgOut = 1 - ss(0.45, 0.47, p);
+        const svgIn = ss(SVG_IN_START, SVG_IN_END, p);
+        const svgOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
         funnelSvgWrapRef.current.style.opacity = String(svgIn * svgOut);
       }
 
@@ -955,9 +1046,9 @@ export default function ForgeWorkstation() {
         const el = funnelDotRefs.current[si];
         if (!el) continue;
         const stagger = si * 0.003;
-        const dotIn = ss(0.33 + stagger, 0.36 + stagger, p);
-        const dotOut = 1 - ss(0.45, 0.47, p);
-        const ribbonStart = ss(0.36, 0.4, p);
+        const dotIn = ss(DOTS_IN_START + stagger, DOTS_IN_END + stagger, p);
+        const dotOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
+        const ribbonStart = ss(RIBBON_TIERS[0].start, RIBBON_TIERS[0].end, p);
         const scale = lerpFn(2, 1, ribbonStart);
         const glowR = lerpFn(6, 3, ribbonStart);
         el.style.opacity = String(dotIn * dotOut);
@@ -966,24 +1057,19 @@ export default function ForgeWorkstation() {
         if (blur) blur.setAttribute("stdDeviation", String(glowR));
       }
 
-      // Stream labels — appear at 0.30–0.33, tighter stagger
+      // Stream labels
       for (let si = 0; si < STREAMS.length; si++) {
         const el = funnelStreamLabelRefs.current[si];
         if (!el) continue;
         const stagger = si * 0.002;
-        const labelIn = ss(0.3 + stagger, 0.32 + stagger, p);
-        const labelOut = 1 - ss(0.45, 0.47, p);
+        const labelIn = ss(LABELS_IN_START + stagger, LABELS_IN_END + stagger, p);
+        const labelOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
         el.style.opacity = String(labelIn * labelOut);
         el.style.transform = `translateY(${lerpFn(-10, 0, labelIn)}px)`;
       }
 
-      // Ribbon segments grow tier by tier from 0.33–0.44
-      const TIER_THRESHOLDS = [
-        [0.33, 0.36], // top spread → AMBOSS
-        [0.36, 0.39], // AMBOSS → Compado
-        [0.39, 0.42], // Compado → CAPinside
-        [0.42, 0.44], // CAPinside → DKB
-      ];
+      // Ribbon segments grow tier by tier
+      const TIER_THRESHOLDS = RIBBON_TIERS.map((t) => [t.start, t.end] as const);
       for (let i = 0; i < F_SEGMENTS.length; i++) {
         const el = funnelSegmentRefs.current[i];
         if (!el) continue;
@@ -991,7 +1077,7 @@ export default function ForgeWorkstation() {
         const threshIdx = Math.min(seg.toTier - 1, TIER_THRESHOLDS.length - 1);
         const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
         const t = ss(threshStart, threshEnd, p);
-        const fadeOut = 1 - ss(0.45, 0.47, p);
+        const fadeOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
         el.style.opacity = String(lerpFn(0, seg.opacityEnd, t) * fadeOut);
         const scaleY = lerpFn(0, 1, t);
         el.style.transformOrigin = `${F_CENTER_X}px ${F_TIER_Y[seg.fromTier]}px`;
@@ -1005,83 +1091,70 @@ export default function ForgeWorkstation() {
         const threshIdx = Math.min(ni, TIER_THRESHOLDS.length - 1);
         const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
         const nodeT = ss(lerpFn(threshStart, threshEnd, 0.7), threshEnd, p);
-        const fadeOut = 1 - ss(0.45, 0.47, p);
+        const fadeOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
         el.style.opacity = String(nodeT * fadeOut);
         el.style.transform = `translateY(${lerpFn(8, 0, nodeT)}px)`;
       }
 
       // Convergence point — appears after ribbons complete
       if (funnelConvergeRef.current) {
-        const ct = ss(0.42, 0.44, p);
-        const fadeOut = 1 - ss(0.45, 0.47, p);
-        funnelConvergeRef.current.style.opacity = String(ct * fadeOut);
+        const convergenceAppear = ss(CONVERGE_PT_START, CONVERGE_PT_END, p);
+        const convergenceFadeOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
+        funnelConvergeRef.current.style.opacity = String(convergenceAppear * convergenceFadeOut);
         if (funnelBlurRef.current) {
           funnelBlurRef.current.setAttribute(
             "stdDeviation",
-            String(lerpFn(0, 12, ct)),
+            String(lerpFn(0, 12, convergenceAppear)),
           );
         }
       }
 
-      // Narrator glass panels — positioned right, slide down with tiers
-      const NAR_THRESHOLDS = [
-        [0.35, 0.38],
-        [0.38, 0.41],
-        [0.41, 0.44],
-        [0.44, 0.46],
-      ];
+      // Narrator glass panels — tied to funnel tiers
       for (let ni = 0; ni < FUNNEL_NARRATOR.length; ni++) {
         const el = funnelNarratorRefs.current[ni];
         if (!el) continue;
-        const [ts, te] = NAR_THRESHOLDS[ni];
-        const fadeIn = ss(ts, lerpFn(ts, te, 0.15), p);
-        const fadeOut = 1 - ss(lerpFn(ts, te, 0.85), te, p);
-        el.style.opacity = String(fadeIn * fadeOut * 0.75);
-        el.style.transform = `translateY(${lerpFn(12, 0, fadeIn)}px)`;
+        const { start: narratorStart, end: narratorEnd } = NARRATOR_TIERS[ni];
+        const narratorFadeIn = ss(narratorStart, lerpFn(narratorStart, narratorEnd, 0.15), p);
+        const narratorFadeOut = 1 - ss(lerpFn(narratorStart, narratorEnd, 0.85), narratorEnd, p);
+        el.style.opacity = String(narratorFadeIn * narratorFadeOut * 0.75);
+        el.style.transform = `translateY(${lerpFn(12, 0, narratorFadeIn)}px)`;
       }
 
       /* ---- Mobile camera-track (phone only) ---- */
       if (!lg) {
-        // Camera track wrapper: same timing as SVG funnel
         if (cameraTrackRef.current) {
-          const trackIn = ss(0.28, 0.31, p);
-          const trackOut = 1 - ss(0.475, 0.49, p);
-          cameraTrackRef.current.style.opacity = String(trackIn * trackOut);
+          const trackAppear = ss(PARTICLES_START, PARTICLES_START + 0.03, p);
+          const trackDisappear = 1 - ss(FUNNEL_OUT_END, FUNNEL_OUT_END + 0.015, p);
+          cameraTrackRef.current.style.opacity = String(trackAppear * trackDisappear);
         }
-        // (track line removed — content alone carries the convergence)
-        // Skills accumulate progressively — staggered by first company tier
-        const SKILL_TIERS = [0.3, 0.35, 0.39, 0.43]; // matching company tiers
+        const SKILL_TIER_STARTS = RIBBON_TIERS.map((t) => t.start);
         for (let si = 0; si < STREAMS.length; si++) {
           const el = cameraSkillRefs.current[si];
           if (!el) continue;
           const firstTier = STREAMS[si].path[0];
           const stagger = si * 0.005;
-          const tierStart = SKILL_TIERS[firstTier] + stagger;
-          const fadeIn = ss(tierStart, tierStart + 0.02, p);
-          const fadeOut = 1 - ss(0.46, 0.48, p);
+          const tierStart = SKILL_TIER_STARTS[firstTier] + stagger;
+          const skillFadeIn = ss(tierStart, tierStart + 0.02, p);
+          const skillFadeOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
           const fromLeft = si % 2 === 0;
-          const slideX = lerpFn(fromLeft ? -40 : 40, 0, fadeIn);
-          const scale = lerpFn(0.8, 1, fadeIn);
-          el.style.opacity = String(Math.max(0, fadeIn * fadeOut));
+          const slideX = lerpFn(fromLeft ? -40 : 40, 0, skillFadeIn);
+          const scale = lerpFn(0.8, 1, skillFadeIn);
+          el.style.opacity = String(Math.max(0, skillFadeIn * skillFadeOut));
           el.style.transform = `translateX(${slideX}px) scale(${scale})`;
         }
-        // Convergence diamond — appears after most skills are in
-        const convEl = cameraNodeRefs.current[0];
-        if (convEl) {
-          const convIn = ss(0.44, 0.46, p);
-          const convOut = 1 - ss(0.47, 0.48, p);
-          convEl.style.opacity = String(convIn * convOut);
+        const convergenceDiamond = cameraNodeRefs.current[0];
+        if (convergenceDiamond) {
+          const diamondIn = ss(CONVERGE_PT_START, CONVERGE_PT_END, p);
+          const diamondOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
+          convergenceDiamond.style.opacity = String(diamondIn * diamondOut);
         }
       }
     }
 
-    /* ---- Mid narrator: "Let me show you what I've done" ---- */
+    /* ---- Mid narrator: "Let me show you where I've been" ---- */
     if (midNarratorRef.current) {
-      // Tight: funnel gone at 0.46, narrator immediately, terminal at 0.505
-      const midStart = 0.465,
-        midEnd = 0.5;
-      const midIn = ss(midStart, midStart + 0.005, p);
-      const midOut = 1 - ss(midEnd - 0.005, midEnd, p);
+      const midIn = ss(MID_NARRATOR_START, MID_NARRATOR_START + 0.005, p);
+      const midOut = 1 - ss(MID_NARRATOR_END - 0.005, MID_NARRATOR_END, p);
       midNarratorRef.current.style.opacity = String(midIn * midOut);
       midNarratorRef.current.style.transform = `translateY(${lerp(10, 0, midIn)}px)`;
     }
