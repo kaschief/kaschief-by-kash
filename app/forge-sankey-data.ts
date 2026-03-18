@@ -39,7 +39,7 @@ export const NODES: SankeyNode[] = [
 ];
 
 /* ---- Math helpers (re-exported from canonical source) ---- */
-export { smoothstep, lerp, clamp } from "./forge-test-workstation/math";
+export { smoothstep, lerp, clamp } from "./engineer-candidate/math";
 
 /* ---- SVG path generator for a Sankey flow (horizontal) ---- */
 

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ForgeWorkstation — Single-file workstation build.
+ * EngineerCandidate — Single-file workstation build.
  *
  * Structure:
  *   Container (2000vh — see CONTAINER_VH)
@@ -20,6 +20,7 @@ import {
 } from "framer-motion";
 import { COMPANIES, ACT_II } from "@data";
 import { STREAMS, NODES } from "../forge-sankey-data";
+import { usePathname } from "next/navigation";
 import { ForgeNav } from "../forge-nav";
 import { ss, smoothstep, lerp, remap } from "./math";
 import {
@@ -35,7 +36,8 @@ import {
   createPrinciples,
   phaseLabel,
   hashToUnit,
-} from "./forge-data";
+  CONTENT,
+} from "./engineer-data";
 import { BREAKPOINTS } from "@utilities";
 
 /* ================================================================== */
@@ -313,37 +315,7 @@ const CHAR_COUNTS = ALL_COMPANY_LINES.map((lines) => {
 });
 
 // Narrative text for right side (V15 style reveal)
-const TERM_NARRATIVES = [
-  {
-    scene:
-      "Half a million medical students. I came from the ward \u2014 I knew what it felt like when the system you depend on doesn\u2019t understand your context.",
-    action:
-      "Migrated vanilla JS to React. Introduced A/B testing. Broke production once \u2014 learned testing discipline.",
-    shift:
-      "The gap between \u2018works technically\u2019 and \u2018works for the person\u2019 is where most products fail.",
-  },
-  {
-    scene:
-      "Sites were replicas of each other. Every change meant touching six copies. Visitors arrived from search with zero loyalty.",
-    action:
-      "Rebuilt as swappable components. Attacked load times: Lighthouse, lazy loading, CSS compression. Built first chatbot interface.",
-    shift: "Every millisecond is a user who stays or leaves.",
-  },
-  {
-    scene:
-      "Ten thousand financial advisors on a fragile platform. Nobody reviewed code. Tests were sparse. TypeScript was new to me.",
-    action:
-      "Started seeing the codebase as a record of how the team communicated. Every shortcut was a frozen habit.",
-    shift: "You can\u2019t fix code without fixing process.",
-  },
-  {
-    scene:
-      "Germany\u2019s largest direct bank. Five million users. Monthly releases. Zero automated tests when I arrived.",
-    action:
-      "Introduced Playwright. Monthly to weekly releases. Feature flags. Found myself in the product room shaping what got built.",
-    shift: "Confidence to ship weekly comes from tests, not from courage.",
-  },
-];
+const TERM_NARRATIVES = CONTENT.terminalNarratives;
 
 function escapeHtml(s: string): string {
   return s
@@ -540,12 +512,7 @@ function buildFunnelSegments(): FSegment[] {
 const F_SEGMENTS = buildFunnelSegments();
 
 // Narrator panels — 4 glass cards that accompany the funnel, NOT company-labeled
-const FUNNEL_NARRATOR = [
-  "It started with an instinct from the ward — watching how people actually behave under pressure, not how you imagine they will. That instinct found its first codebase.",
-  "The tools multiplied. Each one resharpened the instinct. Vue for speed. React for structure. Lighthouse for the milliseconds that separate staying from leaving.",
-  "Somewhere along the way, the code stopped being the point. The codebase became a mirror — reflecting how teams communicate, where habits calcify, what nobody dares to touch.",
-  "At scale, every stream thickened. Testing, architecture, design systems, product partnership. The question shifted from what to build to what to protect.",
-];
+const FUNNEL_NARRATOR = CONTENT.funnelNarrator;
 
 /* ================================================================== */
 /*  Scroll phases — RELATIVE CHAIN                                     */
@@ -980,8 +947,9 @@ function initParticles(): Particle[] {
 /*  Component                                                          */
 /* ================================================================== */
 
-export default function ForgeWorkstation() {
+export default function EngineerCandidate() {
   const { isLg } = useBreakpointRefs();
+  const isStandalone = usePathname() === "/engineer-candidate";
 
   /* ---- V0 refs ---- */
   const forgeStickyRef = useRef<HTMLDivElement>(null);
@@ -1230,17 +1198,17 @@ export default function ForgeWorkstation() {
       const WORD_THRESHOLDS = Array.from({ length: THESIS.wordCount }, (_, i) =>
         wordRevealZone + i * THESIS.wordStagger,
       );
-      for (let wi = 0; wi < THESIS.wordCount; wi++) {
-        const w = thesisWordRefs.current[wi];
-        if (!w) continue;
+      for (let wordIdx = 0; wordIdx < THESIS.wordCount; wordIdx++) {
+        const wordEl = thesisWordRefs.current[wordIdx];
+        if (!wordEl) continue;
         const wordProgress = ss(
-          WORD_THRESHOLDS[wi],
-          WORD_THRESHOLDS[wi] + THESIS.wordRevealDur,
+          WORD_THRESHOLDS[wordIdx],
+          WORD_THRESHOLDS[wordIdx] + THESIS.wordRevealDur,
           p,
         );
-        w.style.opacity = String(wordProgress);
-        w.style.transform = `translateY(${lerp(THESIS.wordDropPx, 0, wordProgress)}px)`;
-        w.style.display = "inline-block";
+        wordEl.style.opacity = String(wordProgress);
+        wordEl.style.transform = `translateY(${lerp(THESIS.wordDropPx, 0, wordProgress)}px)`;
+        wordEl.style.display = "inline-block";
       }
     }
 
@@ -1823,7 +1791,7 @@ export default function ForgeWorkstation() {
 
   return (
     <>
-      <ForgeNav />
+      {isStandalone && <ForgeNav />}
 
       {/* ============================================================ */}
       {/*  FORGE CONTAINER (2000vh) — V0's complete sequence            */}
@@ -2144,36 +2112,18 @@ export default function ForgeWorkstation() {
               lineHeight: 1.5,
               willChange: "transform, opacity, filter",
             }}>
-            Each of my past roles sharpened a different part of how I think
-            about{" "}
-            <span
-              ref={(el) => {
-                thesisWordRefs.current[0] = el;
-              }}
-              style={{ opacity: 0, willChange: "opacity, transform" }}>
-              users,
-            </span>{" "}
-            <span
-              ref={(el) => {
-                thesisWordRefs.current[1] = el;
-              }}
-              style={{ opacity: 0, willChange: "opacity, transform" }}>
-              structure,
-            </span>{" "}
-            <span
-              ref={(el) => {
-                thesisWordRefs.current[2] = el;
-              }}
-              style={{ opacity: 0, willChange: "opacity, transform" }}>
-              clarity,
-            </span>{" "}
-            <span
-              ref={(el) => {
-                thesisWordRefs.current[3] = el;
-              }}
-              style={{ opacity: 0, willChange: "opacity, transform" }}>
-              and scale.
-            </span>
+            {CONTENT.thesis.prefix}
+            {CONTENT.thesis.keywords.map((word, wordIdx) => (
+              <span key={word}>
+                <span
+                  ref={(el) => { thesisWordRefs.current[wordIdx] = el; }}
+                  style={{ opacity: 0, willChange: "opacity, transform", marginRight: wordIdx < CONTENT.thesis.keywords.length - 1 ? "0.3em" : undefined }}>
+                  {wordIdx === CONTENT.thesis.keywords.length - 1
+                    ? `${CONTENT.thesis.conjunction}${word}.`
+                    : `${word},`}
+                </span>
+              </span>
+            ))}
           </div>
 
           {/* Mid narrator — between funnel and terminal */}
@@ -2190,7 +2140,7 @@ export default function ForgeWorkstation() {
                 maxWidth: "min(500px, 85vw)",
                 fontStyle: "italic",
               }}>
-              Let me show you where I've been.
+              {CONTENT.midNarrator}
             </p>
           </div>
 
@@ -2261,7 +2211,7 @@ export default function ForgeWorkstation() {
                       color: "#8b949e",
                       fontSize: "10px",
                     }}>
-                    ~/career — zsh
+                    {CONTENT.terminal.header}
                   </span>
                 </div>
                 {/* Terminal content + wipe (wipe only covers content, not header) */}
@@ -2489,7 +2439,7 @@ export default function ForgeWorkstation() {
                                   color: "var(--text-dim)",
                                   letterSpacing: "0.05em",
                                 }}>
-                                ~/career
+                                {CONTENT.terminal.header}
                               </span>
                             </div>
                             <pre
@@ -2834,7 +2784,7 @@ export default function ForgeWorkstation() {
                     fontWeight: 600,
                   }}
                   fill="var(--cream)">
-                  The Engineer I Became
+                  {CONTENT.convergenceLabel}
                 </text>
               </g>
             </svg>
@@ -2936,22 +2886,24 @@ export default function ForgeWorkstation() {
                     color: "var(--gold-dim)",
                     letterSpacing: "0.2em",
                   }}>
-                  The Engineer I Became
+                  {CONTENT.convergenceLabel}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Chrome */}
-          <div
-            className="absolute top-8 left-1/2 -translate-x-1/2 font-sans tracking-widest uppercase"
-            style={{
-              color: "var(--text-dim)",
-              fontSize: "0.7rem",
-              letterSpacing: "0.2em",
-            }}>
-            The Forge — Workstation
-          </div>
+          {/* Chrome — page title only visible on standalone route */}
+          {isStandalone && (
+            <div
+              className="absolute top-8 left-1/2 -translate-x-1/2 font-sans tracking-widest uppercase"
+              style={{
+                color: "var(--text-dim)",
+                fontSize: "0.7rem",
+                letterSpacing: "0.2em",
+              }}>
+              {CONTENT.pageTitle}
+            </div>
+          )}
           <div
             ref={phaseEl}
             className="absolute bottom-12 left-8 font-sans tracking-widest uppercase"
@@ -3000,9 +2952,7 @@ export default function ForgeWorkstation() {
                 lineHeight: 1.75,
                 fontStyle: "italic",
               }}>
-              What pulled me toward engineering was already there in nursing.
-              ICU taught me that I liked complexity, troubleshooting, and
-              understanding how different parts of a system affect each other.
+              {CONTENT.summary.block1}
             </p>
             <p
               className="font-narrator mt-8"
@@ -3012,7 +2962,7 @@ export default function ForgeWorkstation() {
                 lineHeight: 1.7,
                 fontStyle: "italic",
               }}>
-              That way of thinking carried naturally into engineering.
+              {CONTENT.summary.block2}
             </p>
           </div>
           <div
