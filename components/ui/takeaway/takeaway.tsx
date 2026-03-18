@@ -9,7 +9,7 @@ export function Takeaway({ id, text, height: zonHeight = "150vh" }: TakeawayProp
 
   return (
     <div ref={ref} className="relative" data-sticky-zone style={{ height }}>
-      <div className={`${stickyClass} flex h-screen items-center justify-center px-(--page-gutter)`}>
+      <div className={`${stickyClass} flex h-screen h-[100svh] items-center justify-center px-(--page-gutter)`}>
         <FadeIn>
           <h3 className="mx-auto max-w-2xl text-center font-[family-name:var(--font-spectral)] text-[clamp(22px,3vw,36px)] italic leading-[1.35] tracking-[-0.01em] text-(--cream)">
             {text}

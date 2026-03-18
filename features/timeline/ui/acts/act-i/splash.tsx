@@ -96,7 +96,7 @@ export function Splash() {
   return (
     <div
       ref={sceneRef}
-      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden py-14 sm:py-20 md:py-28 lg:py-32">
+      className="relative flex min-h-screen min-h-[100svh] flex-col items-center justify-center overflow-hidden py-14 sm:py-20 md:py-28 lg:py-32">
       {/* ── Centered content ── */}
       <div className="relative z-10 w-full px-(--page-gutter)">
         <motion.div

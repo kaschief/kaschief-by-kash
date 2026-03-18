@@ -66,7 +66,7 @@ export function ActII() {
     <div
       id={ACT_ENGINEER}
       ref={sceneRef}
-      className="relative min-h-screen py-24 sm:py-32"
+      className="relative min-h-screen min-h-[100svh] py-24 sm:py-32"
       style={{ backgroundColor: SECTION_BG }}>
       <TerminalAtmosphere glowOpacity={glowOpacity} />
 

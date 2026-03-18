@@ -20,6 +20,10 @@ export function useStickyOnce(key: string, fullHeight: string) {
   const ref = useRef<HTMLDivElement>(null);
   const getLenis = useLenis();
   const done = usePinStore((s) => !!s.completed[key]);
+  const collapsedHeight =
+    typeof window !== "undefined" && window.CSS?.supports?.("height", "100svh")
+      ? "100svh"
+      : "100vh";
 
   useEffect(() => {
     if (done) return;
@@ -34,7 +38,7 @@ export function useStickyOnce(key: string, fullHeight: string) {
         const diff = el.offsetHeight - window.innerHeight;
 
         usePinStore.getState().markDone(key);
-        el.style.height = "100vh";
+        el.style.height = collapsedHeight;
 
         if (lenis) {
           lenis.scrollTo(scroll - diff, { immediate: true });
@@ -46,12 +50,12 @@ export function useStickyOnce(key: string, fullHeight: string) {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [done, getLenis, key]);
+  }, [collapsedHeight, done, getLenis, key]);
 
   return {
     ref,
     done,
-    height: done ? "100vh" : fullHeight,
+    height: done ? collapsedHeight : fullHeight,
     stickyClass: done ? "relative" : "sticky top-0",
   } as const;
 }

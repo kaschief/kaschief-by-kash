@@ -89,7 +89,7 @@ export function ChaosToOrder() {
       style={{ height: `${SCENE_HEIGHT_VH}vh` }}>
       <div
         ref={stickyRef}
-        className="sticky top-0 mx-auto h-screen max-w-350"
+        className="sticky top-0 mx-auto h-screen h-[100svh] max-w-350"
         style={{
           containerType: "size",
           overflowX: "visible",

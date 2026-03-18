@@ -7,7 +7,6 @@ const VARIANTS = [
   { href: "/forge-test-ref-horizontal", label: "Horiz" },
   { href: "/forge-test-ref-particles", label: "Particles" },
   { href: "/forge-test-workstation", label: "Workstation" },
-  { href: "/forge-test-v15", label: "V15 Scribe" },
   { href: "/forge-test-v16", label: "V16 Terminal" },
   { href: "/forge-test-v19", label: "V19 Forge" },
 ];
