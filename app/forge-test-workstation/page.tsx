@@ -626,7 +626,7 @@ const SEED = {
 } as const;
 
 /** Non-seed fragments — dark pills with code, logos, commands */
-const FRAG = {
+const FRAGMENTS = {
   earlyStart:        0.01,   // appear slightly before seeds
   fadeInDuration:     0.05,   // fade-in length
   dissolveSpeed:     0.7,    // multiplier on per-pill dissolve range
@@ -756,7 +756,7 @@ const MOBILE_SKILLS = {
 } as const;
 
 /** Mid narrator — "Let me show you where I've been" */
-const MID_NAR = {
+const MID_NARRATOR = {
   delay:             0.005,  // starts just after funnel fades
   duration:          0.035,
   fadeDur:           0.005,  // very quick fade in/out
@@ -764,7 +764,7 @@ const MID_NAR = {
 } as const;
 
 /** Terminal — code typing replay per company */
-const TERM = {
+const TERMINAL = {
   fadeDur:           0.01,
   companyCount:      4,
   // Typing sub-phases (fraction of company progress)
@@ -786,7 +786,7 @@ const TERM = {
 } as const;
 
 /** Terminal narrative sub-phases (within narStart→narEnd, mapped 0–1) */
-const TERM_NAR = {
+const TERMINAL_NARRATOR = {
   sceneEnd:          0.4,
   actionStart:       0.42,
   actionEnd:         0.6,
@@ -799,7 +799,7 @@ const TERM_NAR = {
 } as const;
 
 /** Crystallize — 4 principle cards fade in and settle */
-const CRYST = {
+const CRYSTALLIZE = {
   lineAppearStart:   0.15,
   lineAppearEnd:     0.35,
   lineOpacity:       0.3,
@@ -859,8 +859,8 @@ const SEED_SCALE_SHRINK_START = FORGE_END + SEED.shrinkDelay;
 const SEED_SCALE_SHRINK_END   = FORGE_GATE;
 
 /* ---- Non-seed fragment sub-phases ---- */
-const FRAG_FADE_IN_START = FORGE_START - FRAG.earlyStart;
-const FRAG_FADE_IN_END   = FORGE_START + FRAG.fadeInDuration;
+const FRAG_FADE_IN_START = FORGE_START - FRAGMENTS.earlyStart;
+const FRAG_FADE_IN_END   = FORGE_START + FRAGMENTS.fadeInDuration;
 
 /* ---- Particles: canvas explode + converge + handoff to SVG ---- */
 const PARTICLES_START = THESIS_END + PHASES.thesisToParticles;
@@ -908,8 +908,8 @@ const CAPTION_TIERS = RIBBON_TIERS.map((tier) => ({
 }));
 
 /* ---- Mid narrator ("Let me show you...") ---- */
-const MID_NARRATOR_START = FUNNEL_OUT_END + MID_NAR.delay;
-const MID_NARRATOR_END   = MID_NARRATOR_START + MID_NAR.duration;
+const MID_NARRATOR_START = FUNNEL_OUT_END + MID_NARRATOR.delay;
+const MID_NARRATOR_END   = MID_NARRATOR_START + MID_NARRATOR.duration;
 
 /* ---- Terminal / Beats ---- */
 const BEATS_START = MID_NARRATOR_END + PHASES.funnelToTerminal;
@@ -1146,23 +1146,23 @@ export default function ForgeWorkstation() {
           el.style.filter = `blur(${initialBlur}px)`;
         } else {
           const fadeIn = ss(FRAG_FADE_IN_START, FRAG_FADE_IN_END, p),
-            fadeOut = 1 - ss(f.dissolveStart * FRAG.dissolveSpeed, f.dissolveEnd * FRAG.dissolveSpeed, p);
-          const drift = ss(FORGE_START + FRAG.driftInset, FORGE_END - FRAG.driftInset, p),
-            dissolve = ss(f.dissolveStart * FRAG.dissolveSpeed, f.dissolveEnd * FRAG.dissolveSpeed, p);
+            fadeOut = 1 - ss(f.dissolveStart * FRAGMENTS.dissolveSpeed, f.dissolveEnd * FRAGMENTS.dissolveSpeed, p);
+          const drift = ss(FORGE_START + FRAGMENTS.driftInset, FORGE_END - FRAGMENTS.driftInset, p),
+            dissolve = ss(f.dissolveStart * FRAGMENTS.dissolveSpeed, f.dissolveEnd * FRAGMENTS.dissolveSpeed, p);
           const x = f.x0 + f.dx * drift,
             y = f.y0 + f.dy * drift,
-            rot = f.rot * (1 + drift * FRAG.rotDriftFactor);
+            rot = f.rot * (1 + drift * FRAGMENTS.rotDriftFactor);
           let baseAlpha: number;
           switch (f.type) {
             case "code":
             case "command":
-              baseAlpha = FRAG.alphaCode;
+              baseAlpha = FRAGMENTS.alphaCode;
               break;
             case "logo":
-              baseAlpha = FRAG.alphaLogo;
+              baseAlpha = FRAGMENTS.alphaLogo;
               break;
             default:
-              baseAlpha = FRAG.alphaDefault;
+              baseAlpha = FRAGMENTS.alphaDefault;
           }
           const fragScreenY = vh * 0.5 + (y * vh) / 100;
           const curtainReveal =
@@ -1411,10 +1411,10 @@ export default function ForgeWorkstation() {
 
     /* ---- Mid narrator: "Let me show you where I've been" ---- */
     if (midNarratorRef.current) {
-      const midIn = ss(MID_NARRATOR_START, MID_NARRATOR_START + MID_NAR.fadeDur, p);
-      const midOut = 1 - ss(MID_NARRATOR_END - MID_NAR.fadeDur, MID_NARRATOR_END, p);
+      const midIn = ss(MID_NARRATOR_START, MID_NARRATOR_START + MID_NARRATOR.fadeDur, p);
+      const midOut = 1 - ss(MID_NARRATOR_END - MID_NARRATOR.fadeDur, MID_NARRATOR_END, p);
       midNarratorRef.current.style.opacity = String(midIn * midOut);
-      midNarratorRef.current.style.transform = `translateY(${lerp(MID_NAR.slideY, 0, midIn)}px)`;
+      midNarratorRef.current.style.transform = `translateY(${lerp(MID_NARRATOR.slideY, 0, midIn)}px)`;
     }
 
     /* ============================================================== */
@@ -1428,8 +1428,8 @@ export default function ForgeWorkstation() {
       // Terminal + mobile carousel timing (shared scroll phase)
       const termStart = PH.BEATS[0].start;
       const termEnd = PH.BEATS[3].end;
-      const termIn = ss(termStart, termStart + TERM.fadeDur, p);
-      const termOut = 1 - ss(termEnd - TERM.fadeDur, termEnd, p);
+      const termIn = ss(termStart, termStart + TERMINAL.fadeDur, p);
+      const termOut = 1 - ss(termEnd - TERMINAL.fadeDur, termEnd, p);
 
       // Fade desktop terminal
       if (termEl) termEl.style.opacity = String(termIn * termOut);
@@ -1445,12 +1445,12 @@ export default function ForgeWorkstation() {
         // Determine which company
         const totalDur = termEnd - termStart;
         const localP = Math.max(0, Math.min(1, (p - termStart) / totalDur));
-        const companyIdx = Math.min(Math.floor(localP * TERM.companyCount), TERM.companyCount - 1);
-        const companyProgress = (localP - companyIdx / TERM.companyCount) * TERM.companyCount;
+        const companyIdx = Math.min(Math.floor(localP * TERMINAL.companyCount), TERMINAL.companyCount - 1);
+        const companyProgress = (localP - companyIdx / TERMINAL.companyCount) * TERMINAL.companyCount;
 
         // Mobile: show/hide stacked cards based on scroll progress
         if (!lg) {
-          for (let ci = 0; ci < TERM.companyCount; ci++) {
+          for (let ci = 0; ci < TERMINAL.companyCount; ci++) {
             const card = mobileCardRefs.current[ci];
             if (card) card.style.opacity = ci === companyIdx ? "1" : "0";
           }
@@ -1458,8 +1458,8 @@ export default function ForgeWorkstation() {
           const CC4 = COMPANY_COLORS;
           termProgressRefs.current.forEach((dot, i) => {
             if (!dot) return;
-            dot.style.width = i === companyIdx ? TERM.dotActiveWidth : TERM.dotInactiveWidth;
-            dot.style.opacity = i === companyIdx ? "1" : String(TERM.dotInactiveOpacity);
+            dot.style.width = i === companyIdx ? TERMINAL.dotActiveWidth : TERMINAL.dotInactiveWidth;
+            dot.style.opacity = i === companyIdx ? "1" : String(TERMINAL.dotInactiveOpacity);
             dot.style.background =
               i === companyIdx ? CC4[companyIdx] : "var(--text-dim)";
           });
@@ -1467,19 +1467,19 @@ export default function ForgeWorkstation() {
 
         if (termEl && termContent && termWipe) {
           // Phase boundaries — terminal types in first half, narrative reveals in second
-          const P1_END = TERM.typingP1,
-            P2_END = TERM.typingP2,
-            P3_END = TERM.typingP3;
-          const NAR_START = TERM.narStart,
-            NAR_END = TERM.narEnd;
+          const P1_END = TERMINAL.typingP1,
+            P2_END = TERMINAL.typingP2,
+            P3_END = TERMINAL.typingP3;
+          const NAR_START = TERMINAL.narStart,
+            NAR_END = TERMINAL.narEnd;
 
           // Wipe — only at very end, AFTER narrative finishes
-          const wipeProgress = ss(TERM.wipeStart, TERM.wipeEnd, companyProgress);
+          const wipeProgress = ss(TERMINAL.wipeStart, TERMINAL.wipeEnd, companyProgress);
           termWipe.style.opacity =
             wipeProgress > 0 && wipeProgress < 1 ? "1" : "0";
           termWipe.style.transform = `translateY(${(1 - wipeProgress) * 100}%)`;
 
-          if (wipeProgress >= TERM.wipeComplete) {
+          if (wipeProgress >= TERMINAL.wipeComplete) {
             if (termLastStateRef.current.chars !== -2) {
               termContent.innerHTML = "";
               termLastStateRef.current = { company: companyIdx, chars: -2 };
@@ -1546,8 +1546,8 @@ export default function ForgeWorkstation() {
                   italic = true;
                   break;
                 case "promotion":
-                  fg = TERM.promotionFg;
-                  bg = TERM.promotionBg;
+                  fg = TERMINAL.promotionFg;
+                  bg = TERMINAL.promotionBg;
                   break;
                 case "string":
                   fg = TC.string;
@@ -1594,11 +1594,11 @@ export default function ForgeWorkstation() {
                 (companyProgress - NAR_START) / (NAR_END - NAR_START),
               ),
             );
-            const sceneReveal = ss(0, TERM_NAR.sceneEnd, narP);
-            const actionFade = ss(TERM_NAR.actionStart, TERM_NAR.actionEnd, narP);
-            const shiftFade = ss(TERM_NAR.shiftStart, TERM_NAR.shiftEnd, narP);
+            const sceneReveal = ss(0, TERMINAL_NARRATOR.sceneEnd, narP);
+            const actionFade = ss(TERMINAL_NARRATOR.actionStart, TERMINAL_NARRATOR.actionEnd, narP);
+            const shiftFade = ss(TERMINAL_NARRATOR.shiftStart, TERMINAL_NARRATOR.shiftEnd, narP);
             const fadeOut =
-              companyProgress > TERM_NAR.fadeoutStart ? ss(TERM_NAR.fadeoutStart, TERM_NAR.fadeoutEnd, companyProgress) : 0;
+              companyProgress > TERMINAL_NARRATOR.fadeoutStart ? ss(TERMINAL_NARRATOR.fadeoutStart, TERMINAL_NARRATOR.fadeoutEnd, companyProgress) : 0;
             narEl.style.opacity = String(1 - fadeOut);
 
             const nameEl = narEl.querySelector<HTMLElement>("[data-role=name]");
@@ -1616,7 +1616,7 @@ export default function ForgeWorkstation() {
                 " · " +
                 TERM_COMPANIES[companyIdx].location;
               nameEl.style.color = COMPANY_COLORS[companyIdx];
-              nameEl.style.opacity = String(ss(0, TERM_NAR.headerFadeEnd, narP));
+              nameEl.style.opacity = String(ss(0, TERMINAL_NARRATOR.headerFadeEnd, narP));
             }
             /* periodEl block removed — dead code path (P2.5) */
             if (sceneEl && nar) {
@@ -1627,23 +1627,23 @@ export default function ForgeWorkstation() {
             if (actionEl && nar) {
               actionEl.textContent = nar.action;
               actionEl.style.opacity = String(actionFade);
-              actionEl.style.transform = `translateY(${lerp(TERM_NAR.slideY, 0, actionFade)}px)`;
+              actionEl.style.transform = `translateY(${lerp(TERMINAL_NARRATOR.slideY, 0, actionFade)}px)`;
             }
             if (shiftEl && nar) {
               shiftEl.textContent = nar.shift;
               shiftEl.style.opacity = String(shiftFade);
-              shiftEl.style.transform = `translateY(${lerp(TERM_NAR.slideY, 0, shiftFade)}px)`;
+              shiftEl.style.transform = `translateY(${lerp(TERMINAL_NARRATOR.slideY, 0, shiftFade)}px)`;
             }
           }
 
           // Dot indicator — active dot is pill, others are circles
           const DOT_COLORS = COMPANY_COLORS;
-          for (let pi = 0; pi < TERM.companyCount; pi++) {
+          for (let pi = 0; pi < TERMINAL.companyCount; pi++) {
             const dot = termProgressRefs.current[pi];
             if (!dot) continue;
             const isActive = pi === companyIdx;
-            dot.style.width = isActive ? TERM.dotActiveWidth : TERM.dotInactiveWidth;
-            dot.style.opacity = isActive ? "1" : String(TERM.dotInactiveOpacity);
+            dot.style.width = isActive ? TERMINAL.dotActiveWidth : TERMINAL.dotInactiveWidth;
+            dot.style.opacity = isActive ? "1" : String(TERMINAL.dotInactiveOpacity);
             dot.style.background = isActive
               ? DOT_COLORS[pi]
               : "var(--text-dim)";
@@ -1665,23 +1665,23 @@ export default function ForgeWorkstation() {
         cD = cE - cS;
       if (flashEl.current) flashEl.current.style.opacity = "0";
       if (crystLineEl.current) {
-        const appear = ss(cS + cD * CRYST.lineAppearStart, cS + cD * CRYST.lineAppearEnd, p);
-        crystLineEl.current.style.opacity = String(appear * CRYST.lineOpacity);
+        const appear = ss(cS + cD * CRYSTALLIZE.lineAppearStart, cS + cD * CRYSTALLIZE.lineAppearEnd, p);
+        crystLineEl.current.style.opacity = String(appear * CRYSTALLIZE.lineOpacity);
         crystLineEl.current.style.transform = `translate(-50%, -50%) scaleX(${lerp(0, 1, appear)})`;
       }
       principles.forEach((pr, i) => {
         const el = principleEls.current[i];
         if (!el) return;
-        const stagger = i * cD * CRYST.staggerFrac;
-        const fadeIn = ss(cS + cD * CRYST.fadeInStartFrac + stagger, cS + cD * CRYST.fadeInEndFrac + stagger, p);
-        const settle = ss(cS + cD * CRYST.settleStartFrac + stagger, cS + cD * CRYST.settleEndFrac, p);
+        const stagger = i * cD * CRYSTALLIZE.staggerFrac;
+        const fadeIn = ss(cS + cD * CRYSTALLIZE.fadeInStartFrac + stagger, cS + cD * CRYSTALLIZE.fadeInEndFrac + stagger, p);
+        const settle = ss(cS + cD * CRYSTALLIZE.settleStartFrac + stagger, cS + cD * CRYSTALLIZE.settleEndFrac, p);
         // Mobile: wider spacing between principles
-        const mobileYOffset = lg ? pr.yOffset : (i - CRYST.mobileCenter) * CRYST.mobileSpacing;
-        const y = lerp(mobileYOffset + CRYST.yOffset, mobileYOffset, settle);
+        const mobileYOffset = lg ? pr.yOffset : (i - CRYSTALLIZE.mobileCenter) * CRYSTALLIZE.mobileSpacing;
+        const y = lerp(mobileYOffset + CRYSTALLIZE.yOffset, mobileYOffset, settle);
         el.style.transform = `translate(-50%, calc(-50% + ${y}vh))`;
         el.style.opacity = String(fadeIn);
-        el.style.filter = `blur(${lerp(CRYST.initialBlur, 0, fadeIn)}px)`;
-        el.style.maxWidth = lg ? CRYST.maxWidthLg : CRYST.maxWidthSm;
+        el.style.filter = `blur(${lerp(CRYSTALLIZE.initialBlur, 0, fadeIn)}px)`;
+        el.style.maxWidth = lg ? CRYSTALLIZE.maxWidthLg : CRYSTALLIZE.maxWidthSm;
       });
     }
   });
