@@ -727,11 +727,15 @@ export default function ForgeWorkstation() {
       );
     }
 
-    /* ---- Title fade out (MUST end before SUMMARY_ARRIVAL) ---- */
+    /* ---- Title fade: slow scroll fade + fast erase when panel arrives ---- */
     if (titleRef.current) {
-      const fade = 1 - ss(PH.TITLE.start, PH.TITLE.end, p);
-      titleRef.current.style.opacity = String(fade);
-      titleRef.current.style.transform = `translateY(${lerp(0, -30, ss(PH.TITLE.start, PH.TITLE.end, p))}px)`;
+      // Slow fade over a wide scroll range
+      const slowFade = 1 - ss(PH.TITLE.start, PH.TITLE.end * 3, p);
+      // Fast erase when panel is on-screen — same curtainReveal as fragments
+      const curtainFade = curtainTop >= window.innerHeight
+        ? 1
+        : Math.max(0, (curtainTop - window.innerHeight * 0.3) / (window.innerHeight * 0.2));
+      titleRef.current.style.opacity = String(Math.min(slowFade, curtainFade));
     }
 
     /* ============================================================== */
