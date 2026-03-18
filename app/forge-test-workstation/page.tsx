@@ -54,8 +54,12 @@ function useBreakpointRefs() {
     const mqSm = window.matchMedia(`(min-width: ${BREAKPOINTS.sm}px)`);
     isLg.current = mqLg.matches;
     isSm.current = mqSm.matches;
-    const lgH = (e: MediaQueryListEvent) => { isLg.current = e.matches; };
-    const smH = (e: MediaQueryListEvent) => { isSm.current = e.matches; };
+    const lgH = (e: MediaQueryListEvent) => {
+      isLg.current = e.matches;
+    };
+    const smH = (e: MediaQueryListEvent) => {
+      isSm.current = e.matches;
+    };
     mqLg.addEventListener("change", lgH);
     mqSm.addEventListener("change", smH);
     return () => {
@@ -680,6 +684,7 @@ export default function ForgeWorkstation() {
   const fragmentEls = useRef<(HTMLElement | null)[]>([]);
   const emberEls = useRef<(HTMLDivElement | null)[]>([]);
   const thesisEls = useRef<(HTMLDivElement | null)[]>([]);
+  const thesisWordRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const terminalRef = useRef<HTMLDivElement>(null);
   const termContentRef = useRef<HTMLPreElement>(null);
   const termWipeRef = useRef<HTMLDivElement>(null);
@@ -768,9 +773,14 @@ export default function ForgeWorkstation() {
       // Slow fade over a wide scroll range
       const slowFade = 1 - ss(PH.TITLE.start, PH.TITLE.end * 3, p);
       // Fast erase when panel is on-screen — same curtainReveal as fragments
-      const curtainFade = curtainTop >= window.innerHeight
-        ? 1
-        : Math.max(0, (curtainTop - window.innerHeight * 0.3) / (window.innerHeight * 0.2));
+      const curtainFade =
+        curtainTop >= window.innerHeight
+          ? 1
+          : Math.max(
+              0,
+              (curtainTop - window.innerHeight * 0.3) /
+                (window.innerHeight * 0.2),
+            );
       titleRef.current.style.opacity = String(Math.min(slowFade, curtainFade));
     }
 
@@ -808,9 +818,9 @@ export default function ForgeWorkstation() {
           const [cr, cg, cb] = CC_EXT[f.companyIdx % CC_EXT.length];
           const cm = goldT * goldT;
           el.style.color = `rgb(${Math.round(lerp(cr, 201, cm))},${Math.round(lerp(cg, 168, cm))},${Math.round(lerp(cb, 76, cm))})`;
-          const dissolve = ss(0.17, 0.19, p);
+          const dissolve = ss(0.16, 0.18, p);
           const dissolveBlur = lerp(0, 12, dissolve);
-          const dissolveAlpha = lerp(1, 0.1, dissolve);
+          const dissolveAlpha = lerp(1, 0, dissolve);
           const baseBlur = lerp(lerp(1, 0, ss(0.03, 0.07, p)), 3, goldT);
           el.style.transform = `translate(calc(-50% + ${x}vw), calc(-50% + ${y}vh)) rotate(${rot}deg) scale(${scale})`;
           el.style.opacity = String(fadeIn * dissolveAlpha * curtainReveal);
@@ -881,32 +891,25 @@ export default function ForgeWorkstation() {
       gridEl.current.style.opacity = String(appear * fade * 0.05);
     }
 
-    /* ---- Thesis (0.17 — 0.27) ---- */
-    // Mobile: wider y-spacing + maxWidth to prevent overlap with wrapped text
+    /* ---- Thesis (0.17 — 0.27) with sequential word highlights ---- */
     const lg = isLg.current;
     if (thesisEls.current[0]) {
       const fadeIn = ss(0.17, 0.2, p),
         fadeOut = 1 - ss(0.24, 0.27, p);
       thesisEls.current[0].style.opacity = String(fadeIn * fadeOut);
-      thesisEls.current[0].style.transform = `translate(-50%, calc(-50% + ${lerp(lg ? 2 : -6, lg ? -5 : -12, ss(0.17, 0.27, p))}vh))`;
+      thesisEls.current[0].style.transform = `translate(-50%, calc(-50% + ${lerp(lg ? 2 : -6, lg ? -5 : -12, ss(0.17, 0.20, p))}vh))`;
       thesisEls.current[0].style.filter = `blur(${lerp(6, 0, fadeIn)}px)`;
       thesisEls.current[0].style.maxWidth = lg ? "60vw" : "85vw";
-    }
-    if (thesisEls.current[1]) {
-      const fadeIn = ss(0.19, 0.22, p),
-        fadeOut = 1 - ss(0.24, 0.27, p);
-      thesisEls.current[1].style.opacity = String(fadeIn * fadeOut);
-      thesisEls.current[1].style.transform = `translate(-50%, calc(-50% + ${lerp(lg ? 12 : 10, lg ? 6 : 4, ss(0.19, 0.27, p))}vh))`;
-      thesisEls.current[1].style.filter = `blur(${lerp(6, 0, fadeIn)}px)`;
-      thesisEls.current[1].style.maxWidth = lg ? "60vw" : "85vw";
-    }
-    if (thesisEls.current[2]) {
-      const fadeIn = ss(0.21, 0.24, p),
-        fadeOut = 1 - ss(0.25, 0.27, p);
-      thesisEls.current[2].style.opacity = String(fadeIn * fadeOut);
-      thesisEls.current[2].style.transform = `translate(-50%, calc(-50% + ${lerp(lg ? 22 : 26, lg ? 17 : 22, ss(0.21, 0.27, p))}vh))`;
-      thesisEls.current[2].style.filter = `blur(${lerp(4, 0, fadeIn)}px)`;
-      thesisEls.current[2].style.maxWidth = lg ? "40vw" : "80vw";
+
+      // Sequential word reveal: users, structure, clarity, scale
+      const WORD_THRESHOLDS = [0.205, 0.215, 0.225, 0.235];
+      for (let wi = 0; wi < 4; wi++) {
+        const w = thesisWordRefs.current[wi];
+        if (!w) continue;
+        w.style.opacity = String(
+          ss(WORD_THRESHOLDS[wi], WORD_THRESHOLDS[wi] + 0.005, p),
+        );
+      }
     }
 
     /* ============================================================== */
@@ -968,7 +971,7 @@ export default function ForgeWorkstation() {
         const el = funnelStreamLabelRefs.current[si];
         if (!el) continue;
         const stagger = si * 0.002;
-        const labelIn = ss(0.30 + stagger, 0.32 + stagger, p);
+        const labelIn = ss(0.3 + stagger, 0.32 + stagger, p);
         const labelOut = 1 - ss(0.45, 0.47, p);
         el.style.opacity = String(labelIn * labelOut);
         el.style.transform = `translateY(${lerpFn(-10, 0, labelIn)}px)`;
@@ -1001,11 +1004,7 @@ export default function ForgeWorkstation() {
         if (!el) continue;
         const threshIdx = Math.min(ni, TIER_THRESHOLDS.length - 1);
         const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
-        const nodeT = ss(
-          lerpFn(threshStart, threshEnd, 0.7),
-          threshEnd,
-          p,
-        );
+        const nodeT = ss(lerpFn(threshStart, threshEnd, 0.7), threshEnd, p);
         const fadeOut = 1 - ss(0.45, 0.47, p);
         el.style.opacity = String(nodeT * fadeOut);
         el.style.transform = `translateY(${lerpFn(8, 0, nodeT)}px)`;
@@ -1051,7 +1050,7 @@ export default function ForgeWorkstation() {
         }
         // (track line removed — content alone carries the convergence)
         // Skills accumulate progressively — staggered by first company tier
-        const SKILL_TIERS = [0.30, 0.35, 0.39, 0.43]; // matching company tiers
+        const SKILL_TIERS = [0.3, 0.35, 0.39, 0.43]; // matching company tiers
         for (let si = 0; si < STREAMS.length; si++) {
           const el = cameraSkillRefs.current[si];
           if (!el) continue;
@@ -1095,47 +1094,47 @@ export default function ForgeWorkstation() {
       const termContent = termContentRef.current;
       const termWipe = termWipeRef.current;
 
-        // Terminal + mobile carousel timing (shared scroll phase)
-        const termStart = PH.BEATS[0].start;
-        const termEnd = PH.BEATS[3].end;
-        const termIn = ss(termStart, termStart + 0.01, p);
-        const termOut = 1 - ss(termEnd - 0.01, termEnd, p);
+      // Terminal + mobile carousel timing (shared scroll phase)
+      const termStart = PH.BEATS[0].start;
+      const termEnd = PH.BEATS[3].end;
+      const termIn = ss(termStart, termStart + 0.01, p);
+      const termOut = 1 - ss(termEnd - 0.01, termEnd, p);
 
-        // Fade desktop terminal
-        if (termEl) termEl.style.opacity = String(termIn * termOut);
-        if (termProgressWrapRef.current) {
-          termProgressWrapRef.current.style.opacity = String(termIn * termOut);
-        }
-        // Fade mobile carousel wrapper
-        if (!lg && mobileCarouselRef.current) {
-          mobileCarouselRef.current.style.opacity = String(termIn * termOut);
-        }
+      // Fade desktop terminal
+      if (termEl) termEl.style.opacity = String(termIn * termOut);
+      if (termProgressWrapRef.current) {
+        termProgressWrapRef.current.style.opacity = String(termIn * termOut);
+      }
+      // Fade mobile carousel wrapper
+      if (!lg && mobileCarouselRef.current) {
+        mobileCarouselRef.current.style.opacity = String(termIn * termOut);
+      }
 
-        if (termIn > 0 && termOut > 0) {
-          // Determine which company
-          const totalDur = termEnd - termStart;
-          const localP = Math.max(0, Math.min(1, (p - termStart) / totalDur));
-          const companyIdx = Math.min(Math.floor(localP * 4), 3);
-          const companyProgress = (localP - companyIdx / 4) * 4;
+      if (termIn > 0 && termOut > 0) {
+        // Determine which company
+        const totalDur = termEnd - termStart;
+        const localP = Math.max(0, Math.min(1, (p - termStart) / totalDur));
+        const companyIdx = Math.min(Math.floor(localP * 4), 3);
+        const companyProgress = (localP - companyIdx / 4) * 4;
 
-          // Mobile: show/hide stacked cards based on scroll progress
-          if (!lg) {
-            for (let ci = 0; ci < 4; ci++) {
-              const card = mobileCardRefs.current[ci];
-              if (card) card.style.opacity = ci === companyIdx ? "1" : "0";
-            }
-            // Update dot indicators
-            const CC4 = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"];
-            termProgressRefs.current.forEach((dot, i) => {
-              if (!dot) return;
-              dot.style.width = i === companyIdx ? "20px" : "6px";
-              dot.style.opacity = i === companyIdx ? "1" : "0.35";
-              dot.style.background = i === companyIdx ? CC4[companyIdx] : "var(--text-dim)";
-            });
+        // Mobile: show/hide stacked cards based on scroll progress
+        if (!lg) {
+          for (let ci = 0; ci < 4; ci++) {
+            const card = mobileCardRefs.current[ci];
+            if (card) card.style.opacity = ci === companyIdx ? "1" : "0";
           }
+          // Update dot indicators
+          const CC4 = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"];
+          termProgressRefs.current.forEach((dot, i) => {
+            if (!dot) return;
+            dot.style.width = i === companyIdx ? "20px" : "6px";
+            dot.style.opacity = i === companyIdx ? "1" : "0.35";
+            dot.style.background =
+              i === companyIdx ? CC4[companyIdx] : "var(--text-dim)";
+          });
+        }
 
-      if (termEl && termContent && termWipe) {
-
+        if (termEl && termContent && termWipe) {
           // Phase boundaries — terminal types in first half, narrative reveals in second
           const P1_END = 0.2,
             P2_END = 0.35,
@@ -1282,7 +1281,10 @@ export default function ForgeWorkstation() {
               narEl.querySelector<HTMLElement>("[data-role=shift]");
 
             if (nameEl) {
-              nameEl.textContent = TERM_COMPANIES[companyIdx].company + " · " + TERM_COMPANIES[companyIdx].location;
+              nameEl.textContent =
+                TERM_COMPANIES[companyIdx].company +
+                " · " +
+                TERM_COMPANIES[companyIdx].location;
               nameEl.style.color = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"][
                 companyIdx
               ];
@@ -1317,7 +1319,9 @@ export default function ForgeWorkstation() {
             const isActive = pi === companyIdx;
             dot.style.width = isActive ? "20px" : "6px";
             dot.style.opacity = isActive ? "1" : "0.35";
-            dot.style.background = isActive ? DOT_COLORS[pi] : "var(--text-dim)";
+            dot.style.background = isActive
+              ? DOT_COLORS[pi]
+              : "var(--text-dim)";
           }
         }
       }
@@ -1651,7 +1655,10 @@ export default function ForgeWorkstation() {
                 animate={titleActive ? { opacity: 1 } : {}}
                 transition={{ duration: 1, delay: 0.8 }}
                 className="font-serif text-sm italic text-center mt-6 mx-auto sm:text-base"
-                style={{ color: "var(--cream-muted)", maxWidth: "min(500px, 85vw)" }}>
+                style={{
+                  color: "var(--cream-muted)",
+                  maxWidth: "min(500px, 85vw)",
+                }}>
                 {ACT_II.splash}
               </motion.p>
             </div>
@@ -1795,35 +1802,53 @@ export default function ForgeWorkstation() {
             }
           })}
 
-          {/* Thesis */}
-          {[
-            "Most engineers learn to build things.",
-            "Some learn to see them.",
-            "That second kind of engineer takes time to become. Not because the skills are hard. Because the education is specific.",
-          ].map((line, i) => (
-            <div
-              key={`thesis-${i}`}
+          {/* Thesis — keywords highlight sequentially on scroll */}
+          <div
+            ref={(el) => {
+              thesisEls.current[0] = el;
+            }}
+            className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
+            style={{
+              opacity: 0,
+              fontFamily: "var(--font-serif)",
+              fontSize: "clamp(1.4rem, 3vw, 2.4rem)",
+              color: "var(--cream)",
+              fontWeight: 400,
+              maxWidth: "60vw",
+              lineHeight: 1.5,
+              willChange: "transform, opacity, filter",
+            }}>
+            Each of my past roles sharpened a different part of how I think,
+            about{" "}
+            <span
               ref={(el) => {
-                thesisEls.current[i] = el;
+                thesisWordRefs.current[0] = el;
               }}
-              className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
-              style={{
-                opacity: 0,
-                fontFamily: i < 2 ? "var(--font-serif)" : "var(--font-sans)",
-                fontSize:
-                  i < 2
-                    ? "clamp(1.4rem, 3vw, 2.4rem)"
-                    : "clamp(0.8rem, 1.2vw, 1rem)",
-                color: i < 2 ? "var(--cream)" : "var(--text-dim)",
-                fontWeight: i < 2 ? 400 : 400,
-                fontStyle: i === 1 ? "italic" : undefined,
-                maxWidth: i < 2 ? "60vw" : "40vw",
-                lineHeight: 1.5,
-                willChange: "transform, opacity, filter",
-              }}>
-              {line}
-            </div>
-          ))}
+              style={{ opacity: 0, willChange: "opacity" }}>
+              users,{" "}
+            </span>
+            <span
+              ref={(el) => {
+                thesisWordRefs.current[1] = el;
+              }}
+              style={{ opacity: 0, willChange: "opacity" }}>
+              structure,{" "}
+            </span>
+            <span
+              ref={(el) => {
+                thesisWordRefs.current[2] = el;
+              }}
+              style={{ opacity: 0, willChange: "opacity" }}>
+              clarity,{" "}
+            </span>
+            <span
+              ref={(el) => {
+                thesisWordRefs.current[3] = el;
+              }}
+              style={{ opacity: 0, willChange: "opacity" }}>
+              and scale.
+            </span>
+          </div>
 
           {/* Mid narrator — between funnel and terminal */}
           <div
@@ -1850,180 +1875,213 @@ export default function ForgeWorkstation() {
             className="absolute inset-0"
             style={{ opacity: 0, zIndex: 8 }}>
             {/* Desktop: Terminal + Narrative side by side */}
-            <div className="hidden lg:flex absolute inset-0 items-center justify-center flex-row" style={{ padding: "0 4vw", gap: "3vw" }}>
-            {/* LEFT: Terminal */}
             <div
-              style={{
-                width: "clamp(560px, 38vw, 720px)",
-                minHeight: "clamp(400px, 50cqh, 560px)",
-                borderRadius: "8px",
-                overflow: "hidden",
-                background: TC.bg,
-                border: "1px solid rgba(255,255,255,0.06)",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-                fontFamily: MONO,
-                fontSize: "clamp(10px, 1.6cqh, 13px)",
-                position: "relative",
-                flexShrink: 0,
-                display: "flex",
-                flexDirection: "column" as const,
-              }}>
-              {/* Top bar */}
+              className="hidden lg:flex absolute inset-0 items-center justify-center flex-row"
+              style={{ padding: "0 4vw", gap: "3vw" }}>
+              {/* LEFT: Terminal */}
               <div
                 style={{
+                  width: "clamp(560px, 38vw, 720px)",
+                  minHeight: "clamp(400px, 50cqh, 560px)",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  background: TC.bg,
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                  fontFamily: MONO,
+                  fontSize: "clamp(10px, 1.6cqh, 13px)",
+                  position: "relative",
+                  flexShrink: 0,
                   display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "8px 12px",
-                  background: TC.topBar,
-                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  flexDirection: "column" as const,
                 }}>
+                {/* Top bar */}
                 <div
                   style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    background: TC.dotRed,
-                  }}
-                />
-                <div
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    background: TC.dotYellow,
-                  }}
-                />
-                <div
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    background: TC.dotGreen,
-                  }}
-                />
-                <span
-                  style={{
-                    marginLeft: "auto",
-                    color: "#8b949e",
-                    fontSize: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "8px 12px",
+                    background: TC.topBar,
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
                   }}>
-                  ~/career — zsh
-                </span>
-              </div>
-              {/* Terminal content + wipe (wipe only covers content, not header) */}
-              <div
-                style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-                <pre
-                  ref={termContentRef}
-                  style={{
-                    padding: "12px 0",
-                    margin: 0,
-                    overflow: "hidden",
-                    color: TC.text,
-                    lineHeight: 1.5,
-                    fontSize: "clamp(10px, 1.5cqh, 13px)",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word" as const,
-                  }}
-                />
+                  <div
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      background: TC.dotRed,
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      background: TC.dotYellow,
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      background: TC.dotGreen,
+                    }}
+                  />
+                  <span
+                    style={{
+                      marginLeft: "auto",
+                      color: "#8b949e",
+                      fontSize: "10px",
+                    }}>
+                    ~/career — zsh
+                  </span>
+                </div>
+                {/* Terminal content + wipe (wipe only covers content, not header) */}
                 <div
-                  ref={termWipeRef}
+                  style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+                  <pre
+                    ref={termContentRef}
+                    style={{
+                      padding: "12px 0",
+                      margin: 0,
+                      overflow: "hidden",
+                      color: TC.text,
+                      lineHeight: 1.5,
+                      fontSize: "clamp(10px, 1.5cqh, 13px)",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word" as const,
+                    }}
+                  />
+                  <div
+                    ref={termWipeRef}
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: TC.bg,
+                      opacity: 0,
+                      pointerEvents: "none",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* RIGHT: V15-style narrative reveal */}
+              <div
+                ref={termNarrativeRef}
+                style={{ width: "clamp(340px, 22vw, 420px)", padding: "0" }}>
+                {/* Company label — name only (dates are in terminal) */}
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <span
+                    data-role="name"
+                    className="font-sans"
+                    style={{
+                      fontSize: "0.65rem",
+                      letterSpacing: "0.2em",
+                      textTransform: "uppercase" as const,
+                    }}
+                  />
+                </div>
+                {/* Scene — clip-path reveal left-to-right */}
+                <p
+                  data-role="scene"
+                  className="font-serif"
                   style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: TC.bg,
-                    opacity: 0,
-                    pointerEvents: "none",
+                    fontSize: "1.05rem",
+                    lineHeight: 1.7,
+                    color: "var(--cream, #F0E6D0)",
+                    marginBottom: "1.25rem",
+                    clipPath: "inset(0 100% 0 0)",
                   }}
                 />
-              </div>
-            </div>
-
-            {/* RIGHT: V15-style narrative reveal */}
-            <div
-              ref={termNarrativeRef}
-              style={{ width: "clamp(340px, 22vw, 420px)", padding: "0" }}>
-              {/* Company label — name only (dates are in terminal) */}
-              <div style={{ marginBottom: "1.5rem" }}>
-                <span
-                  data-role="name"
+                {/* Action — fade in */}
+                <p
+                  data-role="action"
                   className="font-sans"
                   style={{
-                    fontSize: "0.65rem",
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase" as const,
+                    fontSize: "0.85rem",
+                    lineHeight: 1.65,
+                    color: "var(--cream-muted, #B0A890)",
+                    marginBottom: "1.25rem",
+                    opacity: 0,
+                  }}
+                />
+                {/* Shift — fade in italic */}
+                <p
+                  data-role="shift"
+                  className="font-serif"
+                  style={{
+                    fontSize: "0.95rem",
+                    lineHeight: 1.6,
+                    fontStyle: "italic",
+                    color: "var(--cream, #F0E6D0)",
+                    opacity: 0,
                   }}
                 />
               </div>
-              {/* Scene — clip-path reveal left-to-right */}
-              <p
-                data-role="scene"
-                className="font-serif"
-                style={{
-                  fontSize: "1.05rem",
-                  lineHeight: 1.7,
-                  color: "var(--cream, #F0E6D0)",
-                  marginBottom: "1.25rem",
-                  clipPath: "inset(0 100% 0 0)",
-                }}
-              />
-              {/* Action — fade in */}
-              <p
-                data-role="action"
-                className="font-sans"
-                style={{
-                  fontSize: "0.85rem",
-                  lineHeight: 1.65,
-                  color: "var(--cream-muted, #B0A890)",
-                  marginBottom: "1.25rem",
-                  opacity: 0,
-                }}
-              />
-              {/* Shift — fade in italic */}
-              <p
-                data-role="shift"
-                className="font-serif"
-                style={{
-                  fontSize: "0.95rem",
-                  lineHeight: 1.6,
-                  fontStyle: "italic",
-                  color: "var(--cream, #F0E6D0)",
-                  opacity: 0,
-                }}
-              />
             </div>
-            </div>{/* close desktop wrapper */}
+            {/* close desktop wrapper */}
 
-          {/* Mobile carousel — static swipeable cards, lg:hidden */}
-          {(() => {
-            const COMPANY_COLORS = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"];
-            const ROLES: Record<string, string> = {
-              AMBOSS: "Frontend Engineer",
-              Compado: "Senior Frontend Engineer",
-              CAPinside: "Senior Frontend Engineer",
-              DKB: "Senior Frontend Engineer",
-            };
-            return (
-              <div
-                ref={mobileCarouselRef}
-                className="absolute inset-0 lg:hidden"
-                style={{ background: "var(--bg)" }}>
-                {/* Stacked cards — scroll-driven, one visible at a time */}
+            {/* Mobile carousel — static swipeable cards, lg:hidden */}
+            {(() => {
+              const COMPANY_COLORS = [
+                "#60A5FA",
+                "#42B883",
+                "#06B6D4",
+                "#F472B6",
+              ];
+              const ROLES: Record<string, string> = {
+                AMBOSS: "Frontend Engineer",
+                Compado: "Senior Frontend Engineer",
+                CAPinside: "Senior Frontend Engineer",
+                DKB: "Senior Frontend Engineer",
+              };
+              return (
+                <div
+                  ref={mobileCarouselRef}
+                  className="absolute inset-0 lg:hidden"
+                  style={{ background: "var(--bg)" }}>
+                  {/* Stacked cards — scroll-driven, one visible at a time */}
                   {TERM_COMPANIES.map((co, ci) => {
                     const nar = TERM_NARRATIVES[ci];
                     return (
                       <div
                         key={co.company}
-                        ref={(el) => { mobileCardRefs.current[ci] = el; }}
+                        ref={(el) => {
+                          mobileCardRefs.current[ci] = el;
+                        }}
                         className="absolute inset-0 flex flex-col items-center px-6"
-                        style={{ opacity: ci === 0 ? 1 : 0, paddingTop: "clamp(60px, 12vh, 120px)", willChange: "opacity", transition: "opacity 0.3s ease" }}>
+                        style={{
+                          opacity: ci === 0 ? 1 : 0,
+                          paddingTop: "clamp(60px, 12vh, 120px)",
+                          willChange: "opacity",
+                          transition: "opacity 0.3s ease",
+                        }}>
                         {/* Company label + role — above the card */}
-                        <div style={{ marginBottom: "0.6rem", textAlign: "center" }}>
-                          <div className="font-ui" style={{ fontSize: "0.7rem", letterSpacing: "0.18em", textTransform: "uppercase", color: COMPANY_COLORS[ci] }}>
+                        <div
+                          style={{
+                            marginBottom: "0.6rem",
+                            textAlign: "center",
+                          }}>
+                          <div
+                            className="font-ui"
+                            style={{
+                              fontSize: "0.7rem",
+                              letterSpacing: "0.18em",
+                              textTransform: "uppercase",
+                              color: COMPANY_COLORS[ci],
+                            }}>
                             {co.company} &middot; {co.location}
                           </div>
-                          <div className="font-sans" style={{ fontSize: "0.6rem", color: "var(--text-dim)", marginTop: "0.25rem", letterSpacing: "0.04em" }}>
+                          <div
+                            className="font-sans"
+                            style={{
+                              fontSize: "0.6rem",
+                              color: "var(--text-dim)",
+                              marginTop: "0.25rem",
+                              letterSpacing: "0.04em",
+                            }}>
                             {ROLES[co.company]}
                           </div>
                         </div>
@@ -2037,17 +2095,43 @@ export default function ForgeWorkstation() {
                             backdropFilter: "blur(20px) saturate(1.3)",
                             WebkitBackdropFilter: "blur(20px) saturate(1.3)",
                             border: "1px solid rgba(255,255,255,0.06)",
-                            boxShadow: "0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03)",
+                            boxShadow:
+                              "0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03)",
                           }}>
                           {/* Narrative text — clear 3-tier hierarchy */}
-                          <div style={{ width: "100%", marginBottom: "clamp(0.8rem, 2vh, 1.2rem)" }}>
-                            <p className="font-serif" style={{ fontSize: "1.05rem", lineHeight: 1.55, color: "var(--cream)", marginBottom: "0.75rem" }}>
+                          <div
+                            style={{
+                              width: "100%",
+                              marginBottom: "clamp(0.8rem, 2vh, 1.2rem)",
+                            }}>
+                            <p
+                              className="font-serif"
+                              style={{
+                                fontSize: "1.05rem",
+                                lineHeight: 1.55,
+                                color: "var(--cream)",
+                                marginBottom: "0.75rem",
+                              }}>
                               {nar.scene}
                             </p>
-                            <p className="font-sans" style={{ fontSize: "0.82rem", lineHeight: 1.6, color: "var(--cream-muted)", marginBottom: "0.75rem" }}>
+                            <p
+                              className="font-sans"
+                              style={{
+                                fontSize: "0.82rem",
+                                lineHeight: 1.6,
+                                color: "var(--cream-muted)",
+                                marginBottom: "0.75rem",
+                              }}>
                               {nar.action}
                             </p>
-                            <p className="font-narrator" style={{ fontSize: "0.88rem", lineHeight: 1.5, fontStyle: "italic", color: "var(--gold-dim)" }}>
+                            <p
+                              className="font-narrator"
+                              style={{
+                                fontSize: "0.88rem",
+                                lineHeight: 1.5,
+                                fontStyle: "italic",
+                                color: "var(--gold-dim)",
+                              }}>
                               &ldquo;{nar.shift}&rdquo;
                             </p>
                           </div>
@@ -2061,19 +2145,72 @@ export default function ForgeWorkstation() {
                               border: "1px solid rgba(255,255,255,0.06)",
                               boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
                             }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 10px", background: TC.topBar }}>
-                              {[TC.dotRed, TC.dotYellow, TC.dotGreen].map((c) => (
-                                <div key={c} style={{ width: 7, height: 7, borderRadius: "50%", background: c }} />
-                              ))}
-                              <span className="font-sans" style={{ marginLeft: "auto", fontSize: "8px", color: "var(--text-dim)", letterSpacing: "0.05em" }}>~/career</span>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                padding: "6px 10px",
+                                background: TC.topBar,
+                              }}>
+                              {[TC.dotRed, TC.dotYellow, TC.dotGreen].map(
+                                (c) => (
+                                  <div
+                                    key={c}
+                                    style={{
+                                      width: 7,
+                                      height: 7,
+                                      borderRadius: "50%",
+                                      background: c,
+                                    }}
+                                  />
+                                ),
+                              )}
+                              <span
+                                className="font-sans"
+                                style={{
+                                  marginLeft: "auto",
+                                  fontSize: "8px",
+                                  color: "var(--text-dim)",
+                                  letterSpacing: "0.05em",
+                                }}>
+                                ~/career
+                              </span>
                             </div>
-                            <pre style={{ padding: "8px 10px", margin: 0, fontFamily: MONO, fontSize: "10px", lineHeight: 1.7, color: TC.text, whiteSpace: "pre-wrap" }}>
-                              <span style={{ color: TC.keyword }}>{co.commitType}: {co.commitMsg}</span>
+                            <pre
+                              style={{
+                                padding: "8px 10px",
+                                margin: 0,
+                                fontFamily: MONO,
+                                fontSize: "10px",
+                                lineHeight: 1.7,
+                                color: TC.text,
+                                whiteSpace: "pre-wrap",
+                              }}>
+                              <span style={{ color: TC.keyword }}>
+                                {co.commitType}: {co.commitMsg}
+                              </span>
                               {co.insight.map((line, li) => (
-                                <span key={li}>{"\n"}<span style={{ color: TC.comment }}>{line}</span></span>
+                                <span key={li}>
+                                  {"\n"}
+                                  <span style={{ color: TC.comment }}>
+                                    {line}
+                                  </span>
+                                </span>
                               ))}
                               {co.promotion && (
-                                <span>{"\n"}<span style={{ color: "#FBBF24", background: "rgba(251,191,36,0.08)", padding: "0 4px", borderRadius: "2px" }}>{co.promotion}</span></span>
+                                <span>
+                                  {"\n"}
+                                  <span
+                                    style={{
+                                      color: "#FBBF24",
+                                      background: "rgba(251,191,36,0.08)",
+                                      padding: "0 4px",
+                                      borderRadius: "2px",
+                                    }}>
+                                    {co.promotion}
+                                  </span>
+                                </span>
                               )}
                             </pre>
                           </div>
@@ -2081,10 +2218,11 @@ export default function ForgeWorkstation() {
                       </div>
                     );
                   })}
-              </div>
-            );
-          })()}
-          </div>{/* close terminalRef outer */}
+                </div>
+              );
+            })()}
+          </div>
+          {/* close terminalRef outer */}
 
           {/* Dot indicator — Apple-style, all devices */}
           <div
@@ -2441,7 +2579,9 @@ export default function ForgeWorkstation() {
                 {STREAMS.map((stream, si) => (
                   <div
                     key={`mobile-skill-${stream.id}`}
-                    ref={(el) => { cameraSkillRefs.current[si] = el; }}
+                    ref={(el) => {
+                      cameraSkillRefs.current[si] = el;
+                    }}
                     className="font-sans"
                     style={{
                       fontSize: "0.75rem",
@@ -2460,7 +2600,9 @@ export default function ForgeWorkstation() {
               </div>
               {/* Convergence diamond — appears after all skills */}
               <div
-                ref={(el) => { cameraNodeRefs.current[0] = el; }}
+                ref={(el) => {
+                  cameraNodeRefs.current[0] = el;
+                }}
                 className="flex flex-col items-center gap-2 mt-2"
                 style={{ opacity: 0, willChange: "opacity" }}>
                 <div
@@ -2555,7 +2697,7 @@ export default function ForgeWorkstation() {
                 lineHeight: 1.7,
                 fontStyle: "italic",
               }}>
-              A lot of that thinking carried naturally into engineering.
+              That way of thinking carried naturally into engineering.
             </p>
           </div>
           <div

@@ -358,7 +358,7 @@ export const ACT_II: ActContent = {
   location: "Berlin, Germany",
   color: engineerRole.color,
   splash:
-    "Four frontend roles across health tech, fintech, and Germany's largest bank. Each move was deliberate — find the hardest problem, learn it deeply, then follow the signal.",
+    "I have spent a lot of my working life solving problems inside complex systems, first human ones, then technical ones. I wanted to engineer solutions that mattered to people, and I wanted to do it at scale.",
   body: "React at AMBOSS, Vue at Compado and CAPinside, TypeScript across all of it. Four years building production systems that needed to be fast, correct, and reliable at scale. The path from engineer to manager didn't come from asking — it came from already doing the work.",
   takeaway:
     "The deeper I went into engineering, the more the work became about judgment, seeing the system clearly and making the right technical decisions.",
