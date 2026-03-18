@@ -5,7 +5,7 @@ const VARIANTS = [
   { href: "/forge-test-ref-horizontal", label: "Ref: Horizontal Sankey", desc: "Left-to-right SVG Sankey, streams flow through company bars" },
   { href: "/forge-test-ref-funnel", label: "Ref: Convergence Funnel", desc: "All streams converge to a single point through 4 company waypoints" },
   { href: "/forge-test-ref-particles", label: "Ref: Particle Flow", desc: "Canvas particles with glow, trails, wobble along stream paths" },
-  { href: "/forge-test-workstation", label: "Workstation", desc: "Active build — title + words + forge glow + thesis + explosion + falling particles + funnel" },
+  { href: "/engineer-candidate", label: "Engineer-Candidate", desc: "Active build — title + words + forge glow + thesis + explosion + falling particles + funnel" },
 ];
 
 export default function ForgeHub() {

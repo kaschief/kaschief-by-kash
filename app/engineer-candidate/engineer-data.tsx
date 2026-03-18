@@ -16,17 +16,13 @@ export { clamp, ss, lerp } from "./math";
 export function hashToUnit(seed: number): number {
   return ((Math.sin(seed * 127.1 + seed * 311.7) * 43758.5453) % 1 + 1) % 1;
 }
-/** @deprecated Use hashToUnit — kept as alias for migration */
-export const srand = hashToUnit;
+/* srand alias removed — use hashToUnit directly (P1.5) */
 
 /* ================================================================== */
 /*  Colors                                                             */
 /* ================================================================== */
 
 export const ACT_BLUE = "#5B9EC2";
-
-/** Hex colors for the 4 companies: AMBOSS, Compado/Finleap, CAPinside, DKB */
-export const COMPANY_COLORS = ["#60A5FA", "#42B883", "#06B6D4", "#F472B6"] as const;
 
 /** Roles per company — single source of truth (DKB = Engineering Manager per promotion) */
 export const COMPANY_ROLES: Record<string, string> = {
@@ -36,13 +32,18 @@ export const COMPANY_ROLES: Record<string, string> = {
   DKB: "Engineering Manager",
 };
 
-/** Base RGB palette (4 company colors) for rgba() usage */
-export const CC = [
+/** Base RGB palette (4 company colors) — single source of truth for rgba() and hex */
+export const CC: readonly [number, number, number][] = [
   [96, 165, 250],  // blue  — AMBOSS
   [66, 184, 131],  // green — Compado
   [6, 182, 212],   // cyan  — CAPinside
   [244, 114, 182], // pink  — DKB
 ];
+
+/** Hex colors derived from CC — for CSS color properties */
+export const COMPANY_COLORS = CC.map(
+  ([r, g, b]) => `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`,
+) as unknown as readonly string[];
 
 /** Extended RGB palette for fragments — base 4 + extra variety */
 const CC_EXTRA = [
@@ -115,21 +116,7 @@ export interface CommandFrag extends FragmentBase {
 
 export type Fragment = TextFrag | CodeFrag | LogoFrag | CommandFrag;
 
-export interface BeatData {
-  company: string;
-  period: string;
-  learned: string;
-  insight: string;
-  companyIdx: number;
-  /** Scene: the situation you walked into */
-  scene: string;
-  /** What you actually did */
-  action: string;
-  /** What shifted in how you see engineering */
-  shift: string;
-}
-
-/* WhisperData removed — createWhispers was never imported (P1.5) */
+/* BeatData + WhisperData interfaces removed — unused (P1.5) */
 
 export interface PrincipleData {
   text: string;
@@ -371,49 +358,7 @@ export function createFragments(): Fragment[] {
   return frags;
 }
 
-export const BEATS: BeatData[] = [
-  {
-    company: "AMBOSS",
-    period: "Berlin, 2018 — 2019",
-    learned: "What I learned to see: the user is a real person with a real context",
-    insight: "The user is never an abstraction. The moment you treat them like one, the product starts lying to people.",
-    companyIdx: 0,
-    scene: "Half a million medical students. An app that was supposed to help them pass their exams. I came from the ward — I knew what it felt like when the system you depend on doesn\u2019t understand your context.",
-    action: "I helped migrate from vanilla JS to React. I introduced A/B testing to stop guessing what worked. I broke production once — and that taught me testing discipline. But the thing that mattered most: I brought the instinct from nursing. I could tell when a flow was lying to the user about what they\u2019d already reviewed.",
-    shift: "I learned that the gap between \u2018works technically\u2019 and \u2018works for the person\u2019 is where most products fail. And I was one of the only engineers who could see that gap.",
-  },
-  {
-    company: "Compado",
-    period: "Berlin, 2019 — 2021",
-    learned: "What I learned to see: performance is a product decision, not a technical one",
-    insight: "Load time is not a metric. It is a user\u2019s first impression of whether you respect their time.",
-    companyIdx: 1,
-    scene: "The sites were replicas of each other — same structure, different brands, different audiences. Every change meant touching six copies. Visitors arrived from search with zero loyalty and no patience.",
-    action: "I rebuilt the architecture so you could swap parts without duplicating everything. Component-driven design, shared across brands. Then I attacked load times: Lighthouse audits, CSS compression, lazy loading, infinite scroll. I built my first chatbot — not AI, but a conversational interface that brought the user closer to the product.",
-    shift: "I discovered that every millisecond is a user who stays or leaves. Performance isn\u2019t a technical achievement — it\u2019s a product decision. And I learned to think about audiences I\u2019d never meet.",
-  },
-  {
-    company: "CAPinside",
-    period: "Hamburg, 2021",
-    learned: "What I learned to see: code quality is a team behaviour, not a personal one",
-    insight: "A codebase is a record of a team\u2019s habits. If you want to change the code, you have to change how the team works.",
-    companyIdx: 2,
-    scene: "Ten thousand financial advisors depending on a platform that had grown fragile. Nobody reviewed code — the process existed on paper but nobody prioritized it. Tests were sparse. TypeScript was new to me. React on one side, Ruby and PHP on the other.",
-    action: "I learned to work across different systems. But more importantly, I started seeing something I hadn\u2019t seen before: the codebase wasn\u2019t just code. It was a record of how the team communicated. Every shortcut, every duplicated pattern, every skipped review — it was the team\u2019s habits, frozen in the repository.",
-    shift: "I realised you can\u2019t fix code without fixing process. This was my first time diagnosing a team through its codebase — reading the organisation through the code.",
-  },
-  {
-    company: "DKB Code Factory",
-    period: "Berlin, 2021 — 2024",
-    learned: "What I learned to see: at scale, judgment is the product",
-    insight: "At a certain scale, the highest-leverage thing an engineer can do is make the right decision obvious.",
-    companyIdx: 3,
-    scene: "Germany\u2019s largest direct bank. Five million users. A banking app moving from legacy to React and TypeScript. Monthly releases. Security, stability, regulations at every turn. And when I arrived: zero automated tests.",
-    action: "I introduced Playwright end-to-end testing and built the patterns the team adopted. Moved releases from monthly to weekly. Feature flags that let product toggle features without deployments. A shared design system. Multi-factor auth, session management. I cleaned the frontend into feature modules with unit tests. And somewhere along the way, I found myself in the product room — pushing back on flows that didn\u2019t feel right, shaping what got built.",
-    shift: "Production bugs dropped 30%. But the real shift was personal: I wasn\u2019t just building features anymore. I was shaping how the team worked, what we shipped, and why. Then they promoted me to engineering manager.",
-  },
-];
-
+/* BEATS array removed — page.tsx uses TERM_COMPANIES + COMPANIES from @data (P1.5) */
 /* createWhispers removed — was never imported (P1.5) */
 
 export function createPrinciples(): PrincipleData[] {
@@ -452,8 +397,70 @@ export function createEmbers(): EmberData[] {
 }
 
 /* ================================================================== */
-/*  Beat timing                                                        */
+/*  Content — all user-facing text, no hardcoded strings in JSX        */
 /* ================================================================== */
+
+/** All visible text in the engineer-candidate scroll experience */
+export const CONTENT = {
+  /** Thesis sentence — keywords are animated individually */
+  thesis: {
+    prefix: "Each of my past roles sharpened a different part of how I think, about ",
+    keywords: ["users", "structure", "clarity", "scale"] as readonly string[],
+    conjunction: "and\u00A0",  // non-breaking space before last keyword
+  },
+
+  /** Mid-narrator transition between funnel and terminal */
+  midNarrator: "Let me show you where I\u2019ve been.",
+
+  /** Terminal chrome */
+  terminal: {
+    header: "~/career \u2014 zsh",
+  },
+
+  /** Convergence point label (desktop SVG + mobile) */
+  convergenceLabel: "The Engineer I Became",
+
+  /** Page chrome / debug title */
+  pageTitle: "Engineer-Candidate",
+
+  /** Summary / closing narrator paragraphs */
+  summary: {
+    block1: "What pulled me toward engineering was already there in nursing. ICU taught me that I liked complexity, troubleshooting, and understanding how different parts of a system affect each other.",
+    block2: "That way of thinking carried naturally into engineering.",
+  },
+
+  /** Glass narrator panels alongside funnel tiers */
+  funnelNarrator: [
+    "It started with an instinct from the ward \u2014 watching how people actually behave under pressure, not how you imagine they will. That instinct found its first codebase.",
+    "The tools multiplied. Each one resharpened the instinct. Vue for speed. React for structure. Lighthouse for the milliseconds that separate staying from leaving.",
+    "Somewhere along the way, the code stopped being the point. The codebase became a mirror \u2014 reflecting how teams communicate, where habits calcify, what nobody dares to touch.",
+    "At scale, every stream thickened. Testing, architecture, design systems, product partnership. The question shifted from what to build to what to protect.",
+  ] as readonly string[],
+
+  /** Terminal narrative panels (scene/action/shift per company) */
+  terminalNarratives: [
+    {
+      scene: "Half a million medical students. I came from the ward \u2014 I knew what it felt like when the system you depend on doesn\u2019t understand your context.",
+      action: "Migrated vanilla JS to React. Introduced A/B testing. Broke production once \u2014 learned testing discipline.",
+      shift: "The gap between \u2018works technically\u2019 and \u2018works for the person\u2019 is where most products fail.",
+    },
+    {
+      scene: "Sites were replicas of each other. Every change meant touching six copies. Visitors arrived from search with zero loyalty.",
+      action: "Rebuilt as swappable components. Attacked load times: Lighthouse, lazy loading, CSS compression. Built first chatbot interface.",
+      shift: "Every millisecond is a user who stays or leaves.",
+    },
+    {
+      scene: "Ten thousand financial advisors on a fragile platform. Nobody reviewed code. Tests were sparse. TypeScript was new to me.",
+      action: "Started seeing the codebase as a record of how the team communicated. Every shortcut was a frozen habit.",
+      shift: "You can\u2019t fix code without fixing process.",
+    },
+    {
+      scene: "Germany\u2019s largest direct bank. Five million users. Monthly releases. Zero automated tests when I arrived.",
+      action: "Introduced Playwright. Monthly to weekly releases. Feature flags. Found myself in the product room shaping what got built.",
+      shift: "Confidence to ship weekly comes from tests, not from courage.",
+    },
+  ] as const,
+} as const;
 
 /* BEAT_RANGES removed — was never imported (P1.5) */
 

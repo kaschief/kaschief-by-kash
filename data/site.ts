@@ -4,6 +4,7 @@ const { actBlue, actGold, actGreen, actRed, gold } = TOKENS;
 const {
   ACT_BUILDER,
   ACT_ENGINEER,
+  ACT_ENGINEER_CANDIDATE,
   ACT_LEADER,
   ACT_NURSE,
   CONTACT,
@@ -25,6 +26,7 @@ export interface PersonalInfo {
 export const ROLE_LABEL = {
   NURSE: "Nurse",
   ENGINEER: "Engineer",
+  ENGINEER_CANDIDATE: "Engineer-Candidate",
   LEADER: "Leader",
   BUILDER: "Builder",
 } as const;
@@ -94,6 +96,12 @@ export const NAV_LINKS: readonly NavLink[] = [
     type: NAV_LINK_TYPE.ROLE,
     label: ROLE_LABEL.ENGINEER,
     sectionId: ACT_ENGINEER,
+    color: actBlue,
+  },
+  {
+    type: NAV_LINK_TYPE.ROLE,
+    label: ROLE_LABEL.ENGINEER_CANDIDATE,
+    sectionId: ACT_ENGINEER_CANDIDATE,
     color: actBlue,
   },
   {

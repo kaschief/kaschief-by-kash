@@ -1,12 +1,14 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, lazy, Suspense } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ActI, ActII, /* ActIII, */ ActIIILeader, ActIV } from "./acts";
 import { TradingArsenal } from "./trading-system";
 import { SECTION_ID } from "@utilities";
 
-const { ACT_BUILDER } = SECTION_ID;
+const { ACT_BUILDER, ACT_ENGINEER_CANDIDATE } = SECTION_ID;
+
+const EngineerCandidate = lazy(() => import("@app/engineer-candidate/page"));
 
 /** Each act rises into view with scroll-driven parallax */
 function ActTransition({ children }: { children: React.ReactNode }) {
@@ -32,6 +34,11 @@ export function Timeline() {
       <ActTransition>
         <ActII />
       </ActTransition>
+      <section id={ACT_ENGINEER_CANDIDATE}>
+        <Suspense fallback={null}>
+          <EngineerCandidate />
+        </Suspense>
+      </section>
       <ActIIILeader />
       <ActTransition>
         <section id={ACT_BUILDER}>
