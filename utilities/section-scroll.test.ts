@@ -3,7 +3,7 @@ import { LAYOUT } from "./constants";
 import { SECTION_ID } from "./sections";
 import { DEFAULT_SCROLL_OFFSET, SECTION_SCROLL_OFFSET } from "./section-scroll";
 
-const { ACT_NURSE, METHODS } = SECTION_ID;
+const { ACT_NURSE, ACT_ENGINEER_CANDIDATE } = SECTION_ID;
 
 describe("section scroll offsets", () => {
   it("uses layout nav offset as global default", () => {
@@ -16,7 +16,7 @@ describe("section scroll offsets", () => {
 
   it("scrolls full-viewport sections flush with viewport top", () => {
     expect(SECTION_SCROLL_OFFSET[ACT_NURSE]).toBe(0);
-    expect(SECTION_SCROLL_OFFSET[METHODS]).toBe(0);
+    expect(SECTION_SCROLL_OFFSET[ACT_ENGINEER_CANDIDATE]).toBe(0);
   });
 
   it("only overrides sections that are defined in SECTION_ID", () => {

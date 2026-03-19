@@ -2,7 +2,7 @@
 
 import { useRef, lazy, Suspense } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ActI, ActII, /* ActIII, */ ActIIILeader, ActIV } from "./acts";
+import { ActI, ActIIILeader, ActIV } from "./acts";
 import { TradingArsenal } from "./trading-system";
 import { SECTION_ID } from "@utilities";
 
@@ -31,9 +31,6 @@ export function Timeline() {
   return (
     <section id="journey" className="relative">
       <ActI />
-      <ActTransition>
-        <ActII />
-      </ActTransition>
       <section id={ACT_ENGINEER_CANDIDATE}>
         <Suspense fallback={null}>
           <EngineerCandidate />
