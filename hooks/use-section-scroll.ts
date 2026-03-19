@@ -3,11 +3,13 @@
 import { useCallback } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
+  SCROLL_NAV,
   SECTION_IDS_ORDERED,
   type SectionId,
   DEFAULT_SCROLL_OFFSET,
   SECTION_SCROLL_OFFSET,
 } from "@utilities";
+import type Lenis from "lenis";
 import { useLenis } from "./use-lenis";
 import { useNavStore } from "./use-nav-store";
 
@@ -21,49 +23,145 @@ const isSectionId = (value: string): value is SectionId =>
 
 export const NAVIGATION_SCROLL_EVENT = "portfolio:section-nav-scroll";
 
+/* ── Internal constants (not tunable — structural or safety-related) ── */
+
+/** Delay before endNavigation fires after scroll completes (ms). */
+const END_NAV_DELAY_MS = 50;
+
+/** Fallback timeout if onComplete never fires (ms). */
+const SAFETY_FALLBACK_MS = 4000;
+
+/** Fallback timeout for non-Lenis scroll (ms). */
+const NATIVE_SCROLL_FALLBACK_MS = 2000;
+
+/** Minimum pin/sticky zone size as fraction of viewport to consider. */
+const MIN_ZONE_SIZE_VH = 0.3;
+
+/** Minimum sticky element height as fraction of viewport to consider. */
+const MIN_STICKY_HEIGHT_VH = 1.5;
+
+/** Offset past pin zone edge to avoid landing exactly on the boundary (px). */
+const PIN_EDGE_OFFSET_PX = 2;
+
+/** Easing: fast start, smooth deceleration. */
+const EASE_OUT_QUART = (t: number) => 1 - Math.pow(1 - t, 4);
+
+/* ── Helpers ── */
+
+/** Clamp a distance-based duration between `min` and `max` seconds. */
+function clampDuration(distance: number, divisor: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, distance / divisor));
+}
+
+/** Smooth-scroll to `target` with easing, then call `onDone`. */
+function smoothScroll(
+  lenis: Lenis,
+  target: number,
+  duration: number,
+  onDone: () => void,
+): void {
+  lenis.scrollTo(target, {
+    duration,
+    easing: EASE_OUT_QUART,
+    lock: true,
+    force: true,
+    onComplete: () => setTimeout(onDone, END_NAV_DELAY_MS),
+  });
+}
+
+/**
+ * Fade out → instant jump → fade in + smooth slide to target.
+ * Used for long-distance nav and scroll-to-top past pin zones.
+ *
+ * `slideTo` can be a number or a callback that returns a number.
+ * When a callback is provided it runs after the jump, so the slide
+ * target reflects post-jump layout (pin spacers may shift positions).
+ */
+function fadeJumpSlide(
+  lenis: Lenis,
+  jumpTo: number,
+  slideTo: number | (() => number),
+  slideDuration: number,
+  onDone: () => void,
+): void {
+  const container = getScrollContainer();
+  container.style.transition = `opacity ${SCROLL_NAV.fadeOutMs}ms ease-out`;
+  container.style.opacity = "0";
+
+  setTimeout(() => {
+    lenis.scrollTo(jumpTo, { immediate: true, force: true });
+
+    requestAnimationFrame(() => {
+      container.style.transition = `opacity ${SCROLL_NAV.fadeInMs}ms ease-in`;
+      container.style.opacity = "1";
+
+      const resolvedTarget = typeof slideTo === "function" ? slideTo() : slideTo;
+
+      lenis.scrollTo(resolvedTarget, {
+        duration: slideDuration,
+        easing: EASE_OUT_QUART,
+        lock: true,
+        force: true,
+        onComplete: () => {
+          container.style.transition = "";
+          setTimeout(onDone, END_NAV_DELAY_MS);
+        },
+      });
+    });
+  }, SCROLL_NAV.fadeOutMs);
+}
+
 /**
  * Check if the scroll path from `from` to `to` crosses any active
- * ScrollTrigger pin zone. Returns the far edge of the last pin crossed,
- * or null if no pins are in the way.
+ * ScrollTrigger pin zone or CSS sticky zone. Returns the far edge of
+ * the last crossed zone, or null if none are in the way.
+ *
+ * Only triggers when the target is fully past the zone — if the target
+ * is inside a zone, no skip is needed.
  */
 function getPinSkipTarget(from: number, to: number): number | null {
   const goingDown = to > from;
   let candidate: number | null = null;
 
   const processZone = (pinStart: number, pinEnd: number) => {
-    if (pinEnd - pinStart < window.innerHeight * 0.3) return;
+    if (pinEnd - pinStart < window.innerHeight * MIN_ZONE_SIZE_VH) return;
 
     if (goingDown) {
-      if (from < pinEnd && to >= pinStart) {
-        const skip = pinEnd + 2;
+      if (from < pinStart && to > pinEnd) {
+        const skip = pinEnd + PIN_EDGE_OFFSET_PX;
         candidate = candidate === null ? skip : Math.max(candidate, skip);
       }
     } else {
-      if (from > pinStart && to <= pinEnd) {
-        const skip = Math.max(0, pinStart - 2);
+      if (from > pinEnd && to < pinStart) {
+        const skip = Math.max(0, pinStart - PIN_EDGE_OFFSET_PX);
         candidate = candidate === null ? skip : Math.min(candidate, skip);
       }
     }
   };
 
-  // GSAP ScrollTrigger pins
   for (const trigger of ScrollTrigger.getAll()) {
     if (!trigger.pin) continue;
     processZone(trigger.start, trigger.end);
   }
 
-  // CSS sticky zones
-  document.querySelectorAll<HTMLElement>("[data-sticky-zone]").forEach((parent) => {
-    const parentRect = parent.getBoundingClientRect();
-    const parentHeight = parentRect.height;
-    if (parentHeight < window.innerHeight * 1.5) return;
-    const pinStart = parentRect.top + window.scrollY;
-    const pinEnd = pinStart + parentHeight;
-    processZone(pinStart, pinEnd);
-  });
+  document
+    .querySelectorAll<HTMLElement>("[data-sticky-zone]")
+    .forEach((parent) => {
+      const parentRect = parent.getBoundingClientRect();
+      if (parentRect.height < window.innerHeight * MIN_STICKY_HEIGHT_VH) return;
+      const pinStart = parentRect.top + window.scrollY;
+      processZone(pinStart, pinStart + parentRect.height);
+    });
 
   return candidate;
 }
+
+/** Resolve the scroll container for fade transitions. */
+function getScrollContainer(): HTMLElement {
+  return document.getElementById("journey") ?? document.documentElement;
+}
+
+/* ── Hook ── */
 
 export function useSectionScroll() {
   const getLenis = useLenis();
@@ -95,82 +193,36 @@ export function useSectionScroll() {
       if (!lenis) {
         const top = el.getBoundingClientRect().top + window.scrollY - offset;
         window.scrollTo({ top, behavior: "smooth" });
-        setTimeout(() => endNavigation(), 2000);
+        setTimeout(() => endNavigation(), NATIVE_SCROLL_FALLBACK_MS);
         return true;
       }
 
       const sectionTop = el.getBoundingClientRect().top + window.scrollY;
       const finalTarget = sectionTop - offset;
       const currentScroll = lenis.scroll;
-
-      // Check if we need to skip past any pin zones
-      const skipTarget = getPinSkipTarget(currentScroll, finalTarget);
-
-      // Also skip when the distance is large (> 2 viewports) — avoids
-      // scrubbing through intermediate sections (e.g. Leader → Engineer).
       const distance = Math.abs(finalTarget - currentScroll);
-      const longJump = distance > window.innerHeight * 2;
+      const isLongJump =
+        distance > window.innerHeight * SCROLL_NAV.longJumpThresholdVh ||
+        getPinSkipTarget(currentScroll, finalTarget) !== null;
 
-      const finish = () => {
-        // Recalculate after potential instant jump (element position may shift)
-        const updatedTop = el.getBoundingClientRect().top + window.scrollY;
-        const updatedTarget = updatedTop - offset;
-        const remainingDist = Math.abs(updatedTarget - lenis.scroll);
-        const duration = Math.min(1.2, Math.max(0.5, remainingDist / 3500));
+      if (isLongJump) {
+        const jumpTo = Math.max(0, finalTarget - SCROLL_NAV.approachPx);
+        // Slide target is recalculated after the jump via callback — pin
+        // spacers may shift element positions during the instant scroll.
+        const slideTo = () => el.getBoundingClientRect().top + window.scrollY - offset;
 
-        lenis.scrollTo(updatedTarget, {
-          duration,
-          easing,
-          lock: true,
-          force: true,
-          onComplete: () => {
-            setTimeout(() => endNavigation(), 50);
-          },
-        });
-      };
-
-      // Easing: fast start, smooth deceleration
-      const easing = (t: number) => 1 - Math.pow(1 - t, 4);
-
-      if (skipTarget !== null) {
-        // Phase 1: instant jump past all pin/sticky zones
-        lenis.scrollTo(skipTarget, {
-          immediate: true,
-          force: true,
-        });
-        // Phase 2: smooth scroll to final target (after a frame for layout)
-        requestAnimationFrame(() => finish());
-      } else if (longJump) {
-        // Long distance with no pins — instant jump to ~1vh before target,
-        // then smooth-finish the last bit for a polished landing.
-        const goingDown = finalTarget > currentScroll;
-        const nearTarget = goingDown
-          ? finalTarget - window.innerHeight * 0.8
-          : finalTarget + window.innerHeight * 0.8;
-
-        lenis.scrollTo(nearTarget, {
-          immediate: true,
-          force: true,
-        });
-        requestAnimationFrame(() => finish());
+        fadeJumpSlide(lenis, jumpTo, slideTo, SCROLL_NAV.slideInDuration, endNavigation);
       } else {
-        // Short distance, no pins — smooth scroll directly
-        const duration = Math.min(1.2, Math.max(0.5, distance / 3500));
-
-        lenis.scrollTo(finalTarget, {
-          duration,
-          easing,
-          lock: true,
-          force: true,
-          onComplete: () => {
-            setTimeout(() => endNavigation(), 50);
-          },
-        });
+        const duration = clampDuration(
+          distance,
+          SCROLL_NAV.shortScrollDivisor,
+          SCROLL_NAV.shortScrollMinS,
+          SCROLL_NAV.shortScrollMaxS,
+        );
+        smoothScroll(lenis, finalTarget, duration, endNavigation);
       }
 
-      // Safety fallback
-      setTimeout(() => endNavigation(), 4000);
-
+      setTimeout(() => endNavigation(), SAFETY_FALLBACK_MS);
       return true;
     },
     [getLenis],
@@ -204,49 +256,32 @@ export function useSectionScroll() {
       const lenis = getLenis();
       if (!lenis) {
         window.scrollTo({ top: 0, behavior: "smooth" });
-        setTimeout(() => endNavigation(), 2000);
+        setTimeout(() => endNavigation(), NATIVE_SCROLL_FALLBACK_MS);
         return;
       }
 
       const currentScroll = lenis.scroll;
       const skipTarget = getPinSkipTarget(currentScroll, 0);
 
-      const topEasing = (t: number) => 1 - Math.pow(1 - t, 4);
-
       if (skipTarget !== null) {
-        // Instant jump past pins, then smooth to top
-        lenis.scrollTo(skipTarget, {
-          immediate: true,
-          force: true,
-        });
-        requestAnimationFrame(() => {
-          const remaining = lenis.scroll;
-          const duration = Math.min(1.2, Math.max(0.5, remaining / 3500));
-          lenis.scrollTo(0, {
-            duration,
-            easing: topEasing,
-            lock: true,
-            force: true,
-            onComplete: () => {
-              setTimeout(() => endNavigation(), 50);
-            },
-          });
-        });
+        const slideDuration = clampDuration(
+          skipTarget,
+          SCROLL_NAV.topScrollDivisor,
+          SCROLL_NAV.topScrollMinS,
+          SCROLL_NAV.topScrollMaxS,
+        );
+        fadeJumpSlide(lenis, skipTarget, 0, slideDuration, endNavigation);
       } else {
-        const distance = Math.abs(currentScroll);
-        const duration = Math.min(1.2, Math.max(0.5, distance / 3500));
-        lenis.scrollTo(0, {
-          duration,
-          easing: topEasing,
-          lock: true,
-          force: true,
-          onComplete: () => {
-            setTimeout(() => endNavigation(), 50);
-          },
-        });
+        const duration = clampDuration(
+          currentScroll,
+          SCROLL_NAV.topScrollDivisor,
+          SCROLL_NAV.topScrollMinS,
+          SCROLL_NAV.topScrollMaxS,
+        );
+        smoothScroll(lenis, 0, duration, endNavigation);
       }
 
-      setTimeout(() => endNavigation(), 4000);
+      setTimeout(() => endNavigation(), SAFETY_FALLBACK_MS);
     },
     [getLenis],
   );

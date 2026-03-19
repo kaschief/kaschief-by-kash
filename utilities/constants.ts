@@ -27,3 +27,39 @@ export const LAYOUT = {
   pinDownVh: 0.8,
   pinUpVh: 0.2,
 } as const;
+
+/** Tunable scroll navigation transition config. */
+export const SCROLL_NAV = {
+  /** Viewports of distance before switching to fade-jump-slide transition. */
+  longJumpThresholdVh: 2,
+
+  /** Pixels above target to land before the smooth slide-in. */
+  approachPx: 120,
+
+  /** Fade-out duration before the instant jump (ms). */
+  fadeOutMs: 100,
+
+  /** Fade-in duration during the smooth slide-in (ms). */
+  fadeInMs: 150,
+
+  /** Duration of the smooth slide-in after landing (seconds). */
+  slideInDuration: 0.3,
+
+  /** Short-distance scroll: min duration (seconds). */
+  shortScrollMinS: 0.4,
+
+  /** Short-distance scroll: max duration (seconds). */
+  shortScrollMaxS: 1.0,
+
+  /** Short-distance scroll: px-per-second divisor for duration calc. */
+  shortScrollDivisor: 2000,
+
+  /** Scroll-to-top: min duration (seconds). */
+  topScrollMinS: 0.5,
+
+  /** Scroll-to-top: max duration (seconds). */
+  topScrollMaxS: 1.2,
+
+  /** Scroll-to-top: px-per-second divisor for duration calc. */
+  topScrollDivisor: 3500,
+} as const;

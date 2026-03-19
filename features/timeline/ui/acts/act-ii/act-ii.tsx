@@ -11,7 +11,7 @@ import {
 } from "framer-motion";
 import { ActLabel } from "@components";
 import { ACT_II, COMPANIES, type Company } from "@data";
-import { EASE, GLOW_OPACITY, SCROLL_RANGE, SECTION_ID } from "@utilities";
+import { EASE, GLOW_OPACITY, SCROLL_RANGE } from "@utilities";
 import { NAVIGATION_SCROLL_EVENT } from "@hooks";
 
 import {
@@ -30,7 +30,7 @@ import { CommitEntry } from "./commit-entry";
 import { Distillation } from "./distillation";
 import { RepoPanel } from "./repo-panel";
 
-const { ACT_ENGINEER } = SECTION_ID;
+/* ACT_ENGINEER removed from nav — section ID no longer needed */
 const { glow } = SCROLL_RANGE;
 
 export function ActII() {
@@ -64,7 +64,7 @@ export function ActII() {
 
   return (
     <div
-      id={ACT_ENGINEER}
+      id="act-engineer"
       ref={sceneRef}
       className="relative min-h-screen min-h-[100svh] py-24 sm:py-32"
       style={{ backgroundColor: SECTION_BG }}>
