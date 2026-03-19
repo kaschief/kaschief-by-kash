@@ -19,10 +19,12 @@ export interface ScrollAnimationProps {
 }
 
 /* ==================================================================
-   CONTAINER
+   SCROLL BASE — the "ruler" all phase fractions are authored against.
+   CONTAINER_VH is derived at the bottom from the actual content end.
+   This means adding/removing phases auto-sizes the container.
    ================================================================== */
 
-export const CONTAINER_VH = 2000;
+const SCROLL_BASE_VH = 2000;
 
 /* ==================================================================
    SCROLL ANIMATION CONSTANTS
@@ -43,7 +45,6 @@ export const CONTAINER_VH = 2000;
    7. MID NARRATOR — "Let me show you where I've been" transition text
    8. TERMINAL     — code typing replay for each company (AMBOSS, Finleap, DKB, Med-El)
                      with narrative reveal (scene → action → shift) per company
-   9. CRYSTALLIZE  — 4 principle cards fade in with blur, settle into grid
    ================================================================== */
 
 /* ==================================================================
@@ -66,8 +67,7 @@ export const PHASES = {
   funnelFade:       0.025,  // funnel fade-out
   funnelToTerminal: 0.015,  // gap between funnel and terminal
   terminalCompany:  0.085,  // scroll per company (typing + narrative + wipe)
-  terminalToCrystal:0.015,  // gap between terminal and crystallize
-  crystallize:      0.08,   // principle cards appear + settle
+  terminalOutro:    0.02,   // brief pause after last company before section ends
   titleAnchor:      0.005,  // title starts this far into scroll
   convergenceToTitle: 0.025, // convergence starts this far after title
 } as const;
@@ -263,25 +263,7 @@ export const TERMINAL_NARRATOR = {
   slideY:            8,      // px
 } as const;
 
-/** Crystallize — 4 principle cards fade in and settle */
-export const CRYSTALLIZE = {
-  lineAppearStart:   0.15,
-  lineAppearEnd:     0.35,
-  lineOpacity:       0.3,
-  staggerFrac:       0.06,
-  fadeInStartFrac:   0.2,
-  fadeInEndFrac:     0.55,
-  settleStartFrac:   0.35,
-  settleEndFrac:     0.85,
-  yOffset:           6,      // vh
-  initialBlur:       6,      // px
-  mobileSpacing:     20,     // vh
-  mobileCenter:      1.5,
-  maxWidthLg:        "44vw",
-  maxWidthSm:        "min(320px, 85vw)",
-} as const;
-
-/** Chrome — debug overlay, title fade, curtain reveal */
+/** Chrome — title fade, curtain reveal */
 export const CHROME = {
   labelOpacity:      0.3,
   titleSlowFadeMult: 3,
@@ -295,106 +277,168 @@ export const CHROME = {
    Change a duration → everything downstream shifts automatically.
    ================================================================== */
 
-/* ---- Anchor: title starts near the top ---- */
-export const TITLE_START = PHASES.titleAnchor;
-export const TITLE_END   = TITLE_START + PHASES.title;
+/*
+ * Internal timing chain — computed in SCROLL_BASE fractions (not exported).
+ * The `raw` prefix distinguishes these from the rescaled exports below.
+ */
 
-/* ---- Convergence overlaps with title (starts slightly after) ---- */
-export const CONVERGENCE_START = TITLE_START + PHASES.convergenceToTitle;
-export const CONVERGENCE_END   = CONVERGENCE_START + PHASES.convergence;
-export const CONVERGENCE_GATE  = CONVERGENCE_END + PHASES.convergenceTail;
+/* Title */
+const rawTitleStart             = PHASES.titleAnchor;
+const rawTitleEnd               = rawTitleStart + PHASES.title;
 
-/* ---- Embers accompany the convergence ---- */
-export const EMBERS_START = CONVERGENCE_START + EMBER.delay;
-export const EMBERS_END   = CONVERGENCE_GATE;
+/* Convergence */
+const rawConvergenceStart       = rawTitleStart + PHASES.convergenceToTitle;
+const rawConvergenceEnd         = rawConvergenceStart + PHASES.convergence;
+const rawConvergenceGate        = rawConvergenceEnd + PHASES.convergenceTail;
 
-/* ---- Atmosphere accompanies convergence ---- */
-export const GLOW_START = CONVERGENCE_START + GRID.delay;
-export const GLOW_END   = CONVERGENCE_GATE + GRID.overshoot;
+/* Embers + atmosphere */
+const rawEmbersStart            = rawConvergenceStart + EMBER.delay;
+const rawGlowStart              = rawConvergenceStart + GRID.delay;
+const rawGlowEnd                = rawConvergenceGate + GRID.overshoot;
 
-/* ---- Thesis: crossfades in as seeds converge and fade ---- */
-export const THESIS_START = CONVERGENCE_END - PHASES.thesisOverlap;
-export const THESIS_END   = THESIS_START + PHASES.thesis;
+/* Thesis */
+const rawThesisStart            = rawConvergenceEnd - PHASES.thesisOverlap;
+const rawThesisEnd              = rawThesisStart + PHASES.thesis;
 
-/* ---- Seed sub-phases (within CONVERGENCE range) ---- */
-export const SEED_FADE_IN_START      = CONVERGENCE_START;
-export const SEED_FADE_IN_END        = CONVERGENCE_START + SEED.fadeInDuration;
-export const SEED_DRIFT_START        = CONVERGENCE_START + SEED.driftDelay;
-export const SEED_DRIFT_END          = CONVERGENCE_END - SEED.driftMargin;
-export const SEED_CONVERGE_START     = CONVERGENCE_END - SEED.convergeLead;
-export const SEED_CONVERGE_END       = CONVERGENCE_END;
-export const SEED_HEAT_START         = CONVERGENCE_START + SEED.heatDelay;
-export const SEED_HEAT_END           = CONVERGENCE_END - SEED.heatMargin;
-export const SEED_SCALE_SHRINK_START = CONVERGENCE_END + SEED.shrinkDelay;
-export const SEED_SCALE_SHRINK_END   = CONVERGENCE_GATE;
+/* Seed sub-phases */
+const rawSeedFadeInStart        = rawConvergenceStart;
+const rawSeedFadeInEnd          = rawConvergenceStart + SEED.fadeInDuration;
+const rawSeedDriftStart         = rawConvergenceStart + SEED.driftDelay;
+const rawSeedDriftEnd           = rawConvergenceEnd - SEED.driftMargin;
+const rawSeedConvergeStart      = rawConvergenceEnd - SEED.convergeLead;
+const rawSeedHeatStart          = rawConvergenceStart + SEED.heatDelay;
+const rawSeedHeatEnd            = rawConvergenceEnd - SEED.heatMargin;
+const rawSeedShrinkStart        = rawConvergenceEnd + SEED.shrinkDelay;
 
-/* ---- Non-seed fragment sub-phases ---- */
-export const FRAG_FADE_IN_START = CONVERGENCE_START - FRAGMENTS.earlyStart;
-export const FRAG_FADE_IN_END   = CONVERGENCE_START + FRAGMENTS.fadeInDuration;
+/* Fragment sub-phases */
+const rawFragFadeInStart        = rawConvergenceStart - FRAGMENTS.earlyStart;
+const rawFragFadeInEnd          = rawConvergenceStart + FRAGMENTS.fadeInDuration;
 
-/* ---- Particles: canvas explode + converge + handoff to SVG ---- */
-export const PARTICLES_START = THESIS_END + PHASES.thesisToParticles;
-export const PARTICLES_END   = PARTICLES_START + PHASES.particles;
+/* Particles */
+const rawParticlesStart         = rawThesisEnd + PHASES.thesisToParticles;
+const rawParticlesEnd           = rawParticlesStart + PHASES.particles;
 
-/* ---- Canvas sub-phases ---- */
-export const CANVAS_IN_START  = PARTICLES_START;
-export const CANVAS_IN_END    = PARTICLES_START + CANVAS_XFADE.inDuration;
-export const CANVAS_OUT_START = PARTICLES_START + PHASES.particles * CANVAS_XFADE.outFrac;
-export const CANVAS_OUT_END   = PARTICLES_START + PHASES.particles * CANVAS_XFADE.outEndFrac;
+/* Canvas crossfade */
+const rawCanvasInStart          = rawParticlesStart;
+const rawCanvasInEnd            = rawParticlesStart + CANVAS_XFADE.inDuration;
+const rawCanvasOutStart         = rawParticlesStart + PHASES.particles * CANVAS_XFADE.outFrac;
+const rawCanvasOutEnd           = rawParticlesStart + PHASES.particles * CANVAS_XFADE.outEndFrac;
 
-/* ---- SVG funnel ---- */
-export const SVG_IN_START    = CANVAS_OUT_START;
-export const SVG_IN_END      = CANVAS_OUT_START + FUNNEL.svgInDuration;
-export const DOTS_IN_START   = SVG_IN_START;
-export const DOTS_IN_END     = SVG_IN_START + FUNNEL.dotsInDuration;
-export const LABELS_IN_START = SVG_IN_START - FUNNEL.labelsLead;
-export const LABELS_IN_END   = SVG_IN_START + FUNNEL.labelsInDuration;
+/* SVG funnel */
+const rawSvgInStart             = rawCanvasOutStart;
+const rawSvgInEnd               = rawCanvasOutStart + FUNNEL.svgInDuration;
+const rawDotsInStart            = rawSvgInStart;
+const rawDotsInEnd              = rawSvgInStart + FUNNEL.dotsInDuration;
+const rawLabelsInStart          = rawSvgInStart - FUNNEL.labelsLead;
+const rawLabelsInEnd            = rawSvgInStart + FUNNEL.labelsInDuration;
 
-/* ---- Funnel ribbon tiers ---- */
-export const RIBBON_START  = SVG_IN_END;
-export const TIER_DURATION = PHASES.funnel / 4;
-export const RIBBON_TIERS  = [0, 1, 2, 3].map((i) => ({
-  start: RIBBON_START + i * TIER_DURATION,
-  end:   RIBBON_START + (i + 1) * TIER_DURATION,
+/* Ribbon tiers */
+const rawRibbonStart            = rawSvgInEnd;
+const rawTierDuration           = PHASES.funnel / 4;
+const rawRibbonTiers            = [0, 1, 2, 3].map(i => ({
+  start: rawRibbonStart + i * rawTierDuration,
+  end:   rawRibbonStart + (i + 1) * rawTierDuration,
 }));
-export const FUNNEL_COMPLETE = RIBBON_TIERS[3].end;
+const rawFunnelComplete         = rawRibbonTiers[3].end;
 
-/* ---- Convergence point + funnel fade ---- */
-export const CONVERGE_PT_START = RIBBON_TIERS[3].start;
-export const CONVERGE_PT_END   = FUNNEL_COMPLETE + FUNNEL.convergePtOvershoot;
-export const FUNNEL_OUT_START  = FUNNEL_COMPLETE + PHASES.funnelLinger;
-export const FUNNEL_OUT_END    = FUNNEL_OUT_START + PHASES.funnelFade;
+/* Convergence point + funnel fade */
+const rawConvergePtStart        = rawRibbonTiers[3].start;
+const rawConvergePtEnd          = rawFunnelComplete + FUNNEL.convergePtOvershoot;
+const rawFunnelOutStart         = rawFunnelComplete + PHASES.funnelLinger;
+const rawFunnelOutEnd           = rawFunnelOutStart + PHASES.funnelFade;
 
-/* ---- Narrator panels (tied to funnel tiers) ---- */
-export const NARRATOR_TIERS = RIBBON_TIERS.map((tier) => ({
-  start: tier.start + TIER_DURATION * FUNNEL.narratorDelayFrac,
-  end:   tier.end + TIER_DURATION * FUNNEL.narratorOvershoot,
+/* Narrator + caption tiers */
+const rawNarratorTiers          = rawRibbonTiers.map(t => ({
+  start: t.start + rawTierDuration * FUNNEL.narratorDelayFrac,
+  end:   t.end   + rawTierDuration * FUNNEL.narratorOvershoot,
 }));
-
-/* ---- Caption tiers ---- */
-export const CAPTION_TIERS = RIBBON_TIERS.map((tier) => ({
-  start: tier.start,
-  end:   tier.end + TIER_DURATION * FUNNEL.captionOvershoot,
+const rawCaptionTiers           = rawRibbonTiers.map(t => ({
+  start: t.start,
+  end:   t.end + rawTierDuration * FUNNEL.captionOvershoot,
 }));
 
-/* ---- Mid narrator ("Let me show you...") ---- */
-export const MID_NARRATOR_START = FUNNEL_OUT_END + MID_NARRATOR.delay;
-export const MID_NARRATOR_END   = MID_NARRATOR_START + MID_NARRATOR.duration;
+/* Mid narrator */
+const rawMidNarratorStart       = rawFunnelOutEnd + MID_NARRATOR.delay;
+const rawMidNarratorEnd         = rawMidNarratorStart + MID_NARRATOR.duration;
 
-/* ---- Terminal / Beats ---- */
-export const BEATS_START = MID_NARRATOR_END + PHASES.funnelToTerminal;
-export const BEATS = [0, 1, 2, 3].map((i) => ({
-  start: BEATS_START + i * PHASES.terminalCompany,
-  end: BEATS_START + (i + 1) * PHASES.terminalCompany,
+/* Terminal beats */
+const rawBeatsStart             = rawMidNarratorEnd + PHASES.funnelToTerminal;
+const rawBeats                  = [0, 1, 2, 3].map(i => ({
+  start: rawBeatsStart + i * PHASES.terminalCompany,
+  end:   rawBeatsStart + (i + 1) * PHASES.terminalCompany,
 }));
-export const BEATS_END = BEATS[3].end;
+const rawBeatsEnd               = rawBeats[3].end;
 
-/* ---- Crystallize ---- */
-export const CRYSTALLIZE_START = BEATS_END + PHASES.terminalToCrystal;
-export const CRYSTALLIZE_END = CRYSTALLIZE_START + PHASES.crystallize;
+/* ==================================================================
+   AUTO-SIZED CONTAINER
+   =====================
+   CONTAINER_VH is derived from the last phase in the chain.
+   Adding/removing a phase automatically adjusts the container height.
+   All exported constants are rescaled so progress 0–1 maps exactly
+   to the content, with no dead space.
+   ================================================================== */
 
-/* ---- Chrome ---- */
-export const CHROME_END = CRYSTALLIZE_START;
+const rawContentEnd = rawBeatsEnd + PHASES.terminalOutro;
+
+/** Container height in vh — auto-sized to content. */
+export const CONTAINER_VH = Math.ceil(rawContentEnd * SCROLL_BASE_VH);
+
+/** Rescale a SCROLL_BASE fraction to a container fraction (0–1). */
+const rescale = (v: number) => v / rawContentEnd;
+
+/* ---- Rescaled exports (consumed by animation hooks) ---- */
+
+export const TITLE_START             = rescale(rawTitleStart);
+export const TITLE_END               = rescale(rawTitleEnd);
+export const CONVERGENCE_START       = rescale(rawConvergenceStart);
+export const CONVERGENCE_END         = rescale(rawConvergenceEnd);
+export const CONVERGENCE_GATE        = rescale(rawConvergenceGate);
+export const EMBERS_START            = rescale(rawEmbersStart);
+export const EMBERS_END              = rescale(rawConvergenceGate);
+export const GLOW_START              = rescale(rawGlowStart);
+export const GLOW_END                = rescale(rawGlowEnd);
+export const THESIS_START            = rescale(rawThesisStart);
+export const THESIS_END              = rescale(rawThesisEnd);
+export const SEED_FADE_IN_START      = rescale(rawSeedFadeInStart);
+export const SEED_FADE_IN_END        = rescale(rawSeedFadeInEnd);
+export const SEED_DRIFT_START        = rescale(rawSeedDriftStart);
+export const SEED_DRIFT_END          = rescale(rawSeedDriftEnd);
+export const SEED_CONVERGE_START     = rescale(rawSeedConvergeStart);
+export const SEED_CONVERGE_END       = rescale(rawConvergenceEnd);
+export const SEED_HEAT_START         = rescale(rawSeedHeatStart);
+export const SEED_HEAT_END           = rescale(rawSeedHeatEnd);
+export const SEED_SCALE_SHRINK_START = rescale(rawSeedShrinkStart);
+export const SEED_SCALE_SHRINK_END   = rescale(rawConvergenceGate);
+export const FRAG_FADE_IN_START      = rescale(rawFragFadeInStart);
+export const FRAG_FADE_IN_END        = rescale(rawFragFadeInEnd);
+export const PARTICLES_START         = rescale(rawParticlesStart);
+export const PARTICLES_END           = rescale(rawParticlesEnd);
+export const CANVAS_IN_START         = rescale(rawCanvasInStart);
+export const CANVAS_IN_END           = rescale(rawCanvasInEnd);
+export const CANVAS_OUT_START        = rescale(rawCanvasOutStart);
+export const CANVAS_OUT_END          = rescale(rawCanvasOutEnd);
+export const SVG_IN_START            = rescale(rawSvgInStart);
+export const SVG_IN_END              = rescale(rawSvgInEnd);
+export const DOTS_IN_START           = rescale(rawDotsInStart);
+export const DOTS_IN_END             = rescale(rawDotsInEnd);
+export const LABELS_IN_START         = rescale(rawLabelsInStart);
+export const LABELS_IN_END           = rescale(rawLabelsInEnd);
+export const RIBBON_START            = rescale(rawRibbonStart);
+export const TIER_DURATION           = rescale(rawTierDuration);
+export const RIBBON_TIERS            = rawRibbonTiers.map(t => ({ start: rescale(t.start), end: rescale(t.end) }));
+export const FUNNEL_COMPLETE         = rescale(rawFunnelComplete);
+export const CONVERGE_PT_START       = rescale(rawConvergePtStart);
+export const CONVERGE_PT_END         = rescale(rawConvergePtEnd);
+export const FUNNEL_OUT_START        = rescale(rawFunnelOutStart);
+export const FUNNEL_OUT_END          = rescale(rawFunnelOutEnd);
+export const NARRATOR_TIERS          = rawNarratorTiers.map(t => ({ start: rescale(t.start), end: rescale(t.end) }));
+export const CAPTION_TIERS           = rawCaptionTiers.map(t => ({ start: rescale(t.start), end: rescale(t.end) }));
+export const MID_NARRATOR_START      = rescale(rawMidNarratorStart);
+export const MID_NARRATOR_END        = rescale(rawMidNarratorEnd);
+export const BEATS_START             = rescale(rawBeatsStart);
+export const BEATS                   = rawBeats.map(b => ({ start: rescale(b.start), end: rescale(b.end) }));
+export const BEATS_END               = rescale(rawBeatsEnd);
+export const CHROME_END              = rescale(rawBeatsEnd);
 
 /* ---- Assembled SCROLL_PHASES object (consumed by scroll callbacks) ---- */
 export const SCROLL_PHASES = {
@@ -416,7 +460,6 @@ export const SCROLL_PHASES = {
   NARRATOR_TIERS,
   MID_NARRATOR: { start: MID_NARRATOR_START, end: MID_NARRATOR_END },
   BEATS,
-  CRYSTALLIZE: { start: CRYSTALLIZE_START, end: CRYSTALLIZE_END },
   CHROME_END,
 };
 
