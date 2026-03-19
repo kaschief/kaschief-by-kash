@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useMemo } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
-import { ForgeNav } from "../forge-nav";
+import { DevNav } from "../dev-nav";
 
 /* ── Copy ─────────────────────────────────────────────────── */
 const COMPANY = "AMBOSS";
@@ -150,7 +150,7 @@ export default function ForgeV23() {
       className="relative bg-[var(--bg)]"
       style={{ height: "800vh" }}
     >
-      <ForgeNav />
+      <DevNav />
 
       {/* sticky viewport */}
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">

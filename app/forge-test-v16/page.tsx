@@ -2,7 +2,7 @@
 
 import { useRef, useCallback } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
-import { ForgeNav } from "../forge-nav";
+import { DevNav } from "../dev-nav";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                           */
@@ -390,7 +390,7 @@ export default function ForgeV16() {
 
   return (
     <div ref={scrollRef} style={{ height: "1200vh", position: "relative" }}>
-      <ForgeNav />
+      <DevNav />
 
       {/* Blink keyframes */}
       <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>

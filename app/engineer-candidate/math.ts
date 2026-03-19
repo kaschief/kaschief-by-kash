@@ -1,7 +1,7 @@
 /* ==================================================================
    Shared math utilities for Act II scroll animations.
-   Single source of truth — imported by page.tsx, forge-data.tsx,
-   and re-exported from forge-sankey-data.ts.
+   Single source of truth — imported by page.tsx, engineer-data.tsx,
+   and re-exported from sankey-data.
    ================================================================== */
 
 /** Clamp value between min and max. */

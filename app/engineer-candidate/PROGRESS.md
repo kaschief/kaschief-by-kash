@@ -5,7 +5,7 @@
 
 ## Principal Engineer Audit
 
-Source: 24 issues across 3 files (page.tsx, engineer-data.tsx, forge-sankey-data.ts).
+Source: 24 issues across 3 files (page.tsx, engineer-data.tsx, sankey-data.ts).
 
 ### P0 — Critical (3/3 done)
 
@@ -27,12 +27,12 @@ Source: 24 issues across 3 files (page.tsx, engineer-data.tsx, forge-sankey-data
 | P1.6 | "company" fragment type dead code | Done | Removed from union + switch |
 | P1.7 | Terminal HTML string concat | Done | escapeHtml already existed |
 
-### P2 — Medium (5/7 done, 2 in progress)
+### P2 — Medium (7/7 done)
 
 | # | Issue | Status | Notes |
 |---|-------|--------|-------|
-| P2.1 | 2800-line component — extract sub-components | In progress | See "Component Extraction" below |
-| P2.2 | Mobile carousel 200-line IIFE → component | Pending | Part of P2.1 extraction |
+| P2.1 | 2800-line component — extract sub-components | Done | 6 modules extracted, page.tsx is 415 lines |
+| P2.2 | Mobile carousel 200-line IIFE → component | Done | Extracted into use-terminal-replay.tsx |
 | P2.3 | remap duplicates lerp+smoothstep | Done | They're different (linear vs smooth) |
 | P2.4 | Narrator position fractions unnamed | Done | `FUNNEL.narratorTopFracs` |
 | P2.5 | Missing data-role="period" element | Done | Removed dead code path |
@@ -53,19 +53,36 @@ Source: 24 issues across 3 files (page.tsx, engineer-data.tsx, forge-sankey-data
 
 ---
 
-## Component Extraction (P2.1)
+## Component Extraction (P2.1) — Complete
 
-Goal: Break 2800-line page.tsx into focused modules.
+Goal: Break 2800-line page.tsx into focused modules. Result: 415 lines.
 
-| Step | File | Status | Lines moved |
-|------|------|--------|-------------|
-| 1 | `engineer-candidate.types.ts` | Done | ~250 (config objects + timing chain) |
-| 2 | `terminal-data.ts` | Done | ~265 (TC, TERM_COMPANIES, buildLines, escapeHtml) |
-| 3 | `use-crystallize.tsx` | Done | ~120 (principle cards animation + JSX) |
-| 4 | `use-terminal-replay.tsx` | Pending | Terminal typing + narrative scroll callback + JSX |
-| 5 | `use-forge-fragments.tsx` | Pending | Fragment drift/converge/fade + embers + grid + JSX |
-| 6 | `use-particle-funnel.tsx` | Pending | Canvas particles + SVG funnel + ribbons + JSX |
-| 7 | Clean up page.tsx | Pending | Thin orchestrator wiring hooks together |
+| Step | File | Lines | What it owns |
+|------|------|-------|--------------|
+| 1 | `engineer-candidate.types.ts` | ~250 | Config objects (PHASES, SEED, FRAG, etc.) + derived timing chain + SCROLL_PHASES map |
+| 2 | `terminal-data.ts` | ~265 | TERMINAL_COLORS, TERM_COMPANIES, buildLines, escapeHtml |
+| 3 | `use-crystallize.tsx` | ~120 | Principle cards fade-in/settle animation + JSX |
+| 4 | `use-terminal-replay.tsx` | ~350 | Code typing, narrative reveal, mobile carousel + JSX |
+| 5 | `use-convergence.tsx` | ~280 | Fragment drift/converge/fade, embers, grid, thesis + JSX |
+| 6 | `use-particle-funnel.tsx` | ~550 | Canvas particles, SVG funnel, ribbons, narrator panels + JSX |
+| 7 | page.tsx cleanup | — | Removed stale comments, cleaned imports, thin orchestrator |
+
+## Variable Rename Pass — Complete
+
+All cryptic variables renamed across all hooks:
+- `ss` → `smoothstep` (alias removed from math.ts)
+- `p` → `progress`, `lg` → `isDesktop`, `vh` → `viewportHeight`
+- `f` → `fragment`, `el` → `element`, `rot` → `rotation`
+- `x/y` → `translateX/translateY`, `dX/dY` → `driftedX/driftedY`
+- `cS/cE/cD` → `phaseStart/phaseEnd/phaseDuration`
+- `pr` → `principle`, `cc` → `charCounts`, `co` → `company`
+- `narP` → `narrativeProgress`, `si` → `streamIndex`, etc.
+- `PH` → `SCROLL_PHASES`, `PP` → `PARTICLE_PHASES`
+- `FV_W/FV_H` → `FUNNEL_VIEWBOX_WIDTH/FUNNEL_VIEWBOX_HEIGHT`
+- `F_TIER_Y` → `FUNNEL_TIER_POSITIONS`, `F_CENTER_X` → `FUNNEL_CENTER_X`
+- `F_SEGMENTS` → `FUNNEL_SEGMENTS`, `F_POSITIONS` → `FUNNEL_POSITIONS`, `F_TOP_POSITIONS` → `FUNNEL_TOP_POSITIONS`
+- `P1_END/P2_END/P3_END` → `TYPING_PHASE_1_END/TYPING_PHASE_2_END/TYPING_PHASE_3_END`
+- `NAR_START/NAR_END` → `NARRATIVE_START/NARRATIVE_END`
 
 ---
 
@@ -77,37 +94,34 @@ Goal: Break 2800-line page.tsx into focused modules.
 | Fix "ENGINEER-CANDIDATE" label leaking into main site body | Done |
 | Fix thesis keyword spacing (missing spaces between spans) | Done |
 | Rename TC → TERMINAL_COLORS, fg/bg → foreground/background | Done |
-| Anchor scroll alignment for engineer-candidate section | Done (self-resolved) |
-| ForgeNav hidden when embedded on main site (only shows on standalone route) | Done |
+| Anchor scroll alignment for engineer-candidate section | Done |
+| ForgeNav hidden when embedded on main site (standalone only) | Done |
 
 ---
 
-## File Structure (current)
+## File Structure
 
 ```
 app/engineer-candidate/
-  page.tsx                    — main orchestrator (still large, shrinking)
-  engineer-candidate.types.ts — config objects + derived timing chain + PH map
-  engineer-data.tsx           — fragment/ember/principle factories, logos, colors
-  terminal-data.ts            — terminal colors, company blocks, line builder
-  math.ts                     — shared lerp, smoothstep, remap, clamp
-  use-crystallize.tsx         — principle cards animation hook
-  PLAN.md                     — scroll phase architecture + decisions
-  PROGRESS.md                 — this file
+  page.tsx                      — orchestrator (415 lines): wires hooks, scroll progress, JSX layout
+  engineer-candidate.types.ts   — config objects + derived timing chain + PH phase map
+  engineer-data.tsx             — fragment/ember/principle factories, logos, colors, content
+  terminal-data.ts              — terminal colors, company blocks, line builder, escapeHtml
+  math.ts                       — shared smoothstep, lerp, remap, clamp
+  use-convergence.tsx           — fragment drift/converge, embers, grid, thesis word reveals
+  use-particle-funnel.tsx       — canvas particles, SVG funnel, ribbons, narrator panels
+  use-terminal-replay.tsx       — code typing replay, narrative reveal, mobile carousel
+  use-crystallize.tsx           — principle cards fade-in and settle
+  PLAN.md                       — scroll phase architecture + decisions
+  PROGRESS.md                   — this file
 ```
-
-## What's Next
-
-1. Finish Steps 6–7 of component extraction
-2. Commit all changes
-3. Consider: inline integration into main site (replace Act II)
 
 ---
 
 ## Cleanup Backlog (outside engineer-candidate)
 
-| File | Issue | Status |
-|------|-------|--------|
-| `hooks/use-section-scroll.ts` | Magic numbers: `0.3` (pin zone threshold), `2` (skip offset), `window.innerHeight * 2` (long jump), `0.8` (near-target fraction), `3500` (speed divisor), `1.2`/`0.5` (duration bounds), `4000ms` (safety timeout) | Pending |
-| `hooks/use-section-scroll.ts` | Skip overshoot: `getPinSkipTarget` jumps to `pinEnd + 2` which overshoots when target is inside a sticky zone (e.g. hero → engineer-candidate). Causes brief flash of section content during scroll-to. Need to clamp skipTarget to `min(skipTarget, nearTarget)` without breaking other sections. | Pending |
-| `hooks/use-scramble.ts` | Extract `useScramble` + `ScrambleWord` from page.tsx into shared hook (generic reusable text effect) | Pending |
+| File | Issue | Priority |
+|------|-------|----------|
+| `hooks/use-section-scroll.ts` | Flash of intermediate content when scrolling to engineer-candidate from distant sections. `getPinSkipTarget` needs smarter handling of 2000vh sticky zones. | High |
+| `hooks/use-section-scroll.ts` | Hardcoded px values (80px nav offset) don't scale with viewport. Should measure from DOM. | Medium |
+| `page.tsx` → `hooks/use-scramble.ts` | Extract `useScramble` + `ScrambleWord` into shared hook (generic reusable text effect) | Medium |

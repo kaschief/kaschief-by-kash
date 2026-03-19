@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
-import { ForgeNav } from "../forge-nav";
+import { DevNav } from "../dev-nav";
 
 const ACCENT = "#60A5FA";
 
@@ -70,7 +70,7 @@ export default function ForgeV26() {
 
   return (
     <>
-      <ForgeNav />
+      <DevNav />
       <div ref={containerRef} style={{ height: "800vh", position: "relative" }}>
         <div
           style={{
