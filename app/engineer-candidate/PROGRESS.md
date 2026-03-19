@@ -98,6 +98,14 @@ app/engineer-candidate/
 
 ## What's Next
 
-1. Finish Steps 4–7 of component extraction
+1. Finish Steps 6–7 of component extraction
 2. Commit all changes
 3. Consider: inline integration into main site (replace Act II)
+
+---
+
+## Cleanup Backlog (outside engineer-candidate)
+
+| File | Issue | Status |
+|------|-------|--------|
+| `hooks/use-section-scroll.ts` | Magic numbers: `0.3` (pin zone threshold), `2` (skip offset), `window.innerHeight * 2` (long jump), `0.8` (near-target fraction), `3500` (speed divisor), `1.2`/`0.5` (duration bounds), `4000ms` (safety timeout) | Pending |
