@@ -123,5 +123,8 @@ app/engineer-candidate/
 | File | Issue | Priority |
 |------|-------|----------|
 | `hooks/use-section-scroll.ts` | Flash of intermediate content when scrolling to engineer-candidate from distant sections. `getPinSkipTarget` needs smarter handling of 2000vh sticky zones. | High |
-| `hooks/use-section-scroll.ts` | Hardcoded px values (80px nav offset) don't scale with viewport. Should measure from DOM. | Medium |
+| `hooks/use-section-scroll.ts` | Landing position inconsistent depending on scroll direction (e.g. Engineer→Nurse vs WhoAmI→Nurse lands 60px apart). Layout shift from nav height changes during scroll. | High |
+| `hooks/use-section-scroll.ts` | Soft scroll-in feel lost — some jumps are too instant, no gentle approach animation. Need consistent gentle landing across all nav clicks. | High |
+| `hooks/use-section-scroll.ts` | Hardcoded px values (80px nav offset) don't scale with viewport. Should measure actual nav element height from DOM. | Medium |
+| `hooks/use-section-scroll.ts` | Magic numbers throughout (2000ms timeouts, 3500 rate, 4 easing exponent, etc.) — need SCROLL_CONFIG object. | Medium |
 | `page.tsx` → `hooks/use-scramble.ts` | Extract `useScramble` + `ScrambleWord` into shared hook (generic reusable text effect) | Medium |
