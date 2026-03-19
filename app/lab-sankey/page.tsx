@@ -10,8 +10,7 @@ import {
   computeHLayout,
   type StreamPos,
 } from "../sankey-data";
-import { DL_SVG_STYLE } from "../forge-element-map";
-import { DevNav } from "../dev-nav";
+import { LabNav } from "../lab-nav";
 
 /* ================================================================== */
 /*  Constants                                                         */
@@ -247,7 +246,7 @@ export default function ForgeTestV1() {
       className="relative"
       style={{ height: `${RUNWAY_VH}vh`, background: "var(--bg)" }}
     >
-      <DevNav />
+      <LabNav />
       {/* Sticky viewport */}
       <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
         {/* Title */}
@@ -341,12 +340,6 @@ export default function ForgeTestV1() {
               style={{ opacity: 0, transition: "opacity 0.05s ease" }}
             />
           ))}
-
-          {/* Debug labels */}
-          <text x={30} y={200} fill={DL_SVG_STYLE.fill} fontSize={DL_SVG_STYLE.fontSize} fontFamily={DL_SVG_STYLE.fontFamily} letterSpacing={DL_SVG_STYLE.letterSpacing}>STREAM LABELS</text>
-          <text x={540} y={320} fill={DL_SVG_STYLE.fill} fontSize={DL_SVG_STYLE.fontSize} fontFamily={DL_SVG_STYLE.fontFamily} letterSpacing={DL_SVG_STYLE.letterSpacing}>STREAM RIBBONS</text>
-          <text x={108} y={130} fill={DL_SVG_STYLE.fill} fontSize={DL_SVG_STYLE.fontSize} fontFamily={DL_SVG_STYLE.fontFamily} letterSpacing={DL_SVG_STYLE.letterSpacing}>NODE BARS</text>
-          <text x={108} y={340} fill={DL_SVG_STYLE.fill} fontSize={DL_SVG_STYLE.fontSize} fontFamily={DL_SVG_STYLE.fontFamily} letterSpacing={DL_SVG_STYLE.letterSpacing}>NODE LABELS</text>
 
           {/* Stream labels at their origin */}
           {streamLabels.map((sl, si) => (

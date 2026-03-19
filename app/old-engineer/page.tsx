@@ -1,12 +1,12 @@
 "use client";
 
 import { ActII } from "@features/timeline";
-import { DevNav } from "../dev-nav";
+import { LabNav } from "../lab-nav";
 
 export default function OldEngineerPage() {
   return (
     <>
-      <DevNav />
+      <LabNav />
       <div className="pt-12">
         <ActII />
       </div>

@@ -471,6 +471,16 @@ export function Navigation() {
                   }
                 />
               ))}
+
+              {/* Dev-only lab link — remove before production */}
+              <span className="mx-1.5 h-3.5 w-px bg-white/[0.08]" />
+              <a
+                href="/lab"
+                className="px-2.5 py-1 text-[11px] font-sans tracking-wide rounded-full transition-colors duration-200 hover:text-[var(--gold)]"
+                style={{ color: "var(--text-faint)" }}
+              >
+                Lab
+              </a>
             </div>
 
             {/* Mobile toggle */}

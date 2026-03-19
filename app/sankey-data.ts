@@ -1,5 +1,5 @@
 /* ================================================================== */
-/*  Shared Sankey data for all forge-test variants                     */
+/*  Shared Sankey data for lab prototypes                              */
 /* ================================================================== */
 
 export interface SankeyStream {
