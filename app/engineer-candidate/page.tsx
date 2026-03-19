@@ -18,13 +18,13 @@ import {
   useMotionValueEvent,
   useInView,
 } from "framer-motion";
-import { COMPANIES, ACT_II } from "@data";
+import { ACT_II } from "@data";
 import { STREAMS, NODES } from "../forge-sankey-data";
 import { usePathname } from "next/navigation";
 import { ForgeNav } from "../forge-nav";
 import { ss, smoothstep, lerp, remap } from "./math";
 import {
-  fc,
+  /* fc moved to useCrystallize */
   fcExt,
   CC_EXT,
   ACT_BLUE,
@@ -33,12 +33,39 @@ import {
   LOGOS,
   createFragments,
   createEmbers,
-  createPrinciples,
+  /* createPrinciples moved to useCrystallize */
   phaseLabel,
   hashToUnit,
   CONTENT,
 } from "./engineer-data";
 import { BREAKPOINTS } from "@utilities";
+import {
+  CONTAINER_VH,
+  PHASES, SEED, FRAGMENTS, EMBER, GRID, THESIS, PARTICLE,
+  FUNNEL, MOBILE_SKILLS, MID_NARRATOR, TERMINAL,
+  TERMINAL_NARRATOR, CHROME,
+  /* CRYSTALLIZE moved to useCrystallize */
+  PH, PP,
+  FORGE_START, FORGE_END,
+  EMBERS_START, EMBERS_END, GLOW_START, GLOW_END,
+  THESIS_START, THESIS_END,
+  SEED_FADE_IN_START, SEED_FADE_IN_END,
+  SEED_DRIFT_START, SEED_DRIFT_END,
+  SEED_CONVERGE_START, SEED_CONVERGE_END,
+  SEED_HEAT_START, SEED_HEAT_END,
+  SEED_SCALE_SHRINK_START, SEED_SCALE_SHRINK_END,
+  FRAG_FADE_IN_START, FRAG_FADE_IN_END,
+  PARTICLES_START,
+  CANVAS_IN_START, CANVAS_IN_END, CANVAS_OUT_START, CANVAS_OUT_END,
+  SVG_IN_START, SVG_IN_END,
+  DOTS_IN_START, DOTS_IN_END,
+  LABELS_IN_START, LABELS_IN_END,
+  RIBBON_TIERS,
+  CONVERGE_PT_START, CONVERGE_PT_END,
+  FUNNEL_OUT_END,
+  NARRATOR_TIERS,
+  MID_NARRATOR_START, MID_NARRATOR_END,
+} from "./engineer-candidate.types";
 
 /* ================================================================== */
 /*  Breakpoint refs (no-re-render, matches Act I pattern)              */
@@ -60,270 +87,13 @@ function useBreakpointRefs() {
   return { isLg };
 }
 
-/* ================================================================== */
-/*  Terminal replay — colors, data, line builder (from V16)            */
-/* ================================================================== */
-
-const TC = {
-  bg: "#0D1117",
-  topBar: "#161B22",
-  dotRed: "#FF5F57",
-  dotYellow: "#FFBD2E",
-  dotGreen: "#28C840",
-  lineNum: "#484f58",
-  text: "#c9d1d9",
-  keyword: "#79c0ff",
-  addedFg: "#7ee787",
-  addedBg: "rgba(46,160,67,0.15)",
-  removedFg: "#ff7b72",
-  removedBg: "rgba(248,81,73,0.1)",
-  comment: "#8b949e",
-  string: "#a5d6ff",
-} as const;
-
-interface CompanyBlock {
-  hash: string;
-  company: string;
-  authorEmail: string;
-  location: string;
-  dates: string;
-  commitType: string;
-  commitMsg: string;
-  commitBody: string;
-  diff: { type: "add" | "remove" | "context"; text: string }[];
-  insight: string[];
-  promotion?: string; // e.g. "→ Promoted to Senior Engineer"
-}
-
-const TERM_COMPANIES: CompanyBlock[] = [
-  {
-    hash: "a3f7e2d",
-    company: "AMBOSS",
-    authorEmail: "kash@amboss.com",
-    location: "Berlin",
-    dates: "2018-2019",
-    commitType: "feat",
-    commitMsg: "migrate study flows from vanilla JS to React",
-    commitBody:
-      "Half a million medical students depending on this app.\nBrought nursing instinct to every user flow decision.",
-    diff: [
-      { type: "remove", text: "// guess what users want" },
-      { type: "remove", text: "function showNext() { return random(); }" },
-      { type: "add", text: "// A/B test what actually works" },
-      { type: "add", text: "function showNext(variant: 'A' | 'B') {" },
-      { type: "add", text: "  return trackAndServe(variant);" },
-      { type: "add", text: "}" },
-    ],
-    insight: [
-      "// What I learned:",
-      "// The gap between 'works technically' and 'works for the person'",
-      "// is where most products fail.",
-    ],
-  },
-  {
-    hash: "b8c4f19",
-    company: "Compado",
-    authorEmail: "kash@compado.com",
-    location: "Berlin",
-    dates: "2019-2021",
-    commitType: "fix",
-    commitMsg: "replace duplicated sites with component system",
-    commitBody:
-      "12 white-label sites, each a copy-paste fork.\nBuilt a shared component library, cut deploy time 80%.",
-    diff: [
-      { type: "remove", text: "// site-a/header.tsx — copy #7 of 12" },
-      {
-        type: "remove",
-        text: "export const Header = () => <div>Logo A</div>;",
-      },
-      { type: "remove", text: "// site-b/header.tsx — copy #8 of 12" },
-      {
-        type: "remove",
-        text: "export const Header = () => <div>Logo B</div>;",
-      },
-      { type: "add", text: "// shared/header.tsx — single source of truth" },
-      {
-        type: "add",
-        text: "export const Header = ({ brand }: Props) => (",
-      },
-      { type: "add", text: "  <div><Logo brand={brand} /></div>" },
-      { type: "add", text: ");" },
-    ],
-    insight: [
-      "// What I learned:",
-      "// Duplication is debt with compound interest.",
-      "// A component system pays dividends forever.",
-    ],
-    promotion: "✦ promoted to Senior Frontend Engineer",
-  },
-  {
-    hash: "c2e6a03",
-    company: "CAPinside",
-    authorEmail: "kash@capinside.com",
-    location: "Hamburg",
-    dates: "2021-2023",
-    commitType: "feat",
-    commitMsg: "introduce TypeScript + code review process",
-    commitBody:
-      "Legacy jQuery codebase, no types, no reviews.\nMigrated to TypeScript, established PR culture.",
-    diff: [
-      { type: "remove", text: "// @ts-nocheck" },
-      { type: "remove", text: "function calcReturns(data) {" },
-      {
-        type: "remove",
-        text: '  return data.map(d => d.val * 0.01); // "good enough"',
-      },
-      { type: "remove", text: "}" },
-      {
-        type: "add",
-        text: "interface FundReturn { val: number; date: string; }",
-      },
-      {
-        type: "add",
-        text: "function calcReturns(data: FundReturn[]): number[] {",
-      },
-      { type: "add", text: "  return data.map(d => d.val / 100);" },
-      { type: "add", text: "}" },
-    ],
-    insight: [
-      "// What I learned:",
-      "// Types don't slow you down — they stop you",
-      "// from shipping the wrong thing fast.",
-    ],
-  },
-  {
-    hash: "d9f1b77",
-    company: "DKB",
-    authorEmail: "kash@dkb.de",
-    location: "Berlin",
-    dates: "2021-2024",
-    commitType: "feat",
-    commitMsg: "add Playwright tests + feature flags + weekly releases",
-    commitBody:
-      "Germany's largest direct bank, zero frontend tests.\nIntroduced E2E coverage, feature flags, weekly ship cadence.",
-    diff: [
-      { type: "remove", text: '// "we test in production"' },
-      { type: "remove", text: "// release: once a month, fingers crossed" },
-      { type: "remove", text: "const isReady = true; // TODO: actually check" },
-      { type: "add", text: "import { test, expect } from '@playwright/test';" },
-      { type: "add", text: "" },
-      {
-        type: "add",
-        text: "test('transfer flow completes', async ({ page }) => {",
-      },
-      { type: "add", text: "  await page.goto('/transfer');" },
-      {
-        type: "add",
-        text: "  await expect(page.getByText('Confirmed')).toBeVisible();",
-      },
-      { type: "add", text: "});" },
-    ],
-    insight: [
-      "// What I learned:",
-      "// Confidence to ship weekly comes from tests,",
-      "// not from courage.",
-    ],
-    promotion: "✦ promoted to Engineering Manager",
-  },
-];
-
-interface TermLine {
-  text: string;
-  style:
-    | "keyword"
-    | "text"
-    | "add"
-    | "remove"
-    | "comment"
-    | "string"
-    | "blank"
-    | "promotion";
-  phase: 1 | 2 | 3;
-}
-
-function buildLines(co: CompanyBlock): TermLine[] {
-  const lines: TermLine[] = [];
-  lines.push({
-    text: `commit ${co.hash} (HEAD -> main)`,
-    style: "keyword",
-    phase: 1,
-  });
-  /* roles map replaced by COMPANY_ROLES from forge-data (P1.2) */
-  lines.push({
-    text: `Author: Kash <${co.authorEmail}>`,
-    style: "text",
-    phase: 1,
-  });
-  lines.push({
-    text: `Role:   ${COMPANY_ROLES[co.company] || "Frontend Engineer"}`,
-    style: "string",
-    phase: 1,
-  });
-  lines.push({
-    text: `Date:   ${co.dates}`,
-    style: "text",
-    phase: 1,
-  });
-  lines.push({
-    text: `    ${co.commitType}: ${co.commitMsg}`,
-    style: "keyword",
-    phase: 1,
-  });
-  lines.push({ text: "", style: "blank", phase: 1 });
-  for (const bodyLine of co.commitBody.split("\n")) {
-    lines.push({ text: `    ${bodyLine}`, style: "text", phase: 1 });
-  }
-  lines.push({ text: "---", style: "text", phase: 2 });
-  for (const d of co.diff) {
-    const prefix = d.type === "add" ? "+ " : d.type === "remove" ? "- " : "  ";
-    lines.push({
-      text: `${prefix}${d.text}`,
-      style: d.type === "add" ? "add" : d.type === "remove" ? "remove" : "text",
-      phase: 2,
-    });
-  }
-  lines.push({ text: "", style: "blank", phase: 2 });
-  for (const c of co.insight) {
-    lines.push({ text: c, style: "comment", phase: 3 });
-  }
-  // Promotion banner — appears last, special yellow styling
-  if (co.promotion) {
-    lines.push({ text: co.promotion, style: "promotion", phase: 3 });
-  }
-  return lines;
-}
-
-// Intentional: terminal section uses real monospace for code authenticity.
-// The rest of the site avoids mono (--font-mono remapped to Urbanist).
-const TERMINAL_FONT = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-
-/** Pre-build all company lines once (module-level). */
-const ALL_COMPANY_LINES = TERM_COMPANIES.map(buildLines);
-
-/** Pre-compute char counts per phase for each company. */
-const CHAR_COUNTS = ALL_COMPANY_LINES.map((lines) => {
-  let p1 = 0,
-    p2 = 0,
-    p3 = 0;
-  for (const l of lines) {
-    const len = l.text.length + 1;
-    if (l.phase === 1) p1 += len;
-    else if (l.phase === 2) p2 += len;
-    else p3 += len;
-  }
-  return { p1, p2, p3, total: p1 + p2 + p3 };
-});
-
-// Narrative text for right side (V15 style reveal)
-const TERM_NARRATIVES = CONTENT.terminalNarratives;
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+/* Terminal replay data imported from terminal-data.ts */
+import {
+  TERMINAL_COLORS, TERM_COMPANIES, TERMINAL_FONT,
+  ALL_COMPANY_LINES, CHAR_COUNTS, TERM_NARRATIVES,
+  escapeHtml,
+} from "./terminal-data";
+import { useCrystallize } from "./use-crystallize";
 
 /* remap() imported from ./math */
 
@@ -514,416 +284,8 @@ const F_SEGMENTS = buildFunnelSegments();
 // Narrator panels — 4 glass cards that accompany the funnel, NOT company-labeled
 const FUNNEL_NARRATOR = CONTENT.funnelNarrator;
 
-/* ================================================================== */
-/*  Scroll phases — RELATIVE CHAIN                                     */
-/*                                                                     */
-/*  Each phase is defined by DURATION + GAP to next phase.             */
-/*  Change one duration → everything downstream shifts automatically.  */
-/*                                                                     */
-/*  CONSTRAINT: summary panel is in normal flow after the sticky       */
-/*  (100vh). Title MUST be fully hidden before it arrives (~0.053).    */
-/* ================================================================== */
-
-const CONTAINER_VH = 2000;
-
-/* ==================================================================
-   SCROLL ANIMATION CONSTANTS
-   ===========================
-   Every timing/styling value lives here. No magic numbers in render logic.
-   All scroll values are fractions of total scroll (0–1) unless noted.
-
-   VISUAL SEQUENCE (what the user sees):
-   1. TITLE        — "ACT II / THE ENG1NEER" hero text
-   2. FRAGMENTS    — keyword words (product, users, code...) + dark pills
-                     (code snippets, logos, CLI commands) drift across screen
-   3. CONVERGENCE  — keyword words pull toward center, fade out
-   4. THESIS       — "Each of my past roles..." sentence fades in with
-                     sequential word reveals (product, systems, people, scale)
-   5. PARTICLES    — colored dots explode from center, converge to funnel positions
-   6. FUNNEL       — SVG Sankey-style ribbons grow tier by tier with dot sources,
-                     stream labels, company nodes, and narrator glass panels
-   7. MID NARRATOR — "Let me show you where I've been" transition text
-   8. TERMINAL     — code typing replay for each company (AMBOSS, Finleap, DKB, Med-El)
-                     with narrative reveal (scene → action → shift) per company
-   9. CRYSTALLIZE  — 4 principle cards fade in with blur, settle into grid
-   ================================================================== */
-
-/* ==================================================================
-   CONFIGURATION OBJECTS — all timing and visual constants grouped
-   by the scroll section they control. Values are scroll fractions
-   (0–1) unless noted otherwise (px, vh, vw).
-   ================================================================== */
-
-/** Top-level phase durations — how much scroll each section occupies */
-const PHASES = {
-  title:            0.032,
-  forge:            0.18,   // fragments drift + converge
-  forgeTail:        0.04,   // extra time after convergence for cleanup
-  thesisOverlap:    0.04,   // thesis starts this far before forge ends (crossfade)
-  thesis:           0.10,   // sentence visible + word reveals
-  thesisToParticles:0.0,    // gap (0 = immediate)
-  particles:        0.14,   // canvas dots explode → converge to SVG
-  funnel:           0.1,    // SVG ribbons grow tier by tier
-  funnelLinger:     0.02,   // funnel holds complete before fading
-  funnelFade:       0.025,  // funnel fade-out
-  funnelToTerminal: 0.015,  // gap between funnel and terminal
-  terminalCompany:  0.085,  // scroll per company (typing + narrative + wipe)
-  terminalToCrystal:0.015,  // gap between terminal and crystallize
-  crystallize:      0.08,   // principle cards appear + settle
-  titleAnchor:      0.005,  // title starts this far into scroll
-  forgeToTitle:     0.025,  // forge starts this far after title
-} as const;
-
-/** Seed keywords — colored words that drift, converge, and fade */
-const SEED = {
-  // Timing offsets (relative to forge start/end)
-  fadeInDuration:    0.05,   // appear from blur
-  fadeoutDuration:   0.05,   // fade during convergence — must finish before thesis
-  driftDelay:        0.02,   // drift starts after forge begins
-  driftMargin:       0.03,   // drift ends before forge ends
-  convergeLead:      0.07,   // pull toward center before forge ends
-  heatDelay:         0.07,   // scale-up starts after forge
-  heatMargin:        0.02,   // heat ends before forge ends
-  shrinkDelay:       0.005,  // shrink starts after forge ends (tail)
-  // Visual
-  heatMaxScale:      1.3,    // 130% at peak heat
-  shrinkMinScale:    0.5,    // 50% during tail
-  initialBlurDur:    0.04,   // blur clears over this duration
-  maxDissolveBlur:   12,     // max blur px for non-seed dissolve
-} as const;
-
-/** Non-seed fragments — dark pills with code, logos, commands */
-const FRAGMENTS = {
-  earlyStart:        0.01,   // appear slightly before seeds
-  fadeInDuration:     0.05,   // fade-in length
-  dissolveSpeed:     0.7,    // multiplier on per-pill dissolve range
-  driftInset:        0.01,   // drift starts/ends inset from forge bounds
-  rotDriftFactor:    0.3,    // rotation increases 30% during drift
-  alphaCode:         0.75,   // code snippet opacity
-  alphaLogo:         0.85,   // logo opacity
-  alphaDefault:      0.75,   // other pill types
-} as const;
-
-/** Ember sparks — tiny rising particles during forge phase */
-const EMBER = {
-  delay:             0.04,   // start this far after forge
-  heatDuration:      0.08,   // each spark heats up
-  coolLead:          0.05,   // start cooling before phase end
-  riseDelay:         0.01,   // rise starts after phase begins
-  baseOpacity:       0.4,    // base brightness
-  flickerAmp:        0.3,    // flicker variation (+/- 30%)
-  flickerFreq:       80,     // flicker speed
-} as const;
-
-/** Grid atmosphere — faint dot grid behind fragments */
-const GRID = {
-  delay:             0.02,   // start after forge
-  overshoot:         0.01,   // extend past forge gate
-  appearDuration:    0.04,   // fade-in duration
-  fadeLead:          0.06,   // start fading before glow end
-  maxOpacity:        0.05,   // barely visible
-} as const;
-
-/** Thesis sentence — fades in, drifts, reveals words sequentially */
-const THESIS = {
-  fadeInFrac:        0.3,    // first 30% of duration
-  fadeOutFrac:       0.3,    // last 30% of duration
-  wordZoneFrac:      0.35,   // word reveals begin at 35%
-  driftFastWeight:   0.85,   // 85% drift before reveals
-  driftSlowWeight:   0.15,   // 15% drift during reveals
-  yStartLg:          4,      // desktop: start 4vh below center
-  yStartSm:         -4,      // mobile: start 4vh above center
-  yEndLg:           -8,      // desktop: drift to 8vh above
-  yEndSm:           -14,     // mobile: drift to 14vh above
-  initialBlur:       6,      // px blur at start
-  maxWidthLg:        "60vw",
-  maxWidthSm:        "85vw",
-  wordStagger:       0.01,   // gap between each word reveal
-  wordRevealDur:     0.007,  // each word's fade-in duration
-  wordDropPx:        10,     // each word drops from 10px above
-  wordCount:         4,      // "product", "systems", "people", "scale"
-} as const;
-
-/** Particle animation — canvas dots explode then converge to SVG positions */
-const PARTICLE = {
-  // Sub-phases (fractions of local 0–1 particle progress)
-  canvasInStart:     0.0,
-  canvasInEnd:       0.05,
-  explodeStart:      0.05,
-  explodeEnd:        0.2,
-  convergeStart:     0.2,
-  convergeEnd:       0.45,
-  fadeOutStart:      0.4,
-  fadeOutEnd:        0.55,
-  // Spawn randomization
-  angleSpread:       1.4,    // radians
-  radiusMin:         0.12,   // fraction of viewport
-  radiusRange:       0.28,
-  sizeMin:           2,      // px
-  sizeRange:         2.5,    // px
-  // Canvas render
-  appearDur:         0.015,  // fade-in duration
-  alphaCutoff:       0.01,   // skip below this (perf)
-  convergeShrink:    0.6,    // shrink to 60%
-  dotOpacity:        0.85,
-  glowOpacity:       0.25,
-  glowFade:          0.7,    // glow fades during convergence
-  glowRadius:        3,      // Nx dot size
-} as const;
-
-/** Canvas → SVG crossfade timing */
-const CANVAS_XFADE = {
-  inDuration:        0.01,   // canvas wrapper fade-in
-  outFrac:           0.35,   // canvas out at 35% of particle duration
-  outEndFrac:        0.5,    // canvas gone at 50%
-} as const;
-
-/** SVG funnel — ribbons, dots, labels, nodes */
-const FUNNEL = {
-  // Wrapper timing
-  svgInDuration:     0.02,
-  dotsInDuration:    0.03,
-  labelsLead:        0.02,   // labels start before SVG
-  labelsInDuration:  0.02,
-  convergePtOvershoot: 0.02, // diamond extends past last tier
-  // Dot visuals
-  dotStagger:        0.003,
-  dotScaleStart:     2,
-  dotScaleEnd:       1,
-  dotGlowStart:      6,      // px
-  dotGlowEnd:        3,      // px
-  // Label visuals
-  labelStagger:      0.002,
-  labelSlideY:       -10,    // px
-  // Company node badges
-  nodeAppearFrac:    0.7,    // 70% into ribbon tier
-  nodeSlideY:        8,      // px
-  // Convergence diamond
-  convergeMaxBlur:   12,     // px
-  // Narrator panels
-  narratorFadeInFrac:  0.15,
-  narratorFadeOutFrac: 0.85,
-  narratorMaxOpacity:  0.75,
-  narratorSlideY:      12,   // px
-  narratorTopFracs:    [0.28, 0.42, 0.58, 0.74] as readonly number[],
-  // Tier timing
-  narratorDelayFrac:   0.4,  // narrator starts 40% into tier
-  narratorOvershoot:   0.3,  // narrator lingers 30% past tier
-  captionOvershoot:    0.3,
-} as const;
-
-/** Mobile skill cards — replace funnel on phone screens */
-const MOBILE_SKILLS = {
-  appearDur:         0.03,
-  disappearDur:      0.015,
-  skillStagger:      0.005,
-  skillFadeDur:      0.02,
-  skillSlideX:       40,     // px
-  skillScaleStart:   0.8,
-} as const;
-
-/** Mid narrator — "Let me show you where I've been" */
-const MID_NARRATOR = {
-  delay:             0.005,  // starts just after funnel fades
-  duration:          0.035,
-  fadeDur:           0.005,  // very quick fade in/out
-  slideY:            10,     // px
-} as const;
-
-/** Terminal — code typing replay per company */
-const TERMINAL = {
-  fadeDur:           0.01,
-  companyCount:      4,
-  // Typing sub-phases (fraction of company progress)
-  typingP1:          0.2,    // first block done
-  typingP2:          0.35,   // second block done
-  typingP3:          0.48,   // third block done
-  narStart:          0.5,    // narrative begins
-  narEnd:            0.88,   // narrative complete
-  wipeStart:         0.9,
-  wipeEnd:           0.97,
-  wipeComplete:      0.99,
-  // Promotion highlight
-  promotionFg:       "#FBBF24",
-  promotionBg:       "rgba(251,191,36,0.08)",
-  // Dot indicator
-  dotActiveWidth:    "20px",
-  dotInactiveWidth:  "6px",
-  dotInactiveOpacity: 0.35,
-} as const;
-
-/** Terminal narrative sub-phases (within narStart→narEnd, mapped 0–1) */
-const TERMINAL_NARRATOR = {
-  sceneEnd:          0.4,
-  actionStart:       0.42,
-  actionEnd:         0.6,
-  shiftStart:        0.62,
-  shiftEnd:          0.8,
-  fadeoutStart:      0.9,
-  fadeoutEnd:        0.95,
-  headerFadeEnd:     0.1,
-  slideY:            8,      // px
-} as const;
-
-/** Crystallize — 4 principle cards fade in and settle */
-const CRYSTALLIZE = {
-  lineAppearStart:   0.15,
-  lineAppearEnd:     0.35,
-  lineOpacity:       0.3,
-  staggerFrac:       0.06,
-  fadeInStartFrac:   0.2,
-  fadeInEndFrac:     0.55,
-  settleStartFrac:   0.35,
-  settleEndFrac:     0.85,
-  yOffset:           6,      // vh
-  initialBlur:       6,      // px
-  mobileSpacing:     20,     // vh
-  mobileCenter:      1.5,
-  maxWidthLg:        "44vw",
-  maxWidthSm:        "min(320px, 85vw)",
-} as const;
-
-/** Chrome — debug overlay, title fade, curtain reveal */
-const CHROME = {
-  labelOpacity:      0.3,
-  titleSlowFadeMult: 3,
-  titleCurtainThreshold: 0.3,  // summary panel erases title at 30% up viewport
-  titleCurtainRange: 0.2,      // title fully erased over next 20%
-  curtainFadePx:     80,       // fragment curtain reveal gradient zone
-} as const;
-
-/* ---- Anchor: title starts near the top ---- */
-const TITLE_START = PHASES.titleAnchor;
-const TITLE_END   = TITLE_START + PHASES.title;
-
-/* ---- Forge overlaps with title (starts slightly after) ---- */
-const FORGE_START = TITLE_START + PHASES.forgeToTitle;
-const FORGE_END   = FORGE_START + PHASES.forge;
-const FORGE_GATE  = FORGE_END + PHASES.forgeTail;
-
-/* ---- Embers accompany the forge ---- */
-const EMBERS_START = FORGE_START + EMBER.delay;
-const EMBERS_END   = FORGE_GATE;
-
-/* ---- Atmosphere accompanies forge ---- */
-const GLOW_START = FORGE_START + GRID.delay;
-const GLOW_END   = FORGE_GATE + GRID.overshoot;
-
-/* ---- Thesis: crossfades in as seeds converge and fade ---- */
-const THESIS_START = FORGE_END - PHASES.thesisOverlap;
-const THESIS_END   = THESIS_START + PHASES.thesis;
-
-/* ---- Seed sub-phases (within FORGE range) ---- */
-const SEED_FADE_IN_START      = FORGE_START;
-const SEED_FADE_IN_END        = FORGE_START + SEED.fadeInDuration;
-const SEED_DRIFT_START        = FORGE_START + SEED.driftDelay;
-const SEED_DRIFT_END          = FORGE_END - SEED.driftMargin;
-const SEED_CONVERGE_START     = FORGE_END - SEED.convergeLead;
-const SEED_CONVERGE_END       = FORGE_END;
-const SEED_HEAT_START         = FORGE_START + SEED.heatDelay;
-const SEED_HEAT_END           = FORGE_END - SEED.heatMargin;
-const SEED_SCALE_SHRINK_START = FORGE_END + SEED.shrinkDelay;
-const SEED_SCALE_SHRINK_END   = FORGE_GATE;
-
-/* ---- Non-seed fragment sub-phases ---- */
-const FRAG_FADE_IN_START = FORGE_START - FRAGMENTS.earlyStart;
-const FRAG_FADE_IN_END   = FORGE_START + FRAGMENTS.fadeInDuration;
-
-/* ---- Particles: canvas explode + converge + handoff to SVG ---- */
-const PARTICLES_START = THESIS_END + PHASES.thesisToParticles;
-const PARTICLES_END   = PARTICLES_START + PHASES.particles;
-
-/* ---- Canvas sub-phases ---- */
-const CANVAS_IN_START  = PARTICLES_START;
-const CANVAS_IN_END    = PARTICLES_START + CANVAS_XFADE.inDuration;
-const CANVAS_OUT_START = PARTICLES_START + PHASES.particles * CANVAS_XFADE.outFrac;
-const CANVAS_OUT_END   = PARTICLES_START + PHASES.particles * CANVAS_XFADE.outEndFrac;
-
-/* ---- SVG funnel ---- */
-const SVG_IN_START    = CANVAS_OUT_START;
-const SVG_IN_END      = CANVAS_OUT_START + FUNNEL.svgInDuration;
-const DOTS_IN_START   = SVG_IN_START;
-const DOTS_IN_END     = SVG_IN_START + FUNNEL.dotsInDuration;
-const LABELS_IN_START = SVG_IN_START - FUNNEL.labelsLead;
-const LABELS_IN_END   = SVG_IN_START + FUNNEL.labelsInDuration;
-
-/* ---- Funnel ribbon tiers ---- */
-const RIBBON_START  = SVG_IN_END;
-const TIER_DURATION = PHASES.funnel / 4;
-const RIBBON_TIERS  = [0, 1, 2, 3].map((i) => ({
-  start: RIBBON_START + i * TIER_DURATION,
-  end:   RIBBON_START + (i + 1) * TIER_DURATION,
-}));
-const FUNNEL_COMPLETE = RIBBON_TIERS[3].end;
-
-/* ---- Convergence point + funnel fade ---- */
-const CONVERGE_PT_START = RIBBON_TIERS[3].start;
-const CONVERGE_PT_END   = FUNNEL_COMPLETE + FUNNEL.convergePtOvershoot;
-const FUNNEL_OUT_START  = FUNNEL_COMPLETE + PHASES.funnelLinger;
-const FUNNEL_OUT_END    = FUNNEL_OUT_START + PHASES.funnelFade;
-
-/* ---- Narrator panels (tied to funnel tiers) ---- */
-const NARRATOR_TIERS = RIBBON_TIERS.map((tier) => ({
-  start: tier.start + TIER_DURATION * FUNNEL.narratorDelayFrac,
-  end:   tier.end + TIER_DURATION * FUNNEL.narratorOvershoot,
-}));
-
-/* ---- Caption tiers ---- */
-const CAPTION_TIERS = RIBBON_TIERS.map((tier) => ({
-  start: tier.start,
-  end:   tier.end + TIER_DURATION * FUNNEL.captionOvershoot,
-}));
-
-/* ---- Mid narrator ("Let me show you...") ---- */
-const MID_NARRATOR_START = FUNNEL_OUT_END + MID_NARRATOR.delay;
-const MID_NARRATOR_END   = MID_NARRATOR_START + MID_NARRATOR.duration;
-
-/* ---- Terminal / Beats ---- */
-const BEATS_START = MID_NARRATOR_END + PHASES.funnelToTerminal;
-const BEATS = [0, 1, 2, 3].map((i) => ({
-  start: BEATS_START + i * PHASES.terminalCompany,
-  end: BEATS_START + (i + 1) * PHASES.terminalCompany,
-}));
-const BEATS_END = BEATS[3].end;
-
-/* ---- Crystallize ---- */
-const CRYSTALLIZE_START = BEATS_END + PHASES.terminalToCrystal;
-const CRYSTALLIZE_END = CRYSTALLIZE_START + PHASES.crystallize;
-
-/* ---- Chrome ---- */
-const CHROME_END = CRYSTALLIZE_START;
-
-/* ---- Assembled PH object (consumed by scroll callback) ---- */
-const PH = {
-  TITLE: { start: TITLE_START, end: TITLE_END },
-  FORGE: { start: FORGE_START, end: FORGE_END },
-  FORGE_GATE,
-  EMBERS: { start: EMBERS_START, end: EMBERS_END },
-  GLOW: { start: GLOW_START, end: GLOW_END },
-  THESIS: { start: THESIS_START, end: THESIS_END },
-  PARTICLES: { start: PARTICLES_START, end: PARTICLES_END },
-  CANVAS_OUT: { start: CANVAS_OUT_START, end: CANVAS_OUT_END },
-  SVG_IN: { start: SVG_IN_START, end: SVG_IN_END },
-  DOTS_IN: { start: DOTS_IN_START, end: DOTS_IN_END },
-  LABELS_IN: { start: LABELS_IN_START, end: LABELS_IN_END },
-  RIBBON_TIERS,
-  CONVERGE_PT: { start: CONVERGE_PT_START, end: CONVERGE_PT_END },
-  FUNNEL_OUT: { start: FUNNEL_OUT_START, end: FUNNEL_OUT_END },
-  CAPTION_TIERS,
-  NARRATOR_TIERS,
-  MID_NARRATOR: { start: MID_NARRATOR_START, end: MID_NARRATOR_END },
-  BEATS,
-  CRYSTALLIZE: { start: CRYSTALLIZE_START, end: CRYSTALLIZE_END },
-  CHROME_END,
-};
-
-// Canvas particle local phases (0–1 within PARTICLES range)
-const PP = {
-  CANVAS_IN: [PARTICLE.canvasInStart, PARTICLE.canvasInEnd] as const,
-  EXPLODE: [PARTICLE.explodeStart, PARTICLE.explodeEnd] as const,
-  CONVERGE: [PARTICLE.convergeStart, PARTICLE.convergeEnd] as const,
-  FADE_OUT: [PARTICLE.fadeOutStart, PARTICLE.fadeOutEnd] as const,
-};
+/* Scroll phases, config objects, and derived timing chain
+   imported from engineer-candidate.types.ts */
 
 function initParticles(): Particle[] {
   const particles: Particle[] = [];
@@ -969,14 +331,14 @@ export default function EngineerCandidate() {
   const midNarratorRef = useRef<HTMLDivElement>(null);
   const termProgressRefs = useRef<(HTMLDivElement | null)[]>([]);
   const termProgressWrapRef = useRef<HTMLDivElement>(null);
-  const principleEls = useRef<(HTMLDivElement | null)[]>([]);
+  /* principleEls moved to useCrystallize hook */
   const glowEl = useRef<HTMLDivElement>(null);
   const innerGlowEl = useRef<HTMLDivElement>(null);
   const flashEl = useRef<HTMLDivElement>(null);
   const gridEl = useRef<HTMLDivElement>(null);
   const vignetteEl = useRef<HTMLDivElement>(null);
   const beatGlowEl = useRef<HTMLDivElement>(null);
-  const crystLineEl = useRef<HTMLDivElement>(null);
+  /* crystLineEl moved to useCrystallize hook */
   /* scrollHintEl removed — ref was never rendered (P0.2) */
   const progressBarEl = useRef<HTMLDivElement>(null);
   const phaseEl = useRef<HTMLDivElement>(null);
@@ -1011,7 +373,8 @@ export default function EngineerCandidate() {
 
   /* ---- Data ---- */
   const fragments = useMemo(createFragments, []);
-  const principles = useMemo(createPrinciples, []);
+  /* principles moved to useCrystallize hook */
+  const crystallize = useCrystallize({ isLgRef: isLg, flashRef: flashEl });
   const embers = useMemo(createEmbers, []);
 
   /* ---- Title scramble ---- */
@@ -1492,43 +855,43 @@ export default function EngineerCandidate() {
               const visibleText = escapeHtml(line.text.slice(0, visibleChars));
               const isPartial = visibleChars < line.text.length;
 
-              const numStr = `<span style="color:${TC.lineNum};user-select:none;display:inline-block;width:3ch;text-align:right;margin-right:1.5ch;">${lineNum}</span>`;
+              const numStr = `<span style="color:${TERMINAL_COLORS.lineNumber};user-select:none;display:inline-block;width:3ch;text-align:right;margin-right:1.5ch;">${lineNum}</span>`;
 
-              let fg: string = TC.text;
-              let bg: string = "transparent";
+              let foreground: string = TERMINAL_COLORS.text;
+              let background: string = "transparent";
               let italic = false;
               switch (line.style) {
                 case "keyword":
-                  fg = TC.keyword;
+                  foreground = TERMINAL_COLORS.keyword;
                   break;
                 case "add":
-                  fg = TC.addedFg;
-                  bg = TC.addedBg;
+                  foreground = TERMINAL_COLORS.addedForeground;
+                  background = TERMINAL_COLORS.addedBackground;
                   break;
                 case "remove":
-                  fg = TC.removedFg;
-                  bg = TC.removedBg;
+                  foreground = TERMINAL_COLORS.removedForeground;
+                  background = TERMINAL_COLORS.removedBackground;
                   break;
                 case "comment":
-                  fg = TC.comment;
+                  foreground = TERMINAL_COLORS.comment;
                   italic = true;
                   break;
                 case "promotion":
-                  fg = TERMINAL.promotionFg;
-                  bg = TERMINAL.promotionBg;
+                  foreground = TERMINAL.promotionFg;
+                  background = TERMINAL.promotionBg;
                   break;
                 case "string":
-                  fg = TC.string;
+                  foreground = TERMINAL_COLORS.string;
                   break;
               }
 
               const cursor =
                 isPartial && !cursorPlaced
-                  ? `<span style="color:${TC.text};animation:blink 1s step-end infinite;">█</span>`
+                  ? `<span style="color:${TERMINAL_COLORS.text};animation:blink 1s step-end infinite;">█</span>`
                   : "";
               if (isPartial) cursorPlaced = true;
 
-              html += `<div style="background:${bg};min-height:1.5em;line-height:1.5;padding:0 1ch;">${numStr}<span style="color:${fg};${italic ? "font-style:italic;" : ""}">${visibleText}</span>${cursor}</div>`;
+              html += `<div style="background:${background};min-height:1.5em;line-height:1.5;padding:0 1ch;">${numStr}<span style="color:${foreground};${italic ? "font-style:italic;" : ""}">${visibleText}</span>${cursor}</div>`;
 
               charsSoFar += lineLen;
               lineNum++;
@@ -1625,33 +988,9 @@ export default function EngineerCandidate() {
     if (vignetteEl.current) vignetteEl.current.style.opacity = "0";
 
     /* ============================================================== */
-    /*  MOVEMENT 3: CRYSTALLIZE (PH.CRYSTALLIZE range)                  */
+    /*  MOVEMENT 3: CRYSTALLIZE — delegated to useCrystallize hook     */
     /* ============================================================== */
-    {
-      const cS = PH.CRYSTALLIZE.start,
-        cE = PH.CRYSTALLIZE.end,
-        cD = cE - cS;
-      if (flashEl.current) flashEl.current.style.opacity = "0";
-      if (crystLineEl.current) {
-        const appear = ss(cS + cD * CRYSTALLIZE.lineAppearStart, cS + cD * CRYSTALLIZE.lineAppearEnd, p);
-        crystLineEl.current.style.opacity = String(appear * CRYSTALLIZE.lineOpacity);
-        crystLineEl.current.style.transform = `translate(-50%, -50%) scaleX(${lerp(0, 1, appear)})`;
-      }
-      principles.forEach((pr, i) => {
-        const el = principleEls.current[i];
-        if (!el) return;
-        const stagger = i * cD * CRYSTALLIZE.staggerFrac;
-        const fadeIn = ss(cS + cD * CRYSTALLIZE.fadeInStartFrac + stagger, cS + cD * CRYSTALLIZE.fadeInEndFrac + stagger, p);
-        const settle = ss(cS + cD * CRYSTALLIZE.settleStartFrac + stagger, cS + cD * CRYSTALLIZE.settleEndFrac, p);
-        // Mobile: wider spacing between principles
-        const mobileYOffset = lg ? pr.yOffset : (i - CRYSTALLIZE.mobileCenter) * CRYSTALLIZE.mobileSpacing;
-        const y = lerp(mobileYOffset + CRYSTALLIZE.yOffset, mobileYOffset, settle);
-        el.style.transform = `translate(-50%, calc(-50% + ${y}vh))`;
-        el.style.opacity = String(fadeIn);
-        el.style.filter = `blur(${lerp(CRYSTALLIZE.initialBlur, 0, fadeIn)}px)`;
-        el.style.maxWidth = lg ? CRYSTALLIZE.maxWidthLg : CRYSTALLIZE.maxWidthSm;
-      });
-    }
+    crystallize.update(p);
   });
 
   /* ---- Particles driven from scroll progress (PARTICLES range → local 0–1) ---- */
@@ -1883,18 +1222,7 @@ export default function EngineerCandidate() {
               willChange: "opacity, background",
             }}
           />
-          <div
-            ref={crystLineEl}
-            aria-hidden
-            className="absolute left-1/2 top-1/2 pointer-events-none"
-            style={{
-              width: "30vw",
-              height: "1px",
-              background: "var(--gold-dim)",
-              opacity: 0,
-              willChange: "transform, opacity",
-            }}
-          />
+          {/* crystLineEl moved to useCrystallize hook */}
 
           {/* Embers */}
           {embers.map((e, i) => (
@@ -2161,7 +1489,7 @@ export default function EngineerCandidate() {
                   minHeight: "clamp(400px, 50cqh, 560px)",
                   borderRadius: "8px",
                   overflow: "hidden",
-                  background: TC.bg,
+                  background: TERMINAL_COLORS.background,
                   border: "1px solid rgba(255,255,255,0.06)",
                   boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
                   fontFamily: TERMINAL_FONT,
@@ -2178,7 +1506,7 @@ export default function EngineerCandidate() {
                     alignItems: "center",
                     gap: "6px",
                     padding: "8px 12px",
-                    background: TC.topBar,
+                    background: TERMINAL_COLORS.topBar,
                     borderBottom: "1px solid rgba(255,255,255,0.04)",
                   }}>
                   <div
@@ -2186,7 +1514,7 @@ export default function EngineerCandidate() {
                       width: 10,
                       height: 10,
                       borderRadius: "50%",
-                      background: TC.dotRed,
+                      background: TERMINAL_COLORS.dotRed,
                     }}
                   />
                   <div
@@ -2194,7 +1522,7 @@ export default function EngineerCandidate() {
                       width: 10,
                       height: 10,
                       borderRadius: "50%",
-                      background: TC.dotYellow,
+                      background: TERMINAL_COLORS.dotYellow,
                     }}
                   />
                   <div
@@ -2202,7 +1530,7 @@ export default function EngineerCandidate() {
                       width: 10,
                       height: 10,
                       borderRadius: "50%",
-                      background: TC.dotGreen,
+                      background: TERMINAL_COLORS.dotGreen,
                     }}
                   />
                   <span
@@ -2223,7 +1551,7 @@ export default function EngineerCandidate() {
                       padding: "12px 0",
                       margin: 0,
                       overflow: "hidden",
-                      color: TC.text,
+                      color: TERMINAL_COLORS.text,
                       lineHeight: 1.5,
                       fontSize: "clamp(10px, 1.5cqh, 13px)",
                       whiteSpace: "pre-wrap",
@@ -2235,7 +1563,7 @@ export default function EngineerCandidate() {
                     style={{
                       position: "absolute",
                       inset: 0,
-                      background: TC.bg,
+                      background: TERMINAL_COLORS.background,
                       opacity: 0,
                       pointerEvents: "none",
                     }}
@@ -2406,7 +1734,7 @@ export default function EngineerCandidate() {
                               width: "100%",
                               borderRadius: "10px",
                               overflow: "hidden",
-                              background: TC.bg,
+                              background: TERMINAL_COLORS.background,
                               border: "1px solid rgba(255,255,255,0.06)",
                               boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
                             }}>
@@ -2416,9 +1744,9 @@ export default function EngineerCandidate() {
                                 alignItems: "center",
                                 gap: "5px",
                                 padding: "6px 10px",
-                                background: TC.topBar,
+                                background: TERMINAL_COLORS.topBar,
                               }}>
-                              {[TC.dotRed, TC.dotYellow, TC.dotGreen].map(
+                              {[TERMINAL_COLORS.dotRed, TERMINAL_COLORS.dotYellow, TERMINAL_COLORS.dotGreen].map(
                                 (c) => (
                                   <div
                                     key={c}
@@ -2449,16 +1777,16 @@ export default function EngineerCandidate() {
                                 fontFamily: TERMINAL_FONT,
                                 fontSize: "10px",
                                 lineHeight: 1.7,
-                                color: TC.text,
+                                color: TERMINAL_COLORS.text,
                                 whiteSpace: "pre-wrap",
                               }}>
-                              <span style={{ color: TC.keyword }}>
+                              <span style={{ color: TERMINAL_COLORS.keyword }}>
                                 {co.commitType}: {co.commitMsg}
                               </span>
                               {co.insight.map((line, li) => (
                                 <span key={li}>
                                   {"\n"}
-                                  <span style={{ color: TC.comment }}>
+                                  <span style={{ color: TERMINAL_COLORS.comment }}>
                                     {line}
                                   </span>
                                 </span>
@@ -2537,40 +1865,8 @@ export default function EngineerCandidate() {
             ))}
           </div>
 
-          {/* Principles (crystallize) */}
-          {principles.map((pr, i) => (
-            <div
-              key={`principle-${i}`}
-              ref={(el) => {
-                principleEls.current[i] = el;
-              }}
-              className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
-              style={{
-                opacity: 0,
-                maxWidth: "44vw",
-                willChange: "transform, opacity, filter",
-              }}>
-              <span
-                className="font-sans uppercase tracking-widest block"
-                style={{
-                  fontSize: "0.6rem",
-                  letterSpacing: "0.18em",
-                  color: fc(i, 0.45),
-                  marginBottom: "0.35rem",
-                }}>
-                {COMPANIES[i].company}
-              </span>
-              <span
-                className="font-serif block"
-                style={{
-                  fontSize: "clamp(0.9rem, 1.8vw, 1.3rem)",
-                  lineHeight: 1.55,
-                  color: "var(--cream)",
-                }}>
-                {pr.text}
-              </span>
-            </div>
-          ))}
+          {/* Principles (crystallize) — rendered by useCrystallize hook */}
+          {crystallize.jsx}
 
           {/* Particle canvas (inside sticky, driven by forge progress) — hidden on phone */}
           <div
