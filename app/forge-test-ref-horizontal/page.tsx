@@ -9,9 +9,9 @@ import {
   hFlowPath,
   computeHLayout,
   type StreamPos,
-} from "../forge-sankey-data";
+} from "../sankey-data";
 import { DL_SVG_STYLE } from "../forge-element-map";
-import { ForgeNav } from "../forge-nav";
+import { DevNav } from "../dev-nav";
 
 /* ================================================================== */
 /*  Constants                                                         */
@@ -247,7 +247,7 @@ export default function ForgeTestV1() {
       className="relative"
       style={{ height: `${RUNWAY_VH}vh`, background: "var(--bg)" }}
     >
-      <ForgeNav />
+      <DevNav />
       {/* Sticky viewport */}
       <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
         {/* Title */}

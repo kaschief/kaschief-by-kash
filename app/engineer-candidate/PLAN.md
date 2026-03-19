@@ -6,7 +6,7 @@ Act II tells the story of an engineering career through scroll-driven phases. Th
 
 ## Scroll Sequence (inside 2000vh sticky container)
 
-### Phase 1: Title + Fragments (forge progress 0.00–0.25)
+### Phase 1: Title + Fragments (convergence progress 0.00–0.25)
 - "ACT II / THE ENG1NEER" title with ScrambleWord animation
 - Floating fragments: logos (real Simple Icons SVGs), code snippets (IDE-styled), seed words, phrases
 - Fragments drift, converge, heat, dissolve — representing the ecosystem of tools/skills
@@ -64,7 +64,7 @@ Act II tells the story of an engineering career through scroll-driven phases. Th
 
 ## Key Technical Decisions
 
-### Scroll Phases Config (PH object)
+### Scroll Phases Config (SCROLL_PHASES object)
 - All phases derived from `CONTAINER_VH` using `vhToP()` function
 - Prevents timing regressions when container height changes
 - CONSTRAINT: summary panel arrives at ~vhToP(100) — title must end before this
@@ -78,7 +78,7 @@ Act II tells the story of an engineering career through scroll-driven phases. Th
 
 ### Funnel
 - SVG viewBox 1000×800, preserveAspectRatio xMidYMid meet
-- 9 streams from forge-sankey-data.ts (STREAMS, NODES)
+- 9 streams from sankey-data.ts (STREAMS, NODES)
 - Ribbon gradients: 0.6/0.95 opacity (vivid, not washed)
 - No company node dots on tier lines
 - Convergence: gold diamond + white "The Engineer I Became" text
@@ -111,13 +111,13 @@ Act II tells the story of an engineering career through scroll-driven phases. Th
 - Logo links to official sites (in a static section, not during animation)
 - Horizontal Sankey for per-job detail pages (zooming into one company)
 - V15 Particle Scribe could be used for a different section
-- V19 Particle Forge could replace the current forge phase
+- V19 Particle Forge could replace the current convergence phase
 
 ## File Structure
 | File | What it is |
 |------|-----------|
 | `page.tsx` | Single-file workstation with all scroll phases |
-| `forge-data.tsx` | Types, logo SVGs, fragment factories, beat data, colors |
+| `engineer-data.tsx` | Types, logo SVGs, fragment factories, beat data, colors |
 | `PLAN.md` | This file — the living development plan |
 
 ## User Preferences (CRITICAL)

@@ -15,7 +15,7 @@ const VARIANTS = [
   { href: "/forge-test-v29", label: "V29 Focus" },
 ];
 
-export function ForgeNav() {
+export function DevNav() {
   const pathname = usePathname();
 
   return (

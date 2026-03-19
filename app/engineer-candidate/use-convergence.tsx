@@ -12,8 +12,8 @@ import {
 } from "./engineer-data";
 import {
   SEED, FRAGMENTS, EMBER, GRID, THESIS, CHROME, PHASES,
-  PH,
-  FORGE_START, FORGE_END,
+  SCROLL_PHASES,
+  CONVERGENCE_START, CONVERGENCE_END,
   EMBERS_START, EMBERS_END, GLOW_START, GLOW_END,
   SEED_FADE_IN_START, SEED_FADE_IN_END,
   SEED_DRIFT_START, SEED_DRIFT_END,
@@ -25,11 +25,11 @@ import {
 } from "./engineer-candidate.types";
 
 /**
- * Forge Fragments hook — owns fragment/ember/glow/grid/thesis
+ * Convergence hook — owns fragment/ember/glow/grid/thesis
  * scroll animation and JSX. Called per-frame from the parent
  * scroll callback via `update()`.
  */
-export function useForgeFragments() {
+export function useConvergence() {
   /* ---- Refs ---- */
   const fragmentEls = useRef<(HTMLElement | null)[]>([]);
   const emberEls = useRef<(HTMLDivElement | null)[]>([]);
@@ -53,7 +53,7 @@ export function useForgeFragments() {
     const CURTAIN_FADE = CHROME.curtainFadePx;
 
     /* ---- Fragments ---- */
-    if (progress < PH.FORGE_GATE) {
+    if (progress < SCROLL_PHASES.CONVERGENCE_GATE) {
       fragments.forEach((fragment, i) => {
         const element = fragmentEls.current[i];
         if (!element) return;
@@ -99,7 +99,7 @@ export function useForgeFragments() {
         } else {
           const fadeIn = smoothstep(FRAG_FADE_IN_START, FRAG_FADE_IN_END, progress),
             fadeOut = 1 - smoothstep(fragment.dissolveStart * FRAGMENTS.dissolveSpeed, fragment.dissolveEnd * FRAGMENTS.dissolveSpeed, progress);
-          const drift = smoothstep(FORGE_START + FRAGMENTS.driftInset, FORGE_END - FRAGMENTS.driftInset, progress),
+          const drift = smoothstep(CONVERGENCE_START + FRAGMENTS.driftInset, CONVERGENCE_END - FRAGMENTS.driftInset, progress),
             dissolve = smoothstep(fragment.dissolveStart * FRAGMENTS.dissolveSpeed, fragment.dissolveEnd * FRAGMENTS.dissolveSpeed, progress);
           const translateX = fragment.x0 + fragment.dx * drift,
             translateY = fragment.y0 + fragment.dy * drift,
@@ -150,7 +150,7 @@ export function useForgeFragments() {
       element.style.opacity = String(active * (EMBER.baseOpacity + Math.sin(progress * EMBER.flickerFreq + i) * EMBER.flickerAmp));
     });
 
-    /* ---- Forge atmosphere — disabled, no visible glows ---- */
+    /* ---- Convergence atmosphere — disabled, no visible glows ---- */
     if (glowEl.current) glowEl.current.style.opacity = "0";
     if (innerGlowEl.current) innerGlowEl.current.style.opacity = "0";
     if (gridEl.current) {
@@ -260,7 +260,7 @@ export function useForgeFragments() {
         />
       ))}
 
-      {/* Forge fragments — scale down on mobile for less clutter */}
+      {/* Convergence fragments — scale down on mobile for less clutter */}
       {fragments.map((fragment, i) => {
         const setRef = (element: HTMLElement | null) => {
           fragmentEls.current[i] = element;

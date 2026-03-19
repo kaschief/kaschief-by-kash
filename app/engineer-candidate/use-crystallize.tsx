@@ -4,7 +4,7 @@ import { useRef, useMemo, type RefObject } from "react";
 import { COMPANIES } from "@data";
 import { smoothstep, lerp } from "./math";
 import { fc, createPrinciples } from "./engineer-data";
-import { CRYSTALLIZE, PH } from "./engineer-candidate.types";
+import { CRYSTALLIZE, SCROLL_PHASES } from "./engineer-candidate.types";
 
 interface CrystallizeOptions {
   isLgRef: RefObject<boolean>;
@@ -23,8 +23,8 @@ export function useCrystallize({ isLgRef, flashRef }: CrystallizeOptions) {
 
   function update(progress: number) {
     const isDesktop = isLgRef.current;
-    const phaseStart = PH.CRYSTALLIZE.start;
-    const phaseEnd = PH.CRYSTALLIZE.end;
+    const phaseStart = SCROLL_PHASES.CRYSTALLIZE.start;
+    const phaseEnd = SCROLL_PHASES.CRYSTALLIZE.end;
     const phaseDuration = phaseEnd - phaseStart;
 
     // Reset flash overlay from previous phase

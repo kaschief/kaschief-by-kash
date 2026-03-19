@@ -5,7 +5,7 @@
  *
  * Structure:
  *   Container (2000vh — see CONTAINER_VH)
- *     └─ Sticky viewport (V0's complete scroll: forge + thesis + beats + crystallize)
+ *     └─ Sticky viewport (V0's complete scroll: convergence + thesis + beats + crystallize)
  *     └─ Summary panel (inside container, scrolls up over sticky — exactly like V0)
  *   ParticleSection (800vh)
  *     └─ Sticky viewport (explosion + fall + funnel)
@@ -20,32 +20,11 @@ import {
 } from "framer-motion";
 import { ACT_II } from "@data";
 import { usePathname } from "next/navigation";
-import { ForgeNav } from "../forge-nav";
+import { DevNav } from "../dev-nav";
 import { smoothstep } from "./math";
-import {
-  /* fc moved to useCrystallize */
-  /* fcExt, CC_EXT, LOGOS, createFragments, createEmbers moved to useForgeFragments */
-  ACT_BLUE,
-  /* hashToUnit moved to useParticleFunnel */
-  /* COMPANY_COLORS, COMPANY_ROLES moved to useTerminalReplay */
-  /* createPrinciples moved to useCrystallize */
-  phaseLabel,
-  CONTENT,
-} from "./engineer-data";
+import { ACT_BLUE, phaseLabel, CONTENT } from "./engineer-data";
 import { BREAKPOINTS } from "@utilities";
-import {
-  CONTAINER_VH,
-  /* PARTICLE, FUNNEL, MOBILE_SKILLS, MID_NARRATOR moved to useParticleFunnel */
-  /* TERMINAL, TERMINAL_NARRATOR moved to useTerminalReplay */
-  CHROME,
-  /* CRYSTALLIZE moved to useCrystallize */
-  /* SEED, FRAGMENTS, EMBER, GRID, THESIS, PHASES, FORGE_START, FORGE_END,
-     EMBERS_START, EMBERS_END, GLOW_START, GLOW_END, THESIS_START, THESIS_END,
-     SEED_*,  FRAG_* moved to useForgeFragments */
-  PH,
-  /* PP, PARTICLES_START, CANVAS_*, SVG_*, DOTS_*, LABELS_*, RIBBON_TIERS,
-     CONVERGE_PT_*, FUNNEL_OUT_END, NARRATOR_TIERS, MID_NARRATOR_* moved to useParticleFunnel */
-} from "./engineer-candidate.types";
+import { CONTAINER_VH, CHROME, SCROLL_PHASES } from "./engineer-candidate.types";
 
 /* ================================================================== */
 /*  Breakpoint refs (no-re-render, matches Act I pattern)              */
@@ -70,10 +49,9 @@ function useBreakpointRefs() {
 /* Sub-hooks — each owns a scroll section */
 import { useCrystallize } from "./use-crystallize";
 import { useTerminalReplay } from "./use-terminal-replay";
-import { useForgeFragments } from "./use-forge-fragments";
+import { useConvergence } from "./use-convergence";
 import { useParticleFunnel } from "./use-particle-funnel";
 
-/* remap() imported from ./math */
 
 /* ================================================================== */
 /*  V0: ScrambleText                                                   */
@@ -130,8 +108,6 @@ function ScrambleWord({ text, active }: { text: string; active: boolean }) {
   return <>{display}</>;
 }
 
-/* Particle types, funnel layout, initParticles moved to useParticleFunnel hook */
-
 /* ================================================================== */
 /*  Component                                                          */
 /* ================================================================== */
@@ -140,36 +116,23 @@ export default function EngineerCandidate() {
   const { isLg } = useBreakpointRefs();
   const isStandalone = usePathname() === "/engineer-candidate";
 
-  /* ---- V0 refs ---- */
-  const forgeStickyRef = useRef<HTMLDivElement>(null);
+  /* ---- Refs owned by this orchestrator ---- */
+  const stickyViewportRef = useRef<HTMLDivElement>(null);
   const summaryPanelRef = useRef<HTMLDivElement>(null);
-  const forgeContainerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const titleInViewRef = useRef<HTMLDivElement>(null);
-  /* fragmentEls, emberEls, thesisEls, thesisWordRefs, glowEl, innerGlowEl, gridEl
-     moved to useForgeFragments hook */
-  /* terminalRef, termContentRef, termWipeRef, termNarrativeRef,
-     termLastStateRef, termProgressRefs, termProgressWrapRef,
-     mobileCarouselRef, mobileCardRefs — moved to useTerminalReplay */
-  /* midNarratorRef moved to useParticleFunnel hook */
-  /* principleEls moved to useCrystallize hook */
   const flashEl = useRef<HTMLDivElement>(null);
   const vignetteEl = useRef<HTMLDivElement>(null);
   const beatGlowEl = useRef<HTMLDivElement>(null);
-  /* crystLineEl moved to useCrystallize hook */
-  /* scrollHintEl removed — ref was never rendered (P0.2) */
   const progressBarEl = useRef<HTMLDivElement>(null);
   const phaseEl = useRef<HTMLDivElement>(null);
 
-  /* ---- Particle/funnel/mobile-skill/canvas refs moved to useParticleFunnel ---- */
-
-  /* ---- Data ---- */
-  /* fragments + embers moved to useForgeFragments hook */
-  const forgeFragments = useForgeFragments();
-  /* principles moved to useCrystallize hook */
+  /* ---- Animation hooks (each owns its refs + scroll update + JSX) ---- */
+  const convergence = useConvergence();
   const crystallize = useCrystallize({ isLgRef: isLg, flashRef: flashEl });
   const terminalReplay = useTerminalReplay({
-    forgeContainerRef,
+    scrollContainerRef,
     beatGlowEl,
     vignetteEl,
   });
@@ -182,35 +145,34 @@ export default function EngineerCandidate() {
     if (titleInView) setTitleActive(true);
   }, [titleInView]);
 
-  /* ---- Forge scroll (V0 — 2000vh) ---- */
-  const { scrollYProgress: forgeProgress } = useScroll({
-    target: forgeContainerRef,
+  /* ---- Scroll progress (V0 — 2000vh) ---- */
+  const { scrollYProgress: scrollProgress } = useScroll({
+    target: scrollContainerRef,
     offset: ["start start", "end end"],
   });
 
-  useMotionValueEvent(forgeProgress, "change", (progress) => {
+  useMotionValueEvent(scrollProgress, "change", (progress) => {
     /* ---- Curtain edge: where the summary panel top is on screen ---- */
     let curtainTop = window.innerHeight; // default: off-screen (no curtain)
     if (summaryPanelRef.current) {
-      const st = summaryPanelRef.current.getBoundingClientRect().top;
-      if (st < window.innerHeight) curtainTop = Math.max(0, st);
+      const summaryTop = summaryPanelRef.current.getBoundingClientRect().top;
+      if (summaryTop < window.innerHeight) curtainTop = Math.max(0, summaryTop);
     }
 
-    /* ---- Chrome ---- */
-    /* scrollHintEl removed — was never rendered */
+    /* ---- Chrome (debug overlay) ---- */
     if (progressBarEl.current)
       progressBarEl.current.style.width = `${progress * 100}%`;
     if (phaseEl.current) {
       phaseEl.current.textContent = phaseLabel(progress);
       phaseEl.current.style.opacity = String(
-        progress > PH.TITLE.start && progress < PH.CHROME_END ? CHROME.labelOpacity : 0,
+        progress > SCROLL_PHASES.TITLE.start && progress < SCROLL_PHASES.CHROME_END ? CHROME.labelOpacity : 0,
       );
     }
 
     /* ---- Title fade: slow scroll fade + fast erase when panel arrives ---- */
     if (titleRef.current) {
       // Slow fade over a wide scroll range
-      const slowFade = 1 - smoothstep(PH.TITLE.start, PH.TITLE.end * CHROME.titleSlowFadeMult, progress);
+      const slowFade = 1 - smoothstep(SCROLL_PHASES.TITLE.start, SCROLL_PHASES.TITLE.end * CHROME.titleSlowFadeMult, progress);
       // Fast erase when panel is on-screen — same curtainReveal as fragments
       const curtainFade =
         curtainTop >= window.innerHeight
@@ -224,11 +186,11 @@ export default function EngineerCandidate() {
     }
 
     /* ============================================================== */
-    /*  MOVEMENT 1: THE FORGE — delegated to useForgeFragments         */
+    /*  MOVEMENT 1: CONVERGENCE — delegated to useConvergence          */
     /* ============================================================== */
     const viewportHeight = window.innerHeight;
     const isDesktop = isLg.current;
-    forgeFragments.update(progress, isDesktop, curtainTop, viewportHeight);
+    convergence.update(progress, isDesktop, curtainTop, viewportHeight);
 
     /* ============================================================== */
     /*  PARTICLES → DOTS → RIBBONS + MID NARRATOR                      */
@@ -247,26 +209,24 @@ export default function EngineerCandidate() {
     crystallize.update(progress);
   });
 
-  /* handleResize, particle animation loop moved to useParticleFunnel hook */
-
   /* ================================================================ */
   /*  JSX                                                              */
   /* ================================================================ */
 
   return (
     <>
-      {isStandalone && <ForgeNav />}
+      {isStandalone && <DevNav />}
 
       {/* ============================================================ */}
-      {/*  FORGE CONTAINER (2000vh) — V0's complete sequence            */}
+      {/*  SCROLL CONTAINER (2000vh) — V0's complete sequence           */}
       {/* ============================================================ */}
       <div
-        ref={forgeContainerRef}
+        ref={scrollContainerRef}
         data-sticky-zone
         style={{ height: `${CONTAINER_VH}vh` }}
         className="relative">
         <div
-          ref={forgeStickyRef}
+          ref={stickyViewportRef}
           className="sticky top-0 h-screen w-full overflow-hidden [container-type:size] [--frag-scale:0.6] sm:[--frag-scale:0.85]"
           style={{ background: "var(--bg)", zIndex: 1 }}>
           <div
@@ -275,8 +235,8 @@ export default function EngineerCandidate() {
             style={{ height: 0, opacity: 0, background: "var(--bg)" }}
           />
 
-          {/* Forge atmosphere, glow, embers — rendered by useForgeFragments hook */}
-          {forgeFragments.jsx}
+          {/* Convergence atmosphere, glow, embers — rendered by useConvergence hook */}
+          {convergence.jsx}
 
           <div
             ref={vignetteEl}
@@ -311,8 +271,6 @@ export default function EngineerCandidate() {
               willChange: "opacity, background",
             }}
           />
-          {/* crystLineEl moved to useCrystallize hook */}
-
           {/* Title */}
           <div
             ref={titleRef}
@@ -359,10 +317,9 @@ export default function EngineerCandidate() {
             </div>
           </div>
 
-          {/* Forge fragments + thesis — rendered above by forgeFragments.jsx */}
+          {/* Convergence fragments + thesis — rendered by useConvergence hook */}
 
-          {/* Particle canvas, funnel SVG, narrator panels, mobile skills, mid narrator
-              — rendered by useParticleFunnel hook */}
+          {/* Particle canvas, funnel SVG, narrator panels, mobile skills, mid narrator — rendered by useParticleFunnel hook */}
           {particleFunnel.jsx}
 
           {/* Terminal + Narrative + Dot indicator — rendered by useTerminalReplay hook */}
@@ -451,7 +408,6 @@ export default function EngineerCandidate() {
         </div>
       </div>
 
-      {/* Particle + scatter sections removed — particles now inside sticky viewport */}
     </>
   );
 }

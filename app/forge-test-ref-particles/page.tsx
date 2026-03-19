@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
-import { STREAMS, NODES, smoothstep, lerp } from "../forge-sankey-data";
+import { STREAMS, NODES, smoothstep, lerp } from "../sankey-data";
 import { DL } from "../forge-element-map";
-import { ForgeNav } from "../forge-nav";
+import { DevNav } from "../dev-nav";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -405,7 +405,7 @@ export default function ForgeTestV5() {
       ref={containerRef}
       style={{ height: "600vh", background: "#07070A" }}
     >
-      <ForgeNav />
+      <DevNav />
       {/* Sticky viewport */}
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         {/* Title */}

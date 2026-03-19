@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useCallback } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
-import { ForgeNav } from "../forge-nav";
+import { DevNav } from "../dev-nav";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -474,7 +474,7 @@ export default function ForgeTestV19() {
       ref={containerRef}
       style={{ height: "1200vh", background: "var(--bg)" }}
     >
-      <ForgeNav />
+      <DevNav />
 
       {/* Sticky viewport */}
       <div

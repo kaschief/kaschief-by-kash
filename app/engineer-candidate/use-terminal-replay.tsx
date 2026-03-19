@@ -14,7 +14,7 @@ import { COMPANY_COLORS, COMPANY_ROLES, CONTENT } from "./engineer-data";
 import {
   TERMINAL,
   TERMINAL_NARRATOR,
-  PH,
+  SCROLL_PHASES,
 } from "./engineer-candidate.types";
 import {
   TERMINAL_COLORS,
@@ -32,7 +32,7 @@ import {
 
 interface TerminalReplayOptions {
   /** Scroll container — needed for dot-click scroll-to */
-  forgeContainerRef: RefObject<HTMLDivElement | null>;
+  scrollContainerRef: RefObject<HTMLDivElement | null>;
   /** Beat glow overlay — reset to opacity 0 */
   beatGlowEl: RefObject<HTMLDivElement | null>;
   /** Vignette overlay — reset to opacity 0 */
@@ -44,7 +44,7 @@ interface TerminalReplayOptions {
 /* ------------------------------------------------------------------ */
 
 export function useTerminalReplay({
-  forgeContainerRef,
+  scrollContainerRef,
   beatGlowEl,
   vignetteEl,
 }: TerminalReplayOptions) {
@@ -69,8 +69,8 @@ export function useTerminalReplay({
     const termWipe = termWipeRef.current;
 
     // Terminal + mobile carousel timing (shared scroll phase)
-    const termStart = PH.BEATS[0].start;
-    const termEnd = PH.BEATS[3].end;
+    const termStart = SCROLL_PHASES.BEATS[0].start;
+    const termEnd = SCROLL_PHASES.BEATS[3].end;
     const termIn = smoothstep(termStart, termStart + TERMINAL.fadeDur, progress);
     const termOut = 1 - smoothstep(termEnd - TERMINAL.fadeDur, termEnd, progress);
 
@@ -118,11 +118,11 @@ export function useTerminalReplay({
 
       if (termEl && termContent && termWipe) {
         // Phase boundaries — terminal types in first half, narrative reveals in second
-        const P1_END = TERMINAL.typingP1,
-          P2_END = TERMINAL.typingP2,
-          P3_END = TERMINAL.typingP3;
-        const NAR_START = TERMINAL.narStart,
-          NAR_END = TERMINAL.narEnd;
+        const TYPING_PHASE_1_END = TERMINAL.typingP1,
+          TYPING_PHASE_2_END = TERMINAL.typingP2,
+          TYPING_PHASE_3_END = TERMINAL.typingP3;
+        const NARRATIVE_START = TERMINAL.narStart,
+          NARRATIVE_END = TERMINAL.narEnd;
 
         // Wipe — only at very end, AFTER narrative finishes
         const wipeProgress = smoothstep(
@@ -145,19 +145,19 @@ export function useTerminalReplay({
 
           // How many chars to reveal
           let charsToShow = 0;
-          if (companyProgress <= P1_END) {
+          if (companyProgress <= TYPING_PHASE_1_END) {
             charsToShow = Math.floor(
-              remap(companyProgress, 0, P1_END, 0, charCounts.p1),
+              remap(companyProgress, 0, TYPING_PHASE_1_END, 0, charCounts.p1),
             );
-          } else if (companyProgress <= P2_END) {
+          } else if (companyProgress <= TYPING_PHASE_2_END) {
             charsToShow =
               charCounts.p1 +
-              Math.floor(remap(companyProgress, P1_END, P2_END, 0, charCounts.p2));
-          } else if (companyProgress <= P3_END) {
+              Math.floor(remap(companyProgress, TYPING_PHASE_1_END, TYPING_PHASE_2_END, 0, charCounts.p2));
+          } else if (companyProgress <= TYPING_PHASE_3_END) {
             charsToShow =
               charCounts.p1 +
               charCounts.p2 +
-              Math.floor(remap(companyProgress, P2_END, P3_END, 0, charCounts.p3));
+              Math.floor(remap(companyProgress, TYPING_PHASE_2_END, TYPING_PHASE_3_END, 0, charCounts.p3));
           } else {
             charsToShow = charCounts.total;
           }
@@ -238,12 +238,12 @@ export function useTerminalReplay({
         const narrativeElement = termNarrativeRef.current;
         if (narrativeElement) {
           const narrative = TERM_NARRATIVES[companyIdx];
-          // Map NAR_START..NAR_END to 0..1
+          // Map NARRATIVE_START..NARRATIVE_END to 0..1
           const narrativeProgress = Math.max(
             0,
             Math.min(
               1,
-              (companyProgress - NAR_START) / (NAR_END - NAR_START),
+              (companyProgress - NARRATIVE_START) / (NARRATIVE_END - NARRATIVE_START),
             ),
           );
           const sceneReveal = smoothstep(0, TERMINAL_NARRATOR.sceneEnd, narrativeProgress);
@@ -697,9 +697,9 @@ export function useTerminalReplay({
               termProgressRefs.current[i] = element;
             }}
             onClick={() => {
-              const beatDur = PH.BEATS[i].end - PH.BEATS[i].start;
-              const target = PH.BEATS[i].start + beatDur * 0.1;
-              const container = forgeContainerRef.current;
+              const beatDur = SCROLL_PHASES.BEATS[i].end - SCROLL_PHASES.BEATS[i].start;
+              const target = SCROLL_PHASES.BEATS[i].start + beatDur * 0.1;
+              const container = scrollContainerRef.current;
               if (!container) return;
               const containerTop =
                 container.getBoundingClientRect().top + window.scrollY;

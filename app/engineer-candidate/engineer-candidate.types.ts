@@ -12,7 +12,7 @@ import type { MotionValue } from "framer-motion";
    SHARED PROPS — passed from parent orchestrator to each sub-component
    ================================================================== */
 
-export interface ForgeScrollProps {
+export interface ScrollAnimationProps {
   progress: MotionValue<number>;
   curtainTopRef: React.MutableRefObject<number>;
   isLg: React.MutableRefObject<boolean>;
@@ -55,9 +55,9 @@ export const CONTAINER_VH = 2000;
 /** Top-level phase durations — how much scroll each section occupies */
 export const PHASES = {
   title:            0.032,
-  forge:            0.18,   // fragments drift + converge
-  forgeTail:        0.04,   // extra time after convergence for cleanup
-  thesisOverlap:    0.04,   // thesis starts this far before forge ends (crossfade)
+  convergence:      0.18,   // fragments drift + converge
+  convergenceTail:  0.04,   // extra time after convergence for cleanup
+  thesisOverlap:    0.04,   // thesis starts this far before convergence ends (crossfade)
   thesis:           0.10,   // sentence visible + word reveals
   thesisToParticles:0.0,    // gap (0 = immediate)
   particles:        0.14,   // canvas dots explode → converge to SVG
@@ -69,20 +69,20 @@ export const PHASES = {
   terminalToCrystal:0.015,  // gap between terminal and crystallize
   crystallize:      0.08,   // principle cards appear + settle
   titleAnchor:      0.005,  // title starts this far into scroll
-  forgeToTitle:     0.025,  // forge starts this far after title
+  convergenceToTitle: 0.025, // convergence starts this far after title
 } as const;
 
 /** Seed keywords — colored words that drift, converge, and fade */
 export const SEED = {
-  // Timing offsets (relative to forge start/end)
+  // Timing offsets (relative to convergence start/end)
   fadeInDuration:    0.05,   // appear from blur
   fadeoutDuration:   0.05,   // fade during convergence — must finish before thesis
-  driftDelay:        0.02,   // drift starts after forge begins
-  driftMargin:       0.03,   // drift ends before forge ends
-  convergeLead:      0.07,   // pull toward center before forge ends
-  heatDelay:         0.07,   // scale-up starts after forge
-  heatMargin:        0.02,   // heat ends before forge ends
-  shrinkDelay:       0.005,  // shrink starts after forge ends (tail)
+  driftDelay:        0.02,   // drift starts after convergence begins
+  driftMargin:       0.03,   // drift ends before convergence ends
+  convergeLead:      0.07,   // pull toward center before convergence ends
+  heatDelay:         0.07,   // scale-up starts after convergence
+  heatMargin:        0.02,   // heat ends before convergence ends
+  shrinkDelay:       0.005,  // shrink starts after convergence ends (tail)
   // Visual
   heatMaxScale:      1.3,    // 130% at peak heat
   shrinkMinScale:    0.5,    // 50% during tail
@@ -95,16 +95,16 @@ export const FRAGMENTS = {
   earlyStart:        0.01,   // appear slightly before seeds
   fadeInDuration:     0.05,   // fade-in length
   dissolveSpeed:     0.7,    // multiplier on per-pill dissolve range
-  driftInset:        0.01,   // drift starts/ends inset from forge bounds
+  driftInset:        0.01,   // drift starts/ends inset from convergence bounds
   rotDriftFactor:    0.3,    // rotation increases 30% during drift
   alphaCode:         0.75,   // code snippet opacity
   alphaLogo:         0.85,   // logo opacity
   alphaDefault:      0.75,   // other pill types
 } as const;
 
-/** Ember sparks — tiny rising particles during forge phase */
+/** Ember sparks — tiny rising particles during convergence phase */
 export const EMBER = {
-  delay:             0.04,   // start this far after forge
+  delay:             0.04,   // start this far after convergence
   heatDuration:      0.08,   // each spark heats up
   coolLead:          0.05,   // start cooling before phase end
   riseDelay:         0.01,   // rise starts after phase begins
@@ -115,8 +115,8 @@ export const EMBER = {
 
 /** Grid atmosphere — faint dot grid behind fragments */
 export const GRID = {
-  delay:             0.02,   // start after forge
-  overshoot:         0.01,   // extend past forge gate
+  delay:             0.02,   // start after convergence
+  overshoot:         0.01,   // extend past convergence gate
   appearDuration:    0.04,   // fade-in duration
   fadeLead:          0.06,   // start fading before glow end
   maxOpacity:        0.05,   // barely visible
@@ -299,38 +299,38 @@ export const CHROME = {
 export const TITLE_START = PHASES.titleAnchor;
 export const TITLE_END   = TITLE_START + PHASES.title;
 
-/* ---- Forge overlaps with title (starts slightly after) ---- */
-export const FORGE_START = TITLE_START + PHASES.forgeToTitle;
-export const FORGE_END   = FORGE_START + PHASES.forge;
-export const FORGE_GATE  = FORGE_END + PHASES.forgeTail;
+/* ---- Convergence overlaps with title (starts slightly after) ---- */
+export const CONVERGENCE_START = TITLE_START + PHASES.convergenceToTitle;
+export const CONVERGENCE_END   = CONVERGENCE_START + PHASES.convergence;
+export const CONVERGENCE_GATE  = CONVERGENCE_END + PHASES.convergenceTail;
 
-/* ---- Embers accompany the forge ---- */
-export const EMBERS_START = FORGE_START + EMBER.delay;
-export const EMBERS_END   = FORGE_GATE;
+/* ---- Embers accompany the convergence ---- */
+export const EMBERS_START = CONVERGENCE_START + EMBER.delay;
+export const EMBERS_END   = CONVERGENCE_GATE;
 
-/* ---- Atmosphere accompanies forge ---- */
-export const GLOW_START = FORGE_START + GRID.delay;
-export const GLOW_END   = FORGE_GATE + GRID.overshoot;
+/* ---- Atmosphere accompanies convergence ---- */
+export const GLOW_START = CONVERGENCE_START + GRID.delay;
+export const GLOW_END   = CONVERGENCE_GATE + GRID.overshoot;
 
 /* ---- Thesis: crossfades in as seeds converge and fade ---- */
-export const THESIS_START = FORGE_END - PHASES.thesisOverlap;
+export const THESIS_START = CONVERGENCE_END - PHASES.thesisOverlap;
 export const THESIS_END   = THESIS_START + PHASES.thesis;
 
-/* ---- Seed sub-phases (within FORGE range) ---- */
-export const SEED_FADE_IN_START      = FORGE_START;
-export const SEED_FADE_IN_END        = FORGE_START + SEED.fadeInDuration;
-export const SEED_DRIFT_START        = FORGE_START + SEED.driftDelay;
-export const SEED_DRIFT_END          = FORGE_END - SEED.driftMargin;
-export const SEED_CONVERGE_START     = FORGE_END - SEED.convergeLead;
-export const SEED_CONVERGE_END       = FORGE_END;
-export const SEED_HEAT_START         = FORGE_START + SEED.heatDelay;
-export const SEED_HEAT_END           = FORGE_END - SEED.heatMargin;
-export const SEED_SCALE_SHRINK_START = FORGE_END + SEED.shrinkDelay;
-export const SEED_SCALE_SHRINK_END   = FORGE_GATE;
+/* ---- Seed sub-phases (within CONVERGENCE range) ---- */
+export const SEED_FADE_IN_START      = CONVERGENCE_START;
+export const SEED_FADE_IN_END        = CONVERGENCE_START + SEED.fadeInDuration;
+export const SEED_DRIFT_START        = CONVERGENCE_START + SEED.driftDelay;
+export const SEED_DRIFT_END          = CONVERGENCE_END - SEED.driftMargin;
+export const SEED_CONVERGE_START     = CONVERGENCE_END - SEED.convergeLead;
+export const SEED_CONVERGE_END       = CONVERGENCE_END;
+export const SEED_HEAT_START         = CONVERGENCE_START + SEED.heatDelay;
+export const SEED_HEAT_END           = CONVERGENCE_END - SEED.heatMargin;
+export const SEED_SCALE_SHRINK_START = CONVERGENCE_END + SEED.shrinkDelay;
+export const SEED_SCALE_SHRINK_END   = CONVERGENCE_GATE;
 
 /* ---- Non-seed fragment sub-phases ---- */
-export const FRAG_FADE_IN_START = FORGE_START - FRAGMENTS.earlyStart;
-export const FRAG_FADE_IN_END   = FORGE_START + FRAGMENTS.fadeInDuration;
+export const FRAG_FADE_IN_START = CONVERGENCE_START - FRAGMENTS.earlyStart;
+export const FRAG_FADE_IN_END   = CONVERGENCE_START + FRAGMENTS.fadeInDuration;
 
 /* ---- Particles: canvas explode + converge + handoff to SVG ---- */
 export const PARTICLES_START = THESIS_END + PHASES.thesisToParticles;
@@ -396,11 +396,11 @@ export const CRYSTALLIZE_END = CRYSTALLIZE_START + PHASES.crystallize;
 /* ---- Chrome ---- */
 export const CHROME_END = CRYSTALLIZE_START;
 
-/* ---- Assembled PH object (consumed by scroll callbacks) ---- */
-export const PH = {
+/* ---- Assembled SCROLL_PHASES object (consumed by scroll callbacks) ---- */
+export const SCROLL_PHASES = {
   TITLE: { start: TITLE_START, end: TITLE_END },
-  FORGE: { start: FORGE_START, end: FORGE_END },
-  FORGE_GATE,
+  CONVERGENCE: { start: CONVERGENCE_START, end: CONVERGENCE_END },
+  CONVERGENCE_GATE,
   EMBERS: { start: EMBERS_START, end: EMBERS_END },
   GLOW: { start: GLOW_START, end: GLOW_END },
   THESIS: { start: THESIS_START, end: THESIS_END },
@@ -421,7 +421,7 @@ export const PH = {
 };
 
 /** Canvas particle local phases (0–1 within PARTICLES range) */
-export const PP = {
+export const PARTICLE_PHASES = {
   CANVAS_IN: [PARTICLE.canvasInStart, PARTICLE.canvasInEnd] as const,
   EXPLODE: [PARTICLE.explodeStart, PARTICLE.explodeEnd] as const,
   CONVERGE: [PARTICLE.convergeStart, PARTICLE.convergeEnd] as const,

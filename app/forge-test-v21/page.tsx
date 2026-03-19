@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
-import { ForgeNav } from "../forge-nav";
+import { DevNav } from "../dev-nav";
 
 const ACCENT = "#60A5FA";
 
@@ -138,7 +138,7 @@ export default function ForgeTestV21() {
 
   return (
     <div ref={containerRef} className="relative" style={{ height: "800vh" }}>
-      <ForgeNav />
+      <DevNav />
       <div
         ref={stickyRef}
         className="sticky top-0 h-screen w-full overflow-hidden"

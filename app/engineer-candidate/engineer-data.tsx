@@ -369,7 +369,7 @@ export function createPrinciples(): PrincipleData[] {
   }));
 }
 
-/** Ember spawn layout — tiny rising sparks during forge phase */
+/** Ember spawn layout — tiny rising sparks during convergence phase */
 const EMBER_SPAWN = {
   count:       20,
   seedOffset:  50,      // hash seed offset to avoid colliding with fragment seeds

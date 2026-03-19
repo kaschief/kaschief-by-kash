@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
-import { ForgeNav } from "../forge-nav";
+import { DevNav } from "../dev-nav";
 
 /* ── Paragraph data ── */
 const PARAGRAPHS: {
@@ -139,7 +139,7 @@ export default function ForgeV29() {
 
   return (
     <>
-      <ForgeNav />
+      <DevNav />
       <div ref={containerRef} style={{ height: "800vh", background: "var(--bg)" }}>
         <div
           className="sticky top-0 flex flex-col items-center justify-center"
