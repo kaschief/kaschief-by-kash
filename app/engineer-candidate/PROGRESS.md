@@ -109,3 +109,5 @@ app/engineer-candidate/
 | File | Issue | Status |
 |------|-------|--------|
 | `hooks/use-section-scroll.ts` | Magic numbers: `0.3` (pin zone threshold), `2` (skip offset), `window.innerHeight * 2` (long jump), `0.8` (near-target fraction), `3500` (speed divisor), `1.2`/`0.5` (duration bounds), `4000ms` (safety timeout) | Pending |
+| `hooks/use-section-scroll.ts` | Skip overshoot: `getPinSkipTarget` jumps to `pinEnd + 2` which overshoots when target is inside a sticky zone (e.g. hero → engineer-candidate). Causes brief flash of section content during scroll-to. Need to clamp skipTarget to `min(skipTarget, nearTarget)` without breaking other sections. | Pending |
+| `hooks/use-scramble.ts` | Extract `useScramble` + `ScrambleWord` from page.tsx into shared hook (generic reusable text effect) | Pending |

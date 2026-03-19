@@ -2,7 +2,7 @@
 
 import { useRef, useMemo, type RefObject } from "react";
 import { COMPANIES } from "@data";
-import { ss, lerp } from "./math";
+import { smoothstep, lerp } from "./math";
 import { fc, createPrinciples } from "./engineer-data";
 import { CRYSTALLIZE, PH } from "./engineer-candidate.types";
 
@@ -21,49 +21,49 @@ export function useCrystallize({ isLgRef, flashRef }: CrystallizeOptions) {
   const crystLineEl = useRef<HTMLDivElement | null>(null);
   const principles = useMemo(createPrinciples, []);
 
-  function update(p: number) {
-    const lg = isLgRef.current;
-    const cS = PH.CRYSTALLIZE.start;
-    const cE = PH.CRYSTALLIZE.end;
-    const cD = cE - cS;
+  function update(progress: number) {
+    const isDesktop = isLgRef.current;
+    const phaseStart = PH.CRYSTALLIZE.start;
+    const phaseEnd = PH.CRYSTALLIZE.end;
+    const phaseDuration = phaseEnd - phaseStart;
 
     // Reset flash overlay from previous phase
     if (flashRef.current) flashRef.current.style.opacity = "0";
 
     // Horizontal divider line scales in
     if (crystLineEl.current) {
-      const appear = ss(
-        cS + cD * CRYSTALLIZE.lineAppearStart,
-        cS + cD * CRYSTALLIZE.lineAppearEnd,
-        p,
+      const appear = smoothstep(
+        phaseStart + phaseDuration * CRYSTALLIZE.lineAppearStart,
+        phaseStart + phaseDuration * CRYSTALLIZE.lineAppearEnd,
+        progress,
       );
       crystLineEl.current.style.opacity = String(appear * CRYSTALLIZE.lineOpacity);
       crystLineEl.current.style.transform = `translate(-50%, -50%) scaleX(${lerp(0, 1, appear)})`;
     }
 
     // Principle cards fade in with stagger and settle into position
-    principles.forEach((pr, i) => {
-      const el = principleEls.current[i];
-      if (!el) return;
-      const stagger = i * cD * CRYSTALLIZE.staggerFrac;
-      const fadeIn = ss(
-        cS + cD * CRYSTALLIZE.fadeInStartFrac + stagger,
-        cS + cD * CRYSTALLIZE.fadeInEndFrac + stagger,
-        p,
+    principles.forEach((principle, i) => {
+      const element = principleEls.current[i];
+      if (!element) return;
+      const stagger = i * phaseDuration * CRYSTALLIZE.staggerFrac;
+      const fadeIn = smoothstep(
+        phaseStart + phaseDuration * CRYSTALLIZE.fadeInStartFrac + stagger,
+        phaseStart + phaseDuration * CRYSTALLIZE.fadeInEndFrac + stagger,
+        progress,
       );
-      const settle = ss(
-        cS + cD * CRYSTALLIZE.settleStartFrac + stagger,
-        cS + cD * CRYSTALLIZE.settleEndFrac,
-        p,
+      const settle = smoothstep(
+        phaseStart + phaseDuration * CRYSTALLIZE.settleStartFrac + stagger,
+        phaseStart + phaseDuration * CRYSTALLIZE.settleEndFrac,
+        progress,
       );
-      const mobileYOffset = lg
-        ? pr.yOffset
+      const mobileYOffset = isDesktop
+        ? principle.yOffset
         : (i - CRYSTALLIZE.mobileCenter) * CRYSTALLIZE.mobileSpacing;
       const y = lerp(mobileYOffset + CRYSTALLIZE.yOffset, mobileYOffset, settle);
-      el.style.transform = `translate(-50%, calc(-50% + ${y}vh))`;
-      el.style.opacity = String(fadeIn);
-      el.style.filter = `blur(${lerp(CRYSTALLIZE.initialBlur, 0, fadeIn)}px)`;
-      el.style.maxWidth = lg ? CRYSTALLIZE.maxWidthLg : CRYSTALLIZE.maxWidthSm;
+      element.style.transform = `translate(-50%, calc(-50% + ${y}vh))`;
+      element.style.opacity = String(fadeIn);
+      element.style.filter = `blur(${lerp(CRYSTALLIZE.initialBlur, 0, fadeIn)}px)`;
+      element.style.maxWidth = isDesktop ? CRYSTALLIZE.maxWidthLg : CRYSTALLIZE.maxWidthSm;
     });
   }
 
@@ -83,11 +83,11 @@ export function useCrystallize({ isLgRef, flashRef }: CrystallizeOptions) {
         }}
       />
       {/* Principle cards */}
-      {principles.map((pr, i) => (
+      {principles.map((principle, i) => (
         <div
           key={`principle-${i}`}
-          ref={(el) => {
-            principleEls.current[i] = el;
+          ref={(element) => {
+            principleEls.current[i] = element;
           }}
           className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
           style={{
@@ -112,7 +112,7 @@ export function useCrystallize({ isLgRef, flashRef }: CrystallizeOptions) {
               lineHeight: 1.55,
               color: "var(--cream)",
             }}>
-            {pr.text}
+            {principle.text}
           </span>
         </div>
       ))}

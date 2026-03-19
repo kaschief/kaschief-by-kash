@@ -13,16 +13,11 @@ export function clamp(v: number, min: number, max: number): number {
  * Hermite smoothstep: maps x from [edge0, edge1] to [0, 1] with
  * smooth acceleration/deceleration. Used everywhere for scroll-driven
  * fade-ins, fade-outs, and transitions.
- *
- * Aliased as `ss` for brevity in scroll callback code.
  */
 export function smoothstep(edge0: number, edge1: number, x: number): number {
   const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
   return t * t * (3 - 2 * t);
 }
-
-/** Short alias for smoothstep — used in scroll callbacks. */
-export const ss = smoothstep;
 
 /** Linear interpolation from a to b by factor t (0–1). */
 export function lerp(a: number, b: number, t: number): number {

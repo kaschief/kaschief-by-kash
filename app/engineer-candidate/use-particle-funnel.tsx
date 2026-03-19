@@ -11,13 +11,13 @@
  *   - Mid-narrator transition text
  *
  * Returns:
- *   update(p, lg) — called per scroll frame from the orchestrator
+ *   update(progress) — called per scroll frame from the orchestrator
  *   jsx           — rendered inside the sticky viewport
  */
 
 import { useRef, useEffect, useCallback, type RefObject } from "react";
 import { STREAMS, NODES } from "../forge-sankey-data";
-import { ss, smoothstep, lerp } from "./math";
+import { smoothstep, lerp } from "./math";
 import { hashToUnit, CONTENT } from "./engineer-data";
 import {
   PARTICLE,
@@ -83,18 +83,18 @@ function computeFunnelPositions(): Map<string, FTierPos[]> {
   const sorted = [...STREAMS];
   const topSpread = F_TIER_SPREAD[0];
   const topStep = (topSpread * 2) / (sorted.length - 1);
-  for (let si = 0; si < sorted.length; si++) {
-    const stream = sorted[si];
+  for (let streamIndex = 0; streamIndex < sorted.length; streamIndex++) {
+    const stream = sorted[streamIndex];
     const positions: FTierPos[] = [];
     const w = stream.width * F_UNIT_W;
-    const topX = F_CENTER_X - topSpread + si * topStep;
+    const topX = F_CENTER_X - topSpread + streamIndex * topStep;
     positions.push({ x: topX, y: F_TIER_Y[0], w });
     let prevX = topX;
-    for (let ni = 0; ni < NODES.length; ni++) {
-      const tierIdx = ni + 1;
+    for (let nodeIndex = 0; nodeIndex < NODES.length; nodeIndex++) {
+      const tierIdx = nodeIndex + 1;
       const spread = F_TIER_SPREAD[tierIdx];
-      const passesThrough = stream.path.includes(ni);
-      const passingStreams = sorted.filter((s) => s.path.includes(ni));
+      const passesThrough = stream.path.includes(nodeIndex);
+      const passingStreams = sorted.filter((s) => s.path.includes(nodeIndex));
       const passingIndex = passingStreams.indexOf(stream);
       let x: number;
       if (passesThrough) {
@@ -177,16 +177,16 @@ const FUNNEL_NARRATOR = CONTENT.funnelNarrator;
 
 function initParticles(): Particle[] {
   const particles: Particle[] = [];
-  for (let si = 0; si < STREAMS.length; si++) {
+  for (let streamIndex = 0; streamIndex < STREAMS.length; streamIndex++) {
     for (let i = 0; i < PARTICLES_PER_STREAM; i++) {
-      const seed = si * 100 + i;
-      const baseAngle = (si / STREAMS.length) * Math.PI * 2;
+      const seed = streamIndex * 100 + i;
+      const baseAngle = (streamIndex / STREAMS.length) * Math.PI * 2;
       particles.push({
-        streamIdx: si,
+        streamIdx: streamIndex,
         angle: baseAngle + (hashToUnit(seed + 10) - 0.5) * PARTICLE.angleSpread,
         radius: PARTICLE.radiusMin + hashToUnit(seed + 11) * PARTICLE.radiusRange,
         size: PARTICLE.sizeMin + hashToUnit(seed + 1) * PARTICLE.sizeRange,
-        color: STREAMS[si].color,
+        color: STREAMS[streamIndex].color,
       });
     }
   }
@@ -357,67 +357,67 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
   }, [handleResize]);
 
   /* ================================================================ */
-  /*  update(p, lg) — called per scroll frame                          */
+  /*  update(progress) — called per scroll frame                        */
   /* ================================================================ */
 
-  function update(p: number) {
-    const lg = isLg.current;
+  function update(progress: number) {
+    const isDesktop = isLg.current;
     /* ---- Canvas particles: full range -> local 0-1 ---- */
     const PART_START = PH.PARTICLES.start,
       PART_END = PH.PARTICLES.end;
-    const pt = Math.max(
+    const particleProgress = Math.max(
       0,
-      Math.min(1, (p - PART_START) / (PART_END - PART_START)),
+      Math.min(1, (progress - PART_START) / (PART_END - PART_START)),
     );
-    particleProgressRef.current = pt;
+    particleProgressRef.current = particleProgress;
 
-    if (pt > 0 && pt <= PP.FADE_OUT[1] && !particleAnimating.current) {
+    if (particleProgress > 0 && particleProgress <= PP.FADE_OUT[1] && !particleAnimating.current) {
       particleAnimating.current = true;
       particleFrameId.current = requestAnimationFrame(drawParticles.current);
     }
 
     /* ---- Canvas + SVG crossfade ---- */
     if (canvasWrapRef.current) {
-      const canvasIn = ss(CANVAS_IN_START, CANVAS_IN_END, p);
-      const canvasOut = 1 - ss(CANVAS_OUT_START, CANVAS_OUT_END, p);
+      const canvasIn = smoothstep(CANVAS_IN_START, CANVAS_IN_END, progress);
+      const canvasOut = 1 - smoothstep(CANVAS_OUT_START, CANVAS_OUT_END, progress);
       canvasWrapRef.current.style.opacity = String(canvasIn * canvasOut);
     }
 
     if (funnelSvgWrapRef.current) {
-      const svgIn = ss(SVG_IN_START, SVG_IN_END, p);
-      const svgOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
+      const svgIn = smoothstep(SVG_IN_START, SVG_IN_END, progress);
+      const svgOut = 1 - smoothstep(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, progress);
       funnelSvgWrapRef.current.style.opacity = String(svgIn * svgOut);
     }
 
     /* ---- SVG dots ---- */
-    for (let si = 0; si < STREAMS.length; si++) {
-      const el = funnelDotRefs.current[si];
-      if (!el) continue;
-      const stagger = si * FUNNEL.dotStagger;
-      const dotIn = ss(DOTS_IN_START + stagger, DOTS_IN_END + stagger, p);
-      const dotOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
-      const ribbonStart = ss(RIBBON_TIERS[0].start, RIBBON_TIERS[0].end, p);
+    for (let streamIndex = 0; streamIndex < STREAMS.length; streamIndex++) {
+      const element = funnelDotRefs.current[streamIndex];
+      if (!element) continue;
+      const stagger = streamIndex * FUNNEL.dotStagger;
+      const dotIn = smoothstep(DOTS_IN_START + stagger, DOTS_IN_END + stagger, progress);
+      const dotOut = 1 - smoothstep(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, progress);
+      const ribbonStart = smoothstep(RIBBON_TIERS[0].start, RIBBON_TIERS[0].end, progress);
       const scale = lerp(FUNNEL.dotScaleStart, FUNNEL.dotScaleEnd, ribbonStart);
       const glowR = lerp(FUNNEL.dotGlowStart, FUNNEL.dotGlowEnd, ribbonStart);
-      el.style.opacity = String(dotIn * dotOut);
-      el.style.transform = `scale(${dotIn > 0 ? scale : 0})`;
-      const blur = el.querySelector("feGaussianBlur");
+      element.style.opacity = String(dotIn * dotOut);
+      element.style.transform = `scale(${dotIn > 0 ? scale : 0})`;
+      const blur = element.querySelector("feGaussianBlur");
       if (blur) blur.setAttribute("stdDeviation", String(glowR));
     }
 
     /* ---- Stream labels ---- */
-    for (let si = 0; si < STREAMS.length; si++) {
-      const el = funnelStreamLabelRefs.current[si];
-      if (!el) continue;
-      const stagger = si * FUNNEL.labelStagger;
-      const labelIn = ss(
+    for (let streamIndex = 0; streamIndex < STREAMS.length; streamIndex++) {
+      const element = funnelStreamLabelRefs.current[streamIndex];
+      if (!element) continue;
+      const stagger = streamIndex * FUNNEL.labelStagger;
+      const labelIn = smoothstep(
         LABELS_IN_START + stagger,
         LABELS_IN_END + stagger,
-        p,
+        progress,
       );
-      const labelOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
-      el.style.opacity = String(labelIn * labelOut);
-      el.style.transform = `translateY(${lerp(FUNNEL.labelSlideY, 0, labelIn)}px)`;
+      const labelOut = 1 - smoothstep(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, progress);
+      element.style.opacity = String(labelIn * labelOut);
+      element.style.transform = `translateY(${lerp(FUNNEL.labelSlideY, 0, labelIn)}px)`;
     }
 
     /* ---- Ribbon segments grow tier by tier ---- */
@@ -425,36 +425,36 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
       (t) => [t.start, t.end] as const,
     );
     for (let i = 0; i < F_SEGMENTS.length; i++) {
-      const el = funnelSegmentRefs.current[i];
-      if (!el) continue;
+      const element = funnelSegmentRefs.current[i];
+      if (!element) continue;
       const seg = F_SEGMENTS[i];
       const threshIdx = Math.min(seg.toTier - 1, TIER_THRESHOLDS.length - 1);
       const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
-      const t = ss(threshStart, threshEnd, p);
-      const fadeOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
-      el.style.opacity = String(lerp(0, seg.opacityEnd, t) * fadeOut);
+      const t = smoothstep(threshStart, threshEnd, progress);
+      const fadeOut = 1 - smoothstep(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, progress);
+      element.style.opacity = String(lerp(0, seg.opacityEnd, t) * fadeOut);
       const scaleY = lerp(0, 1, t);
-      el.style.transformOrigin = `${F_CENTER_X}px ${F_TIER_Y[seg.fromTier]}px`;
-      el.style.transform = `scaleY(${scaleY})`;
+      element.style.transformOrigin = `${F_CENTER_X}px ${F_TIER_Y[seg.fromTier]}px`;
+      element.style.transform = `scaleY(${scaleY})`;
     }
 
     /* ---- Company nodes ---- */
-    for (let ni = 0; ni < NODES.length; ni++) {
-      const el = funnelNodeRefs.current[ni];
-      if (!el) continue;
-      const threshIdx = Math.min(ni, TIER_THRESHOLDS.length - 1);
+    for (let nodeIndex = 0; nodeIndex < NODES.length; nodeIndex++) {
+      const element = funnelNodeRefs.current[nodeIndex];
+      if (!element) continue;
+      const threshIdx = Math.min(nodeIndex, TIER_THRESHOLDS.length - 1);
       const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
-      const nodeT = ss(lerp(threshStart, threshEnd, FUNNEL.nodeAppearFrac), threshEnd, p);
-      const fadeOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
-      el.style.opacity = String(nodeT * fadeOut);
-      el.style.transform = `translateY(${lerp(FUNNEL.nodeSlideY, 0, nodeT)}px)`;
+      const nodeT = smoothstep(lerp(threshStart, threshEnd, FUNNEL.nodeAppearFrac), threshEnd, progress);
+      const fadeOut = 1 - smoothstep(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, progress);
+      element.style.opacity = String(nodeT * fadeOut);
+      element.style.transform = `translateY(${lerp(FUNNEL.nodeSlideY, 0, nodeT)}px)`;
     }
 
     /* ---- Convergence point ---- */
     if (funnelConvergeRef.current) {
-      const convergenceAppear = ss(CONVERGE_PT_START, CONVERGE_PT_END, p);
+      const convergenceAppear = smoothstep(CONVERGE_PT_START, CONVERGE_PT_END, progress);
       const convergenceFadeOut =
-        1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
+        1 - smoothstep(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, progress);
       funnelConvergeRef.current.style.opacity = String(
         convergenceAppear * convergenceFadeOut,
       );
@@ -467,59 +467,59 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
     }
 
     /* ---- Narrator glass panels ---- */
-    for (let ni = 0; ni < FUNNEL_NARRATOR.length; ni++) {
-      const el = funnelNarratorRefs.current[ni];
-      if (!el) continue;
-      const { start: narratorStart, end: narratorEnd } = NARRATOR_TIERS[ni];
-      const narratorFadeIn = ss(
+    for (let narratorIndex = 0; narratorIndex < FUNNEL_NARRATOR.length; narratorIndex++) {
+      const element = funnelNarratorRefs.current[narratorIndex];
+      if (!element) continue;
+      const { start: narratorStart, end: narratorEnd } = NARRATOR_TIERS[narratorIndex];
+      const narratorFadeIn = smoothstep(
         narratorStart,
         lerp(narratorStart, narratorEnd, FUNNEL.narratorFadeInFrac),
-        p,
+        progress,
       );
       const narratorFadeOut =
-        1 - ss(lerp(narratorStart, narratorEnd, FUNNEL.narratorFadeOutFrac), narratorEnd, p);
-      el.style.opacity = String(narratorFadeIn * narratorFadeOut * FUNNEL.narratorMaxOpacity);
-      el.style.transform = `translateY(${lerp(FUNNEL.narratorSlideY, 0, narratorFadeIn)}px)`;
+        1 - smoothstep(lerp(narratorStart, narratorEnd, FUNNEL.narratorFadeOutFrac), narratorEnd, progress);
+      element.style.opacity = String(narratorFadeIn * narratorFadeOut * FUNNEL.narratorMaxOpacity);
+      element.style.transform = `translateY(${lerp(FUNNEL.narratorSlideY, 0, narratorFadeIn)}px)`;
     }
 
     /* ---- Mobile camera-track (phone only) ---- */
-    if (!lg) {
+    if (!isDesktop) {
       if (cameraTrackRef.current) {
-        const trackAppear = ss(PARTICLES_START, PARTICLES_START + MOBILE_SKILLS.appearDur, p);
+        const trackAppear = smoothstep(PARTICLES_START, PARTICLES_START + MOBILE_SKILLS.appearDur, progress);
         const trackDisappear =
-          1 - ss(FUNNEL_OUT_END, FUNNEL_OUT_END + MOBILE_SKILLS.disappearDur, p);
+          1 - smoothstep(FUNNEL_OUT_END, FUNNEL_OUT_END + MOBILE_SKILLS.disappearDur, progress);
         cameraTrackRef.current.style.opacity = String(
           trackAppear * trackDisappear,
         );
       }
       const SKILL_TIER_STARTS = RIBBON_TIERS.map((t) => t.start);
-      for (let si = 0; si < STREAMS.length; si++) {
-        const el = cameraSkillRefs.current[si];
-        if (!el) continue;
-        const firstTier = STREAMS[si].path[0];
-        const stagger = si * MOBILE_SKILLS.skillStagger;
+      for (let streamIndex = 0; streamIndex < STREAMS.length; streamIndex++) {
+        const element = cameraSkillRefs.current[streamIndex];
+        if (!element) continue;
+        const firstTier = STREAMS[streamIndex].path[0];
+        const stagger = streamIndex * MOBILE_SKILLS.skillStagger;
         const tierStart = SKILL_TIER_STARTS[firstTier] + stagger;
-        const skillFadeIn = ss(tierStart, tierStart + MOBILE_SKILLS.skillFadeDur, p);
+        const skillFadeIn = smoothstep(tierStart, tierStart + MOBILE_SKILLS.skillFadeDur, progress);
         const skillFadeOut =
-          1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
-        const fromLeft = si % 2 === 0;
+          1 - smoothstep(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, progress);
+        const fromLeft = streamIndex % 2 === 0;
         const slideX = lerp(fromLeft ? -MOBILE_SKILLS.skillSlideX : MOBILE_SKILLS.skillSlideX, 0, skillFadeIn);
         const scale = lerp(MOBILE_SKILLS.skillScaleStart, 1, skillFadeIn);
-        el.style.opacity = String(Math.max(0, skillFadeIn * skillFadeOut));
-        el.style.transform = `translateX(${slideX}px) scale(${scale})`;
+        element.style.opacity = String(Math.max(0, skillFadeIn * skillFadeOut));
+        element.style.transform = `translateX(${slideX}px) scale(${scale})`;
       }
       const convergenceDiamond = cameraNodeRefs.current[0];
       if (convergenceDiamond) {
-        const diamondIn = ss(CONVERGE_PT_START, CONVERGE_PT_END, p);
-        const diamondOut = 1 - ss(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, p);
+        const diamondIn = smoothstep(CONVERGE_PT_START, CONVERGE_PT_END, progress);
+        const diamondOut = 1 - smoothstep(PH.FUNNEL_OUT.start, PH.FUNNEL_OUT.end, progress);
         convergenceDiamond.style.opacity = String(diamondIn * diamondOut);
       }
     }
 
     /* ---- Mid narrator ---- */
     if (midNarratorRef.current) {
-      const midIn = ss(MID_NARRATOR_START, MID_NARRATOR_START + MID_NARRATOR.fadeDur, p);
-      const midOut = 1 - ss(MID_NARRATOR_END - MID_NARRATOR.fadeDur, MID_NARRATOR_END, p);
+      const midIn = smoothstep(MID_NARRATOR_START, MID_NARRATOR_START + MID_NARRATOR.fadeDur, progress);
+      const midOut = 1 - smoothstep(MID_NARRATOR_END - MID_NARRATOR.fadeDur, MID_NARRATOR_END, progress);
       midNarratorRef.current.style.opacity = String(midIn * midOut);
       midNarratorRef.current.style.transform = `translateY(${lerp(MID_NARRATOR.slideY, 0, midIn)}px)`;
     }
@@ -609,8 +609,8 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
               width="200%"
               height="200%">
               <feGaussianBlur
-                ref={(el) => {
-                  funnelBlurRef.current = el;
+                ref={(element) => {
+                  funnelBlurRef.current = element;
                 }}
                 in="SourceGraphic"
                 stdDeviation="0"
@@ -622,8 +622,8 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
           {F_SEGMENTS.map((seg, i) => (
             <path
               key={`fseg-${seg.streamId}-${seg.fromTier}-${seg.toTier}`}
-              ref={(el) => {
-                funnelSegmentRefs.current[i] = el;
+              ref={(element) => {
+                funnelSegmentRefs.current[i] = element;
               }}
               d={seg.path}
               fill={`url(#fgrad-${seg.streamId})`}
@@ -633,14 +633,14 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
           ))}
 
           {/* Company node lines + labels */}
-          {NODES.map((node, ni) => {
-            const y = F_TIER_Y[ni + 1];
-            const spread = F_TIER_SPREAD[ni + 1];
+          {NODES.map((node, nodeIndex) => {
+            const y = F_TIER_Y[nodeIndex + 1];
+            const spread = F_TIER_SPREAD[nodeIndex + 1];
             return (
               <g
                 key={`fnode-${node.id}`}
-                ref={(el) => {
-                  funnelNodeRefs.current[ni] = el;
+                ref={(element) => {
+                  funnelNodeRefs.current[nodeIndex] = element;
                 }}
                 opacity={0}>
                 <line
@@ -678,13 +678,13 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
           })}
 
           {/* Top dots (glow + core + bright center) */}
-          {STREAMS.map((stream, si) => {
+          {STREAMS.map((stream, streamIndex) => {
             const pos = F_POSITIONS.get(stream.id)![0];
             return (
               <g
                 key={`fdot-${stream.id}`}
-                ref={(el) => {
-                  funnelDotRefs.current[si] = el;
+                ref={(element) => {
+                  funnelDotRefs.current[streamIndex] = element;
                 }}
                 opacity={0}
                 style={{ transformOrigin: `${pos.x}px ${pos.y}px` }}>
@@ -693,7 +693,7 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
                   cy={pos.y}
                   r={5}
                   fill={stream.color}
-                  filter={`url(#wsdot-${si})`}
+                  filter={`url(#wsdot-${streamIndex})`}
                   opacity={0.6}
                 />
                 <circle cx={pos.x} cy={pos.y} r={3.5} fill={stream.color} />
@@ -709,13 +709,13 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
           })}
 
           {/* Top stream labels */}
-          {STREAMS.map((stream, si) => {
+          {STREAMS.map((stream, streamIndex) => {
             const pos = F_POSITIONS.get(stream.id)![0];
             return (
               <g
                 key={`flabel-${stream.id}`}
-                ref={(el) => {
-                  funnelStreamLabelRefs.current[si] = el;
+                ref={(element) => {
+                  funnelStreamLabelRefs.current[streamIndex] = element;
                 }}
                 opacity={0}>
                 <text
@@ -738,8 +738,8 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
 
           {/* Convergence point -- diamond + white text */}
           <g
-            ref={(el) => {
-              funnelConvergeRef.current = el;
+            ref={(element) => {
+              funnelConvergeRef.current = element;
             }}
             opacity={0}>
             <rect
@@ -772,13 +772,13 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
       <div
         className="absolute inset-0 pointer-events-none"
         style={{ zIndex: 7, overflow: "visible" }}>
-        {FUNNEL_NARRATOR.map((text, ni) => {
-          const topFrac = FUNNEL.narratorTopFracs[ni];
+        {FUNNEL_NARRATOR.map((text, narratorIndex) => {
+          const topFrac = FUNNEL.narratorTopFracs[narratorIndex];
           return (
             <div
-              key={`narrator-${ni}`}
-              ref={(el) => {
-                funnelNarratorRefs.current[ni] = el;
+              key={`narrator-${narratorIndex}`}
+              ref={(element) => {
+                funnelNarratorRefs.current[narratorIndex] = element;
               }}
               className="absolute hidden lg:block"
               style={{
@@ -819,11 +819,11 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
         {/* Skills accumulate center-screen as you scroll */}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-8">
           <div className="flex flex-wrap justify-center gap-2.5 max-w-[320px]">
-            {STREAMS.map((stream, si) => (
+            {STREAMS.map((stream, streamIndex) => (
               <div
                 key={`mobile-skill-${stream.id}`}
-                ref={(el) => {
-                  cameraSkillRefs.current[si] = el;
+                ref={(element) => {
+                  cameraSkillRefs.current[streamIndex] = element;
                 }}
                 className="font-sans"
                 style={{
@@ -843,8 +843,8 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
           </div>
           {/* Convergence diamond -- appears after all skills */}
           <div
-            ref={(el) => {
-              cameraNodeRefs.current[0] = el;
+            ref={(element) => {
+              cameraNodeRefs.current[0] = element;
             }}
             className="flex flex-col items-center gap-2 mt-2"
             style={{ opacity: 0, willChange: "opacity" }}>

@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { COMPANIES } from "@data";
-export { clamp, ss, lerp } from "./math";
+export { clamp, smoothstep, lerp } from "./math";
 
 /* ================================================================== */
 /*  Seeded random                                                      */
