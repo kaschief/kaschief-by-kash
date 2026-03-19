@@ -21,7 +21,7 @@ import {
 import { ACT_II } from "@data";
 import { usePathname } from "next/navigation";
 import { ForgeNav } from "../forge-nav";
-import { ss } from "./math";
+import { smoothstep } from "./math";
 import {
   /* fc moved to useCrystallize */
   /* fcExt, CC_EXT, LOGOS, createFragments, createEmbers moved to useForgeFragments */
@@ -188,7 +188,7 @@ export default function EngineerCandidate() {
     offset: ["start start", "end end"],
   });
 
-  useMotionValueEvent(forgeProgress, "change", (p) => {
+  useMotionValueEvent(forgeProgress, "change", (progress) => {
     /* ---- Curtain edge: where the summary panel top is on screen ---- */
     let curtainTop = window.innerHeight; // default: off-screen (no curtain)
     if (summaryPanelRef.current) {
@@ -199,18 +199,18 @@ export default function EngineerCandidate() {
     /* ---- Chrome ---- */
     /* scrollHintEl removed — was never rendered */
     if (progressBarEl.current)
-      progressBarEl.current.style.width = `${p * 100}%`;
+      progressBarEl.current.style.width = `${progress * 100}%`;
     if (phaseEl.current) {
-      phaseEl.current.textContent = phaseLabel(p);
+      phaseEl.current.textContent = phaseLabel(progress);
       phaseEl.current.style.opacity = String(
-        p > PH.TITLE.start && p < PH.CHROME_END ? CHROME.labelOpacity : 0,
+        progress > PH.TITLE.start && progress < PH.CHROME_END ? CHROME.labelOpacity : 0,
       );
     }
 
     /* ---- Title fade: slow scroll fade + fast erase when panel arrives ---- */
     if (titleRef.current) {
       // Slow fade over a wide scroll range
-      const slowFade = 1 - ss(PH.TITLE.start, PH.TITLE.end * CHROME.titleSlowFadeMult, p);
+      const slowFade = 1 - smoothstep(PH.TITLE.start, PH.TITLE.end * CHROME.titleSlowFadeMult, progress);
       // Fast erase when panel is on-screen — same curtainReveal as fragments
       const curtainFade =
         curtainTop >= window.innerHeight
@@ -226,25 +226,25 @@ export default function EngineerCandidate() {
     /* ============================================================== */
     /*  MOVEMENT 1: THE FORGE — delegated to useForgeFragments         */
     /* ============================================================== */
-    const vh = window.innerHeight;
-    const lg = isLg.current;
-    forgeFragments.update(p, lg, curtainTop, vh);
+    const viewportHeight = window.innerHeight;
+    const isDesktop = isLg.current;
+    forgeFragments.update(progress, isDesktop, curtainTop, viewportHeight);
 
     /* ============================================================== */
     /*  PARTICLES → DOTS → RIBBONS + MID NARRATOR                      */
     /*  Delegated to useParticleFunnel hook                             */
     /* ============================================================== */
-    particleFunnel.update(p);
+    particleFunnel.update(progress);
 
     /* ============================================================== */
     /*  MOVEMENT 2: TERMINAL REPLAY — delegated to useTerminalReplay   */
     /* ============================================================== */
-    terminalReplay.update(p, lg);
+    terminalReplay.update(progress, isDesktop);
 
     /* ============================================================== */
     /*  MOVEMENT 3: CRYSTALLIZE — delegated to useCrystallize hook     */
     /* ============================================================== */
-    crystallize.update(p);
+    crystallize.update(progress);
   });
 
   /* handleResize, particle animation loop moved to useParticleFunnel hook */

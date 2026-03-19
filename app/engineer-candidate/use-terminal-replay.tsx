@@ -5,11 +5,11 @@
    carousel + dot indicator.
 
    Extracted from page.tsx MOVEMENT 2. Owns all terminal-specific
-   refs, exposes update(p, lg) + jsx.
+   refs, exposes update(progress, isDesktop) + jsx.
    ================================================================== */
 
 import { useRef, type RefObject } from "react";
-import { ss, lerp, remap } from "./math";
+import { smoothstep, lerp, remap } from "./math";
 import { COMPANY_COLORS, COMPANY_ROLES, CONTENT } from "./engineer-data";
 import {
   TERMINAL,
@@ -60,10 +60,10 @@ export function useTerminalReplay({
   const mobileCardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   /* ================================================================ */
-  /*  update(p, lg) — called once per scroll frame                     */
+  /*  update(progress, isDesktop) — called once per scroll frame        */
   /* ================================================================ */
 
-  function update(p: number, lg: boolean) {
+  function update(progress: number, isDesktop: boolean) {
     const termEl = terminalRef.current;
     const termContent = termContentRef.current;
     const termWipe = termWipeRef.current;
@@ -71,8 +71,8 @@ export function useTerminalReplay({
     // Terminal + mobile carousel timing (shared scroll phase)
     const termStart = PH.BEATS[0].start;
     const termEnd = PH.BEATS[3].end;
-    const termIn = ss(termStart, termStart + TERMINAL.fadeDur, p);
-    const termOut = 1 - ss(termEnd - TERMINAL.fadeDur, termEnd, p);
+    const termIn = smoothstep(termStart, termStart + TERMINAL.fadeDur, progress);
+    const termOut = 1 - smoothstep(termEnd - TERMINAL.fadeDur, termEnd, progress);
 
     // Fade desktop terminal
     if (termEl) termEl.style.opacity = String(termIn * termOut);
@@ -80,14 +80,14 @@ export function useTerminalReplay({
       termProgressWrapRef.current.style.opacity = String(termIn * termOut);
     }
     // Fade mobile carousel wrapper
-    if (!lg && mobileCarouselRef.current) {
+    if (!isDesktop && mobileCarouselRef.current) {
       mobileCarouselRef.current.style.opacity = String(termIn * termOut);
     }
 
     if (termIn > 0 && termOut > 0) {
       // Determine which company
       const totalDur = termEnd - termStart;
-      const localP = Math.max(0, Math.min(1, (p - termStart) / totalDur));
+      const localP = Math.max(0, Math.min(1, (progress - termStart) / totalDur));
       const companyIdx = Math.min(
         Math.floor(localP * TERMINAL.companyCount),
         TERMINAL.companyCount - 1,
@@ -96,10 +96,10 @@ export function useTerminalReplay({
         (localP - companyIdx / TERMINAL.companyCount) * TERMINAL.companyCount;
 
       // Mobile: show/hide stacked cards based on scroll progress
-      if (!lg) {
-        for (let ci = 0; ci < TERMINAL.companyCount; ci++) {
-          const card = mobileCardRefs.current[ci];
-          if (card) card.style.opacity = ci === companyIdx ? "1" : "0";
+      if (!isDesktop) {
+        for (let companyIndex = 0; companyIndex < TERMINAL.companyCount; companyIndex++) {
+          const card = mobileCardRefs.current[companyIndex];
+          if (card) card.style.opacity = companyIndex === companyIdx ? "1" : "0";
         }
         // Update dot indicators
         const CC4 = COMPANY_COLORS;
@@ -125,7 +125,7 @@ export function useTerminalReplay({
           NAR_END = TERMINAL.narEnd;
 
         // Wipe — only at very end, AFTER narrative finishes
-        const wipeProgress = ss(
+        const wipeProgress = smoothstep(
           TERMINAL.wipeStart,
           TERMINAL.wipeEnd,
           companyProgress,
@@ -141,25 +141,25 @@ export function useTerminalReplay({
           }
         } else {
           const lines = ALL_COMPANY_LINES[companyIdx];
-          const cc = CHAR_COUNTS[companyIdx];
+          const charCounts = CHAR_COUNTS[companyIdx];
 
           // How many chars to reveal
           let charsToShow = 0;
           if (companyProgress <= P1_END) {
             charsToShow = Math.floor(
-              remap(companyProgress, 0, P1_END, 0, cc.p1),
+              remap(companyProgress, 0, P1_END, 0, charCounts.p1),
             );
           } else if (companyProgress <= P2_END) {
             charsToShow =
-              cc.p1 +
-              Math.floor(remap(companyProgress, P1_END, P2_END, 0, cc.p2));
+              charCounts.p1 +
+              Math.floor(remap(companyProgress, P1_END, P2_END, 0, charCounts.p2));
           } else if (companyProgress <= P3_END) {
             charsToShow =
-              cc.p1 +
-              cc.p2 +
-              Math.floor(remap(companyProgress, P2_END, P3_END, 0, cc.p3));
+              charCounts.p1 +
+              charCounts.p2 +
+              Math.floor(remap(companyProgress, P2_END, P3_END, 0, charCounts.p3));
           } else {
-            charsToShow = cc.total;
+            charsToShow = charCounts.total;
           }
 
           // Build HTML
@@ -235,46 +235,46 @@ export function useTerminalReplay({
         }
 
         // V15-style narrative reveal — starts AFTER terminal finishes
-        const narEl = termNarrativeRef.current;
-        if (narEl) {
-          const nar = TERM_NARRATIVES[companyIdx];
+        const narrativeElement = termNarrativeRef.current;
+        if (narrativeElement) {
+          const narrative = TERM_NARRATIVES[companyIdx];
           // Map NAR_START..NAR_END to 0..1
-          const narP = Math.max(
+          const narrativeProgress = Math.max(
             0,
             Math.min(
               1,
               (companyProgress - NAR_START) / (NAR_END - NAR_START),
             ),
           );
-          const sceneReveal = ss(0, TERMINAL_NARRATOR.sceneEnd, narP);
-          const actionFade = ss(
+          const sceneReveal = smoothstep(0, TERMINAL_NARRATOR.sceneEnd, narrativeProgress);
+          const actionFade = smoothstep(
             TERMINAL_NARRATOR.actionStart,
             TERMINAL_NARRATOR.actionEnd,
-            narP,
+            narrativeProgress,
           );
-          const shiftFade = ss(
+          const shiftFade = smoothstep(
             TERMINAL_NARRATOR.shiftStart,
             TERMINAL_NARRATOR.shiftEnd,
-            narP,
+            narrativeProgress,
           );
           const fadeOut =
             companyProgress > TERMINAL_NARRATOR.fadeoutStart
-              ? ss(
+              ? smoothstep(
                   TERMINAL_NARRATOR.fadeoutStart,
                   TERMINAL_NARRATOR.fadeoutEnd,
                   companyProgress,
                 )
               : 0;
-          narEl.style.opacity = String(1 - fadeOut);
+          narrativeElement.style.opacity = String(1 - fadeOut);
 
           const nameEl =
-            narEl.querySelector<HTMLElement>("[data-role=name]");
+            narrativeElement.querySelector<HTMLElement>("[data-role=name]");
           const sceneEl =
-            narEl.querySelector<HTMLElement>("[data-role=scene]");
+            narrativeElement.querySelector<HTMLElement>("[data-role=scene]");
           const actionEl =
-            narEl.querySelector<HTMLElement>("[data-role=action]");
+            narrativeElement.querySelector<HTMLElement>("[data-role=action]");
           const shiftEl =
-            narEl.querySelector<HTMLElement>("[data-role=shift]");
+            narrativeElement.querySelector<HTMLElement>("[data-role=shift]");
 
           if (nameEl) {
             nameEl.textContent =
@@ -283,21 +283,21 @@ export function useTerminalReplay({
               TERM_COMPANIES[companyIdx].location;
             nameEl.style.color = COMPANY_COLORS[companyIdx];
             nameEl.style.opacity = String(
-              ss(0, TERMINAL_NARRATOR.headerFadeEnd, narP),
+              smoothstep(0, TERMINAL_NARRATOR.headerFadeEnd, narrativeProgress),
             );
           }
-          if (sceneEl && nar) {
-            sceneEl.textContent = nar.scene;
+          if (sceneEl && narrative) {
+            sceneEl.textContent = narrative.scene;
             const clipRight = 100 - sceneReveal * 100;
             sceneEl.style.clipPath = `inset(0 ${clipRight}% 0 0)`;
           }
-          if (actionEl && nar) {
-            actionEl.textContent = nar.action;
+          if (actionEl && narrative) {
+            actionEl.textContent = narrative.action;
             actionEl.style.opacity = String(actionFade);
             actionEl.style.transform = `translateY(${lerp(TERMINAL_NARRATOR.slideY, 0, actionFade)}px)`;
           }
-          if (shiftEl && nar) {
-            shiftEl.textContent = nar.shift;
+          if (shiftEl && narrative) {
+            shiftEl.textContent = narrative.shift;
             shiftEl.style.opacity = String(shiftFade);
             shiftEl.style.transform = `translateY(${lerp(TERMINAL_NARRATOR.slideY, 0, shiftFade)}px)`;
           }
@@ -305,10 +305,10 @@ export function useTerminalReplay({
 
         // Dot indicator — active dot is pill, others are circles
         const DOT_COLORS = COMPANY_COLORS;
-        for (let pi = 0; pi < TERMINAL.companyCount; pi++) {
-          const dot = termProgressRefs.current[pi];
+        for (let dotIndex = 0; dotIndex < TERMINAL.companyCount; dotIndex++) {
+          const dot = termProgressRefs.current[dotIndex];
           if (!dot) continue;
-          const isActive = pi === companyIdx;
+          const isActive = dotIndex === companyIdx;
           dot.style.width = isActive
             ? TERMINAL.dotActiveWidth
             : TERMINAL.dotInactiveWidth;
@@ -316,7 +316,7 @@ export function useTerminalReplay({
             ? "1"
             : String(TERMINAL.dotInactiveOpacity);
           dot.style.background = isActive
-            ? DOT_COLORS[pi]
+            ? DOT_COLORS[dotIndex]
             : "var(--text-dim)";
         }
       }
@@ -494,17 +494,17 @@ export function useTerminalReplay({
           className="absolute inset-0 lg:hidden"
           style={{ background: "var(--bg)" }}>
           {/* Stacked cards — scroll-driven, one visible at a time */}
-          {TERM_COMPANIES.map((co, ci) => {
-            const nar = TERM_NARRATIVES[ci];
+          {TERM_COMPANIES.map((company, companyIndex) => {
+            const narrative = TERM_NARRATIVES[companyIndex];
             return (
               <div
-                key={co.company}
-                ref={(el) => {
-                  mobileCardRefs.current[ci] = el;
+                key={company.company}
+                ref={(element) => {
+                  mobileCardRefs.current[companyIndex] = element;
                 }}
                 className="absolute inset-0 flex flex-col items-center px-6"
                 style={{
-                  opacity: ci === 0 ? 1 : 0,
+                  opacity: companyIndex === 0 ? 1 : 0,
                   paddingTop: "clamp(60px, 12vh, 120px)",
                   willChange: "opacity",
                   transition: "opacity 0.3s ease",
@@ -521,9 +521,9 @@ export function useTerminalReplay({
                       fontSize: "0.7rem",
                       letterSpacing: "0.18em",
                       textTransform: "uppercase",
-                      color: COMPANY_COLORS[ci],
+                      color: COMPANY_COLORS[companyIndex],
                     }}>
-                    {co.company} &middot; {co.location}
+                    {company.company} &middot; {company.location}
                   </div>
                   <div
                     className="font-sans"
@@ -533,7 +533,7 @@ export function useTerminalReplay({
                       marginTop: "0.25rem",
                       letterSpacing: "0.04em",
                     }}>
-                    {COMPANY_ROLES[co.company]}
+                    {COMPANY_ROLES[company.company]}
                   </div>
                 </div>
                 {/* Glass card container */}
@@ -563,7 +563,7 @@ export function useTerminalReplay({
                         color: "var(--cream)",
                         marginBottom: "0.75rem",
                       }}>
-                      {nar.scene}
+                      {narrative.scene}
                     </p>
                     <p
                       className="font-sans"
@@ -573,7 +573,7 @@ export function useTerminalReplay({
                         color: "var(--cream-muted)",
                         marginBottom: "0.75rem",
                       }}>
-                      {nar.action}
+                      {narrative.action}
                     </p>
                     <p
                       className="font-narrator"
@@ -583,7 +583,7 @@ export function useTerminalReplay({
                         fontStyle: "italic",
                         color: "var(--gold-dim)",
                       }}>
-                      &ldquo;{nar.shift}&rdquo;
+                      &ldquo;{narrative.shift}&rdquo;
                     </p>
                   </div>
                   {/* Mini terminal — role + key takeaway instead of commit */}
@@ -641,9 +641,9 @@ export function useTerminalReplay({
                         whiteSpace: "pre-wrap",
                       }}>
                       <span style={{ color: TERMINAL_COLORS.keyword }}>
-                        {co.commitType}: {co.commitMsg}
+                        {company.commitType}: {company.commitMsg}
                       </span>
-                      {co.insight.map((line, li) => (
+                      {company.insight.map((line, li) => (
                         <span key={li}>
                           {"\n"}
                           <span style={{ color: TERMINAL_COLORS.comment }}>
@@ -651,7 +651,7 @@ export function useTerminalReplay({
                           </span>
                         </span>
                       ))}
-                      {co.promotion && (
+                      {company.promotion && (
                         <span>
                           {"\n"}
                           <span
@@ -661,7 +661,7 @@ export function useTerminalReplay({
                               padding: "0 4px",
                               borderRadius: "2px",
                             }}>
-                            {co.promotion}
+                            {company.promotion}
                           </span>
                         </span>
                       )}
@@ -693,8 +693,8 @@ export function useTerminalReplay({
         {[0, 1, 2, 3].map((i) => (
           <div
             key={`tp-${i}`}
-            ref={(el) => {
-              termProgressRefs.current[i] = el;
+            ref={(element) => {
+              termProgressRefs.current[i] = element;
             }}
             onClick={() => {
               const beatDur = PH.BEATS[i].end - PH.BEATS[i].start;
