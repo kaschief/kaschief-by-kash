@@ -3,8 +3,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
 import { STREAMS, NODES, smoothstep, lerp } from "../sankey-data";
-import { DL } from "../forge-element-map";
-import { DevNav } from "../dev-nav";
+import { LabNav } from "../lab-nav";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -405,7 +404,7 @@ export default function ForgeTestV5() {
       ref={containerRef}
       style={{ height: "600vh", background: "#07070A" }}
     >
-      <DevNav />
+      <LabNav />
       {/* Sticky viewport */}
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         {/* Title */}
@@ -417,11 +416,6 @@ export default function ForgeTestV5() {
             V5: Particle Flow
           </h1>
         </div>
-
-        <DL style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}>PARTICLES + TRAILS</DL>
-        <DL style={{ top: "15%", left: 6, transform: "translateY(14px)" }}>NODE LABELS</DL>
-        <DL style={{ top: "15%", right: 6 }}>NODE LINES</DL>
-        <DL style={{ bottom: 30, left: "50%", transform: "translateX(-50%)" }}>STREAM LEGEND</DL>
 
         {/* Canvas */}
         <canvas

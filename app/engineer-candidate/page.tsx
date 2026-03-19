@@ -20,9 +20,9 @@ import {
 } from "framer-motion";
 import { ACT_II } from "@data";
 import { usePathname } from "next/navigation";
-import { DevNav } from "../dev-nav";
+import { LabNav } from "../lab-nav";
 import { smoothstep } from "./math";
-import { ACT_BLUE, phaseLabel, CONTENT } from "./engineer-data";
+import { ACT_BLUE, CONTENT } from "./engineer-data";
 import { BREAKPOINTS } from "@utilities";
 import { CONTAINER_VH, CHROME, SCROLL_PHASES } from "./engineer-candidate.types";
 
@@ -47,7 +47,6 @@ function useBreakpointRefs() {
 }
 
 /* Sub-hooks — each owns a scroll section */
-import { useCrystallize } from "./use-crystallize";
 import { useTerminalReplay } from "./use-terminal-replay";
 import { useConvergence } from "./use-convergence";
 import { useParticleFunnel } from "./use-particle-funnel";
@@ -122,15 +121,11 @@ export default function EngineerCandidate() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const titleInViewRef = useRef<HTMLDivElement>(null);
-  const flashEl = useRef<HTMLDivElement>(null);
   const vignetteEl = useRef<HTMLDivElement>(null);
   const beatGlowEl = useRef<HTMLDivElement>(null);
-  const progressBarEl = useRef<HTMLDivElement>(null);
-  const phaseEl = useRef<HTMLDivElement>(null);
 
   /* ---- Animation hooks (each owns its refs + scroll update + JSX) ---- */
   const convergence = useConvergence();
-  const crystallize = useCrystallize({ isLgRef: isLg, flashRef: flashEl });
   const terminalReplay = useTerminalReplay({
     scrollContainerRef,
     beatGlowEl,
@@ -159,15 +154,6 @@ export default function EngineerCandidate() {
       if (summaryTop < window.innerHeight) curtainTop = Math.max(0, summaryTop);
     }
 
-    /* ---- Chrome (debug overlay) ---- */
-    if (progressBarEl.current)
-      progressBarEl.current.style.width = `${progress * 100}%`;
-    if (phaseEl.current) {
-      phaseEl.current.textContent = phaseLabel(progress);
-      phaseEl.current.style.opacity = String(
-        progress > SCROLL_PHASES.TITLE.start && progress < SCROLL_PHASES.CHROME_END ? CHROME.labelOpacity : 0,
-      );
-    }
 
     /* ---- Title fade: slow scroll fade + fast erase when panel arrives ---- */
     if (titleRef.current) {
@@ -203,10 +189,6 @@ export default function EngineerCandidate() {
     /* ============================================================== */
     terminalReplay.update(progress, isDesktop);
 
-    /* ============================================================== */
-    /*  MOVEMENT 3: CRYSTALLIZE — delegated to useCrystallize hook     */
-    /* ============================================================== */
-    crystallize.update(progress);
   });
 
   /* ================================================================ */
@@ -215,7 +197,7 @@ export default function EngineerCandidate() {
 
   return (
     <>
-      {isStandalone && <DevNav />}
+      {isStandalone && <LabNav />}
 
       {/* ============================================================ */}
       {/*  SCROLL CONTAINER (2000vh) — V0's complete sequence           */}
@@ -246,18 +228,6 @@ export default function EngineerCandidate() {
               opacity: 0,
               background:
                 "radial-gradient(ellipse 60% 60% at 50% 50%, transparent 0%, var(--bg) 100%)",
-            }}
-          />
-          <div
-            ref={flashEl}
-            aria-hidden
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            style={{
-              width: "100vw",
-              height: "100vh",
-              background:
-                "radial-gradient(circle, rgba(201,168,76,0.3) 0%, rgba(240,230,208,0.08) 30%, transparent 60%)",
-              opacity: 0,
             }}
           />
           <div
@@ -325,9 +295,6 @@ export default function EngineerCandidate() {
           {/* Terminal + Narrative + Dot indicator — rendered by useTerminalReplay hook */}
           {terminalReplay.jsx}
 
-          {/* Principles (crystallize) — rendered by useCrystallize hook */}
-          {crystallize.jsx}
-
           {/* Chrome — page title only visible on standalone route */}
           {isStandalone && (
             <div
@@ -340,29 +307,6 @@ export default function EngineerCandidate() {
               {CONTENT.pageTitle}
             </div>
           )}
-          <div
-            ref={phaseEl}
-            className="absolute bottom-12 left-8 font-sans tracking-widest uppercase"
-            style={{
-              color: "var(--gold-dim)",
-              fontSize: "0.55rem",
-              letterSpacing: "0.25em",
-              opacity: 0,
-            }}
-          />
-          <div
-            className="absolute bottom-0 left-0 right-0 h-px"
-            style={{ background: "var(--stroke)" }}>
-            <div
-              ref={progressBarEl}
-              className="h-full"
-              style={{
-                width: "0%",
-                background: "var(--gold-dim)",
-                transition: "none",
-              }}
-            />
-          </div>
         </div>
 
         {/* ---- Post-section summary (INSIDE container, scrolls up over sticky) ---- */}
