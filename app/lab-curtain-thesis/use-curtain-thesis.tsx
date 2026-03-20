@@ -38,10 +38,19 @@ export const SMOOTH_LERP_FACTOR = 0.07;
  * within the zone using deterministic jitter seeds.
  */
 
-/** Card width as % of viewport — wide enough for landscape rectangles */
+/** Card width as % of viewport — wide enough for landscape rectangles.
+ *  TODO(S7): Per-pillar config — different card counts need different distributions. */
 const CARD_WIDTH_PCT = [34, 33, 36] as const; // Jira, Sentry, Slack
 
-/** Card definitions — entrance animation only (no canonical pixel size needed) */
+/**
+ * Max card width in px per card — prevents cards from blowing up on large screens.
+ * TODO(S7): Move into per-pillar config. Gaps has 4 cards, Patterns has 5 —
+ * zones, max widths, jitter seeds, and entrance directions will all vary per pillar.
+ */
+const CARD_MAX_WIDTH_PX = [480, 460, 620] as const; // Jira, Sentry, Slack
+
+/** Card definitions — entrance animation only.
+ *  TODO(S7): Per-pillar config — 4 cards need 4 zones, different entrances. */
 const CARDS = [
   // Jira — upper-left
   { widthPct: CARD_WIDTH_PCT[0], fromX: -40, fromY: 20, fromRotation: -18, toRotation: -3.5 },
@@ -71,29 +80,38 @@ const ZONES = [
 interface CardPosition {
   toX: number;
   toY: number;
+  /** Effective width% after applying max-width cap */
+  effectiveWidthPct: number;
 }
 
 /**
  * Compute card positions. Pure percentage math.
  * Each card is placed within its zone, offset by deterministic jitter.
- * The card's width% is subtracted from the zone to prevent right-edge clipping.
+ * The card's effective width (capped by CARD_MAX_WIDTH_PX) is subtracted
+ * from the zone to prevent right-edge clipping.
  */
-function computeCardPositions(): CardPosition[] {
+function computeCardPositions(viewportWidth: number): CardPosition[] {
   return CARDS.map((card, i) => {
     const zone = ZONES[i];
     const seed = JITTER[i];
 
-    // Available x range = zone width minus card width
+    // Cap width: use percentage unless it exceeds this card's max px
+    const maxPx = CARD_MAX_WIDTH_PX[i];
+    const pctPx = (card.widthPct / 100) * viewportWidth;
+    const effectiveWidthPct = pctPx > maxPx
+      ? (maxPx / viewportWidth) * 100
+      : card.widthPct;
+
     const minX = zone.xMin;
-    const maxX = Math.max(minX, zone.xMax - card.widthPct);
+    const maxX = Math.max(minX, zone.xMax - effectiveWidthPct);
     const minY = zone.yMin;
-    // Estimate card height as ~60% of width (landscape rectangle)
-    const estimatedHeightPct = card.widthPct * 0.6;
+    const estimatedHeightPct = effectiveWidthPct * 0.6;
     const maxY = Math.max(minY, zone.yMax - estimatedHeightPct);
 
     return {
       toX: lerp(minX, maxX, seed.x),
       toY: lerp(minY, maxY, seed.y),
+      effectiveWidthPct,
     };
   });
 }
@@ -185,10 +203,28 @@ export function useCurtainThesis() {
   const surfaceGlowRef = useRef<HTMLDivElement>(null);
 
   const cardPositionsRef = useRef<CardPosition[]>([]);
+  const keywordRestYRef = useRef(50);
 
   const recomputePositions = useCallback(
-    (_viewportEl: HTMLDivElement) => {
-      cardPositionsRef.current = computeCardPositions();
+    (viewportEl: HTMLDivElement) => {
+      const positions = computeCardPositions(viewportEl.clientWidth);
+      cardPositionsRef.current = positions;
+
+      // Keyword rests at the midpoint between the bottom of upper cards and top of lower cards.
+      // Upper cards: highest toY + estimated card height. Lower cards: lowest toY.
+      const upperCards = positions.filter((_, i) => ZONES[i].yMax <= 50);
+      const lowerCards = positions.filter((_, i) => ZONES[i].yMin >= 50);
+
+      const upperBottom = upperCards.length > 0
+        ? Math.max(...upperCards.map((p) => {
+            return p.toY + p.effectiveWidthPct * 0.6; // toY + estimated card height
+          }))
+        : 0;
+      const lowerTop = lowerCards.length > 0
+        ? Math.min(...lowerCards.map((p) => p.toY))
+        : 100;
+
+      keywordRestYRef.current = (upperBottom + lowerTop) / 2;
     },
     [],
   );
@@ -263,12 +299,15 @@ export function useCurtainThesis() {
         const shrinkProgress = smoothstep(ARTIFACT_SHUFFLE_START, ARTIFACT_SHUFFLE_END, progress);
         const riseProgress = smoothstep(KEYWORD_RISE_START, KEYWORD_RISE_END, progress);
 
+        // Keyword rests at the midpoint of the gap between upper and lower card zones
+        const keywordRestY = keywordRestYRef.current;
+
         // Rise AND fade simultaneously — gone by the time it reaches the top
         const riseFade = 1 - riseProgress;
         postCurtainRef.current.style.opacity = String(appearProgress * riseFade);
         const midSize = lerp(POST_CURTAIN.startFontSizeVw, POST_CURTAIN.endFontSizeVw, shrinkProgress);
         postCurtainRef.current.style.fontSize = `${lerp(midSize, KEYWORD_RISE.endFontSizeVw, riseProgress)}vw`;
-        postCurtainRef.current.style.top = `${lerp(50, KEYWORD_RISE.endTopPercent, riseProgress)}%`;
+        postCurtainRef.current.style.top = `${lerp(keywordRestY, KEYWORD_RISE.endTopPercent, riseProgress)}%`;
         postCurtainRef.current.style.transform = `translate(-50%, -${lerp(50, 0, riseProgress)}%)`;
 
         if (subtitleRef.current) {
@@ -316,7 +355,7 @@ export function useCurtainThesis() {
         el.style.opacity = String(baseOpacity * focusOpacity);
         el.style.left = `${currentX + myFocus * FOCUS_CYCLE.nudgeX}%`;
         el.style.top = `${currentY + myFocus * FOCUS_CYCLE.nudgeY}%`;
-        // Only scale for focus nudge — card width is already responsive via CSS %
+        el.style.width = `${pos.effectiveWidthPct}%`;
         el.style.transform = `rotate(${currentRotation}deg)${focusScale !== 1 ? ` scale(${focusScale})` : ""}`;
         el.style.transformOrigin = "top left";
       }
