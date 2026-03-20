@@ -15,15 +15,9 @@ const MONO =
 const SYSTEM =
   '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
-/* ── Pillar label ── */
+/* ── Company / year label (above each card) ── */
 
-function CompanyPillar({
-  company,
-  pillar,
-}: {
-  company: string;
-  pillar: string;
-}) {
+function CompanyLabel({ label }: { label: string }) {
   return (
     <div
       className="font-ui"
@@ -34,20 +28,39 @@ function CompanyPillar({
         color: INK_4,
         marginBottom: 16,
         fontWeight: 600,
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
       }}>
-      <span style={{ color: INK_3 }}>{company}</span>
-      <span
+      {label}
+    </div>
+  );
+}
+
+/* ── Section heading (lens name + description) ── */
+
+function LensHeading({ name, desc }: { name: string; desc: string }) {
+  return (
+    <div style={{ marginBottom: 40, marginTop: 16 }}>
+      <h2
+        className="font-sans"
         style={{
-          width: 16,
-          height: 1,
-          background: BORDER,
-          display: "inline-block",
-        }}
-      />
-      <span>{pillar}</span>
+          fontSize: 28,
+          fontWeight: 600,
+          color: INK,
+          margin: "0 0 6px",
+          letterSpacing: "-0.02em",
+          lineHeight: 1.2,
+        }}>
+        {name}
+      </h2>
+      <p
+        style={{
+          fontSize: 14,
+          color: INK_3,
+          margin: 0,
+          fontStyle: "italic",
+          lineHeight: 1.5,
+        }}>
+        {desc}
+      </p>
     </div>
   );
 }
@@ -1085,10 +1098,10 @@ function GithubReviewCard() {
 }
 
 /* ══════════════════════════════════════════════════════════
-   8. PLAIN TEXT MOMENT
+   8a. PLAIN TEXT — "bare" variant (large serif quote, no shell)
    ══════════════════════════════════════════════════════════ */
 
-function PlainTextMoment({
+function PlainTextBare({
   context,
   quote,
   rotation = 0,
@@ -1133,6 +1146,120 @@ function PlainTextMoment({
 }
 
 /* ══════════════════════════════════════════════════════════
+   8b. PLAIN TEXT — "sticky note" variant (warm paper card)
+   ══════════════════════════════════════════════════════════ */
+
+function PlainTextSticky({
+  context,
+  quote,
+  rotation = 0,
+}: {
+  context: string;
+  quote: string;
+  rotation?: number;
+}) {
+  return (
+    <div
+      style={{
+        background: "#FDF8EE",
+        border: "1px solid #EDE4D0",
+        borderRadius: 6,
+        padding: "20px 24px 22px",
+        transform: `rotate(${rotation}deg)`,
+        boxShadow: [
+          "0 1px 2px rgba(26,25,23,0.05)",
+          "0 4px 12px rgba(26,25,23,0.04)",
+        ].join(", "),
+        maxWidth: 560,
+      }}>
+      <div
+        className="font-ui"
+        style={{
+          fontSize: 9,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          color: INK_4,
+          marginBottom: 14,
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}>
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: 999,
+            background: "#D4A373",
+            flexShrink: 0,
+          }}
+        />
+        {context}
+      </div>
+      <p
+        style={{
+          fontSize: 15,
+          lineHeight: 1.65,
+          color: INK_2,
+          margin: 0,
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontStyle: "italic",
+        }}>
+        &ldquo;{quote}&rdquo;
+      </p>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   8c. PLAIN TEXT — "annotation" variant (left-border card)
+   ══════════════════════════════════════════════════════════ */
+
+function PlainTextAnnotation({
+  context,
+  quote,
+  accentColor = "#6366F1",
+}: {
+  context: string;
+  quote: string;
+  accentColor?: string;
+}) {
+  return (
+    <ArtifactShell>
+      <div
+        style={{
+          borderLeft: `3px solid ${accentColor}`,
+          padding: "18px 22px 20px",
+        }}>
+        <div
+          className="font-ui"
+          style={{
+            fontSize: 9,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: accentColor,
+            marginBottom: 10,
+            fontWeight: 600,
+          }}>
+          {context}
+        </div>
+        <p
+          style={{
+            fontSize: 16,
+            lineHeight: 1.6,
+            color: INK,
+            margin: 0,
+            fontFamily: SYSTEM,
+            fontWeight: 400,
+          }}>
+          &ldquo;{quote}&rdquo;
+        </p>
+      </div>
+    </ArtifactShell>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
    PAGE
    ══════════════════════════════════════════════════════════ */
 
@@ -1143,7 +1270,7 @@ export default function LabArtifactsPage() {
       <div
         style={{
           minHeight: "100vh",
-          background: "#F5F3EE",
+          background: "#F7F6F3",
           color: INK,
           padding: "80px 24px 120px",
         }}>
@@ -1152,59 +1279,23 @@ export default function LabArtifactsPage() {
             maxWidth: 680,
             margin: "0 auto",
           }}>
-          {/* Header */}
-          <div style={{ marginBottom: 72 }}>
-            <div
-              className="font-ui"
-              style={{
-                fontSize: 9,
-                letterSpacing: "0.3em",
-                textTransform: "uppercase",
-                color: INK_4,
-                marginBottom: 14,
-                fontWeight: 600,
-              }}>
-              Lab / Story Artifacts
-            </div>
-            <h1
-              className="font-serif"
-              style={{
-                fontSize: "clamp(28px, 4vw, 36px)",
-                fontWeight: 400,
-                color: INK,
-                margin: "0 0 10px",
-                lineHeight: 1.25,
-                letterSpacing: "-0.02em",
-              }}>
-              Fragments from the work
-            </h1>
-            <p
-              style={{
-                fontSize: 14,
-                color: INK_3,
-                margin: 0,
-                lineHeight: 1.6,
-                maxWidth: 480,
-              }}>
-              Skeuomorphic UI artifacts — real tools, real moments.
-              Each one maps to a story inside users, gaps, or patterns.
-            </p>
-          </div>
+
+          {/* ── USERS ── */}
+          <LensHeading name="Users" desc="What people actually experience." />
 
           <div style={{ display: "flex", flexDirection: "column", gap: 54 }}>
-            {/* Users */}
             <div>
-              <CompanyPillar company="AMBOSS" pillar="Users" />
+              <CompanyLabel label="AMBOSS · 2018–2019" />
               <JiraCard />
             </div>
 
             <div>
-              <CompanyPillar company="Compado" pillar="Users" />
+              <CompanyLabel label="Compado · 2019–2021" />
               <SentryCard />
             </div>
 
             <div>
-              <CompanyPillar company="DKB" pillar="Users" />
+              <CompanyLabel label="DKB · 2021–2024" />
               <SlackMessage
                 sender="Thomas M."
                 avatar="T"
@@ -1218,85 +1309,97 @@ export default function LabArtifactsPage() {
                 ]}
               />
             </div>
+          </div>
 
-            {/* Structure */}
-            <div>
-              <CompanyPillar company="AMBOSS" pillar="Structure" />
-              <FigmaComment
-                author="Lisa"
-                avatar="L"
-                page="Side Menu v2"
-                comment="Here is the menu. It opens from the side."
-              />
-            </div>
+          {/* ── GAPS ── */}
+          <div style={{ marginTop: 96 }}>
+            <LensHeading name="Gaps" desc="What is missing, misaligned, or disconnected." />
 
-            <div>
-              <CompanyPillar company="Compado" pillar="Structure" />
-              <SlackMessage
-                sender="Marcus W."
-                avatar="M"
-                avatarBg="#5B5FC7"
-                timestamp="3:42 PM"
-                text="This ticket said &lsquo;small change&rsquo; but I have been on it for two days."
-                direct
-              />
-            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 54 }}>
+              <div>
+                <CompanyLabel label="AMBOSS · 2018–2019" />
+                <FigmaComment
+                  author="Lisa"
+                  avatar="L"
+                  page="Side Menu v2"
+                  comment="Here is the menu. It opens from the side."
+                />
+              </div>
 
-            <div>
-              <CompanyPillar company="CAPinside" pillar="Structure" />
-              <FigmaComment
-                author="Designer"
-                avatar="D"
-                page="Fund Detail v3"
-                comment="The new fund detail page looks clean in Figma but the data it needs does not exist in the API the same way."
-                devMode
-              />
-            </div>
+              <div>
+                <CompanyLabel label="Compado · 2019–2021" />
+                <SlackMessage
+                  sender="Marcus W."
+                  avatar="M"
+                  avatarBg="#5B5FC7"
+                  timestamp="3:42 PM"
+                  text="This ticket said &lsquo;small change&rsquo; but I have been on it for two days."
+                  direct
+                />
+              </div>
 
-            {/* Clarity */}
-            <div>
-              <CompanyPillar company="Compado" pillar="Clarity" />
-              <MeetingNote />
-            </div>
+              <div>
+                <CompanyLabel label="CAPinside · 2021" />
+                <FigmaComment
+                  author="Designer"
+                  avatar="D"
+                  page="Fund Detail v3"
+                  comment="The new fund detail page looks clean in Figma but the data it needs does not exist in the API the same way."
+                  devMode
+                />
+              </div>
 
-            <div>
-              <CompanyPillar company="CAPinside" pillar="Clarity" />
-              <AdrComment />
-            </div>
-
-            <div>
-              <CompanyPillar company="DKB" pillar="Clarity" />
-              <GithubReviewCard />
-            </div>
-
-            <div>
-              <CompanyPillar company="AMBOSS" pillar="Clarity" />
-              <PlainTextMoment
-                context="1:1 with Product Owner"
-                quote="Can you start on this? We will figure out the details as we go."
-                rotation={0.4}
-              />
-            </div>
-
-            {/* Scale */}
-            <div>
-              <CompanyPillar company="AMBOSS" pillar="Scale" />
-              <PlainTextMoment
-                context="New team member, week 1"
-                quote="How does anyone work on this file? It is massive."
-                rotation={-0.3}
-              />
-            </div>
-
-            <div>
-              <CompanyPillar company="DKB" pillar="Scale" />
-              <PlainTextMoment
-                context="During standup"
-                quote="We have fourteen feature flags in production. Does anyone know which ones are still active?"
-                rotation={0.5}
-              />
+              <div>
+                <CompanyLabel label="CAPinside · 2021" />
+                <AdrComment />
+              </div>
             </div>
           </div>
+
+          {/* ── PATTERNS ── */}
+          <div style={{ marginTop: 96 }}>
+            <LensHeading name="Patterns" desc="What repeats, accumulates, or became a shared practice." />
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 54 }}>
+              <div>
+                <CompanyLabel label="AMBOSS · 2018–2019" />
+                <PlainTextBare
+                  context="1:1 with Product Owner"
+                  quote="Can you start on this? We will figure out the details as we go."
+                  rotation={0.4}
+                />
+              </div>
+
+              <div>
+                <CompanyLabel label="Compado · 2019–2021" />
+                <MeetingNote />
+              </div>
+
+              <div>
+                <CompanyLabel label="AMBOSS · 2018–2019" />
+                <PlainTextSticky
+                  context="New team member, week 1"
+                  quote="How does anyone work on this file? It is massive."
+                  rotation={-0.5}
+                />
+              </div>
+
+              <div>
+                <CompanyLabel label="DKB · 2021–2024" />
+                <GithubReviewCard />
+              </div>
+
+              <div>
+                <CompanyLabel label="DKB · 2021–2024" />
+                <PlainTextAnnotation
+                  context="During standup"
+                  quote="We have fourteen feature flags in production. Does anyone know which ones are still active?"
+                  accentColor="#E05252"
+                />
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </>
