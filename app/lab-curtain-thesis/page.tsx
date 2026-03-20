@@ -3,49 +3,53 @@
 import { useRef, useEffect, useCallback } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
 import { LabNav } from "../lab-nav";
+import { CONTENT } from "../engineer-candidate/engineer-data";
+import { THESIS as EC_THESIS, CONTAINER_VH as EC_CONTAINER_VH } from "../engineer-candidate/engineer-candidate.types";
+import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
 
-/* ── Thesis data (mirrors engineer-candidate/engineer-data.tsx) ── */
+/* ── Config ── */
 
-const THESIS_TEXT = {
-  prefix: "Each of my past roles sharpened a different part of how I think, about ",
-  keywords: ["users", "gaps", "patterns"] as readonly string[],
-  conjunction: "and\u00A0",
-};
+const CONTAINER_VH = 800;
 
-/* ── Scroll phases (fraction of total scroll) ── */
+/**
+ * EC's stagger/reveal values are calibrated to EC's ~1799vh container.
+ * Scale them so the same physical scroll distance produces the same effect.
+ */
+const PROGRESS_SCALE = EC_CONTAINER_VH / CONTAINER_VH;
 
-const TOTAL_HEIGHT_VH = 3000;
+/**
+ * Scroll phases as fractions of 0–1.
+ * Thesis phase mirrors EC exactly (same config object).
+ * Curtain phase is new — begins after thesis words have landed.
+ */
+const SCROLL = {
+  // Thesis: ~200vh of scroll (matches EC's 200vh thesis distance)
+  thesisStart:    0.0,
+  thesisDuration: 0.25,   // 0.25 × 800 = 200vh
+  // Curtain begins shortly after thesis words land
+  curtainStart:   0.28,
+  curtainEnd:     0.47,
+} as const;
 
-// Phase 1: Thesis fade in + drift + word reveals (0 → 0.4)
-const THESIS_START = 0.0;
-const THESIS_FADE_IN_END = 0.12;       // container fades in + deblurs
-const WORD_REVEAL_START = 0.14;         // keywords begin revealing sequentially
-const WORD_STAGGER = 0.04;             // gap between each keyword reveal
-const WORD_REVEAL_DUR = 0.03;          // each keyword's fade-in duration
-const THESIS_SETTLE = 0.30;            // thesis fully settled (drift stops)
+const CURTAIN_ACCENT = "var(--gold, #C9A84C)";
 
-// Drift
-const DRIFT_Y_START = 6;               // vh below center at start
-const DRIFT_Y_END = -2;                // vh above center at settle
-const INITIAL_BLUR = 6;                // px blur at start
+/** RAF smoothing factor */
+const LERP_FACTOR = 0.07;
 
-/* ── Helpers ── */
+/* ── Derived ── */
 
-function smoothstep(a: number, b: number, x: number): number {
-  const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-}
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
-}
+const thesis = CONTENT.thesis;
+const KW_COUNT = thesis.keywords.length;
 
 /* ── Component ── */
 
 export default function LabCurtainThesisPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const thesisEl = useRef<HTMLDivElement>(null);
-  const keywordEls = useRef<(HTMLSpanElement | null)[]>([]);
+  const wordRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const curtainRef = useRef<HTMLDivElement>(null);
+  const accentRef = useRef<HTMLDivElement>(null);
+  const gradientRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -57,42 +61,65 @@ export default function LabCurtainThesisPage() {
   const rafId = useRef(0);
 
   const update = useCallback((progress: number) => {
-    /* ── Thesis container: fade in + deblur + drift upward ── */
-    if (thesisEl.current) {
-      const fadeIn = smoothstep(THESIS_START, THESIS_FADE_IN_END, progress);
-      const drift = smoothstep(THESIS_START, THESIS_SETTLE, progress);
-      const y = lerp(DRIFT_Y_START, DRIFT_Y_END, drift);
-      const blur = lerp(INITIAL_BLUR, 0, fadeIn);
+    /* ═══ Thesis — identical to EC logic ═══ */
 
-      thesisEl.current.style.opacity = String(fadeIn);
+    if (thesisEl.current) {
+      const T_START = SCROLL.thesisStart;
+      const T_DUR = SCROLL.thesisDuration;
+      const T_END = T_START + T_DUR;
+
+      // Fade in (first 30% of thesis duration) — matches EC fadeInFrac
+      const fadeInEnd = T_START + T_DUR * EC_THESIS.fadeInFrac;
+      const fadeIn = smoothstep(T_START, fadeInEnd, progress);
+
+      // No fade out — thesis holds until curtain erases it
+      const opacity = fadeIn;
+
+      // Two-speed drift — matches EC driftFastWeight/driftSlowWeight
+      const wordRevealZone = T_START + T_DUR * EC_THESIS.wordZoneFrac;
+      const driftFast = smoothstep(T_START, wordRevealZone, progress);
+      const driftSlow = smoothstep(wordRevealZone, T_END, progress);
+      const drift = driftFast * EC_THESIS.driftFastWeight + driftSlow * EC_THESIS.driftSlowWeight;
+      const y = lerp(EC_THESIS.yStartLg, EC_THESIS.yEndLg, drift);
+
+      // Blur clears during fade-in — matches EC initialBlur
+      const blur = lerp(EC_THESIS.initialBlur, 0, fadeIn);
+
+      thesisEl.current.style.opacity = String(opacity);
       thesisEl.current.style.transform = `translate(-50%, calc(-50% + ${y}vh))`;
       thesisEl.current.style.filter = blur > 0.1 ? `blur(${blur}px)` : "none";
+
+      // Sequential word reveal — EC values scaled by PROGRESS_SCALE for matching scroll distance
+      const scaledStagger = EC_THESIS.wordStagger * PROGRESS_SCALE;
+      const scaledRevealDur = EC_THESIS.wordRevealDur * PROGRESS_SCALE;
+      for (let i = 0; i < KW_COUNT; i++) {
+        const el = wordRefs.current[i];
+        if (!el) continue;
+        const wordStart = wordRevealZone + i * scaledStagger;
+        const wordT = smoothstep(wordStart, wordStart + scaledRevealDur, progress);
+        el.style.opacity = String(wordT);
+        el.style.transform = `translateY(${lerp(EC_THESIS.wordDropPx, 0, wordT)}px)`;
+        el.style.display = "inline-block";
+      }
     }
 
-    /* ── Sequential keyword reveal: each drops in with translateY ── */
-    const kwCount = THESIS_TEXT.keywords.length;
-    for (let i = 0; i < kwCount; i++) {
-      const el = keywordEls.current[i];
-      if (!el) continue;
+    /* ═══ Curtain — opaque overlay grows upward from bottom, erases content ═══ */
 
-      const wordStart = WORD_REVEAL_START + i * WORD_STAGGER;
-      const wordEnd = wordStart + WORD_REVEAL_DUR;
-      const wordT = smoothstep(wordStart, wordEnd, progress);
+    if (curtainRef.current) {
+      const curtainT = clamp(
+        (progress - SCROLL.curtainStart) / (SCROLL.curtainEnd - SCROLL.curtainStart),
+        0, 1,
+      );
+      curtainRef.current.style.height = `${curtainT * 100}%`;
 
-      el.style.opacity = String(wordT);
-      el.style.transform = `translateY(${lerp(12, 0, wordT)}px)`;
-    }
-
-    // Last keyword's word part ("patterns.") — slightly delayed after its "and"
-    const lastWordEl = keywordEls.current[kwCount + kwCount - 1];
-    if (lastWordEl) {
-      const andStart = WORD_REVEAL_START + (kwCount - 1) * WORD_STAGGER;
-      const patternStart = andStart + WORD_STAGGER * 0.5; // half-stagger delay
-      const patternEnd = patternStart + WORD_REVEAL_DUR;
-      const patternT = smoothstep(patternStart, patternEnd, progress);
-
-      lastWordEl.style.opacity = String(patternT);
-      lastWordEl.style.transform = `translateY(${lerp(12, 0, patternT)}px)`;
+      // Accent line visible only while curtain is in motion
+      const lineVisible = curtainT > 0 && curtainT < 1;
+      if (accentRef.current) {
+        accentRef.current.style.opacity = lineVisible ? "0.7" : "0";
+      }
+      if (gradientRef.current) {
+        gradientRef.current.style.opacity = lineVisible ? "1" : "0";
+      }
     }
   }, []);
 
@@ -100,7 +127,7 @@ export default function LabCurtainThesisPage() {
   useEffect(() => {
     const tick = () => {
       smoothProgress.current +=
-        (targetProgress.current - smoothProgress.current) * 0.07;
+        (targetProgress.current - smoothProgress.current) * LERP_FACTOR;
       update(smoothProgress.current);
       rafId.current = requestAnimationFrame(tick);
     };
@@ -117,10 +144,10 @@ export default function LabCurtainThesisPage() {
       <LabNav />
       <div
         ref={containerRef}
-        style={{ height: `${TOTAL_HEIGHT_VH}vh`, background: "var(--bg, #07070A)" }}>
+        style={{ height: `${CONTAINER_VH}vh`, background: "var(--bg, #07070A)" }}>
         <div className="sticky top-0 h-screen w-full overflow-hidden">
 
-          {/* Thesis sentence */}
+          {/* Thesis sentence — renders identically to EC */}
           <div
             ref={thesisEl}
             className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
@@ -128,55 +155,72 @@ export default function LabCurtainThesisPage() {
               opacity: 0,
               fontFamily: "var(--font-serif)",
               fontSize: "clamp(1.4rem, 3vw, 2.4rem)",
-              color: "var(--cream, #F0E6D0)",
+              color: "var(--cream)",
               fontWeight: 400,
-              maxWidth: "60vw",
+              maxWidth: EC_THESIS.maxWidthLg,
               lineHeight: 1.5,
               willChange: "transform, opacity, filter",
+              zIndex: 1,
             }}>
-            {THESIS_TEXT.prefix}
-            {THESIS_TEXT.keywords.map((word, i) => {
-              const isLast = i === THESIS_TEXT.keywords.length - 1;
-              if (isLast) {
-                // "and" + "patterns." — conjunction appears with keyword but word is slightly delayed
-                return (
-                  <span key={word} style={{ display: "inline" }}>
-                    <span
-                      ref={(el) => { keywordEls.current[i] = el; }}
-                      style={{
-                        opacity: 0,
-                        willChange: "opacity, transform",
-                        display: "inline-block",
-                      }}>
-                      {THESIS_TEXT.conjunction}
-                    </span>
-                    <span
-                      ref={(el) => { keywordEls.current[i + THESIS_TEXT.keywords.length] = el; }}
-                      style={{
-                        opacity: 0,
-                        willChange: "opacity, transform",
-                        display: "inline-block",
-                        fontStyle: "italic",
-                      }}>
-                      {`${word}.`}
-                    </span>
-                  </span>
-                );
-              }
-              return (
+            {thesis.prefix}
+            <span style={{ whiteSpace: "nowrap" }}>
+            {thesis.keywords.map((word, i) => (
+              <span key={word}>
                 <span
-                  key={word}
-                  ref={(el) => { keywordEls.current[i] = el; }}
+                  ref={(el) => { wordRefs.current[i] = el; }}
                   style={{
                     opacity: 0,
                     willChange: "opacity, transform",
-                    display: "inline-block",
+                    marginRight: i < thesis.keywords.length - 1 ? "0.3em" : undefined,
                   }}>
-                  <span style={{ fontStyle: "italic" }}>{`${word},`}</span>
-                  {"\u00A0"}
+                  {i === thesis.keywords.length - 1
+                    ? `${thesis.conjunction}${word}.`
+                    : `${word},`}
                 </span>
-              );
-            })}
+              </span>
+            ))}
+            </span>
+          </div>
+
+          {/* Curtain overlay — anchored at bottom, grows upward to erase */}
+          <div
+            ref={curtainRef}
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: "0%",
+              zIndex: 2,
+              background: "var(--bg, #07070A)",
+              pointerEvents: "none",
+            }}>
+            {/* Top edge: accent line — the sweeping edge moving upward */}
+            <div
+              ref={accentRef}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                background: CURTAIN_ACCENT,
+                opacity: 0,
+              }}
+            />
+            {/* Gradient above edge for soft transition */}
+            <div
+              ref={gradientRef}
+              style={{
+                position: "absolute",
+                top: -20,
+                left: 0,
+                right: 0,
+                height: 20,
+                background: `linear-gradient(to bottom, transparent, var(--bg, #07070A))`,
+                opacity: 0,
+              }}
+            />
           </div>
         </div>
       </div>

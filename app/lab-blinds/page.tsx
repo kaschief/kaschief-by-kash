@@ -57,10 +57,10 @@ const CHAPTERS: Chapter[] = [
 ];
 
 /* ── Quote segments: text between keywords + the keywords themselves ── */
-// "Each of my past roles sharpened a different part of how I think, about
+// "Each of my past roles sharpened a different part of how I think about
 //  users, structure, clarity, and scale."
 const QUOTE_SEGMENTS: { text: string; isKeyword: boolean; keywordIndex?: number }[] = [
-  { text: "Each of my past roles sharpened a different part of how I think, about ", isKeyword: false },
+  { text: "Each of my past roles sharpened a different part of how I think about ", isKeyword: false },
   { text: "users", isKeyword: true, keywordIndex: 0 },
   { text: ", ", isKeyword: false },
   { text: "gaps", isKeyword: true, keywordIndex: 1 },

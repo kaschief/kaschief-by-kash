@@ -406,11 +406,12 @@ export function useConvergence() {
           fontSize: "clamp(1.4rem, 3vw, 2.4rem)",
           color: "var(--cream)",
           fontWeight: 400,
-          maxWidth: "60vw",
+          maxWidth: THESIS.maxWidthLg,
           lineHeight: 1.5,
           willChange: "transform, opacity, filter",
         }}>
         {CONTENT.thesis.prefix}
+        <span style={{ whiteSpace: "nowrap" }}>
         {CONTENT.thesis.keywords.map((word, wordIdx) => (
           <span key={word}>
             <span
@@ -422,6 +423,7 @@ export function useConvergence() {
             </span>
           </span>
         ))}
+        </span>
       </div>
     </>
   );

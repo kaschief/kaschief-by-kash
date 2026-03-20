@@ -146,8 +146,6 @@ export default function LabPillarsPage() {
       // but overlaps with the next card by OVERLAP fraction.
       const peelStart = INTRO_FRAC + i * PILLAR_FRAC * (1 - OVERLAP);
       const peelEnd = peelStart + PILLAR_FRAC;
-      const pillarStart = peelStart;
-      const pillarEnd = peelEnd;
       const storyZoneStart = peelStart + PILLAR_FRAC * 0.15;
       const storyZoneEnd = peelEnd - PILLAR_FRAC * 0.15;
       const exitStart = storyZoneEnd;
@@ -171,13 +169,6 @@ export default function LabPillarsPage() {
       const isPeeling = progress >= peelStart && progress < peelEnd;
       const isActive = progress >= peelEnd && progress < exitEnd;
       const isDone = progress >= exitEnd;
-
-      // Stack position (cards stack with slight offset)
-      const stackIndex = i;
-      const cardsAbove = PILLARS.slice(0, i).filter((_, j) => {
-        const jEnd = INTRO_FRAC + (j + 1) * PILLAR_FRAC;
-        return progress >= jEnd;
-      }).length;
 
       // Base rotation per card (alternating slight tilt like the reference)
       const baseRotations = [3, -2, 4, -3];

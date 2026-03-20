@@ -134,7 +134,7 @@ export const THESIS = {
   yEndLg:           -8,      // desktop: drift to 8vh above
   yEndSm:           -14,     // mobile: drift to 14vh above
   initialBlur:       6,      // px blur at start
-  maxWidthLg:        "60vw",
+  maxWidthLg:        "min(60vw, 900px)",
   maxWidthSm:        "85vw",
   wordStagger:       0.01,   // gap between each word reveal
   wordRevealDur:     0.007,  // each word's fade-in duration
