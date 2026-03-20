@@ -142,6 +142,31 @@ export const THESIS = {
   wordCount:         4,      // "product", "systems", "people", "scale"
 } as const;
 
+/** Curtain — opaque wipe that erases the thesis sentence */
+export const CURTAIN_THESIS = {
+  pauseAfterWords: 0.03, // pause after last keyword before curtain begins (fraction of progress)
+  sweepDuration: 0.19, // how long the curtain sweep takes (fraction of progress)
+  accentColor: "var(--gold, #C9A84C)",
+} as const;
+
+/** Prefix dissolution — non-keyword text blurs + fades as curtain approaches */
+export const PREFIX_DISSOLVE = {
+  lookaheadFrac: 0.4, // start dissolving when line is this fraction of viewport height below text
+  fullBlurPx: 8, // max blur (matches lab-focus)
+  minOpacity: 0.15, // dim but not gone (matches lab-focus)
+} as const;
+
+/** Post-curtain keyword reveal — words appear on clean canvas then float to position */
+export const POST_CURTAIN = {
+  color: "var(--gold, #C9A84C)",
+  appearDuration: 0.02, // scroll progress for fade-in
+  driftDuration: 0.08, // scroll progress for center → destination drift
+  startFontSizeVw: 5, // vw at center appearance
+  endFontSizeVw: 2.5, // vw at settled position
+  endTopPercent: 12, // % from top when settled
+  endLeftPercent: 8, // % from left when settled
+} as const;
+
 /** Particle animation — canvas dots explode then converge to SVG positions */
 export const PARTICLE = {
   // Sub-phases (fractions of local 0–1 particle progress)
