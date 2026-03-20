@@ -9,120 +9,125 @@ import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
 
 /* ── Config ── */
 
-const CONTAINER_VH = 500;
+/** Total scroll container height in viewport units */
+const CONTAINER_HEIGHT_VH = 500;
 
 /**
  * EC's stagger/reveal values are calibrated to EC's ~1799vh container.
  * Scale them so the same physical scroll distance produces the same effect.
  */
-const PROGRESS_SCALE = EC_CONTAINER_VH / CONTAINER_VH;
+const EC_TO_LOCAL_SCALE = EC_CONTAINER_VH / CONTAINER_HEIGHT_VH;
 
 /* ── Scroll phase config ── */
 
-const THESIS_START = 0.0;
-const THESIS_DURATION = 0.25;  // 0.25 × 800 = 200vh (matches EC's ~200vh thesis distance)
+/** Where thesis entrance begins (fraction of total scroll 0–1) */
+const THESIS_PHASE_START = 0.0;
+
+/** How much scroll the thesis entrance occupies (fraction of total scroll) */
+const THESIS_PHASE_DURATION = 0.25;  // 0.25 × 500 = 125vh
 
 /** Curtain config — controls the erasing wipe after thesis */
 const CURTAIN = {
-  holdBeat:     0.03,   // pause after last word before curtain begins (fraction of progress)
-  duration:     0.19,   // how long the curtain sweep takes (fraction of progress)
-  accent:       "var(--gold, #C9A84C)",
+  pauseAfterWords: 0.03,   // pause after last word before curtain begins (fraction of progress)
+  sweepDuration:   0.19,   // how long the curtain sweep takes (fraction of progress)
+  accentColor:     "var(--gold, #C9A84C)",
 } as const;
 
 /** RAF smoothing — lower = more resistance/guided feeling */
-const LERP_FACTOR = 0.07;
+const SMOOTH_LERP_FACTOR = 0.07;
 
-/* ── Derived timing (no magic numbers) ── */
+/* ── Derived timing ── */
 
-const thesis = CONTENT.thesis;
-const KW_COUNT = thesis.keywords.length;
+const thesisData = CONTENT.thesis;
+const KEYWORD_COUNT = thesisData.keywords.length;
 
-const wordRevealZone = THESIS_START + THESIS_DURATION * EC_THESIS.wordZoneFrac;
-const scaledStagger = EC_THESIS.wordStagger * PROGRESS_SCALE;
-const scaledRevealDur = EC_THESIS.wordRevealDur * PROGRESS_SCALE;
-const LAST_WORD_END = wordRevealZone + (KW_COUNT - 1) * scaledStagger + scaledRevealDur;
+/** Scroll progress where keyword reveals begin */
+const KEYWORD_REVEAL_START = THESIS_PHASE_START + THESIS_PHASE_DURATION * EC_THESIS.wordZoneFrac;
+
+/** Gap between each keyword reveal, scaled from EC's coordinate space */
+const KEYWORD_STAGGER = EC_THESIS.wordStagger * EC_TO_LOCAL_SCALE;
+
+/** Duration of each keyword's fade-in, scaled from EC's coordinate space */
+const KEYWORD_REVEAL_DURATION = EC_THESIS.wordRevealDur * EC_TO_LOCAL_SCALE;
+
+/** Scroll progress where the final keyword ("patterns") finishes revealing */
+const FINAL_KEYWORD_END = KEYWORD_REVEAL_START + (KEYWORD_COUNT - 1) * KEYWORD_STAGGER + KEYWORD_REVEAL_DURATION;
 
 const SCROLL = {
-  thesisStart:    THESIS_START,
-  thesisDuration: THESIS_DURATION,
-  curtainStart:   LAST_WORD_END + CURTAIN.holdBeat,
-  curtainEnd:     LAST_WORD_END + CURTAIN.holdBeat + CURTAIN.duration,
+  thesisStart:    THESIS_PHASE_START,
+  thesisDuration: THESIS_PHASE_DURATION,
+  curtainStart:   FINAL_KEYWORD_END + CURTAIN.pauseAfterWords,
+  curtainEnd:     FINAL_KEYWORD_END + CURTAIN.pauseAfterWords + CURTAIN.sweepDuration,
 } as const;
 
 /* ── Component ── */
 
 export default function LabCurtainThesisPage() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const thesisEl = useRef<HTMLDivElement>(null);
-  const wordRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const curtainRef = useRef<HTMLDivElement>(null);
-  const accentRef = useRef<HTMLDivElement>(null);
-  const gradientRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const thesisSentenceRef = useRef<HTMLDivElement>(null);
+  const keywordSpanRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const curtainOverlayRef = useRef<HTMLDivElement>(null);
+  const curtainAccentLineRef = useRef<HTMLDivElement>(null);
+  const curtainGradientRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
-    target: containerRef,
+    target: scrollContainerRef,
     offset: ["start start", "end end"],
   });
 
-  const smoothProgress = useRef(0);
-  const targetProgress = useRef(0);
-  const rafId = useRef(0);
+  const smoothedProgress = useRef(0);
+  const rawScrollProgress = useRef(0);
+  const animationFrameId = useRef(0);
 
   const update = useCallback((progress: number) => {
-    /* ═══ Thesis — identical to EC logic ═══ */
+    /* ═══ Phase 1: Thesis entrance — identical to EC logic ═══ */
 
-    if (thesisEl.current) {
-      const T_START = SCROLL.thesisStart;
-      const T_DUR = SCROLL.thesisDuration;
-
+    if (thesisSentenceRef.current) {
       // Fade in (first 30% of thesis duration) — matches EC fadeInFrac
-      const fadeInEnd = T_START + T_DUR * EC_THESIS.fadeInFrac;
-      const fadeIn = smoothstep(T_START, fadeInEnd, progress);
-
-      // No fade out — thesis holds until curtain erases it
-      const opacity = fadeIn;
+      const fadeInEnd = SCROLL.thesisStart + SCROLL.thesisDuration * EC_THESIS.fadeInFrac;
+      const fadeInProgress = smoothstep(SCROLL.thesisStart, fadeInEnd, progress);
 
       // Two-speed drift — fast approach, then slow until last word lands, then freeze
-      const driftFast = smoothstep(T_START, wordRevealZone, progress);
-      const driftSlow = smoothstep(wordRevealZone, LAST_WORD_END, progress);
-      const drift = driftFast * EC_THESIS.driftFastWeight + driftSlow * EC_THESIS.driftSlowWeight;
-      const y = lerp(EC_THESIS.yStartLg, EC_THESIS.yEndLg, drift);
+      const fastDrift = smoothstep(SCROLL.thesisStart, KEYWORD_REVEAL_START, progress);
+      const slowDrift = smoothstep(KEYWORD_REVEAL_START, FINAL_KEYWORD_END, progress);
+      const combinedDrift = fastDrift * EC_THESIS.driftFastWeight + slowDrift * EC_THESIS.driftSlowWeight;
+      const verticalOffset = lerp(EC_THESIS.yStartLg, EC_THESIS.yEndLg, combinedDrift);
 
       // Blur clears during fade-in — matches EC initialBlur
-      const blur = lerp(EC_THESIS.initialBlur, 0, fadeIn);
+      const entranceBlur = lerp(EC_THESIS.initialBlur, 0, fadeInProgress);
 
-      thesisEl.current.style.opacity = String(opacity);
-      thesisEl.current.style.transform = `translate(-50%, calc(-50% + ${y}vh))`;
-      thesisEl.current.style.filter = blur > 0.1 ? `blur(${blur}px)` : "none";
+      thesisSentenceRef.current.style.opacity = String(fadeInProgress);
+      thesisSentenceRef.current.style.transform = `translate(-50%, calc(-50% + ${verticalOffset}vh))`;
+      thesisSentenceRef.current.style.filter = entranceBlur > 0.1 ? `blur(${entranceBlur}px)` : "none";
 
-      // Sequential word reveal — EC values scaled by PROGRESS_SCALE for matching scroll distance
-      for (let i = 0; i < KW_COUNT; i++) {
-        const el = wordRefs.current[i];
-        if (!el) continue;
-        const wordStart = wordRevealZone + i * scaledStagger;
-        const wordT = smoothstep(wordStart, wordStart + scaledRevealDur, progress);
-        el.style.opacity = String(wordT);
-        el.style.transform = `translateY(${lerp(EC_THESIS.wordDropPx, 0, wordT)}px)`;
-        el.style.display = "inline-block";
+      // Sequential keyword reveal — EC values scaled for matching scroll distance
+      for (let i = 0; i < KEYWORD_COUNT; i++) {
+        const keywordSpan = keywordSpanRefs.current[i];
+        if (!keywordSpan) continue;
+        const thisKeywordStart = KEYWORD_REVEAL_START + i * KEYWORD_STAGGER;
+        const keywordRevealProgress = smoothstep(thisKeywordStart, thisKeywordStart + KEYWORD_REVEAL_DURATION, progress);
+        keywordSpan.style.opacity = String(keywordRevealProgress);
+        keywordSpan.style.transform = `translateY(${lerp(EC_THESIS.wordDropPx, 0, keywordRevealProgress)}px)`;
+        keywordSpan.style.display = "inline-block";
       }
     }
 
-    /* ═══ Curtain — opaque overlay grows upward from bottom, erases content ═══ */
+    /* ═══ Phase 3: Curtain — opaque overlay grows upward from bottom, erases content ═══ */
 
-    if (curtainRef.current) {
-      const curtainT = clamp(
+    if (curtainOverlayRef.current) {
+      const curtainProgress = clamp(
         (progress - SCROLL.curtainStart) / (SCROLL.curtainEnd - SCROLL.curtainStart),
         0, 1,
       );
-      curtainRef.current.style.height = `${curtainT * 100}%`;
+      curtainOverlayRef.current.style.height = `${curtainProgress * 100}%`;
 
       // Accent line visible only while curtain is in motion
-      const lineVisible = curtainT > 0 && curtainT < 1;
-      if (accentRef.current) {
-        accentRef.current.style.opacity = lineVisible ? "0.7" : "0";
+      const curtainIsMoving = curtainProgress > 0 && curtainProgress < 1;
+      if (curtainAccentLineRef.current) {
+        curtainAccentLineRef.current.style.opacity = curtainIsMoving ? "0.7" : "0";
       }
-      if (gradientRef.current) {
-        gradientRef.current.style.opacity = lineVisible ? "1" : "0";
+      if (curtainGradientRef.current) {
+        curtainGradientRef.current.style.opacity = curtainIsMoving ? "1" : "0";
       }
     }
   }, []);
@@ -130,30 +135,30 @@ export default function LabCurtainThesisPage() {
   // RAF loop
   useEffect(() => {
     const tick = () => {
-      smoothProgress.current +=
-        (targetProgress.current - smoothProgress.current) * LERP_FACTOR;
-      update(smoothProgress.current);
-      rafId.current = requestAnimationFrame(tick);
+      smoothedProgress.current +=
+        (rawScrollProgress.current - smoothedProgress.current) * SMOOTH_LERP_FACTOR;
+      update(smoothedProgress.current);
+      animationFrameId.current = requestAnimationFrame(tick);
     };
-    rafId.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId.current);
+    animationFrameId.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animationFrameId.current);
   }, [update]);
 
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    targetProgress.current = v;
+  useMotionValueEvent(scrollYProgress, "change", (latestValue) => {
+    rawScrollProgress.current = latestValue;
   });
 
   return (
     <>
       <LabNav />
       <div
-        ref={containerRef}
-        style={{ height: `${CONTAINER_VH}vh`, background: "var(--bg, #07070A)" }}>
+        ref={scrollContainerRef}
+        style={{ height: `${CONTAINER_HEIGHT_VH}vh`, background: "var(--bg, #07070A)" }}>
         <div className="sticky top-0 h-screen w-full overflow-hidden">
 
           {/* Thesis sentence — renders identically to EC */}
           <div
-            ref={thesisEl}
+            ref={thesisSentenceRef}
             className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
             style={{
               opacity: 0,
@@ -166,19 +171,19 @@ export default function LabCurtainThesisPage() {
               willChange: "transform, opacity, filter",
               zIndex: 1,
             }}>
-            {thesis.prefix}
+            {thesisData.prefix}
             <span style={{ whiteSpace: "nowrap" }}>
-            {thesis.keywords.map((word, i) => (
+            {thesisData.keywords.map((word, i) => (
               <span key={word}>
                 <span
-                  ref={(el) => { wordRefs.current[i] = el; }}
+                  ref={(el) => { keywordSpanRefs.current[i] = el; }}
                   style={{
                     opacity: 0,
                     willChange: "opacity, transform",
-                    marginRight: i < thesis.keywords.length - 1 ? "0.3em" : undefined,
+                    marginRight: i < thesisData.keywords.length - 1 ? "0.3em" : undefined,
                   }}>
-                  {i === thesis.keywords.length - 1
-                    ? `${thesis.conjunction}${word}.`
+                  {i === thesisData.keywords.length - 1
+                    ? `${thesisData.conjunction}${word}.`
                     : `${word},`}
                 </span>
               </span>
@@ -188,7 +193,7 @@ export default function LabCurtainThesisPage() {
 
           {/* Curtain overlay — anchored at bottom, grows upward to erase */}
           <div
-            ref={curtainRef}
+            ref={curtainOverlayRef}
             style={{
               position: "absolute",
               bottom: 0,
@@ -201,20 +206,20 @@ export default function LabCurtainThesisPage() {
             }}>
             {/* Top edge: accent line — the sweeping edge moving upward */}
             <div
-              ref={accentRef}
+              ref={curtainAccentLineRef}
               style={{
                 position: "absolute",
                 top: 0,
                 left: 0,
                 right: 0,
                 height: 1,
-                background: CURTAIN.accent,
+                background: CURTAIN.accentColor,
                 opacity: 0,
               }}
             />
             {/* Gradient above edge for soft transition */}
             <div
-              ref={gradientRef}
+              ref={curtainGradientRef}
               style={{
                 position: "absolute",
                 top: -20,
