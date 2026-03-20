@@ -10,11 +10,12 @@ import {
   POST_CURTAIN,
 } from "../engineer-candidate/engineer-candidate.types";
 import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
+import { JiraCard, SentryCard, SlackCard } from "../lab-artifacts/artifact-cards";
 
 /* ── Local config ── */
 
 /** Total scroll container height in viewport units */
-export const CONTAINER_HEIGHT_VH = 500;
+export const CONTAINER_HEIGHT_VH = 600;
 
 /**
  * EC's stagger/reveal values are calibrated to EC's ~1799vh container.
@@ -26,27 +27,82 @@ const EC_TO_LOCAL_SCALE = EC_CONTAINER_VH / CONTAINER_HEIGHT_VH;
 const THESIS_PHASE_START = 0.0;
 
 /** How much scroll the thesis entrance occupies (fraction of total scroll) */
-const THESIS_PHASE_DURATION = 0.25; // 0.25 × 500 = 125vh
+const THESIS_PHASE_DURATION = 0.25; // 0.25 × 600 = 150vh
 
 /** RAF smoothing — lower = more resistance/guided feeling */
 export const SMOOTH_LERP_FACTOR = 0.07;
+
+/** Artifact shuffle-in — each card's off-screen origin and landed position */
+const ARTIFACT_POSITIONS = [
+  {
+    // Jira — enters from left, lands upper-left
+    fromX: -120,
+    fromY: 20,
+    fromRotation: -18,
+    toX: 6,
+    toY: 30,
+    toRotation: -3.5,
+    width: "max(440px, 28vw)",
+  },
+  {
+    // Sentry — enters from right, lands upper-right
+    fromX: 120,
+    fromY: 15,
+    fromRotation: 12,
+    toX: 58,
+    toY: 26,
+    toRotation: 2.5,
+    width: "max(420px, 26vw)",
+  },
+  {
+    // Slack — enters from bottom, lands bottom-center-right
+    fromX: 30,
+    fromY: 120,
+    fromRotation: -6,
+    toX: 38,
+    toY: 62,
+    toRotation: -1.5,
+    width: "max(460px, 30vw)",
+  },
+] as const;
+
+/** Scroll progress budget for each artifact's entrance (staggered) */
+const ARTIFACT_SHUFFLE = {
+  stagger: 0.02,          // delay between each card's entrance start
+  entranceDuration: 0.06, // how long each card takes to slide in
+  opacityRamp: 3,         // multiplier for quick fade-in (1 = linear, higher = faster)
+} as const;
+
+/** Subtitle timing — offsets from ARTIFACT_SHUFFLE_START */
+const SUBTITLE = {
+  fadeInDelay: 0.01,    // scroll progress after shuffle start
+  fadeInDuration: 0.02, // scroll progress for full fade
+  fontSize: "clamp(0.75rem, 1.2vw, 1rem)",
+} as const;
+
+/** Curtain edge decoration */
+const CURTAIN_EDGE = {
+  accentLineHeight: 1,     // px
+  gradientOvershoot: 20,   // px above curtain leading edge
+} as const;
+
+/** Card shadows for dark background */
+const CARD_SHADOWS = {
+  light: "0 8px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)",
+  dark: "0 8px 40px rgba(0,0,0,0.6), 0 0 60px rgba(225,86,124,0.08)",
+} as const;
 
 /* ── Derived timing ── */
 
 const thesisData = CONTENT.thesis;
 const KEYWORD_COUNT = thesisData.keywords.length;
 
-/** Scroll progress where keyword reveals begin */
 const KEYWORD_REVEAL_START =
   THESIS_PHASE_START + THESIS_PHASE_DURATION * EC_THESIS.wordZoneFrac;
 
-/** Gap between each keyword reveal, scaled from EC's coordinate space */
 const KEYWORD_STAGGER = EC_THESIS.wordStagger * EC_TO_LOCAL_SCALE;
-
-/** Duration of each keyword's fade-in, scaled from EC's coordinate space */
 const KEYWORD_REVEAL_DURATION = EC_THESIS.wordRevealDur * EC_TO_LOCAL_SCALE;
 
-/** Scroll progress where the final keyword ("patterns") finishes revealing */
 const FINAL_KEYWORD_END =
   KEYWORD_REVEAL_START +
   (KEYWORD_COUNT - 1) * KEYWORD_STAGGER +
@@ -62,11 +118,16 @@ const SCROLL = {
     CURTAIN_THESIS.sweepDuration,
 } as const;
 
+/** Where artifact shuffle begins — right after "users" appears */
+const ARTIFACT_SHUFFLE_START =
+  SCROLL.curtainEnd +
+  POST_CURTAIN.appearDuration; // no delay, cards come in immediately
+
 /* ── Hook ── */
 
 /**
  * Curtain-thesis hook — owns thesis entrance, curtain sweep,
- * prefix dissolution, and post-curtain keyword reveal.
+ * prefix dissolution, post-curtain keyword reveal, and artifact shuffle-in.
  * Called per-frame from the parent scroll callback via `update()`.
  *
  * Returns `{ update, jsx }` — same pattern as useConvergence.
@@ -80,7 +141,9 @@ export function useCurtainThesis() {
   const curtainAccentLineRef = useRef<HTMLDivElement>(null);
   const curtainGradientRef = useRef<HTMLDivElement>(null);
   const postCurtainRef = useRef<HTMLDivElement>(null);
-  const debugRef = useRef<HTMLDivElement>(null);
+  const subtitleRef = useRef<HTMLDivElement>(null);
+  const artifactRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const surfaceGlowRef = useRef<HTMLDivElement>(null);
 
   /* ---- Scroll update ---- */
   function update(
@@ -197,58 +260,67 @@ export function useCurtainThesis() {
         }
       }
 
-      /* ═══ Phase 4: Post-curtain — keyword appears center then drifts ═══ */
+      /* ═══ Phase 4: Post-curtain — "users" appears big center, then shrinks to top ═══ */
 
       if (postCurtainRef.current) {
         const appearStart = SCROLL.curtainEnd;
         const appearEnd = appearStart + POST_CURTAIN.appearDuration;
-        const driftStart = appearEnd;
-        const driftEnd = driftStart + POST_CURTAIN.driftDuration;
 
         const appearProgress = smoothstep(appearStart, appearEnd, progress);
-        const driftProgress = smoothstep(driftStart, driftEnd, progress);
+
+        // Shrink slightly as cards arrive — stays centered
+        const shrinkProgress = smoothstep(
+          ARTIFACT_SHUFFLE_START,
+          ARTIFACT_SHUFFLE_START + ARTIFACT_SHUFFLE.entranceDuration,
+          progress,
+        );
 
         postCurtainRef.current.style.opacity = String(appearProgress);
+        // Stay at 50% vertical, just shrink from 5vw → 3.5vw
+        postCurtainRef.current.style.fontSize = `${lerp(POST_CURTAIN.startFontSizeVw, POST_CURTAIN.endFontSizeVw, shrinkProgress)}vw`;
 
-        const x = lerp(50, 0, driftProgress);
-        const y = lerp(50, 0, driftProgress);
-        postCurtainRef.current.style.left = `${lerp(50, POST_CURTAIN.endLeftPercent, driftProgress)}%`;
-        postCurtainRef.current.style.top = `${lerp(50, POST_CURTAIN.endTopPercent, driftProgress)}%`;
-        postCurtainRef.current.style.transform = `translate(-${x}%, -${y}%)`;
-
-        const currentSize = lerp(
-          POST_CURTAIN.startFontSizeVw,
-          POST_CURTAIN.endFontSizeVw,
-          driftProgress,
-        );
-        postCurtainRef.current.style.fontSize = `${currentSize}vw`;
+        // Subtitle fades in as cards arrive
+        if (subtitleRef.current) {
+          const subtitleProgress = smoothstep(
+            ARTIFACT_SHUFFLE_START + SUBTITLE.fadeInDelay,
+            ARTIFACT_SHUFFLE_START + SUBTITLE.fadeInDelay + SUBTITLE.fadeInDuration,
+            progress,
+          );
+          subtitleRef.current.style.opacity = String(subtitleProgress);
+        }
       }
 
-      // Debug HUD
-      if (debugRef.current && viewportRef.current) {
-        const viewportRect = viewportRef.current.getBoundingClientRect();
-        const viewportHeight = viewportRect.height;
-        const curtainLineY = Math.round(
-          viewportHeight * (1 - curtainProgress),
-        );
-        const textRect =
-          thesisSentenceRef.current?.getBoundingClientRect();
-        const textTopRelative = textRect
-          ? Math.round(textRect.top - viewportRect.top)
-          : 0;
-        const textBottomRelative = textRect
-          ? Math.round(textRect.bottom - viewportRect.top)
-          : 0;
+      /* ═══ Phase 5: Artifact shuffle-in — cards slide from off-screen edges ═══ */
 
-        debugRef.current.textContent = [
-          `scroll: ${(progress * 100).toFixed(1)}%`,
-          `curtain: ${(curtainProgress * 100).toFixed(1)}%`,
-          `line Y: ${curtainLineY}px from top`,
-          `text top: ${textTopRelative}px`,
-          `text bottom: ${textBottomRelative}px`,
-          `gap: ${curtainLineY - textBottomRelative}px (line above text bottom)`,
-        ].join("\n");
+      for (let i = 0; i < ARTIFACT_POSITIONS.length; i++) {
+        const el = artifactRefs.current[i];
+        if (!el) continue;
+
+        const pos = ARTIFACT_POSITIONS[i];
+        const cardStart = ARTIFACT_SHUFFLE_START + i * ARTIFACT_SHUFFLE.stagger;
+        const cardEnd = cardStart + ARTIFACT_SHUFFLE.entranceDuration;
+        const slideProgress = smoothstep(cardStart, cardEnd, progress);
+
+        const currentX = lerp(pos.fromX, pos.toX, slideProgress);
+        const currentY = lerp(pos.fromY, pos.toY, slideProgress);
+        const currentRotation = lerp(pos.fromRotation, pos.toRotation, slideProgress);
+
+        el.style.opacity = String(clamp(slideProgress * ARTIFACT_SHUFFLE.opacityRamp, 0, 1));
+        el.style.left = `${currentX}%`;
+        el.style.top = `${currentY}%`;
+        el.style.transform = `rotate(${currentRotation}deg)`;
       }
+
+      // Surface glow fades in with first artifact
+      if (surfaceGlowRef.current) {
+        const glowProgress = smoothstep(
+          ARTIFACT_SHUFFLE_START,
+          ARTIFACT_SHUFFLE_START + ARTIFACT_SHUFFLE.entranceDuration,
+          progress,
+        );
+        surfaceGlowRef.current.style.opacity = String(glowProgress);
+      }
+
     }
   }
 
@@ -310,7 +382,6 @@ export function useCurtainThesis() {
           background: "var(--bg, #07070A)",
           pointerEvents: "none",
         }}>
-        {/* Top edge: accent line */}
         <div
           ref={curtainAccentLineRef}
           style={{
@@ -318,27 +389,26 @@ export function useCurtainThesis() {
             top: 0,
             left: 0,
             right: 0,
-            height: 1,
+            height: CURTAIN_EDGE.accentLineHeight,
             background: CURTAIN_THESIS.accentColor,
             opacity: 0,
           }}
         />
-        {/* Gradient above edge for soft transition */}
         <div
           ref={curtainGradientRef}
           style={{
             position: "absolute",
-            top: -20,
+            top: -CURTAIN_EDGE.gradientOvershoot,
             left: 0,
             right: 0,
-            height: 20,
+            height: CURTAIN_EDGE.gradientOvershoot,
             background: `linear-gradient(to bottom, transparent, var(--bg, #07070A))`,
             opacity: 0,
           }}
         />
       </div>
 
-      {/* Post-curtain keyword — appears center, drifts to position */}
+      {/* Post-curtain "users" word — appears center, drifts to top-left */}
       <div
         ref={postCurtainRef}
         className="absolute select-none pointer-events-none"
@@ -351,29 +421,67 @@ export function useCurtainThesis() {
           fontSize: `${POST_CURTAIN.startFontSizeVw}vw`,
           fontWeight: 400,
           color: POST_CURTAIN.color,
-          zIndex: 3,
-          willChange: "opacity, transform, left, top, font-size",
+          letterSpacing: "0.06em",
+          textAlign: "center",
+          zIndex: 10,
+          willChange: "opacity, font-size",
         }}>
         users
+        <div
+          ref={subtitleRef}
+          style={{
+            opacity: 0,
+            fontSize: SUBTITLE.fontSize,
+            fontFamily: "var(--font-serif)",
+            fontStyle: "italic",
+            color: "var(--cream-muted)",
+            fontWeight: 400,
+            letterSpacing: "0.01em",
+            marginTop: "0.5em",
+            whiteSpace: "nowrap",
+          }}>
+          What people actually experience.
+        </div>
       </div>
 
-      {/* Debug HUD — remove after tuning */}
+      {/* Warm surface glow — grounds light cards on dark bg */}
       <div
-        ref={debugRef}
+        ref={surfaceGlowRef}
+        className="absolute inset-0 pointer-events-none"
         style={{
-          position: "absolute",
-          top: 60,
-          right: 16,
-          zIndex: 10,
-          fontFamily: "monospace",
-          fontSize: 12,
-          color: "var(--gold)",
-          opacity: 0.8,
-          whiteSpace: "pre",
-          pointerEvents: "none",
-          lineHeight: 1.6,
+          opacity: 0,
+          zIndex: 3,
+          background: [
+            "radial-gradient(ellipse 80% 70% at 50% 55%, rgba(240,230,208,0.06) 0%, transparent 70%)",
+            "radial-gradient(ellipse 50% 40% at 35% 45%, rgba(201,168,76,0.03) 0%, transparent 60%)",
+          ].join(", "),
+          willChange: "opacity",
         }}
       />
+
+      {/* Artifact cards — shuffle in from off-screen edges */}
+      {ARTIFACT_POSITIONS.map((pos, i) => (
+        <div
+          key={i}
+          ref={(el) => {
+            artifactRefs.current[i] = el;
+          }}
+          className="absolute pointer-events-none"
+          style={{
+            opacity: 0,
+            left: `${pos.fromX}%`,
+            top: `${pos.fromY}%`,
+            transform: `rotate(${pos.fromRotation}deg)`,
+            width: pos.width,
+            zIndex: 4 + i,
+            willChange: "opacity, left, top, transform",
+          }}>
+          {i === 0 && <JiraCard style={{ boxShadow: CARD_SHADOWS.light }} />}
+          {i === 1 && <SentryCard style={{ boxShadow: CARD_SHADOWS.dark }} />}
+          {i === 2 && <SlackCard style={{ boxShadow: CARD_SHADOWS.light }} />}
+        </div>
+      ))}
+
     </>
   );
 
