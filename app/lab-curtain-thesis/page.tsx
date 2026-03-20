@@ -4,7 +4,10 @@ import { useRef, useEffect, useCallback } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
 import { LabNav } from "../lab-nav";
 import { CONTENT } from "../engineer-candidate/engineer-data";
-import { THESIS as EC_THESIS, CONTAINER_VH as EC_CONTAINER_VH } from "../engineer-candidate/engineer-candidate.types";
+import {
+  THESIS as EC_THESIS,
+  CONTAINER_VH as EC_CONTAINER_VH,
+} from "../engineer-candidate/engineer-candidate.types";
 import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
 
 /* ── Config ── */
@@ -24,20 +27,20 @@ const EC_TO_LOCAL_SCALE = EC_CONTAINER_VH / CONTAINER_HEIGHT_VH;
 const THESIS_PHASE_START = 0.0;
 
 /** How much scroll the thesis entrance occupies (fraction of total scroll) */
-const THESIS_PHASE_DURATION = 0.25;  // 0.25 × 500 = 125vh
+const THESIS_PHASE_DURATION = 0.25; // 0.25 × 500 = 125vh
 
 /** Curtain config — controls the erasing wipe after thesis */
 const CURTAIN = {
-  pauseAfterWords: 0.03,   // pause after last word before curtain begins (fraction of progress)
-  sweepDuration:   0.19,   // how long the curtain sweep takes (fraction of progress)
-  accentColor:     "var(--gold, #C9A84C)",
+  pauseAfterWords: 0.03, // pause after last word before curtain begins (fraction of progress)
+  sweepDuration: 0.19, // how long the curtain sweep takes (fraction of progress)
+  accentColor: "var(--gold, #C9A84C)",
 } as const;
 
 /** Prefix dissolution — non-keyword text blurs + fades as curtain approaches */
 const PREFIX_DISSOLVE = {
-  lookaheadPx:   200,    // start dissolving when line is this many px below text bottom
-  fullBlurPx:    8,      // max blur (matches lab-focus)
-  minOpacity:    0.15,   // dim but not gone (matches lab-focus)
+  lookaheadFrac: 0.4, // start dissolving when line is this fraction of viewport height below text
+  fullBlurPx: 8, // max blur (matches lab-focus)
+  minOpacity: 0.15, // dim but not gone (matches lab-focus)
 } as const;
 
 /** RAF smoothing — lower = more resistance/guided feeling */
@@ -49,7 +52,8 @@ const thesisData = CONTENT.thesis;
 const KEYWORD_COUNT = thesisData.keywords.length;
 
 /** Scroll progress where keyword reveals begin */
-const KEYWORD_REVEAL_START = THESIS_PHASE_START + THESIS_PHASE_DURATION * EC_THESIS.wordZoneFrac;
+const KEYWORD_REVEAL_START =
+  THESIS_PHASE_START + THESIS_PHASE_DURATION * EC_THESIS.wordZoneFrac;
 
 /** Gap between each keyword reveal, scaled from EC's coordinate space */
 const KEYWORD_STAGGER = EC_THESIS.wordStagger * EC_TO_LOCAL_SCALE;
@@ -58,13 +62,17 @@ const KEYWORD_STAGGER = EC_THESIS.wordStagger * EC_TO_LOCAL_SCALE;
 const KEYWORD_REVEAL_DURATION = EC_THESIS.wordRevealDur * EC_TO_LOCAL_SCALE;
 
 /** Scroll progress where the final keyword ("patterns") finishes revealing */
-const FINAL_KEYWORD_END = KEYWORD_REVEAL_START + (KEYWORD_COUNT - 1) * KEYWORD_STAGGER + KEYWORD_REVEAL_DURATION;
+const FINAL_KEYWORD_END =
+  KEYWORD_REVEAL_START +
+  (KEYWORD_COUNT - 1) * KEYWORD_STAGGER +
+  KEYWORD_REVEAL_DURATION;
 
 const SCROLL = {
-  thesisStart:    THESIS_PHASE_START,
+  thesisStart: THESIS_PHASE_START,
   thesisDuration: THESIS_PHASE_DURATION,
-  curtainStart:   FINAL_KEYWORD_END + CURTAIN.pauseAfterWords,
-  curtainEnd:     FINAL_KEYWORD_END + CURTAIN.pauseAfterWords + CURTAIN.sweepDuration,
+  curtainStart: FINAL_KEYWORD_END + CURTAIN.pauseAfterWords,
+  curtainEnd:
+    FINAL_KEYWORD_END + CURTAIN.pauseAfterWords + CURTAIN.sweepDuration,
 } as const;
 
 /* ── Component ── */
@@ -94,28 +102,52 @@ export default function LabCurtainThesisPage() {
 
     if (thesisSentenceRef.current) {
       // Fade in (first 30% of thesis duration) — matches EC fadeInFrac
-      const fadeInEnd = SCROLL.thesisStart + SCROLL.thesisDuration * EC_THESIS.fadeInFrac;
-      const fadeInProgress = smoothstep(SCROLL.thesisStart, fadeInEnd, progress);
+      const fadeInEnd =
+        SCROLL.thesisStart + SCROLL.thesisDuration * EC_THESIS.fadeInFrac;
+      const fadeInProgress = smoothstep(
+        SCROLL.thesisStart,
+        fadeInEnd,
+        progress,
+      );
 
       // Two-speed drift — fast approach, then slow until last word lands, then freeze
-      const fastDrift = smoothstep(SCROLL.thesisStart, KEYWORD_REVEAL_START, progress);
-      const slowDrift = smoothstep(KEYWORD_REVEAL_START, FINAL_KEYWORD_END, progress);
-      const combinedDrift = fastDrift * EC_THESIS.driftFastWeight + slowDrift * EC_THESIS.driftSlowWeight;
-      const verticalOffset = lerp(EC_THESIS.yStartLg, EC_THESIS.yEndLg, combinedDrift);
+      const fastDrift = smoothstep(
+        SCROLL.thesisStart,
+        KEYWORD_REVEAL_START,
+        progress,
+      );
+      const slowDrift = smoothstep(
+        KEYWORD_REVEAL_START,
+        FINAL_KEYWORD_END,
+        progress,
+      );
+      const combinedDrift =
+        fastDrift * EC_THESIS.driftFastWeight +
+        slowDrift * EC_THESIS.driftSlowWeight;
+      const verticalOffset = lerp(
+        EC_THESIS.yStartLg,
+        EC_THESIS.yEndLg,
+        combinedDrift,
+      );
 
       // Blur clears during fade-in — matches EC initialBlur
       const entranceBlur = lerp(EC_THESIS.initialBlur, 0, fadeInProgress);
 
       thesisSentenceRef.current.style.opacity = String(fadeInProgress);
       thesisSentenceRef.current.style.transform = `translate(-50%, calc(-50% + ${verticalOffset}vh))`;
-      thesisSentenceRef.current.style.filter = entranceBlur > 0.1 ? `blur(${entranceBlur}px)` : "none";
+      thesisSentenceRef.current.style.filter =
+        entranceBlur > 0.1 ? `blur(${entranceBlur}px)` : "none";
 
       // Sequential keyword reveal — EC values scaled for matching scroll distance
       for (let i = 0; i < KEYWORD_COUNT; i++) {
         const keywordSpan = keywordSpanRefs.current[i];
         if (!keywordSpan) continue;
         const thisKeywordStart = KEYWORD_REVEAL_START + i * KEYWORD_STAGGER;
-        const keywordRevealProgress = smoothstep(thisKeywordStart, thisKeywordStart + KEYWORD_REVEAL_DURATION, progress);
+        const keywordRevealProgress = smoothstep(
+          thisKeywordStart,
+          thisKeywordStart + KEYWORD_REVEAL_DURATION,
+          progress,
+        );
         keywordSpan.style.opacity = String(keywordRevealProgress);
         keywordSpan.style.transform = `translateY(${lerp(EC_THESIS.wordDropPx, 0, keywordRevealProgress)}px)`;
         keywordSpan.style.display = "inline-block";
@@ -126,37 +158,57 @@ export default function LabCurtainThesisPage() {
 
     if (curtainOverlayRef.current) {
       const curtainProgress = clamp(
-        (progress - SCROLL.curtainStart) / (SCROLL.curtainEnd - SCROLL.curtainStart),
-        0, 1,
+        (progress - SCROLL.curtainStart) /
+          (SCROLL.curtainEnd - SCROLL.curtainStart),
+        0,
+        1,
       );
       curtainOverlayRef.current.style.height = `${curtainProgress * 100}%`;
 
       // Accent line visible only while curtain is in motion
       const curtainIsMoving = curtainProgress > 0 && curtainProgress < 1;
       if (curtainAccentLineRef.current) {
-        curtainAccentLineRef.current.style.opacity = curtainIsMoving ? "0.7" : "0";
+        curtainAccentLineRef.current.style.opacity = curtainIsMoving
+          ? "0.7"
+          : "0";
       }
       if (curtainGradientRef.current) {
         curtainGradientRef.current.style.opacity = curtainIsMoving ? "1" : "0";
       }
 
       // Prefix dissolution: blur + fade non-keyword text as curtain line approaches
-      if (prefixSpanRef.current && stickyViewportRef.current && curtainProgress > 0) {
+      if (
+        prefixSpanRef.current &&
+        stickyViewportRef.current &&
+        curtainProgress > 0
+      ) {
         const viewportRect = stickyViewportRef.current.getBoundingClientRect();
         const viewportHeight = viewportRect.height;
         const curtainLineY = viewportHeight * (1 - curtainProgress);
         const prefixRect = prefixSpanRef.current.getBoundingClientRect();
         const prefixBottomRelative = prefixRect.bottom - viewportRect.top;
 
+        // Convert fractional lookahead to px for this viewport
+        const lookaheadPx = viewportHeight * PREFIX_DISSOLVE.lookaheadFrac;
+
         // How close the line is to the text (positive = line still below text)
         const distanceFromLineToText = curtainLineY - prefixBottomRelative;
 
-        // Start dissolving when line is within lookaheadPx, fully dissolved when line reaches text
-        if (distanceFromLineToText < PREFIX_DISSOLVE.lookaheadPx) {
-          const dissolveAmount = clamp(1 - distanceFromLineToText / PREFIX_DISSOLVE.lookaheadPx, 0, 1);
+        // Start dissolving when line is within lookahead, fully dissolved when line reaches text
+        if (distanceFromLineToText < lookaheadPx) {
+          const dissolveAmount = clamp(
+            1 - distanceFromLineToText / lookaheadPx,
+            0,
+            1,
+          );
           const blurPx = dissolveAmount * PREFIX_DISSOLVE.fullBlurPx;
-          const dimmedOpacity = lerp(1, PREFIX_DISSOLVE.minOpacity, dissolveAmount);
-          prefixSpanRef.current.style.filter = blurPx > 0.1 ? `blur(${blurPx}px)` : "none";
+          const dimmedOpacity = lerp(
+            1,
+            PREFIX_DISSOLVE.minOpacity,
+            dissolveAmount,
+          );
+          prefixSpanRef.current.style.filter =
+            blurPx > 0.1 ? `blur(${blurPx}px)` : "none";
           prefixSpanRef.current.style.opacity = String(dimmedOpacity);
         } else {
           prefixSpanRef.current.style.filter = "none";
@@ -170,8 +222,12 @@ export default function LabCurtainThesisPage() {
         const viewportHeight = viewportRect.height;
         const curtainLineY = Math.round(viewportHeight * (1 - curtainProgress));
         const textRect = thesisSentenceRef.current?.getBoundingClientRect();
-        const textTopRelative = textRect ? Math.round(textRect.top - viewportRect.top) : 0;
-        const textBottomRelative = textRect ? Math.round(textRect.bottom - viewportRect.top) : 0;
+        const textTopRelative = textRect
+          ? Math.round(textRect.top - viewportRect.top)
+          : 0;
+        const textBottomRelative = textRect
+          ? Math.round(textRect.bottom - viewportRect.top)
+          : 0;
 
         debugRef.current.textContent = [
           `scroll: ${(progress * 100).toFixed(1)}%`,
@@ -189,7 +245,8 @@ export default function LabCurtainThesisPage() {
   useEffect(() => {
     const tick = () => {
       smoothedProgress.current +=
-        (rawScrollProgress.current - smoothedProgress.current) * SMOOTH_LERP_FACTOR;
+        (rawScrollProgress.current - smoothedProgress.current) *
+        SMOOTH_LERP_FACTOR;
       update(smoothedProgress.current);
       animationFrameId.current = requestAnimationFrame(tick);
     };
@@ -206,9 +263,13 @@ export default function LabCurtainThesisPage() {
       <LabNav />
       <div
         ref={scrollContainerRef}
-        style={{ height: `${CONTAINER_HEIGHT_VH}vh`, background: "var(--bg, #07070A)" }}>
-        <div ref={stickyViewportRef} className="sticky top-0 h-screen w-full overflow-hidden">
-
+        style={{
+          height: `${CONTAINER_HEIGHT_VH}vh`,
+          background: "var(--bg, #07070A)",
+        }}>
+        <div
+          ref={stickyViewportRef}
+          className="sticky top-0 h-screen w-full overflow-hidden">
           {/* Thesis sentence — renders identically to EC */}
           <div
             ref={thesisSentenceRef}
@@ -224,23 +285,30 @@ export default function LabCurtainThesisPage() {
               willChange: "transform, opacity, filter",
               zIndex: 1,
             }}>
-            <span ref={prefixSpanRef} style={{ willChange: "filter, opacity" }}>{thesisData.prefix}</span>
+            <span ref={prefixSpanRef} style={{ willChange: "filter, opacity" }}>
+              {thesisData.prefix}
+            </span>
             <span style={{ whiteSpace: "nowrap" }}>
-            {thesisData.keywords.map((word, i) => (
-              <span key={word}>
-                <span
-                  ref={(el) => { keywordSpanRefs.current[i] = el; }}
-                  style={{
-                    opacity: 0,
-                    willChange: "opacity, transform",
-                    marginRight: i < thesisData.keywords.length - 1 ? "0.3em" : undefined,
-                  }}>
-                  {i === thesisData.keywords.length - 1
-                    ? `${thesisData.conjunction}${word}.`
-                    : `${word},`}
+              {thesisData.keywords.map((word, i) => (
+                <span key={word}>
+                  <span
+                    ref={(el) => {
+                      keywordSpanRefs.current[i] = el;
+                    }}
+                    style={{
+                      opacity: 0,
+                      willChange: "opacity, transform",
+                      marginRight:
+                        i < thesisData.keywords.length - 1
+                          ? "0.3em"
+                          : undefined,
+                    }}>
+                    {i === thesisData.keywords.length - 1
+                      ? `${thesisData.conjunction}${word}.`
+                      : `${word},`}
+                  </span>
                 </span>
-              </span>
-            ))}
+              ))}
             </span>
           </div>
 
