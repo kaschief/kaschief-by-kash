@@ -23,6 +23,9 @@ export const LAB_ROUTES: readonly LabRoute[] = [
   { href: "/lab-sankey", label: "Horizontal Sankey", desc: "Left-to-right SVG Sankey, streams flow through company bars", section: "reference" },
   { href: "/lab-particles", label: "Particle Flow", desc: "Canvas particles with glow, trails, wobble along stream paths", section: "reference" },
 
+  // Design explorations
+  { href: "/lab-artifacts", label: "Artifacts", desc: "Skeuomorphic UI fragments — Jira, Sentry, Slack, Figma, GitHub", section: "reference" },
+
   // Scroll explorations (newest first)
   { href: "/lab-curtain-thesis", label: "Curtain Thesis", desc: "Thesis → curtain wipe → keyword isolation → pillar anchor", section: "scroll" },
   { href: "/lab-blinds", label: "Blinds", desc: "Staggered entry → horizontal blinds sweep → dual content reveal", section: "scroll" },

@@ -162,7 +162,7 @@ export const POST_CURTAIN = {
   appearDuration: 0.02, // scroll progress for fade-in
   driftDuration: 0.08, // scroll progress for center → destination drift
   startFontSizeVw: 5, // vw at center appearance
-  endFontSizeVw: 2.5, // vw at settled position
+  endFontSizeVw: 3.5, // vw at settled position
   endTopPercent: 12, // % from top when settled
   endLeftPercent: 8, // % from left when settled
 } as const;
