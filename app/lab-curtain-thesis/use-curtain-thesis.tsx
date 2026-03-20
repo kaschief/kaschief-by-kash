@@ -10,72 +10,30 @@ import {
   POST_CURTAIN,
 } from "../engineer-candidate/engineer-candidate.types";
 import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
+import { getLens } from "@data";
+import { USERS_CARDS, renderChoreographyCard, type CardConfig } from "./card-config";
 import {
-  JiraCard,
-  SentryCard,
-  SlackCard,
-} from "../lab-artifacts/artifact-cards";
+  CONTAINER_HEIGHT_VH,
+  CARD_HEIGHT_RATIO,
+  ZONE_SPLIT_Y,
+  THESIS_PHASE_START,
+  THESIS_PHASE_DURATION,
+  ARTIFACT_SHUFFLE,
+  SUBTITLE,
+  KEYWORD_RISE,
+  FOCUS_CYCLE,
+  FOCUS_CARD_STAGGER,
+  CURTAIN_EDGE,
+  CARD_SHADOWS,
+  Z,
+  BLUR_THRESHOLD,
+} from "./curtain-thesis.config";
 
-/* ── Local config ── */
+export { CONTAINER_HEIGHT_VH, SMOOTH_LERP_FACTOR } from "./curtain-thesis.config";
 
-export const CONTAINER_HEIGHT_VH = 900;
+/* ── Active pillar cards ── */
 
-const EC_TO_LOCAL_SCALE = EC_CONTAINER_VH / CONTAINER_HEIGHT_VH;
-
-const THESIS_PHASE_START = 0.0;
-const THESIS_PHASE_DURATION = 0.25;
-
-export const SMOOTH_LERP_FACTOR = 0.07;
-
-/* ── Card layout ──
- *
- * Cards use percentage-based widths — NO transform:scale().
- * The card components are already responsive (ArtifactShell adapts to parent width).
- * On smaller viewports, percentage widths naturally give smaller pixel widths,
- * and the card content reflows to stay rectangular.
- *
- * Each card is assigned a zone. Position is computed as a percentage
- * within the zone using deterministic jitter seeds.
- */
-
-/** Card width as % of viewport — wide enough for landscape rectangles.
- *  TODO(S7): Per-pillar config — different card counts need different distributions. */
-const CARD_WIDTH_PCT = [34, 33, 36] as const; // Jira, Sentry, Slack
-
-/**
- * Max card width in px per card — prevents cards from blowing up on large screens.
- * TODO(S7): Move into per-pillar config. Gaps has 4 cards, Patterns has 5 —
- * zones, max widths, jitter seeds, and entrance directions will all vary per pillar.
- */
-const CARD_MAX_WIDTH_PX = [480, 460, 620] as const; // Jira, Sentry, Slack
-
-/** Card definitions — entrance animation only.
- *  TODO(S7): Per-pillar config — 4 cards need 4 zones, different entrances. */
-const CARDS = [
-  // Jira — upper-left
-  { widthPct: CARD_WIDTH_PCT[0], fromX: -40, fromY: 20, fromRotation: -18, toRotation: -3.5 },
-  // Sentry — upper-right
-  { widthPct: CARD_WIDTH_PCT[1], fromX: 140, fromY: 15, fromRotation: 12, toRotation: 2.5 },
-  // Slack — lower-center
-  { widthPct: CARD_WIDTH_PCT[2], fromX: 30, fromY: 120, fromRotation: -6, toRotation: -1.5 },
-] as const;
-
-/** Deterministic jitter seeds (0–1). Same scatter at every viewport, every load. */
-const JITTER = [
-  { x: 0.25, y: 0.3 },
-  { x: 0.65, y: 0.2 },
-  { x: 0.45, y: 0.4 },
-] as const;
-
-/**
- * Zones define where each card can land (% of viewport).
- * Center vertical strip excluded for "users" rise path.
- */
-const ZONES = [
-  { xMin: 2, xMax: 42, yMin: 3, yMax: 46 },   // upper-left
-  { xMin: 56, xMax: 97, yMin: 3, yMax: 46 },   // upper-right
-  { xMin: 8, xMax: 92, yMin: 60, yMax: 96 },   // lower strip
-] as const;
+const CARD_CONFIG: readonly CardConfig[] = USERS_CARDS;
 
 interface CardPosition {
   toX: number;
@@ -85,82 +43,36 @@ interface CardPosition {
 }
 
 /**
- * Compute card positions. Pure percentage math.
+ * Compute card positions from CARD_CONFIG. Pure percentage math.
  * Each card is placed within its zone, offset by deterministic jitter.
- * The card's effective width (capped by CARD_MAX_WIDTH_PX) is subtracted
- * from the zone to prevent right-edge clipping.
+ * Width is capped by the card's maxWidthPx to prevent blowup on large screens.
  */
 function computeCardPositions(viewportWidth: number): CardPosition[] {
-  return CARDS.map((card, i) => {
-    const zone = ZONES[i];
-    const seed = JITTER[i];
+  return CARD_CONFIG.map((cfg) => {
+    const { zone, jitter, widthPct, maxWidthPx } = cfg;
 
-    // Cap width: use percentage unless it exceeds this card's max px
-    const maxPx = CARD_MAX_WIDTH_PX[i];
-    const pctPx = (card.widthPct / 100) * viewportWidth;
-    const effectiveWidthPct = pctPx > maxPx
-      ? (maxPx / viewportWidth) * 100
-      : card.widthPct;
+    const pctPx = (widthPct / 100) * viewportWidth;
+    const effectiveWidthPct = pctPx > maxWidthPx
+      ? (maxWidthPx / viewportWidth) * 100
+      : widthPct;
 
     const minX = zone.xMin;
     const maxX = Math.max(minX, zone.xMax - effectiveWidthPct);
     const minY = zone.yMin;
-    const estimatedHeightPct = effectiveWidthPct * 0.6;
+    const estimatedHeightPct = effectiveWidthPct * CARD_HEIGHT_RATIO;
     const maxY = Math.max(minY, zone.yMax - estimatedHeightPct);
 
     return {
-      toX: lerp(minX, maxX, seed.x),
-      toY: lerp(minY, maxY, seed.y),
+      toX: lerp(minX, maxX, jitter.x),
+      toY: lerp(minY, maxY, jitter.y),
       effectiveWidthPct,
     };
   });
 }
 
-/** Scroll progress budget for each artifact's entrance */
-const ARTIFACT_SHUFFLE = {
-  stagger: 0.04,
-  entranceDuration: 0.1,
-  opacityRamp: 2.5,
-} as const;
-
-const SUBTITLE = {
-  fadeInDelay: 0.02,
-  fadeInDuration: 0.03,
-  fontSize: "clamp(0.75rem, 1.2vw, 1rem)",
-} as const;
-
-const KEYWORD_RISE = {
-  holdAfterShrink: 0.03,
-  duration: 0.12,
-  endTopPercent: 3,
-  endFontSizeVw: 2.8,
-} as const;
-
-const FOCUS_CYCLE = {
-  cardDuration: 0.10,
-  cardGap: 0.005,
-  nudgeX: 1.5,
-  nudgeY: -1,
-  nudgeScale: 1.02,
-  dimOpacity: 0.15,
-  rampIn: 0.06,
-  rampOut: 0.06,
-  dimStagger: 0.02,
-  dimRampDuration: 0.04,
-} as const;
-
-const CURTAIN_EDGE = {
-  accentLineHeight: 1,
-  gradientOvershoot: 20,
-} as const;
-
-const CARD_SHADOWS = {
-  light: "0 8px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)",
-  dark: "0 8px 40px rgba(0,0,0,0.6), 0 0 60px rgba(225,86,124,0.08)",
-} as const;
-
 /* ── Derived timing ── */
 
+const EC_TO_LOCAL_SCALE = EC_CONTAINER_VH / CONTAINER_HEIGHT_VH;
 const thesisData = CONTENT.thesis;
 const KEYWORD_COUNT = thesisData.keywords.length;
 
@@ -180,13 +92,12 @@ const SCROLL = {
 
 const ARTIFACT_SHUFFLE_START = SCROLL.curtainEnd + POST_CURTAIN.appearDuration;
 const ARTIFACT_SHUFFLE_END =
-  ARTIFACT_SHUFFLE_START + (CARDS.length - 1) * ARTIFACT_SHUFFLE.stagger + ARTIFACT_SHUFFLE.entranceDuration;
+  ARTIFACT_SHUFFLE_START + (CARD_CONFIG.length - 1) * ARTIFACT_SHUFFLE.stagger + ARTIFACT_SHUFFLE.entranceDuration;
 
 const KEYWORD_RISE_START = ARTIFACT_SHUFFLE_END + KEYWORD_RISE.holdAfterShrink;
 const KEYWORD_RISE_END = KEYWORD_RISE_START + KEYWORD_RISE.duration;
 
 const FOCUS_CYCLE_START = KEYWORD_RISE_START;
-const FOCUS_CYCLE_CARD_WINDOW = FOCUS_CYCLE.cardDuration + FOCUS_CYCLE.cardGap;
 
 /* ── Hook ── */
 
@@ -203,6 +114,7 @@ export function useCurtainThesis() {
 
   const cardPositionsRef = useRef<CardPosition[]>([]);
   const keywordRestYRef = useRef(50);
+  const debugRef = useRef<HTMLPreElement>(null);
 
   const recomputePositions = useCallback(
     (viewportEl: HTMLDivElement) => {
@@ -211,12 +123,12 @@ export function useCurtainThesis() {
 
       // Keyword rests at the midpoint between the bottom of upper cards and top of lower cards.
       // Upper cards: highest toY + estimated card height. Lower cards: lowest toY.
-      const upperCards = positions.filter((_, i) => ZONES[i].yMax <= 50);
-      const lowerCards = positions.filter((_, i) => ZONES[i].yMin >= 50);
+      const upperCards = positions.filter((_, i) => CARD_CONFIG[i].zone.yMax <= ZONE_SPLIT_Y);
+      const lowerCards = positions.filter((_, i) => CARD_CONFIG[i].zone.yMin >= ZONE_SPLIT_Y);
 
       const upperBottom = upperCards.length > 0
         ? Math.max(...upperCards.map((p) => {
-            return p.toY + p.effectiveWidthPct * 0.6; // toY + estimated card height
+            return p.toY + p.effectiveWidthPct * CARD_HEIGHT_RATIO;
           }))
         : 0;
       const lowerTop = lowerCards.length > 0
@@ -245,7 +157,7 @@ export function useCurtainThesis() {
 
       thesisSentenceRef.current.style.opacity = String(fadeInProgress);
       thesisSentenceRef.current.style.transform = `translate(-50%, calc(-50% + ${verticalOffset}vh))`;
-      thesisSentenceRef.current.style.filter = entranceBlur > 0.1 ? `blur(${entranceBlur}px)` : "none";
+      thesisSentenceRef.current.style.filter = entranceBlur > BLUR_THRESHOLD ? `blur(${entranceBlur}px)` : "none";
 
       for (let i = 0; i < KEYWORD_COUNT; i++) {
         const keywordSpan = keywordSpanRefs.current[i];
@@ -267,7 +179,7 @@ export function useCurtainThesis() {
       curtainOverlayRef.current.style.height = `${curtainProgress * 100}%`;
 
       const curtainIsMoving = curtainProgress > 0 && curtainProgress < 1;
-      if (curtainAccentLineRef.current) curtainAccentLineRef.current.style.opacity = curtainIsMoving ? "0.7" : "0";
+      if (curtainAccentLineRef.current) curtainAccentLineRef.current.style.opacity = curtainIsMoving ? String(CURTAIN_EDGE.movingOpacity) : "0";
       if (curtainGradientRef.current) curtainGradientRef.current.style.opacity = curtainIsMoving ? "1" : "0";
 
       /* ═══ Phase 3: Prefix dissolution ═══ */
@@ -283,7 +195,7 @@ export function useCurtainThesis() {
 
         if (dist < lookaheadPx) {
           const d = clamp(1 - dist / lookaheadPx, 0, 1);
-          prefixSpanRef.current.style.filter = d * PREFIX_DISSOLVE.fullBlurPx > 0.1 ? `blur(${d * PREFIX_DISSOLVE.fullBlurPx}px)` : "none";
+          prefixSpanRef.current.style.filter = d * PREFIX_DISSOLVE.fullBlurPx > BLUR_THRESHOLD ? `blur(${d * PREFIX_DISSOLVE.fullBlurPx}px)` : "none";
           prefixSpanRef.current.style.opacity = String(lerp(1, PREFIX_DISSOLVE.minOpacity, d));
         } else {
           prefixSpanRef.current.style.filter = "none";
@@ -311,7 +223,7 @@ export function useCurtainThesis() {
 
         if (subtitleRef.current) {
           const sIn = smoothstep(ARTIFACT_SHUFFLE_START + SUBTITLE.fadeInDelay, ARTIFACT_SHUFFLE_START + SUBTITLE.fadeInDelay + SUBTITLE.fadeInDuration, progress);
-          const sOut = smoothstep(KEYWORD_RISE_START, KEYWORD_RISE_START + 0.03, progress);
+          const sOut = smoothstep(KEYWORD_RISE_START, KEYWORD_RISE_START + SUBTITLE.fadeOutDuration, progress);
           subtitleRef.current.style.opacity = String(sIn * (1 - sOut));
         }
       }
@@ -321,11 +233,19 @@ export function useCurtainThesis() {
       const positions = cardPositionsRef.current;
       if (positions.length === 0) return;
 
+      // Per-card focus: trapezoidal (rampIn → hold → rampOut)
       const focusValues: number[] = [];
+      const focusWindows: { ws: number; rampInEnd: number; holdEnd: number; rampOutEnd: number }[] = [];
       for (let i = 0; i < positions.length; i++) {
-        const ws = FOCUS_CYCLE_START + i * FOCUS_CYCLE_CARD_WINDOW;
-        const we = ws + FOCUS_CYCLE.cardDuration;
-        focusValues.push(smoothstep(ws, ws + FOCUS_CYCLE.rampIn, progress) * (1 - smoothstep(we - FOCUS_CYCLE.rampOut, we, progress)));
+        const ws = FOCUS_CYCLE_START + i * FOCUS_CARD_STAGGER;
+        const rampInEnd = ws + FOCUS_CYCLE.rampIn;
+        const holdEnd = rampInEnd + FOCUS_CYCLE.hold;
+        const rampOutEnd = holdEnd + FOCUS_CYCLE.rampOut;
+        focusWindows.push({ ws, rampInEnd, holdEnd, rampOutEnd });
+
+        const up = smoothstep(ws, rampInEnd, progress);
+        const down = 1 - smoothstep(holdEnd, rampOutEnd, progress);
+        focusValues.push(up * down);
       }
 
       for (let i = 0; i < positions.length; i++) {
@@ -333,43 +253,93 @@ export function useCurtainThesis() {
         if (!el) continue;
 
         const pos = positions[i];
-        const card = CARDS[i];
+        const cfg = CARD_CONFIG[i];
+        const fw = focusWindows[i];
 
         const cardStart = ARTIFACT_SHUFFLE_START + i * ARTIFACT_SHUFFLE.stagger;
         const slideProgress = smoothstep(cardStart, cardStart + ARTIFACT_SHUFFLE.entranceDuration, progress);
 
-        const currentX = lerp(card.fromX, pos.toX, slideProgress);
-        const currentY = lerp(card.fromY, pos.toY, slideProgress);
-        const currentRotation = lerp(card.fromRotation, card.toRotation, slideProgress);
+        const currentX = lerp(cfg.fromX, pos.toX, slideProgress);
+        const currentY = lerp(cfg.fromY, pos.toY, slideProgress);
+        const currentRotation = lerp(cfg.fromRotation, cfg.toRotation, slideProgress);
 
         const myFocus = focusValues[i];
-        const focusScale = lerp(1, FOCUS_CYCLE.nudgeScale, myFocus);
 
-        // Dimming: a card dims when ANOTHER card is spotlit and this one isn't.
-        // Sum of all OTHER cards' focus values = how much "someone else is in the spotlight"
-        let othersSpotlit = 0;
-        for (let j = 0; j < focusValues.length; j++) {
-          if (j !== i) othersSpotlit = Math.max(othersSpotlit, focusValues[j]);
-        }
-        // Stagger the dim onset per card (cards further from the active one dim slightly later)
-        const dimDelay = i * FOCUS_CYCLE.dimStagger;
-        const dimProgress = smoothstep(
-          FOCUS_CYCLE_START + dimDelay,
-          FOCUS_CYCLE_START + dimDelay + FOCUS_CYCLE.dimRampDuration,
+        // Nudge: card moves to spotlight position during rampIn, STAYS during hold,
+        // only returns during rampOut. We split focus into position vs brightness.
+        const positionFocus = smoothstep(fw.ws, fw.rampInEnd, progress)
+          * (1 - smoothstep(fw.holdEnd, fw.rampOutEnd, progress));
+
+        const nudgeScale = cfg.nudgeScale ?? FOCUS_CYCLE.nudgeScale;
+        const focusScale = lerp(1, nudgeScale, positionFocus);
+        const nudgeX = cfg.nudgeX ?? FOCUS_CYCLE.nudgeX;
+        const nudgeY = cfg.nudgeY ?? FOCUS_CYCLE.nudgeY;
+
+        // Dimming: all cards dim fast at FOCUS_CYCLE_START.
+        // The spotlit card overrides back to full brightness via myFocus.
+        const dimRamp = smoothstep(
+          FOCUS_CYCLE_START,
+          FOCUS_CYCLE_START + FOCUS_CYCLE.dimRampDuration,
           progress,
         );
-        // Dim only when others are spotlit AND this card has started its dim ramp
-        const dimAmount = dimProgress * othersSpotlit;
-        const focusOpacity = lerp(1, FOCUS_CYCLE.dimOpacity, dimAmount * (1 - myFocus));
+        const dimTarget = lerp(1, cfg.dimOpacity, dimRamp);
+        // myFocus (0→1) pulls from dimTarget back to 1. Spotlit card = 1. Others stay dimmed.
+        const focusOpacity = lerp(dimTarget, 1, myFocus);
 
         const baseOpacity = clamp(slideProgress * ARTIFACT_SHUFFLE.opacityRamp, 0, 1);
 
         el.style.opacity = String(baseOpacity * focusOpacity);
-        el.style.left = `${currentX + myFocus * FOCUS_CYCLE.nudgeX}%`;
-        el.style.top = `${currentY + myFocus * FOCUS_CYCLE.nudgeY}%`;
+        el.style.left = `${currentX + positionFocus * nudgeX}%`;
+        el.style.top = `${currentY + positionFocus * nudgeY}%`;
         el.style.width = `${pos.effectiveWidthPct}%`;
         el.style.transform = `rotate(${currentRotation}deg)${focusScale !== 1 ? ` scale(${focusScale})` : ""}`;
         el.style.transformOrigin = "top left";
+      }
+
+      // Debug HUD — live values every frame
+      if (debugRef.current) {
+        const phase =
+          progress < SCROLL.curtainStart ? "thesis" :
+          progress < SCROLL.curtainEnd ? "curtain" :
+          progress < ARTIFACT_SHUFFLE_START ? "post-curtain" :
+          progress < ARTIFACT_SHUFFLE_END ? "shuffle-in" :
+          progress < KEYWORD_RISE_START ? "hold" :
+          progress < KEYWORD_RISE_END ? "keyword-rise" :
+          "focus-cycle";
+
+        const lines = [
+          `progress: ${progress.toFixed(4)}`,
+          `phase:    ${phase}`,
+          ``,
+          `── thresholds ──`,
+          `curtain:   ${SCROLL.curtainStart.toFixed(4)}–${SCROLL.curtainEnd.toFixed(4)}`,
+          `shuffle:   ${ARTIFACT_SHUFFLE_START.toFixed(4)}–${ARTIFACT_SHUFFLE_END.toFixed(4)}`,
+          `kw-rise:   ${KEYWORD_RISE_START.toFixed(4)}–${KEYWORD_RISE_END.toFixed(4)}`,
+          `focus:     ${FOCUS_CYCLE_START.toFixed(4)}`,
+          ``,
+          `── per card ──`,
+        ];
+
+        for (let j = 0; j < positions.length; j++) {
+          const cfg = CARD_CONFIG[j];
+          const fw = focusWindows[j];
+
+          const el2 = artifactRefs.current[j];
+          const actualOpacity = el2 ? el2.style.opacity : "?";
+
+          lines.push(
+            `card-${cfg.entryId}  focus=${focusValues[j].toFixed(3)} ` +
+            `opacity=${actualOpacity.padStart(5)} ` +
+            `dim=${cfg.dimOpacity}`,
+          );
+          lines.push(
+            `        in=${fw.ws.toFixed(4)}→${fw.rampInEnd.toFixed(4)} ` +
+            `hold→${fw.holdEnd.toFixed(4)} ` +
+            `out→${fw.rampOutEnd.toFixed(4)}`,
+          );
+        }
+
+        debugRef.current.textContent = lines.join("\n");
       }
 
     }
@@ -385,7 +355,7 @@ export function useCurtainThesis() {
           opacity: 0, fontFamily: "var(--font-serif)",
           fontSize: "clamp(1.4rem, 3vw, 2.4rem)", color: "var(--cream)",
           fontWeight: 400, maxWidth: EC_THESIS.maxWidthLg, lineHeight: 1.5,
-          willChange: "transform, opacity, filter", zIndex: 1,
+          willChange: "transform, opacity, filter", zIndex: Z.thesis,
         }}>
         <span ref={prefixSpanRef} style={{ willChange: "filter, opacity" }}>{thesisData.prefix}</span>
         <span style={{ whiteSpace: "nowrap" }}>
@@ -408,7 +378,7 @@ export function useCurtainThesis() {
         ref={curtainOverlayRef}
         style={{
           position: "absolute", bottom: 0, left: 0, right: 0,
-          height: "0%", zIndex: 2, background: "var(--bg, #07070A)", pointerEvents: "none",
+          height: "0%", zIndex: Z.curtain, background: "var(--bg, #07070A)", pointerEvents: "none",
         }}>
         <div ref={curtainAccentLineRef} style={{
           position: "absolute", top: 0, left: 0, right: 0,
@@ -428,7 +398,7 @@ export function useCurtainThesis() {
           opacity: 0, left: "50%", top: "50%", transform: "translate(-50%, -50%)",
           fontFamily: "var(--font-serif)", fontSize: `${POST_CURTAIN.startFontSizeVw}vw`,
           fontWeight: 400, color: POST_CURTAIN.color, letterSpacing: "0.06em",
-          textAlign: "center", zIndex: 10, willChange: "opacity, font-size, top, transform",
+          textAlign: "center", zIndex: Z.keyword, willChange: "opacity, font-size, top, transform",
         }}>
         users
         <div ref={subtitleRef} style={{
@@ -436,29 +406,51 @@ export function useCurtainThesis() {
           fontStyle: "italic", color: "var(--cream-muted)", fontWeight: 400,
           letterSpacing: "0.01em", marginTop: "0.5em", whiteSpace: "nowrap", willChange: "opacity",
         }}>
-          What people actually experience.
+          {getLens("users").desc}
         </div>
       </div>
 
 
       {/* Artifact cards — percentage width, no transform:scale for sizing */}
-      {CARDS.map((card, i) => (
+      {/* Debug HUD — remove when tuning is done */}
+      <pre
+        ref={debugRef}
+        style={{
+          position: "absolute",
+          bottom: 12,
+          right: 12,
+          zIndex: Z.debug,
+          background: "rgba(0,0,0,0.85)",
+          color: "#0f0",
+          fontFamily: "ui-monospace, SFMono-Regular, monospace",
+          fontSize: 11,
+          lineHeight: 1.4,
+          padding: "10px 14px",
+          borderRadius: 6,
+          border: "1px solid rgba(0,255,0,0.15)",
+          pointerEvents: "none",
+          whiteSpace: "pre",
+          minWidth: 340,
+        }}
+      />
+
+      {CARD_CONFIG.map((cfg, i) => (
         <div
-          key={i}
+          key={cfg.entryId}
           ref={(el) => { artifactRefs.current[i] = el; }}
           className="absolute pointer-events-none"
           style={{
             opacity: 0,
-            left: `${card.fromX}%`,
-            top: `${card.fromY}%`,
-            transform: `rotate(${card.fromRotation}deg)`,
-            width: `${card.widthPct}%`,
-            zIndex: 4 + i,
+            left: `${cfg.fromX}%`,
+            top: `${cfg.fromY}%`,
+            transform: `rotate(${cfg.fromRotation}deg)`,
+            width: `${cfg.widthPct}%`,
+            zIndex: Z.cards + i,
             transformOrigin: "top left",
           }}>
-          {i === 0 && <JiraCard style={{ boxShadow: CARD_SHADOWS.light }} />}
-          {i === 1 && <SentryCard style={{ boxShadow: CARD_SHADOWS.dark }} />}
-          {i === 2 && <SlackCard style={{ boxShadow: CARD_SHADOWS.light }} />}
+          {renderChoreographyCard(cfg.entryId, {
+            boxShadow: cfg.brightness === "light" ? CARD_SHADOWS.light : CARD_SHADOWS.dark,
+          })}
         </div>
       ))}
     </>
