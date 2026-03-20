@@ -24,6 +24,9 @@ export const LAB_ROUTES: readonly LabRoute[] = [
   { href: "/lab-particles", label: "Particle Flow", desc: "Canvas particles with glow, trails, wobble along stream paths", section: "reference" },
 
   // Scroll explorations (newest first)
+  { href: "/lab-curtain-thesis", label: "Curtain Thesis", desc: "Thesis → curtain wipe → keyword isolation → pillar anchor", section: "scroll" },
+  { href: "/lab-blinds", label: "Blinds", desc: "Staggered entry → horizontal blinds sweep → dual content reveal", section: "scroll" },
+  { href: "/lab-pillars", label: "Pillars", desc: "Card-stack pillar exploration with scroll-driven stories", section: "scroll" },
   { href: "/lab-focus", label: "Focus", desc: "Focus scroll prototype (latest)", section: "scroll" },
   { href: "/lab-curtain", label: "Curtain", desc: "Curtain reveal scroll prototype", section: "scroll" },
   { href: "/lab-wordtype", label: "WordType", desc: "Word-typing scroll prototype", section: "scroll" },
