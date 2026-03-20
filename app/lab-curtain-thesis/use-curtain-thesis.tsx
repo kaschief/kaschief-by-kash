@@ -200,7 +200,6 @@ export function useCurtainThesis() {
   const postCurtainRef = useRef<HTMLDivElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
   const artifactRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const surfaceGlowRef = useRef<HTMLDivElement>(null);
 
   const cardPositionsRef = useRef<CardPosition[]>([]);
   const keywordRestYRef = useRef(50);
@@ -360,11 +359,6 @@ export function useCurtainThesis() {
         el.style.transformOrigin = "top left";
       }
 
-      if (surfaceGlowRef.current) {
-        surfaceGlowRef.current.style.opacity = String(
-          smoothstep(ARTIFACT_SHUFFLE_START, ARTIFACT_SHUFFLE_START + ARTIFACT_SHUFFLE.entranceDuration, progress),
-        );
-      }
     }
   }
 
@@ -433,14 +427,6 @@ export function useCurtainThesis() {
         </div>
       </div>
 
-      <div ref={surfaceGlowRef} className="absolute inset-0 pointer-events-none" style={{
-        opacity: 0, zIndex: 3,
-        background: [
-          "radial-gradient(ellipse 80% 70% at 50% 55%, rgba(240,230,208,0.06) 0%, transparent 70%)",
-          "radial-gradient(ellipse 50% 40% at 35% 45%, rgba(201,168,76,0.03) 0%, transparent 60%)",
-        ].join(", "),
-        willChange: "opacity",
-      }} />
 
       {/* Artifact cards — percentage width, no transform:scale for sizing */}
       {CARDS.map((card, i) => (
