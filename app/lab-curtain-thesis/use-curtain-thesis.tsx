@@ -345,9 +345,22 @@ export function useCurtainThesis() {
         const myFocus = focusValues[i];
         const focusScale = lerp(1, FOCUS_CYCLE.nudgeScale, myFocus);
 
-        const myDimStart = FOCUS_CYCLE_START + i * FOCUS_CYCLE.dimStagger;
-        const globalDim = smoothstep(myDimStart, myDimStart + FOCUS_CYCLE.dimRampDuration, progress);
-        const focusOpacity = lerp(lerp(1, FOCUS_CYCLE.dimOpacity, globalDim), 1, myFocus);
+        // Dimming: a card dims when ANOTHER card is spotlit and this one isn't.
+        // Sum of all OTHER cards' focus values = how much "someone else is in the spotlight"
+        let othersSpotlit = 0;
+        for (let j = 0; j < focusValues.length; j++) {
+          if (j !== i) othersSpotlit = Math.max(othersSpotlit, focusValues[j]);
+        }
+        // Stagger the dim onset per card (cards further from the active one dim slightly later)
+        const dimDelay = i * FOCUS_CYCLE.dimStagger;
+        const dimProgress = smoothstep(
+          FOCUS_CYCLE_START + dimDelay,
+          FOCUS_CYCLE_START + dimDelay + FOCUS_CYCLE.dimRampDuration,
+          progress,
+        );
+        // Dim only when others are spotlit AND this card has started its dim ramp
+        const dimAmount = dimProgress * othersSpotlit;
+        const focusOpacity = lerp(1, FOCUS_CYCLE.dimOpacity, dimAmount * (1 - myFocus));
 
         const baseOpacity = clamp(slideProgress * ARTIFACT_SHUFFLE.opacityRamp, 0, 1);
 
@@ -442,7 +455,6 @@ export function useCurtainThesis() {
             width: `${card.widthPct}%`,
             zIndex: 4 + i,
             transformOrigin: "top left",
-            willChange: "opacity, left, top, transform",
           }}>
           {i === 0 && <JiraCard style={{ boxShadow: CARD_SHADOWS.light }} />}
           {i === 1 && <SentryCard style={{ boxShadow: CARD_SHADOWS.dark }} />}
