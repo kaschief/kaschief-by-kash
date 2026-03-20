@@ -33,6 +33,13 @@ const CURTAIN = {
   accentColor:     "var(--gold, #C9A84C)",
 } as const;
 
+/** Prefix dissolution — non-keyword text blurs + fades as curtain approaches */
+const PREFIX_DISSOLVE = {
+  lookaheadPx:   200,    // start dissolving when line is this many px below text bottom
+  fullBlurPx:    8,      // max blur (matches lab-focus)
+  minOpacity:    0.15,   // dim but not gone (matches lab-focus)
+} as const;
+
 /** RAF smoothing — lower = more resistance/guided feeling */
 const SMOOTH_LERP_FACTOR = 0.07;
 
@@ -64,11 +71,14 @@ const SCROLL = {
 
 export default function LabCurtainThesisPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const stickyViewportRef = useRef<HTMLDivElement>(null);
   const thesisSentenceRef = useRef<HTMLDivElement>(null);
+  const prefixSpanRef = useRef<HTMLSpanElement>(null);
   const keywordSpanRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const curtainOverlayRef = useRef<HTMLDivElement>(null);
   const curtainAccentLineRef = useRef<HTMLDivElement>(null);
   const curtainGradientRef = useRef<HTMLDivElement>(null);
+  const debugRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
     target: scrollContainerRef,
@@ -129,6 +139,49 @@ export default function LabCurtainThesisPage() {
       if (curtainGradientRef.current) {
         curtainGradientRef.current.style.opacity = curtainIsMoving ? "1" : "0";
       }
+
+      // Prefix dissolution: blur + fade non-keyword text as curtain line approaches
+      if (prefixSpanRef.current && stickyViewportRef.current && curtainProgress > 0) {
+        const viewportRect = stickyViewportRef.current.getBoundingClientRect();
+        const viewportHeight = viewportRect.height;
+        const curtainLineY = viewportHeight * (1 - curtainProgress);
+        const prefixRect = prefixSpanRef.current.getBoundingClientRect();
+        const prefixBottomRelative = prefixRect.bottom - viewportRect.top;
+
+        // How close the line is to the text (positive = line still below text)
+        const distanceFromLineToText = curtainLineY - prefixBottomRelative;
+
+        // Start dissolving when line is within lookaheadPx, fully dissolved when line reaches text
+        if (distanceFromLineToText < PREFIX_DISSOLVE.lookaheadPx) {
+          const dissolveAmount = clamp(1 - distanceFromLineToText / PREFIX_DISSOLVE.lookaheadPx, 0, 1);
+          const blurPx = dissolveAmount * PREFIX_DISSOLVE.fullBlurPx;
+          const dimmedOpacity = lerp(1, PREFIX_DISSOLVE.minOpacity, dissolveAmount);
+          prefixSpanRef.current.style.filter = blurPx > 0.1 ? `blur(${blurPx}px)` : "none";
+          prefixSpanRef.current.style.opacity = String(dimmedOpacity);
+        } else {
+          prefixSpanRef.current.style.filter = "none";
+          prefixSpanRef.current.style.opacity = "1";
+        }
+      }
+
+      // Debug: show curtain line Y vs text element positions
+      if (debugRef.current && stickyViewportRef.current) {
+        const viewportRect = stickyViewportRef.current.getBoundingClientRect();
+        const viewportHeight = viewportRect.height;
+        const curtainLineY = Math.round(viewportHeight * (1 - curtainProgress));
+        const textRect = thesisSentenceRef.current?.getBoundingClientRect();
+        const textTopRelative = textRect ? Math.round(textRect.top - viewportRect.top) : 0;
+        const textBottomRelative = textRect ? Math.round(textRect.bottom - viewportRect.top) : 0;
+
+        debugRef.current.textContent = [
+          `scroll: ${(progress * 100).toFixed(1)}%`,
+          `curtain: ${(curtainProgress * 100).toFixed(1)}%`,
+          `line Y: ${curtainLineY}px from top`,
+          `text top: ${textTopRelative}px`,
+          `text bottom: ${textBottomRelative}px`,
+          `gap: ${curtainLineY - textBottomRelative}px (line above text bottom)`,
+        ].join("\n");
+      }
     }
   }, []);
 
@@ -154,7 +207,7 @@ export default function LabCurtainThesisPage() {
       <div
         ref={scrollContainerRef}
         style={{ height: `${CONTAINER_HEIGHT_VH}vh`, background: "var(--bg, #07070A)" }}>
-        <div className="sticky top-0 h-screen w-full overflow-hidden">
+        <div ref={stickyViewportRef} className="sticky top-0 h-screen w-full overflow-hidden">
 
           {/* Thesis sentence — renders identically to EC */}
           <div
@@ -171,7 +224,7 @@ export default function LabCurtainThesisPage() {
               willChange: "transform, opacity, filter",
               zIndex: 1,
             }}>
-            {thesisData.prefix}
+            <span ref={prefixSpanRef} style={{ willChange: "filter, opacity" }}>{thesisData.prefix}</span>
             <span style={{ whiteSpace: "nowrap" }}>
             {thesisData.keywords.map((word, i) => (
               <span key={word}>
@@ -231,6 +284,23 @@ export default function LabCurtainThesisPage() {
               }}
             />
           </div>
+          {/* Debug HUD — remove after tuning */}
+          <div
+            ref={debugRef}
+            style={{
+              position: "absolute",
+              top: 60,
+              right: 16,
+              zIndex: 10,
+              fontFamily: "monospace",
+              fontSize: 12,
+              color: "var(--gold)",
+              opacity: 0.8,
+              whiteSpace: "pre",
+              pointerEvents: "none",
+              lineHeight: 1.6,
+            }}
+          />
         </div>
       </div>
     </>
