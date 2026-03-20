@@ -405,7 +405,7 @@ export const CONTENT = {
   /** Thesis sentence — keywords are animated individually */
   thesis: {
     prefix: "Each of my past roles sharpened a different part of how I think, about ",
-    keywords: ["users", "structure", "clarity", "scale"] as readonly string[],
+    keywords: ["users", "gaps", "patterns"] as readonly string[],
     conjunction: "and\u00A0",  // non-breaking space before last keyword
   },
 
