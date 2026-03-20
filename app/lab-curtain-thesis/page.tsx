@@ -9,7 +9,7 @@ import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
 
 /* ── Config ── */
 
-const CONTAINER_VH = 800;
+const CONTAINER_VH = 500;
 
 /**
  * EC's stagger/reveal values are calibrated to EC's ~1799vh container.
@@ -17,29 +17,37 @@ const CONTAINER_VH = 800;
  */
 const PROGRESS_SCALE = EC_CONTAINER_VH / CONTAINER_VH;
 
-/**
- * Scroll phases as fractions of 0–1.
- * Thesis phase mirrors EC exactly (same config object).
- * Curtain phase is new — begins after thesis words have landed.
- */
-const SCROLL = {
-  // Thesis: ~200vh of scroll (matches EC's 200vh thesis distance)
-  thesisStart:    0.0,
-  thesisDuration: 0.25,   // 0.25 × 800 = 200vh
-  // Curtain begins shortly after thesis words land
-  curtainStart:   0.28,
-  curtainEnd:     0.47,
+/* ── Scroll phase config ── */
+
+const THESIS_START = 0.0;
+const THESIS_DURATION = 0.25;  // 0.25 × 800 = 200vh (matches EC's ~200vh thesis distance)
+
+/** Curtain config — controls the erasing wipe after thesis */
+const CURTAIN = {
+  holdBeat:     0.03,   // pause after last word before curtain begins (fraction of progress)
+  duration:     0.19,   // how long the curtain sweep takes (fraction of progress)
+  accent:       "var(--gold, #C9A84C)",
 } as const;
 
-const CURTAIN_ACCENT = "var(--gold, #C9A84C)";
-
-/** RAF smoothing factor */
+/** RAF smoothing — lower = more resistance/guided feeling */
 const LERP_FACTOR = 0.07;
 
-/* ── Derived ── */
+/* ── Derived timing (no magic numbers) ── */
 
 const thesis = CONTENT.thesis;
 const KW_COUNT = thesis.keywords.length;
+
+const wordRevealZone = THESIS_START + THESIS_DURATION * EC_THESIS.wordZoneFrac;
+const scaledStagger = EC_THESIS.wordStagger * PROGRESS_SCALE;
+const scaledRevealDur = EC_THESIS.wordRevealDur * PROGRESS_SCALE;
+const LAST_WORD_END = wordRevealZone + (KW_COUNT - 1) * scaledStagger + scaledRevealDur;
+
+const SCROLL = {
+  thesisStart:    THESIS_START,
+  thesisDuration: THESIS_DURATION,
+  curtainStart:   LAST_WORD_END + CURTAIN.holdBeat,
+  curtainEnd:     LAST_WORD_END + CURTAIN.holdBeat + CURTAIN.duration,
+} as const;
 
 /* ── Component ── */
 
@@ -66,7 +74,6 @@ export default function LabCurtainThesisPage() {
     if (thesisEl.current) {
       const T_START = SCROLL.thesisStart;
       const T_DUR = SCROLL.thesisDuration;
-      const T_END = T_START + T_DUR;
 
       // Fade in (first 30% of thesis duration) — matches EC fadeInFrac
       const fadeInEnd = T_START + T_DUR * EC_THESIS.fadeInFrac;
@@ -75,10 +82,9 @@ export default function LabCurtainThesisPage() {
       // No fade out — thesis holds until curtain erases it
       const opacity = fadeIn;
 
-      // Two-speed drift — matches EC driftFastWeight/driftSlowWeight
-      const wordRevealZone = T_START + T_DUR * EC_THESIS.wordZoneFrac;
+      // Two-speed drift — fast approach, then slow until last word lands, then freeze
       const driftFast = smoothstep(T_START, wordRevealZone, progress);
-      const driftSlow = smoothstep(wordRevealZone, T_END, progress);
+      const driftSlow = smoothstep(wordRevealZone, LAST_WORD_END, progress);
       const drift = driftFast * EC_THESIS.driftFastWeight + driftSlow * EC_THESIS.driftSlowWeight;
       const y = lerp(EC_THESIS.yStartLg, EC_THESIS.yEndLg, drift);
 
@@ -90,8 +96,6 @@ export default function LabCurtainThesisPage() {
       thesisEl.current.style.filter = blur > 0.1 ? `blur(${blur}px)` : "none";
 
       // Sequential word reveal — EC values scaled by PROGRESS_SCALE for matching scroll distance
-      const scaledStagger = EC_THESIS.wordStagger * PROGRESS_SCALE;
-      const scaledRevealDur = EC_THESIS.wordRevealDur * PROGRESS_SCALE;
       for (let i = 0; i < KW_COUNT; i++) {
         const el = wordRefs.current[i];
         if (!el) continue;
@@ -204,7 +208,7 @@ export default function LabCurtainThesisPage() {
                 left: 0,
                 right: 0,
                 height: 1,
-                background: CURTAIN_ACCENT,
+                background: CURTAIN.accent,
                 opacity: 0,
               }}
             />
