@@ -17,12 +17,22 @@ export default function LabCurtainThesisPage() {
   const rawScrollProgress = useRef(0);
   const animationFrameId = useRef(0);
 
-  const { update, jsx } = useCurtainThesis();
+  const { update, jsx, recomputePositions } = useCurtainThesis();
 
   const { scrollYProgress } = useScroll({
     target: scrollContainerRef,
     offset: ["start start", "end end"],
   });
+
+  // Compute d3-force positions on mount + resize
+  useEffect(() => {
+    const el = stickyViewportRef.current;
+    if (!el) return;
+    recomputePositions(el);
+    const onResize = () => recomputePositions(el);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [recomputePositions]);
 
   // RAF loop
   useEffect(() => {
@@ -52,7 +62,8 @@ export default function LabCurtainThesisPage() {
         }}>
         <div
           ref={stickyViewportRef}
-          className="sticky top-0 h-screen w-full overflow-hidden">
+          className="sticky top-0 h-screen w-full overflow-hidden"
+          style={{ containerType: "size" }}>
           {jsx}
         </div>
       </div>

@@ -163,6 +163,26 @@ export function Hero() {
               </button>
             </motion.span>
           ))}
+          {/* TODO: temporary — remove before production */}
+          <motion.span
+            initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.6, delay: 1.0 + ROLES.length * 0.12, ease: EASE }}
+            className="flex items-center gap-2">
+            <span className="text-[var(--text-faint)] opacity-40">/</span>
+            <a
+              href="/lab"
+              className="group relative px-0.5 py-2 text-xs font-light tracking-wide sm:text-sm md:text-base"
+              style={{ color: "var(--text-faint)" }}>
+              <span className="transition-opacity duration-200 group-hover:opacity-80">
+                Lab
+              </span>
+              <span
+                className="absolute -bottom-0.5 left-1 right-1 h-px w-0 transition-all duration-300 group-hover:w-[calc(100%-8px)]"
+                style={{ backgroundColor: "var(--text-faint)", opacity: 0.5 }}
+              />
+            </a>
+          </motion.span>
         </motion.div>
 
       </motion.div>
