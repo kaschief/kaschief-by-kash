@@ -8,25 +8,27 @@ import {
   CONTAINER_HEIGHT_VH,
   SMOOTH_LERP_FACTOR,
 } from "./use-curtain-thesis";
+import { MAX_CONTENT_WIDTH } from "./curtain-thesis.config";
 
 export default function LabCurtainThesisPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const stickyViewportRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const smoothedProgress = useRef(0);
   const rawScrollProgress = useRef(0);
   const animationFrameId = useRef(0);
 
-  const { update, jsx, recomputePositions } = useCurtainThesis();
+  const { update, fullScreenJsx, contentJsx, recomputePositions } = useCurtainThesis();
 
   const { scrollYProgress } = useScroll({
     target: scrollContainerRef,
     offset: ["start start", "end end"],
   });
 
-  // Compute d3-force positions on mount + resize
+  // Compute positions from the capped content wrapper (not raw viewport)
   useEffect(() => {
-    const el = stickyViewportRef.current;
+    const el = contentRef.current;
     if (!el) return;
     recomputePositions(el);
     const onResize = () => recomputePositions(el);
@@ -64,7 +66,16 @@ export default function LabCurtainThesisPage() {
           ref={stickyViewportRef}
           className="sticky top-0 h-screen w-full overflow-hidden"
           style={{ containerType: "size" }}>
-          {jsx}
+          {/* Full-screen layers: thesis text + curtain (need full viewport width) */}
+          {fullScreenJsx}
+
+          {/* Content wrapper — max-width cap prevents zoom-out / ultra-wide blowup */}
+          <div
+            ref={contentRef}
+            className="relative h-full mx-auto"
+            style={{ maxWidth: MAX_CONTENT_WIDTH }}>
+            {contentJsx}
+          </div>
         </div>
       </div>
     </>
