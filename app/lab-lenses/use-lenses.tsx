@@ -1,11 +1,18 @@
 "use client";
 
+/**
+ * Lenses scroll choreography hook — single-lens (users only).
+ *
+ * ALL timing consumed from lenses.timing.ts (PROLOGUE + LENS_SEGMENTS[0]).
+ * No inline timing derivation — the timing file is the single source of truth.
+ * EC fractional constants (fadeInFrac, driftFastWeight, etc.) are unitless ratios
+ * that remain valid regardless of normalization.
+ */
+
 import { useRef, useCallback } from "react";
 import { CONTENT } from "../engineer-candidate/engineer-data";
 import {
   THESIS as EC_THESIS,
-  CONTAINER_VH as EC_CONTAINER_VH,
-  CURTAIN_THESIS,
   PREFIX_DISSOLVE,
   POST_CURTAIN,
 } from "../engineer-candidate/engineer-candidate.types";
@@ -13,16 +20,12 @@ import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
 import { getLens, getEntry } from "@data";
 import { USERS_CARDS, renderChoreographyCard, type CardConfig } from "./card-config";
 import {
-  TUNED_CONTAINER_VH,
   CARD_HEIGHT_RATIO,
   ZONE_SPLIT_Y,
-  THESIS_PHASE_START,
-  THESIS_PHASE_DURATION,
   ARTIFACT_SHUFFLE,
   SUBTITLE,
   KEYWORD_RISE,
   FOCUS_CYCLE,
-  FOCUS_CARD_STAGGER,
   MORPH,
   FINAL_DISSOLVE,
   KEYWORD_FONT_CAP,
@@ -31,28 +34,33 @@ import {
   CARD_SHADOWS,
   Z,
   BLUR_THRESHOLD,
-  DEBUG_HUD,
 } from "./lenses.config";
-import { CONTAINER_HEIGHT_VH } from "./lenses.timing";
+import { PROLOGUE, LENS_SEGMENTS, CONTAINER_HEIGHT_VH } from "./lenses.timing";
+
 export { CONTAINER_HEIGHT_VH };
 export { SMOOTH_LERP_FACTOR } from "./lenses.config";
 
-/* ── Active pillar cards ── */
+/* ── Active pillar ── */
 
 const CARD_CONFIG: readonly CardConfig[] = USERS_CARDS;
+
+/* ── All timing from the normalized timeline ── */
+
+const P = PROLOGUE;
+const SEG = LENS_SEGMENTS[0]; // users segment
+const T = SEG.timing;
+
+const thesisData = CONTENT.thesis;
+const KEYWORD_COUNT = thesisData.keywords.length;
+
+/* ── Card positions ── */
 
 interface CardPosition {
   toX: number;
   toY: number;
-  /** Effective width% after applying max-width cap */
   effectiveWidthPct: number;
 }
 
-/**
- * Compute card positions from CARD_CONFIG. Pure percentage math.
- * Each card is placed within its zone, offset by deterministic jitter.
- * Width is capped by the card's maxWidthPx to prevent blowup on large screens.
- */
 function computeCardPositions(viewportWidth: number): CardPosition[] {
   return CARD_CONFIG.map((cfg) => {
     const { zone, jitter, widthPct, maxWidthPx } = cfg;
@@ -63,8 +71,6 @@ function computeCardPositions(viewportWidth: number): CardPosition[] {
       ? (maxWidthPx / viewportWidth) * 100
       : widthPct;
 
-    // When the px cap kicks in, the card is smaller than its zone expects.
-    // Shrink the zone proportionally so cards don't drift apart on wide viewports.
     const shrinkRatio = capped ? effectiveWidthPct / widthPct : 1;
     const zoneCenterX = (zone.xMin + zone.xMax) / 2;
     const zoneCenterY = (zone.yMin + zone.yMax) / 2;
@@ -87,31 +93,16 @@ function computeCardPositions(viewportWidth: number): CardPosition[] {
 
 /* ── Debug helpers ── */
 
-interface FocusWindow {
-  ws: number;
-  rampInEnd: number;
-  storyHoldEnd: number;
-  morphEnd: number;
-  morphHoldEnd: number;
-  rampOutEnd: number;
-}
+function resolvePhase(progress: number): string {
+  if (progress < P.curtainStart) return "1-thesis";
+  if (progress < P.curtainEnd) return "2-curtain";
+  if (progress < T.shuffleStart) return "3-post-curtain";
+  if (progress < T.shuffleEnd) return "4-shuffle-in";
+  if (progress < T.keywordRiseStart) return "5-hold";
+  if (progress < T.keywordRiseEnd) return "6-keyword-rise";
 
-/** Read opacity from a ref's inline style, or "?" if null. */
-function readRefOpacity(el: HTMLElement | null): string {
-  return el ? el.style.opacity.padStart(5) : "    ?";
-}
-
-/** Resolve the current scroll phase to a human-readable label for the debug HUD. */
-function resolvePhase(progress: number, focusWindows: FocusWindow[]): string {
-  if (progress < SCROLL.curtainStart) return "1-thesis";
-  if (progress < SCROLL.curtainEnd) return "2-curtain";
-  if (progress < ARTIFACT_SHUFFLE_START) return "3-post-curtain";
-  if (progress < ARTIFACT_SHUFFLE_END) return "4-shuffle-in";
-  if (progress < KEYWORD_RISE_START) return "5-hold";
-  if (progress < KEYWORD_RISE_END) return "6-keyword-rise";
-
-  for (let k = 0; k < focusWindows.length; k++) {
-    const fw = focusWindows[k];
+  for (let k = 0; k < T.focusWindows.length; k++) {
+    const fw = T.focusWindows[k];
     if (progress >= fw.ws && progress < fw.rampOutEnd) {
       const sub = progress < fw.rampInEnd ? "ramp-in"
         : progress < fw.storyHoldEnd ? "story"
@@ -122,44 +113,9 @@ function resolvePhase(progress: number, focusWindows: FocusWindow[]): string {
     }
   }
 
-  const lastFw = focusWindows[focusWindows.length - 1];
-  if (!lastFw) return "7-focus";
-  const dissolveStart = lastFw.rampOutEnd + FINAL_DISSOLVE.delay;
-  const dissolveEnd = dissolveStart + FINAL_DISSOLVE.duration;
-  if (progress < dissolveStart) return "7-focus-done";
-  if (progress < dissolveEnd) return "8-dissolve";
-  return "8-dissolved";
+  if (progress < T.holdEnd) return "7-hold";
+  return "8-done";
 }
-
-/* ── Derived timing (module-level for resolvePhase access) ── */
-
-// Scale uses the original tuned container height, not the multi-lens total
-const EC_TO_LOCAL_SCALE = EC_CONTAINER_VH / TUNED_CONTAINER_VH;
-const thesisData = CONTENT.thesis;
-const KEYWORD_COUNT = thesisData.keywords.length;
-
-const KEYWORD_REVEAL_START =
-  THESIS_PHASE_START + THESIS_PHASE_DURATION * EC_THESIS.wordZoneFrac;
-const KEYWORD_STAGGER = EC_THESIS.wordStagger * EC_TO_LOCAL_SCALE;
-const KEYWORD_REVEAL_DURATION = EC_THESIS.wordRevealDur * EC_TO_LOCAL_SCALE;
-const FINAL_KEYWORD_END =
-  KEYWORD_REVEAL_START + (KEYWORD_COUNT - 1) * KEYWORD_STAGGER + KEYWORD_REVEAL_DURATION;
-
-const SCROLL = {
-  thesisStart: THESIS_PHASE_START,
-  thesisDuration: THESIS_PHASE_DURATION,
-  curtainStart: FINAL_KEYWORD_END + CURTAIN_THESIS.pauseAfterWords,
-  curtainEnd: FINAL_KEYWORD_END + CURTAIN_THESIS.pauseAfterWords + CURTAIN_THESIS.sweepDuration,
-} as const;
-
-const ARTIFACT_SHUFFLE_START = SCROLL.curtainEnd + POST_CURTAIN.appearDuration;
-const ARTIFACT_SHUFFLE_END =
-  ARTIFACT_SHUFFLE_START + (CARD_CONFIG.length - 1) * ARTIFACT_SHUFFLE.stagger + ARTIFACT_SHUFFLE.entranceDuration;
-
-const KEYWORD_RISE_START = ARTIFACT_SHUFFLE_END + KEYWORD_RISE.holdAfterShrink;
-const KEYWORD_RISE_END = KEYWORD_RISE_START + KEYWORD_RISE.duration;
-
-const FOCUS_CYCLE_START = KEYWORD_RISE_START;
 
 /* ── Hook ── */
 
@@ -186,15 +142,11 @@ export function useLenses() {
       const positions = computeCardPositions(viewportEl.clientWidth);
       cardPositionsRef.current = positions;
 
-      // Keyword rests at the midpoint between the bottom of upper cards and top of lower cards.
-      // Upper cards: highest toY + estimated card height. Lower cards: lowest toY.
       const upperCards = positions.filter((_, i) => CARD_CONFIG[i].zone.yMax <= ZONE_SPLIT_Y);
       const lowerCards = positions.filter((_, i) => CARD_CONFIG[i].zone.yMin >= ZONE_SPLIT_Y);
 
       const upperBottom = upperCards.length > 0
-        ? Math.max(...upperCards.map((p) => {
-            return p.toY + p.effectiveWidthPct * CARD_HEIGHT_RATIO;
-          }))
+        ? Math.max(...upperCards.map((p) => p.toY + p.effectiveWidthPct * CARD_HEIGHT_RATIO))
         : 0;
       const lowerTop = lowerCards.length > 0
         ? Math.min(...lowerCards.map((p) => p.toY))
@@ -212,10 +164,10 @@ export function useLenses() {
     /* ═══ Phase 1: Thesis entrance ═══ */
 
     if (thesisSentenceRef.current) {
-      const fadeInEnd = SCROLL.thesisStart + SCROLL.thesisDuration * EC_THESIS.fadeInFrac;
-      const fadeInProgress = smoothstep(SCROLL.thesisStart, fadeInEnd, progress);
-      const fastDrift = smoothstep(SCROLL.thesisStart, KEYWORD_REVEAL_START, progress);
-      const slowDrift = smoothstep(KEYWORD_REVEAL_START, FINAL_KEYWORD_END, progress);
+      const fadeInEnd = P.thesisStart + P.thesisDuration * EC_THESIS.fadeInFrac;
+      const fadeInProgress = smoothstep(P.thesisStart, fadeInEnd, progress);
+      const fastDrift = smoothstep(P.thesisStart, P.keywordRevealStart, progress);
+      const slowDrift = smoothstep(P.keywordRevealStart, P.finalKeywordEnd, progress);
       const combinedDrift = fastDrift * EC_THESIS.driftFastWeight + slowDrift * EC_THESIS.driftSlowWeight;
       const verticalOffset = lerp(EC_THESIS.yStartLg, EC_THESIS.yEndLg, combinedDrift);
       const entranceBlur = lerp(EC_THESIS.initialBlur, 0, fadeInProgress);
@@ -227,8 +179,8 @@ export function useLenses() {
       for (let i = 0; i < KEYWORD_COUNT; i++) {
         const keywordSpan = keywordSpanRefs.current[i];
         if (!keywordSpan) continue;
-        const thisKeywordStart = KEYWORD_REVEAL_START + i * KEYWORD_STAGGER;
-        const kp = smoothstep(thisKeywordStart, thisKeywordStart + KEYWORD_REVEAL_DURATION, progress);
+        const thisKeywordStart = P.keywordRevealStart + i * P.keywordStagger;
+        const kp = smoothstep(thisKeywordStart, thisKeywordStart + P.keywordRevealDuration, progress);
         keywordSpan.style.opacity = String(kp);
         keywordSpan.style.transform = `translateY(${lerp(EC_THESIS.wordDropPx, 0, kp)}px)`;
         keywordSpan.style.display = "inline-block";
@@ -239,7 +191,7 @@ export function useLenses() {
 
     if (curtainOverlayRef.current) {
       const curtainProgress = clamp(
-        (progress - SCROLL.curtainStart) / (SCROLL.curtainEnd - SCROLL.curtainStart), 0, 1,
+        (progress - P.curtainStart) / (P.curtainEnd - P.curtainStart), 0, 1,
       );
       curtainOverlayRef.current.style.height = `${curtainProgress * 100}%`;
 
@@ -268,17 +220,15 @@ export function useLenses() {
         }
       }
 
-      /* ═══ Phase 4: "users" — appear → shrink → rise ═══ */
+      /* ═══ Phase 4: Keyword appear → shrink → rise ═══ */
 
       if (postCurtainRef.current) {
-        const appearProgress = smoothstep(SCROLL.curtainEnd, SCROLL.curtainEnd + POST_CURTAIN.appearDuration, progress);
-        const shrinkProgress = smoothstep(ARTIFACT_SHUFFLE_START, ARTIFACT_SHUFFLE_END, progress);
-        const riseProgress = smoothstep(KEYWORD_RISE_START, KEYWORD_RISE_END, progress);
+        const appearProgress = smoothstep(T.curtainEnd, T.curtainEnd + POST_CURTAIN.appearDuration, progress);
+        const shrinkProgress = smoothstep(T.shuffleStart, T.shuffleEnd, progress);
+        const riseProgress = smoothstep(T.keywordRiseStart, T.keywordRiseEnd, progress);
 
-        // Keyword rests at the midpoint of the gap between upper and lower card zones
         const keywordRestY = keywordRestYRef.current;
 
-        // Rise AND fade simultaneously — gone by the time it reaches the top
         const riseFade = 1 - riseProgress;
         postCurtainRef.current.style.opacity = String(appearProgress * riseFade);
         const midSize = lerp(POST_CURTAIN.startFontSizeVw, POST_CURTAIN.endFontSizeVw, shrinkProgress);
@@ -290,8 +240,8 @@ export function useLenses() {
         postCurtainRef.current.style.transform = `translate(-50%, -${lerp(50, 0, riseProgress)}%)`;
 
         if (subtitleRef.current) {
-          const sIn = smoothstep(ARTIFACT_SHUFFLE_START + SUBTITLE.fadeInDelay, ARTIFACT_SHUFFLE_START + SUBTITLE.fadeInDelay + SUBTITLE.fadeInDuration, progress);
-          const sOut = smoothstep(KEYWORD_RISE_START, KEYWORD_RISE_START + SUBTITLE.fadeOutDuration, progress);
+          const sIn = smoothstep(T.shuffleStart + SUBTITLE.fadeInDelay, T.shuffleStart + SUBTITLE.fadeInDelay + SUBTITLE.fadeInDuration, progress);
+          const sOut = smoothstep(T.keywordRiseStart, T.keywordRiseStart + SUBTITLE.fadeOutDuration, progress);
           subtitleRef.current.style.opacity = String(sIn * (1 - sOut));
         }
       }
@@ -301,25 +251,19 @@ export function useLenses() {
       const positions = cardPositionsRef.current;
       if (positions.length === 0) return;
 
-      // Per-card focus: rampIn → storyHold → morph → morphHold → rampOut
-      const focusValues: number[] = [];
-      const focusWindows: FocusWindow[] = [];
-      for (let i = 0; i < positions.length; i++) {
-        const ws = FOCUS_CYCLE_START + i * FOCUS_CARD_STAGGER;
-        const rampInEnd = ws + FOCUS_CYCLE.rampIn;
-        const storyHoldEnd = rampInEnd + FOCUS_CYCLE.storyHold;
-        const morphEnd = storyHoldEnd + FOCUS_CYCLE.morphDur;
-        const morphHoldEnd = morphEnd + FOCUS_CYCLE.morphHold;
-        const rampOutEnd = morphHoldEnd + FOCUS_CYCLE.rampOut;
-        focusWindows.push({ ws, rampInEnd, storyHoldEnd, morphEnd, morphHoldEnd, rampOutEnd });
+      const fws = T.focusWindows;
 
-        const up = smoothstep(ws, rampInEnd, progress);
-        const down = 1 - smoothstep(morphHoldEnd, rampOutEnd, progress);
+      // Per-card focus values
+      const focusValues: number[] = [];
+      for (let i = 0; i < positions.length; i++) {
+        const fw = fws[i];
+        const up = smoothstep(fw.ws, fw.rampInEnd, progress);
+        const down = 1 - smoothstep(fw.morphHoldEnd, fw.rampOutEnd, progress);
         focusValues.push(up * down);
       }
 
-      // Dissolve: after all cards complete, they all fade out together
-      const lastFw = focusWindows[focusWindows.length - 1];
+      // Dissolve after all cards complete
+      const lastFw = fws[fws.length - 1];
       const dissolveStart = lastFw.rampOutEnd + FINAL_DISSOLVE.delay;
       const dissolveEnd = dissolveStart + FINAL_DISSOLVE.duration;
       const dissolveFade = 1 - smoothstep(dissolveStart, dissolveEnd, progress);
@@ -330,9 +274,9 @@ export function useLenses() {
 
         const pos = positions[i];
         const cfg = CARD_CONFIG[i];
-        const fw = focusWindows[i];
+        const fw = fws[i];
 
-        const cardStart = ARTIFACT_SHUFFLE_START + i * ARTIFACT_SHUFFLE.stagger;
+        const cardStart = T.shuffleStart + i * ARTIFACT_SHUFFLE.stagger;
         const slideProgress = smoothstep(cardStart, cardStart + ARTIFACT_SHUFFLE.entranceDuration, progress);
 
         const currentX = lerp(cfg.fromX, pos.toX, slideProgress);
@@ -341,8 +285,7 @@ export function useLenses() {
 
         const myFocus = focusValues[i];
 
-        // Nudge: card moves to spotlight position during rampIn, STAYS through morph,
-        // only returns during rampOut.
+        // Nudge
         const positionFocus = smoothstep(fw.ws, fw.rampInEnd, progress)
           * (1 - smoothstep(fw.morphHoldEnd, fw.rampOutEnd, progress));
 
@@ -350,22 +293,20 @@ export function useLenses() {
         const nudgeX = cfg.nudgeX ?? FOCUS_CYCLE.nudgeX;
         const nudgeY = cfg.nudgeY ?? FOCUS_CYCLE.nudgeY;
 
-        // Morph: crossfade artifact → i-statement (fully reversible on scroll-back)
+        // Morph
         const morph = smoothstep(fw.storyHoldEnd, fw.morphEnd, progress);
 
         const focusScale = lerp(1, nudgeScale, positionFocus);
 
-        // Front/back opacity
         const frontEl = cardFrontRefs.current[i];
         const backEl = cardBackRefs.current[i];
         if (frontEl) frontEl.style.opacity = String(1 - morph);
         if (backEl) backEl.style.opacity = String(morph);
 
-        // Dimming: all cards dim fast at FOCUS_CYCLE_START.
-        // Morphed cards use a higher dim floor (dark back-face needs more opacity to stay visible).
+        // Dimming
         const dimRamp = smoothstep(
-          FOCUS_CYCLE_START,
-          FOCUS_CYCLE_START + FOCUS_CYCLE.dimRampDuration,
+          T.focusCycleStart,
+          T.focusCycleStart + FOCUS_CYCLE.dimRampDuration,
           progress,
         );
         const cardDimFloor = morph > 0.5 ? MORPH.dimOpacity : cfg.dimOpacity;
@@ -381,7 +322,7 @@ export function useLenses() {
         el.style.transform = `rotate(${currentRotation}deg)${focusScale !== 1 ? ` scale(${focusScale})` : ""}`;
         el.style.transformOrigin = "top left";
 
-        // Narrator story — fades in during storyHold, lingers through morph, fades out during rampOut
+        // Narrator story
         const storyEl = storyRefs.current[i];
         if (storyEl) {
           const delay = i === 0 ? NARRATOR_STORY.firstFadeInDelay : NARRATOR_STORY.laterFadeInDelay;
@@ -396,56 +337,20 @@ export function useLenses() {
         }
       }
 
-      // Debug HUD — live values every frame
+      // Debug HUD
       if (debugRef.current) {
-        const phase = resolvePhase(progress, focusWindows);
-
-        const lines = [
+        debugRef.current.textContent = [
           `progress: ${progress.toFixed(4)}`,
-          `phase:    ${phase}`,
-          ``,
-          `── thresholds ──`,
-          `curtain:   ${SCROLL.curtainStart.toFixed(4)}–${SCROLL.curtainEnd.toFixed(4)}`,
-          `shuffle:   ${ARTIFACT_SHUFFLE_START.toFixed(4)}–${ARTIFACT_SHUFFLE_END.toFixed(4)}`,
-          `kw-rise:   ${KEYWORD_RISE_START.toFixed(4)}–${KEYWORD_RISE_END.toFixed(4)}`,
-          `focus:     ${FOCUS_CYCLE_START.toFixed(4)}`,
-          ``,
-          `── per card ──`,
-        ];
-
-        for (let j = 0; j < positions.length; j++) {
-          const cfg = CARD_CONFIG[j];
-          const fw = focusWindows[j];
-          const isSpotlit = focusValues[j] > DEBUG_HUD.spotlightThreshold;
-
-          lines.push(
-            `card-${cfg.entryId}${isSpotlit ? " ★" : ""}  focus=${focusValues[j].toFixed(3)} ` +
-            `op=${readRefOpacity(artifactRefs.current[j])} ` +
-            `morph=${readRefOpacity(cardBackRefs.current[j])} ` +
-            `story=${readRefOpacity(storyRefs.current[j])}`,
-          );
-          lines.push(
-            `        in=${fw.ws.toFixed(4)} story→${fw.storyHoldEnd.toFixed(4)} ` +
-            `morph→${fw.morphEnd.toFixed(4)} hold→${fw.morphHoldEnd.toFixed(4)} ` +
-            `out→${fw.rampOutEnd.toFixed(4)}`,
-          );
-        }
-
-        debugRef.current.textContent = lines.join("\n");
+          `phase:    ${resolvePhase(progress)}`,
+        ].join("\n");
       }
-
     }
   }
 
-  /* ---- JSX ---- */
+  /* ── JSX ── */
 
-  /**
-   * Full-screen layers: curtain overlay must span the entire viewport
-   * (lives outside the max-width content wrapper in page.tsx).
-   */
   const fullScreenJsx = (
     <>
-      {/* Thesis sentence — centered via translate, unaffected by wrapper width */}
       <div
         ref={thesisSentenceRef}
         className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
@@ -472,7 +377,6 @@ export function useLenses() {
         </span>
       </div>
 
-      {/* Curtain — must cover full viewport width */}
       <div
         ref={curtainOverlayRef}
         style={{
@@ -481,7 +385,7 @@ export function useLenses() {
         }}>
         <div ref={curtainAccentLineRef} style={{
           position: "absolute", top: 0, left: 0, right: 0,
-          height: CURTAIN_EDGE.accentLineHeight, background: CURTAIN_THESIS.accentColor, opacity: 0,
+          height: CURTAIN_EDGE.accentLineHeight, background: "var(--gold, #C9A84C)", opacity: 0,
         }} />
         <div ref={curtainGradientRef} style={{
           position: "absolute", top: -CURTAIN_EDGE.gradientOvershoot, left: 0, right: 0,
@@ -492,10 +396,6 @@ export function useLenses() {
     </>
   );
 
-  /**
-   * Content layers: cards, keyword, narrator — positioned relative to the
-   * max-width wrapper so they don't spread apart on zoom-out / ultra-wide.
-   */
   const contentJsx = (
     <>
       <div
@@ -517,55 +417,39 @@ export function useLenses() {
         </div>
       </div>
 
-      {/* Narrator story text — positioned per card config */}
       {CARD_CONFIG.map((cfg, i) => {
         const entry = getEntry(cfg.entryId);
         if (!entry) return null;
-
         return (
           <div
             key={`story-${cfg.entryId}`}
             ref={(el) => { storyRefs.current[i] = el; }}
             className="absolute select-none pointer-events-none"
             style={{
-              opacity: 0,
-              left: `${cfg.storyX}%`,
-              top: `${cfg.storyY}%`,
-              transform: "translateX(-50%)",
-              textAlign: "center",
-              maxWidth: NARRATOR_STORY.maxWidth,
-              fontSize: NARRATOR_STORY.fontSize,
-              lineHeight: NARRATOR_STORY.lineHeight,
-              fontFamily: "var(--font-narrator)",
-              fontStyle: "italic",
-              fontWeight: 400,
-              color: "var(--cream-muted)",
-              background: NARRATOR_STORY.bgGradient,
-              padding: NARRATOR_STORY.bgPadding,
-              zIndex: Z.narrator,
-              willChange: "opacity",
+              opacity: 0, left: `${cfg.storyX}%`, top: `${cfg.storyY}%`,
+              transform: "translateX(-50%)", textAlign: "center",
+              maxWidth: NARRATOR_STORY.maxWidth, fontSize: NARRATOR_STORY.fontSize,
+              lineHeight: NARRATOR_STORY.lineHeight, fontFamily: "var(--font-narrator)",
+              fontStyle: "italic", fontWeight: 400, color: "var(--cream-muted)",
+              background: NARRATOR_STORY.bgGradient, padding: NARRATOR_STORY.bgPadding,
+              zIndex: Z.narrator, willChange: "opacity",
             }}>
             {entry.story}
           </div>
         );
       })}
 
-      {/* Artifact cards — front/back for morph, percentage width relative to capped container */}
       {CARD_CONFIG.map((cfg, i) => (
         <div
           key={cfg.entryId}
           ref={(el) => { artifactRefs.current[i] = el; }}
           className="absolute pointer-events-none"
           style={{
-            opacity: 0,
-            left: `${cfg.fromX}%`,
-            top: `${cfg.fromY}%`,
+            opacity: 0, left: `${cfg.fromX}%`, top: `${cfg.fromY}%`,
             transform: `rotate(${cfg.fromRotation}deg)`,
-            width: `${cfg.widthPct}%`,
-            zIndex: Z.cards + i,
+            width: `${cfg.widthPct}%`, zIndex: Z.cards + i,
             transformOrigin: "top left",
           }}>
-          {/* Front: artifact card */}
           <div
             ref={(el) => { cardFrontRefs.current[i] = el; }}
             style={{ willChange: "opacity" }}>
@@ -573,56 +457,33 @@ export function useLenses() {
               boxShadow: cfg.brightness === "light" ? CARD_SHADOWS.light : CARD_SHADOWS.dark,
             })}
           </div>
-          {/* Back: i-statement card */}
           <div
             ref={(el) => { cardBackRefs.current[i] = el; }}
             style={{
-              position: "absolute",
-              inset: 0,
-              borderRadius: MORPH.borderRadius,
-              background: MORPH.bgGradient,
-              border: MORPH.border,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: MORPH.padding,
-              opacity: 0,
-              willChange: "opacity",
+              position: "absolute", inset: 0, borderRadius: MORPH.borderRadius,
+              background: MORPH.bgGradient, border: MORPH.border,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: MORPH.padding, opacity: 0, willChange: "opacity",
             }}>
-            <div
-              className="font-serif"
-              style={{
-                fontSize: MORPH.fontSize,
-                color: MORPH.textColor,
-                textAlign: "center",
-                lineHeight: MORPH.lineHeight,
-                fontStyle: "italic",
-              }}>
+            <div className="font-serif" style={{
+              fontSize: MORPH.fontSize, color: MORPH.textColor,
+              textAlign: "center", lineHeight: MORPH.lineHeight, fontStyle: "italic",
+            }}>
               {getEntry(cfg.entryId)?.iStatement}
             </div>
           </div>
         </div>
       ))}
 
-      {/* Debug HUD — remove when tuning is done */}
       <pre
         ref={debugRef}
         style={{
-          position: "absolute",
-          bottom: 12,
-          right: 12,
-          zIndex: Z.debug,
-          background: "rgba(0,0,0,0.85)",
-          color: "#0f0",
+          position: "absolute", bottom: 12, right: 12, zIndex: Z.debug,
+          background: "rgba(0,0,0,0.85)", color: "#0f0",
           fontFamily: "ui-monospace, SFMono-Regular, monospace",
-          fontSize: 11,
-          lineHeight: 1.4,
-          padding: "10px 14px",
-          borderRadius: 6,
-          border: "1px solid rgba(0,255,0,0.15)",
-          pointerEvents: "none",
-          whiteSpace: "pre",
-          minWidth: 340,
+          fontSize: 11, lineHeight: 1.4, padding: "10px 14px",
+          borderRadius: 6, border: "1px solid rgba(0,255,0,0.15)",
+          pointerEvents: "none", whiteSpace: "pre", minWidth: 280,
         }}
       />
     </>
