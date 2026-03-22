@@ -46,6 +46,11 @@ export interface CardConfig {
   nudgeX?: number;
   nudgeY?: number;
   nudgeScale?: number;
+
+  /* ── Narrator story position ── */
+  /** Where the story text appears when this card is spotlighted (% of viewport, center-anchored) */
+  storyX: number;
+  storyY: number;
 }
 
 /* ── Users pillar cards ── */
@@ -63,6 +68,8 @@ export const USERS_CARDS: readonly CardConfig[] = [
     fromRotation: -18,
     toRotation: -3.5,
     dimOpacity: 0.02,
+    // Story: card is TL → text in the gap between upper and lower cards, right of center
+    storyX: 58, storyY: 53,
   },
   {
     entryId: 2,
@@ -76,6 +83,8 @@ export const USERS_CARDS: readonly CardConfig[] = [
     fromRotation: 12,
     toRotation: 2.5,
     dimOpacity: 0.07,
+    // Story: card is TR → text in the gap between upper and lower cards, left of center
+    storyX: 42, storyY: 53,
   },
   {
     entryId: 3,
@@ -89,6 +98,8 @@ export const USERS_CARDS: readonly CardConfig[] = [
     fromRotation: -6,
     toRotation: -1.5,
     dimOpacity: 0.02,
+    // Story: card is bottom-center → text in the large open space above, centered
+    storyX: 50, storyY: 25,
   },
 ];
 

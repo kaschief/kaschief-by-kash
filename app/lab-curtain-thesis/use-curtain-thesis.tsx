@@ -10,7 +10,7 @@ import {
   POST_CURTAIN,
 } from "../engineer-candidate/engineer-candidate.types";
 import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
-import { getLens } from "@data";
+import { getLens, getEntry } from "@data";
 import { USERS_CARDS, renderChoreographyCard, type CardConfig } from "./card-config";
 import {
   CONTAINER_HEIGHT_VH,
@@ -23,10 +23,13 @@ import {
   KEYWORD_RISE,
   FOCUS_CYCLE,
   FOCUS_CARD_STAGGER,
+  KEYWORD_FONT_CAP,
+  NARRATOR_STORY,
   CURTAIN_EDGE,
   CARD_SHADOWS,
   Z,
   BLUR_THRESHOLD,
+  DEBUG_HUD,
 } from "./curtain-thesis.config";
 
 export { CONTAINER_HEIGHT_VH, SMOOTH_LERP_FACTOR } from "./curtain-thesis.config";
@@ -52,15 +55,24 @@ function computeCardPositions(viewportWidth: number): CardPosition[] {
     const { zone, jitter, widthPct, maxWidthPx } = cfg;
 
     const pctPx = (widthPct / 100) * viewportWidth;
-    const effectiveWidthPct = pctPx > maxWidthPx
+    const capped = pctPx > maxWidthPx;
+    const effectiveWidthPct = capped
       ? (maxWidthPx / viewportWidth) * 100
       : widthPct;
 
-    const minX = zone.xMin;
-    const maxX = Math.max(minX, zone.xMax - effectiveWidthPct);
-    const minY = zone.yMin;
+    // When the px cap kicks in, the card is smaller than its zone expects.
+    // Shrink the zone proportionally so cards don't drift apart on wide viewports.
+    const shrinkRatio = capped ? effectiveWidthPct / widthPct : 1;
+    const zoneCenterX = (zone.xMin + zone.xMax) / 2;
+    const zoneCenterY = (zone.yMin + zone.yMax) / 2;
+    const halfW = (zone.xMax - zone.xMin) / 2 * shrinkRatio;
+    const halfH = (zone.yMax - zone.yMin) / 2 * shrinkRatio;
+
+    const minX = zoneCenterX - halfW;
+    const maxX = Math.max(minX, zoneCenterX + halfW - effectiveWidthPct);
+    const minY = zoneCenterY - halfH;
     const estimatedHeightPct = effectiveWidthPct * CARD_HEIGHT_RATIO;
-    const maxY = Math.max(minY, zone.yMax - estimatedHeightPct);
+    const maxY = Math.max(minY, zoneCenterY + halfH - estimatedHeightPct);
 
     return {
       toX: lerp(minX, maxX, jitter.x),
@@ -70,7 +82,39 @@ function computeCardPositions(viewportWidth: number): CardPosition[] {
   });
 }
 
-/* ── Derived timing ── */
+/* ── Debug helpers ── */
+
+interface FocusWindow { ws: number; rampInEnd: number; holdEnd: number; rampOutEnd: number }
+
+/** Read opacity from a ref's inline style, or "?" if null. */
+function readRefOpacity(el: HTMLElement | null): string {
+  return el ? el.style.opacity.padStart(5) : "    ?";
+}
+
+/** Resolve the current scroll phase to a human-readable label for the debug HUD. */
+function resolvePhase(progress: number, focusWindows: FocusWindow[]): string {
+  if (progress < SCROLL.curtainStart) return "1-thesis";
+  if (progress < SCROLL.curtainEnd) return "2-curtain";
+  if (progress < ARTIFACT_SHUFFLE_START) return "3-post-curtain";
+  if (progress < ARTIFACT_SHUFFLE_END) return "4-shuffle-in";
+  if (progress < KEYWORD_RISE_START) return "5-hold";
+  if (progress < KEYWORD_RISE_END) return "6-keyword-rise";
+
+  for (let k = 0; k < focusWindows.length; k++) {
+    const fw = focusWindows[k];
+    if (progress >= fw.ws && progress < fw.rampOutEnd) {
+      const sub = progress < fw.rampInEnd ? "ramp-in"
+        : progress < fw.holdEnd ? "hold"
+        : "ramp-out";
+      return `7-focus → card-${CARD_CONFIG[k].entryId} (${sub})`;
+    }
+  }
+
+  const lastFw = focusWindows[focusWindows.length - 1];
+  return progress >= lastFw?.rampOutEnd ? "7-focus-done" : "7-focus";
+}
+
+/* ── Derived timing (module-level for resolvePhase access) ── */
 
 const EC_TO_LOCAL_SCALE = EC_CONTAINER_VH / CONTAINER_HEIGHT_VH;
 const thesisData = CONTENT.thesis;
@@ -111,6 +155,7 @@ export function useCurtainThesis() {
   const postCurtainRef = useRef<HTMLDivElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
   const artifactRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const storyRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const cardPositionsRef = useRef<CardPosition[]>([]);
   const keywordRestYRef = useRef(50);
@@ -217,7 +262,10 @@ export function useCurtainThesis() {
         const riseFade = 1 - riseProgress;
         postCurtainRef.current.style.opacity = String(appearProgress * riseFade);
         const midSize = lerp(POST_CURTAIN.startFontSizeVw, POST_CURTAIN.endFontSizeVw, shrinkProgress);
-        postCurtainRef.current.style.fontSize = `${lerp(midSize, KEYWORD_RISE.endFontSizeVw, riseProgress)}vw`;
+        const midCap = lerp(KEYWORD_FONT_CAP.startMaxPx, KEYWORD_FONT_CAP.endMaxPx, shrinkProgress);
+        const finalVw = lerp(midSize, KEYWORD_RISE.endFontSizeVw, riseProgress);
+        const finalCap = lerp(midCap, KEYWORD_FONT_CAP.riseMaxPx, riseProgress);
+        postCurtainRef.current.style.fontSize = `min(${finalVw}vw, ${finalCap}px)`;
         postCurtainRef.current.style.top = `${lerp(keywordRestY, KEYWORD_RISE.endTopPercent, riseProgress)}%`;
         postCurtainRef.current.style.transform = `translate(-50%, -${lerp(50, 0, riseProgress)}%)`;
 
@@ -235,7 +283,7 @@ export function useCurtainThesis() {
 
       // Per-card focus: trapezoidal (rampIn → hold → rampOut)
       const focusValues: number[] = [];
-      const focusWindows: { ws: number; rampInEnd: number; holdEnd: number; rampOutEnd: number }[] = [];
+      const focusWindows: FocusWindow[] = [];
       for (let i = 0; i < positions.length; i++) {
         const ws = FOCUS_CYCLE_START + i * FOCUS_CARD_STAGGER;
         const rampInEnd = ws + FOCUS_CYCLE.rampIn;
@@ -294,18 +342,25 @@ export function useCurtainThesis() {
         el.style.width = `${pos.effectiveWidthPct}%`;
         el.style.transform = `rotate(${currentRotation}deg)${focusScale !== 1 ? ` scale(${focusScale})` : ""}`;
         el.style.transformOrigin = "top left";
+
+        // Narrator story — first card waits for dim, later cards enter sooner
+        const storyEl = storyRefs.current[i];
+        if (storyEl) {
+          const delay = i === 0 ? NARRATOR_STORY.firstFadeInDelay : NARRATOR_STORY.laterFadeInDelay;
+          const storyStart = fw.ws + delay;
+          const fadeDuration = Math.max(
+            NARRATOR_STORY.minFadeInDuration,
+            NARRATOR_STORY.firstFadeInDuration - i * NARRATOR_STORY.fadeInAccelPerCard,
+          );
+          const storyUp = smoothstep(storyStart, storyStart + fadeDuration, progress);
+          const storyDown = 1 - smoothstep(fw.holdEnd, fw.rampOutEnd, progress);
+          storyEl.style.opacity = String(storyUp * storyDown);
+        }
       }
 
       // Debug HUD — live values every frame
       if (debugRef.current) {
-        const phase =
-          progress < SCROLL.curtainStart ? "thesis" :
-          progress < SCROLL.curtainEnd ? "curtain" :
-          progress < ARTIFACT_SHUFFLE_START ? "post-curtain" :
-          progress < ARTIFACT_SHUFFLE_END ? "shuffle-in" :
-          progress < KEYWORD_RISE_START ? "hold" :
-          progress < KEYWORD_RISE_END ? "keyword-rise" :
-          "focus-cycle";
+        const phase = resolvePhase(progress, focusWindows);
 
         const lines = [
           `progress: ${progress.toFixed(4)}`,
@@ -323,13 +378,12 @@ export function useCurtainThesis() {
         for (let j = 0; j < positions.length; j++) {
           const cfg = CARD_CONFIG[j];
           const fw = focusWindows[j];
-
-          const el2 = artifactRefs.current[j];
-          const actualOpacity = el2 ? el2.style.opacity : "?";
+          const isSpotlit = focusValues[j] > DEBUG_HUD.spotlightThreshold;
 
           lines.push(
-            `card-${cfg.entryId}  focus=${focusValues[j].toFixed(3)} ` +
-            `opacity=${actualOpacity.padStart(5)} ` +
+            `card-${cfg.entryId}${isSpotlit ? " ★" : ""}  focus=${focusValues[j].toFixed(3)} ` +
+            `op=${readRefOpacity(artifactRefs.current[j])} ` +
+            `story=${readRefOpacity(storyRefs.current[j])} ` +
             `dim=${cfg.dimOpacity}`,
           );
           lines.push(
@@ -346,8 +400,14 @@ export function useCurtainThesis() {
   }
 
   /* ---- JSX ---- */
-  const jsx = (
+
+  /**
+   * Full-screen layers: curtain overlay must span the entire viewport
+   * (lives outside the max-width content wrapper in page.tsx).
+   */
+  const fullScreenJsx = (
     <>
+      {/* Thesis sentence — centered via translate, unaffected by wrapper width */}
       <div
         ref={thesisSentenceRef}
         className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
@@ -374,6 +434,7 @@ export function useCurtainThesis() {
         </span>
       </div>
 
+      {/* Curtain — must cover full viewport width */}
       <div
         ref={curtainOverlayRef}
         style={{
@@ -390,13 +451,21 @@ export function useCurtainThesis() {
           background: `linear-gradient(to bottom, transparent, var(--bg, #07070A))`, opacity: 0,
         }} />
       </div>
+    </>
+  );
 
+  /**
+   * Content layers: cards, keyword, narrator — positioned relative to the
+   * max-width wrapper so they don't spread apart on zoom-out / ultra-wide.
+   */
+  const contentJsx = (
+    <>
       <div
         ref={postCurtainRef}
         className="absolute select-none pointer-events-none"
         style={{
           opacity: 0, left: "50%", top: "50%", transform: "translate(-50%, -50%)",
-          fontFamily: "var(--font-serif)", fontSize: `${POST_CURTAIN.startFontSizeVw}vw`,
+          fontFamily: "var(--font-serif)", fontSize: `min(${POST_CURTAIN.startFontSizeVw}vw, ${KEYWORD_FONT_CAP.startMaxPx}px)`,
           fontWeight: 400, color: POST_CURTAIN.color, letterSpacing: "0.06em",
           textAlign: "center", zIndex: Z.keyword, willChange: "opacity, font-size, top, transform",
         }}>
@@ -410,8 +479,60 @@ export function useCurtainThesis() {
         </div>
       </div>
 
+      {/* Narrator story text — positioned per card config */}
+      {CARD_CONFIG.map((cfg, i) => {
+        const entry = getEntry(cfg.entryId);
+        if (!entry) return null;
 
-      {/* Artifact cards — percentage width, no transform:scale for sizing */}
+        return (
+          <div
+            key={`story-${cfg.entryId}`}
+            ref={(el) => { storyRefs.current[i] = el; }}
+            className="absolute select-none pointer-events-none"
+            style={{
+              opacity: 0,
+              left: `${cfg.storyX}%`,
+              top: `${cfg.storyY}%`,
+              transform: "translateX(-50%)",
+              textAlign: "center",
+              maxWidth: NARRATOR_STORY.maxWidth,
+              fontSize: NARRATOR_STORY.fontSize,
+              lineHeight: NARRATOR_STORY.lineHeight,
+              fontFamily: "var(--font-narrator)",
+              fontStyle: "italic",
+              fontWeight: 400,
+              color: "var(--cream-muted)",
+              background: NARRATOR_STORY.bgGradient,
+              padding: NARRATOR_STORY.bgPadding,
+              zIndex: Z.narrator,
+              willChange: "opacity",
+            }}>
+            {entry.story}
+          </div>
+        );
+      })}
+
+      {/* Artifact cards — percentage width relative to capped container */}
+      {CARD_CONFIG.map((cfg, i) => (
+        <div
+          key={cfg.entryId}
+          ref={(el) => { artifactRefs.current[i] = el; }}
+          className="absolute pointer-events-none"
+          style={{
+            opacity: 0,
+            left: `${cfg.fromX}%`,
+            top: `${cfg.fromY}%`,
+            transform: `rotate(${cfg.fromRotation}deg)`,
+            width: `${cfg.widthPct}%`,
+            zIndex: Z.cards + i,
+            transformOrigin: "top left",
+          }}>
+          {renderChoreographyCard(cfg.entryId, {
+            boxShadow: cfg.brightness === "light" ? CARD_SHADOWS.light : CARD_SHADOWS.dark,
+          })}
+        </div>
+      ))}
+
       {/* Debug HUD — remove when tuning is done */}
       <pre
         ref={debugRef}
@@ -433,28 +554,8 @@ export function useCurtainThesis() {
           minWidth: 340,
         }}
       />
-
-      {CARD_CONFIG.map((cfg, i) => (
-        <div
-          key={cfg.entryId}
-          ref={(el) => { artifactRefs.current[i] = el; }}
-          className="absolute pointer-events-none"
-          style={{
-            opacity: 0,
-            left: `${cfg.fromX}%`,
-            top: `${cfg.fromY}%`,
-            transform: `rotate(${cfg.fromRotation}deg)`,
-            width: `${cfg.widthPct}%`,
-            zIndex: Z.cards + i,
-            transformOrigin: "top left",
-          }}>
-          {renderChoreographyCard(cfg.entryId, {
-            boxShadow: cfg.brightness === "light" ? CARD_SHADOWS.light : CARD_SHADOWS.dark,
-          })}
-        </div>
-      ))}
     </>
   );
 
-  return { update, jsx, recomputePositions };
+  return { update, fullScreenJsx, contentJsx, recomputePositions };
 }
