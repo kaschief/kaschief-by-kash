@@ -72,21 +72,6 @@ export const USERS_CARDS: readonly CardConfig[] = [
     storyX: 58, storyY: 53,
   },
   {
-    entryId: 2,
-    brightness: "dark",
-    widthPct: 33,
-    maxWidthPx: 460,
-    zone: { xMin: 56, xMax: 97, yMin: 3, yMax: 46 },
-    jitter: { x: 0.65, y: 0.2 },
-    fromX: 140,
-    fromY: 15,
-    fromRotation: 12,
-    toRotation: 2.5,
-    dimOpacity: 0.07,
-    // Story: card is TR → text in the gap between upper and lower cards, left of center
-    storyX: 42, storyY: 53,
-  },
-  {
     entryId: 3,
     brightness: "light",
     widthPct: 36,
@@ -100,6 +85,21 @@ export const USERS_CARDS: readonly CardConfig[] = [
     dimOpacity: 0.02,
     // Story: card is bottom-center → text in the large open space above, centered
     storyX: 50, storyY: 25,
+  },
+  {
+    entryId: 2,
+    brightness: "dark",
+    widthPct: 33,
+    maxWidthPx: 460,
+    zone: { xMin: 56, xMax: 97, yMin: 3, yMax: 46 },
+    jitter: { x: 0.65, y: 0.2 },
+    fromX: 140,
+    fromY: 15,
+    fromRotation: 12,
+    toRotation: 2.5,
+    dimOpacity: 0.07,
+    // Story: card is TR → text in the gap between upper and lower cards, left of center
+    storyX: 42, storyY: 53,
   },
 ];
 
