@@ -13,6 +13,7 @@ import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
 import { getLens, getEntry } from "@data";
 import { USERS_CARDS, renderChoreographyCard, type CardConfig } from "./card-config";
 import {
+  TUNED_CONTAINER_VH,
   CARD_HEIGHT_RATIO,
   ZONE_SPLIT_Y,
   THESIS_PHASE_START,
@@ -132,7 +133,8 @@ function resolvePhase(progress: number, focusWindows: FocusWindow[]): string {
 
 /* ── Derived timing (module-level for resolvePhase access) ── */
 
-const EC_TO_LOCAL_SCALE = EC_CONTAINER_VH / CONTAINER_HEIGHT_VH;
+// Scale uses the original tuned container height, not the multi-lens total
+const EC_TO_LOCAL_SCALE = EC_CONTAINER_VH / TUNED_CONTAINER_VH;
 const thesisData = CONTENT.thesis;
 const KEYWORD_COUNT = thesisData.keywords.length;
 
