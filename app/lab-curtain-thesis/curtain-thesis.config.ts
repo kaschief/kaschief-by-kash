@@ -8,7 +8,7 @@
 
 /* ── Container ── */
 
-export const CONTAINER_HEIGHT_VH = 1400;
+export const CONTAINER_HEIGHT_VH = 2400;
 
 /**
  * Max width for the content layer (px).
@@ -32,13 +32,13 @@ export const ZONE_SPLIT_Y = 50;
 /* ── Phase 1: Thesis ── */
 
 export const THESIS_PHASE_START = 0.0;
-export const THESIS_PHASE_DURATION = 0.25;
+export const THESIS_PHASE_DURATION = 0.18;
 
 /* ── Phase 5: Artifact shuffle-in ── */
 
 export const ARTIFACT_SHUFFLE = {
-  stagger: 0.04,
-  entranceDuration: 0.1,
+  stagger: 0.03,
+  entranceDuration: 0.08,
   opacityRamp: 2.5,
 } as const;
 
@@ -72,30 +72,65 @@ export const KEYWORD_FONT_CAP = {
   riseMaxPx: 40,    // 2.8vw @ 1440 = 40.3px
 } as const;
 
-/* ── Phase 7: Focus cycle ── */
+/* ── Phase 7: Focus cycle (with in-place morph) ── */
 
 export const FOCUS_CYCLE = {
-  rampIn: 0.02,
-  hold: 0.10,
-  rampOut: 0.025,
-  cardGap: -0.01,
+  /** Card brightens, others dim */
+  rampIn: 0.012,
+  /** Narrator fades in and holds — user reads the full story */
+  storyHold: 0.075,
+  /** Card crossfades artifact → i-statement while narrator still visible */
+  morphDur: 0.022,
+  /** Both i-statement and narrator visible — user reads statement, can glance back at story */
+  morphHold: 0.035,
+  /** Narrator fades, card dims but stays morphed permanently */
+  rampOut: 0.016,
+  /** Overlap between cards (negative = overlap) */
+  cardGap: -0.008,
   nudgeX: 1.5,
   nudgeY: -1,
   nudgeScale: 1.02,
   dimRampDuration: 0.04,
 } as const;
 
-/** Total scroll distance per card: rampIn + hold + rampOut */
+/** Total scroll distance per card: rampIn + storyHold + morphDur + morphHold + rampOut */
 export const FOCUS_CARD_TOTAL =
-  FOCUS_CYCLE.rampIn + FOCUS_CYCLE.hold + FOCUS_CYCLE.rampOut;
+  FOCUS_CYCLE.rampIn + FOCUS_CYCLE.storyHold + FOCUS_CYCLE.morphDur
+  + FOCUS_CYCLE.morphHold + FOCUS_CYCLE.rampOut;
 
 /** Stagger between card spotlight starts (total + gap, gap can be negative for overlap) */
 export const FOCUS_CARD_STAGGER = FOCUS_CARD_TOTAL + FOCUS_CYCLE.cardGap;
 
+/* ── Phase 7b: Morph visual parameters ── */
+
+export const MORPH = {
+  /** Dim opacity override for morphed cards — dark back-face needs higher floor to stay visible */
+  dimOpacity: 0.17,
+  /** Back face: dark gradient background */
+  bgGradient: "linear-gradient(145deg, rgba(15,14,18,0.95), rgba(26,24,32,0.95))",
+  /** Back face: gold-dim border */
+  border: "1px solid var(--gold-dim)",
+  /** I-statement text styling */
+  fontSize: "clamp(0.85rem, 1.3vw, 1.1rem)",
+  textColor: "var(--gold)",
+  lineHeight: 1.55,
+  padding: "clamp(16px, 3vw, 28px)",
+  borderRadius: 8,
+} as const;
+
+/* ── Phase 8: Dissolve (all morphed cards fade out together) ── */
+
+export const DISSOLVE = {
+  /** Gap after last card's rampOut before dissolve begins */
+  delay: 0.005,
+  /** Duration of the uniform fade-out */
+  duration: 0.025,
+} as const;
+
 /* ── Phase 7a: Narrator story (tied to focus spotlight) ── */
 
 export const NARRATOR_STORY = {
-  /** First card story waits for dim to fully complete — new element needs breathing room */
+  /** First card story waits for dim ramp — new element needs breathing room */
   firstFadeInDelay: FOCUS_CYCLE.dimRampDuration,
   /** Subsequent cards enter earlier — user already knows the pattern */
   laterFadeInDelay: FOCUS_CYCLE.dimRampDuration * 0.4,
@@ -107,7 +142,7 @@ export const NARRATOR_STORY = {
   minFadeInDuration: 0.018,
   fontSize: "clamp(0.78rem, 1.05vw, 0.95rem)",
   /** Hard px cap — well under thesis max (900px). Uses min() with vw for fluid sizing. */
-  maxWidth: "min(28vw, 380px)",
+  maxWidth: "min(34vw, 480px)",
   lineHeight: 1.65,
   /** Soft radial bg for readability — feathers to transparent, no hard edges */
   bgGradient: "radial-gradient(ellipse, rgba(7,7,10,0.85) 0%, rgba(7,7,10,0) 70%)",
