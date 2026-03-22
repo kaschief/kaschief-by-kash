@@ -156,7 +156,7 @@ export type CardType = LensEntry["cardType"];
 /** Type-safe extraction: get the entry shape for a specific card type */
 export type EntryOf<T extends CardType> = Extract<LensEntry, { cardType: T }>;
 
-/** The three pillar/lens names — used across curtain-thesis, EC, lab-pillars */
+/** The three pillar/lens names — used across lab-lenses, EC, lab-pillars */
 export const LENS_NAMES = ["users", "gaps", "patterns"] as const;
 export type LensName = (typeof LENS_NAMES)[number];
 

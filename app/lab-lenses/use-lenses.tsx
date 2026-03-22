@@ -13,7 +13,6 @@ import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
 import { getLens, getEntry } from "@data";
 import { USERS_CARDS, renderChoreographyCard, type CardConfig } from "./card-config";
 import {
-  CONTAINER_HEIGHT_VH,
   CARD_HEIGHT_RATIO,
   ZONE_SPLIT_Y,
   THESIS_PHASE_START,
@@ -24,7 +23,7 @@ import {
   FOCUS_CYCLE,
   FOCUS_CARD_STAGGER,
   MORPH,
-  DISSOLVE,
+  FINAL_DISSOLVE,
   KEYWORD_FONT_CAP,
   NARRATOR_STORY,
   CURTAIN_EDGE,
@@ -32,9 +31,10 @@ import {
   Z,
   BLUR_THRESHOLD,
   DEBUG_HUD,
-} from "./curtain-thesis.config";
-
-export { CONTAINER_HEIGHT_VH, SMOOTH_LERP_FACTOR } from "./curtain-thesis.config";
+} from "./lenses.config";
+import { CONTAINER_HEIGHT_VH } from "./lenses.timing";
+export { CONTAINER_HEIGHT_VH };
+export { SMOOTH_LERP_FACTOR } from "./lenses.config";
 
 /* ── Active pillar cards ── */
 
@@ -123,8 +123,8 @@ function resolvePhase(progress: number, focusWindows: FocusWindow[]): string {
 
   const lastFw = focusWindows[focusWindows.length - 1];
   if (!lastFw) return "7-focus";
-  const dissolveStart = lastFw.rampOutEnd + DISSOLVE.delay;
-  const dissolveEnd = dissolveStart + DISSOLVE.duration;
+  const dissolveStart = lastFw.rampOutEnd + FINAL_DISSOLVE.delay;
+  const dissolveEnd = dissolveStart + FINAL_DISSOLVE.duration;
   if (progress < dissolveStart) return "7-focus-done";
   if (progress < dissolveEnd) return "8-dissolve";
   return "8-dissolved";
@@ -161,7 +161,7 @@ const FOCUS_CYCLE_START = KEYWORD_RISE_START;
 
 /* ── Hook ── */
 
-export function useCurtainThesis() {
+export function useLenses() {
   const thesisSentenceRef = useRef<HTMLDivElement>(null);
   const prefixSpanRef = useRef<HTMLSpanElement>(null);
   const keywordSpanRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -318,8 +318,8 @@ export function useCurtainThesis() {
 
       // Dissolve: after all cards complete, they all fade out together
       const lastFw = focusWindows[focusWindows.length - 1];
-      const dissolveStart = lastFw.rampOutEnd + DISSOLVE.delay;
-      const dissolveEnd = dissolveStart + DISSOLVE.duration;
+      const dissolveStart = lastFw.rampOutEnd + FINAL_DISSOLVE.delay;
+      const dissolveEnd = dissolveStart + FINAL_DISSOLVE.duration;
       const dissolveFade = 1 - smoothstep(dissolveStart, dissolveEnd, progress);
 
       for (let i = 0; i < positions.length; i++) {

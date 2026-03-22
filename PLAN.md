@@ -1,20 +1,23 @@
 ---
-name: Curtain Thesis Scroll Plan
-description: Living plan for the curtain-thesis scroll build — pillar-by-pillar story reveals with artifact cards, focus cycling, and I-statement morphs
+name: Lenses Scroll Plan
+description: Living plan for the multi-lens scroll build — pillar-by-pillar story reveals with artifact cards, focus cycling, and I-statement morphs
 type: project
 ---
 
-# Curtain Thesis — Scroll Sequence Plan
+# Lenses — Scroll Sequence Plan
 
 ## Concept
-A scroll-driven narrative where the thesis sentence dissolves, a curtain wipes the screen, and then **pillar sections** reveal career stories through scattered artifact cards. Each pillar (Users, Structure, Clarity, Scale) follows the same choreography with different content.
+A scroll-driven narrative where the thesis sentence dissolves, a curtain wipes the screen, and then **lens sections** reveal career stories through scattered artifact cards. Each lens (Users, Gaps, Patterns) follows the same choreography with different content.
 
 ## Architecture
-- **Page**: `app/lab-curtain-thesis/page.tsx` (thin orchestrator — scroll container, RAF loop)
-- **Hook**: `app/lab-curtain-thesis/use-curtain-thesis.tsx` (all phases, returns `{ update, jsx }`)
-- **Shared cards**: `app/lab-artifacts/artifact-cards.tsx` (JiraCard, SentryCard, SlackCard + more to come)
-- **Configs**: `app/engineer-candidate/engineer-candidate.types.ts` (CURTAIN_THESIS, PREFIX_DISSOLVE, POST_CURTAIN)
-- **Container**: 900vh, RAF smoothing (SMOOTH_LERP_FACTOR = 0.07)
+- **Page**: `app/lab-lenses/page.tsx` (thin orchestrator — scroll container, RAF loop)
+- **Hook**: `app/lab-lenses/use-lenses.tsx` (all phases, returns `{ update, jsx }`)
+- **Types**: `app/lab-lenses/lenses.types.ts` (LensSegment, FocusWindow, PrologueTiming)
+- **Timing**: `app/lab-lenses/lenses.timing.ts` (buildTimeline, LENS_SEGMENTS, auto-derived CONTAINER_HEIGHT_VH)
+- **Config**: `app/lab-lenses/lenses.config.ts` (shared timing/visual constants)
+- **Cards**: `app/lab-lenses/card-config.tsx` (per-lens CardConfig arrays)
+- **Shared cards**: `app/lab-artifacts/artifact-cards.tsx` (JiraCard, SentryCard, SlackCard + more)
+- **Container**: auto-sized from timeline, RAF smoothing (SMOOTH_LERP_FACTOR = 0.07)
 
 ---
 
