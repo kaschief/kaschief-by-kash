@@ -16,6 +16,14 @@
 export const BASE_SCROLL_VH = 1800;
 
 /**
+ * The original single-lens container height (vh) that the thesis/curtain/keyword
+ * timing was tuned against. Used for EC_TO_LOCAL_SCALE so the prologue pacing
+ * stays identical regardless of how many lenses the timeline contains.
+ * DO NOT CHANGE — this is the tuned reference value.
+ */
+export const TUNED_CONTAINER_VH = 2400;
+
+/**
  * Max width for the content layer (px).
  * Cards, keyword, narrator — everything positioned absolutely — lives inside
  * this container. Prevents layout blowup on ultra-wide monitors or browser
