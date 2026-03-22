@@ -4,13 +4,13 @@ import { useRef, useEffect } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
 import { LabNav } from "../lab-nav";
 import {
-  useCurtainThesis,
+  useLenses,
   CONTAINER_HEIGHT_VH,
   SMOOTH_LERP_FACTOR,
-} from "./use-curtain-thesis";
-import { MAX_CONTENT_WIDTH } from "./curtain-thesis.config";
+} from "./use-lenses";
+import { MAX_CONTENT_WIDTH } from "./lenses.config";
 
-export default function LabCurtainThesisPage() {
+export default function LabLensesPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const stickyViewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -19,7 +19,7 @@ export default function LabCurtainThesisPage() {
   const rawScrollProgress = useRef(0);
   const animationFrameId = useRef(0);
 
-  const { update, fullScreenJsx, contentJsx, recomputePositions } = useCurtainThesis();
+  const { update, fullScreenJsx, contentJsx, recomputePositions } = useLenses();
 
   const { scrollYProgress } = useScroll({
     target: scrollContainerRef,

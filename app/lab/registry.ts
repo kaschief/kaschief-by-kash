@@ -28,7 +28,7 @@ export const LAB_ROUTES: readonly LabRoute[] = [
 
   // Scroll explorations (newest first)
   { href: "/lab-transitions", label: "Transitions", desc: "5 approaches: scattered cards → story → I-statement reveal", section: "scroll" },
-  { href: "/lab-curtain-thesis", label: "Curtain Thesis", desc: "Thesis → curtain wipe → keyword isolation → pillar anchor", section: "scroll" },
+  { href: "/lab-lenses", label: "Lenses", desc: "Multi-lens scroll: thesis → curtain → keyword → artifact cards → story → morph", section: "scroll" },
   { href: "/lab-pillars", label: "Pillars", desc: "Card-stack pillar exploration with scroll-driven stories", section: "scroll" },
   { href: "/lab-wordtype", label: "WordType", desc: "Word-typing scroll prototype", section: "scroll" },
 ];

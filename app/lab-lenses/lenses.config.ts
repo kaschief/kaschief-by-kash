@@ -1,14 +1,19 @@
 /**
- * All tunable timing, layout, and phase constants for the curtain-thesis scroll.
+ * All tunable timing, layout, and phase constants for the lenses scroll.
  * Pure data — no React, no JSX, no side effects.
  *
- * use-curtain-thesis.tsx imports these and drives the RAF loop.
+ * use-lenses.tsx imports these and drives the RAF loop.
  * card-config.tsx holds per-card identity/layout/focus config.
  */
 
 /* ── Container ── */
 
-export const CONTAINER_HEIGHT_VH = 2400;
+/**
+ * Physical scroll multiplier. Combined with TIMELINE_END from the timing module,
+ * this determines the total scroll height: CONTAINER_HEIGHT_VH = ceil(TIMELINE_END * BASE_SCROLL_VH).
+ * Higher = more physical scroll per progress unit = slower, more luxurious pacing.
+ */
+export const BASE_SCROLL_VH = 1800;
 
 /**
  * Max width for the content layer (px).
@@ -67,9 +72,9 @@ export const KEYWORD_RISE = {
  * on a 1440px viewport.
  */
 export const KEYWORD_FONT_CAP = {
-  startMaxPx: 72,   // 5vw @ 1440 = 72px
-  endMaxPx: 50,     // 3.5vw @ 1440 = 50.4px
-  riseMaxPx: 40,    // 2.8vw @ 1440 = 40.3px
+  startMaxPx: 72, // 5vw @ 1440 = 72px
+  endMaxPx: 50, // 3.5vw @ 1440 = 50.4px
+  riseMaxPx: 40, // 2.8vw @ 1440 = 40.3px
 } as const;
 
 /* ── Phase 7: Focus cycle (with in-place morph) ── */
@@ -95,8 +100,11 @@ export const FOCUS_CYCLE = {
 
 /** Total scroll distance per card: rampIn + storyHold + morphDur + morphHold + rampOut */
 export const FOCUS_CARD_TOTAL =
-  FOCUS_CYCLE.rampIn + FOCUS_CYCLE.storyHold + FOCUS_CYCLE.morphDur
-  + FOCUS_CYCLE.morphHold + FOCUS_CYCLE.rampOut;
+  FOCUS_CYCLE.rampIn +
+  FOCUS_CYCLE.storyHold +
+  FOCUS_CYCLE.morphDur +
+  FOCUS_CYCLE.morphHold +
+  FOCUS_CYCLE.rampOut;
 
 /** Stagger between card spotlight starts (total + gap, gap can be negative for overlap) */
 export const FOCUS_CARD_STAGGER = FOCUS_CARD_TOTAL + FOCUS_CYCLE.cardGap;
@@ -105,9 +113,10 @@ export const FOCUS_CARD_STAGGER = FOCUS_CARD_TOTAL + FOCUS_CYCLE.cardGap;
 
 export const MORPH = {
   /** Dim opacity override for morphed cards — dark back-face needs higher floor to stay visible */
-  dimOpacity: 0.17,
+  dimOpacity: 0.16,
   /** Back face: dark gradient background */
-  bgGradient: "linear-gradient(145deg, rgba(15,14,18,0.95), rgba(26,24,32,0.95))",
+  bgGradient:
+    "linear-gradient(145deg, rgba(15,14,18,0.95), rgba(26,24,32,0.95))",
   /** Back face: gold-dim border */
   border: "1px solid var(--gold-dim)",
   /** I-statement text styling */
@@ -118,12 +127,20 @@ export const MORPH = {
   borderRadius: 8,
 } as const;
 
-/* ── Phase 8: Dissolve (all morphed cards fade out together) ── */
+/* ── Inter-lens transitions ── */
 
-export const DISSOLVE = {
-  /** Gap after last card's rampOut before dissolve begins */
+/** Brief hold after focus cycle — all morphed cards visible together before next curtain */
+export const HOLD_AFTER_FOCUS = {
+  /** Duration of the hold phase where all morphed cards are visible */
+  duration: 0.02,
+} as const;
+
+/** Pause between lens segments — breathing room before the next curtain sweeps */
+export const INTER_LENS_PAUSE = 0.01;
+
+/** Final dissolve after the last lens completes (patterns) */
+export const FINAL_DISSOLVE = {
   delay: 0.005,
-  /** Duration of the uniform fade-out */
   duration: 0.025,
 } as const;
 
@@ -145,7 +162,8 @@ export const NARRATOR_STORY = {
   maxWidth: "min(34vw, 480px)",
   lineHeight: 1.65,
   /** Soft radial bg for readability — feathers to transparent, no hard edges */
-  bgGradient: "radial-gradient(ellipse, rgba(7,7,10,0.85) 0%, rgba(7,7,10,0) 70%)",
+  bgGradient:
+    "radial-gradient(ellipse, rgba(7,7,10,0.85) 0%, rgba(7,7,10,0) 70%)",
   /** Padding to give the gradient room to feather beyond the text bounds */
   bgPadding: "2em 3em",
 } as const;
@@ -170,8 +188,8 @@ export const CARD_SHADOWS = {
 export const Z = {
   thesis: 1,
   curtain: 2,
-  cards: 4,       // cards use Z.cards + i
-  narrator: 8,    // above cards, below keyword
+  cards: 4, // cards use Z.cards + i
+  narrator: 8, // above cards, below keyword
   keyword: 10,
   debug: 999,
 } as const;
