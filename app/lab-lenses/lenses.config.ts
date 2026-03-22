@@ -37,13 +37,13 @@ export const ZONE_SPLIT_Y = 50;
 /* ── Phase 1: Thesis ── */
 
 export const THESIS_PHASE_START = 0.0;
-export const THESIS_PHASE_DURATION = 0.18;
+export const THESIS_PHASE_DURATION = 0.25;
 
 /* ── Phase 5: Artifact shuffle-in ── */
 
 export const ARTIFACT_SHUFFLE = {
-  stagger: 0.03,
-  entranceDuration: 0.08,
+  stagger: 0.04,
+  entranceDuration: 0.1,
   opacityRamp: 2.5,
 } as const;
 
@@ -81,7 +81,7 @@ export const KEYWORD_FONT_CAP = {
 
 export const FOCUS_CYCLE = {
   /** Card brightens, others dim */
-  rampIn: 0.012,
+  rampIn: 0.02,
   /** Narrator fades in and holds — user reads the full story */
   storyHold: 0.075,
   /** Card crossfades artifact → i-statement while narrator still visible */
@@ -89,9 +89,9 @@ export const FOCUS_CYCLE = {
   /** Both i-statement and narrator visible — user reads statement, can glance back at story */
   morphHold: 0.035,
   /** Narrator fades, card dims but stays morphed permanently */
-  rampOut: 0.016,
+  rampOut: 0.025,
   /** Overlap between cards (negative = overlap) */
-  cardGap: -0.008,
+  cardGap: -0.01,
   nudgeX: 1.5,
   nudgeY: -1,
   nudgeScale: 1.02,
