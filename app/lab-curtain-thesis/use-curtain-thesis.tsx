@@ -23,6 +23,8 @@ import {
   KEYWORD_RISE,
   FOCUS_CYCLE,
   FOCUS_CARD_STAGGER,
+  MORPH,
+  DISSOLVE,
   KEYWORD_FONT_CAP,
   NARRATOR_STORY,
   CURTAIN_EDGE,
@@ -84,7 +86,14 @@ function computeCardPositions(viewportWidth: number): CardPosition[] {
 
 /* ── Debug helpers ── */
 
-interface FocusWindow { ws: number; rampInEnd: number; holdEnd: number; rampOutEnd: number }
+interface FocusWindow {
+  ws: number;
+  rampInEnd: number;
+  storyHoldEnd: number;
+  morphEnd: number;
+  morphHoldEnd: number;
+  rampOutEnd: number;
+}
 
 /** Read opacity from a ref's inline style, or "?" if null. */
 function readRefOpacity(el: HTMLElement | null): string {
@@ -104,14 +113,21 @@ function resolvePhase(progress: number, focusWindows: FocusWindow[]): string {
     const fw = focusWindows[k];
     if (progress >= fw.ws && progress < fw.rampOutEnd) {
       const sub = progress < fw.rampInEnd ? "ramp-in"
-        : progress < fw.holdEnd ? "hold"
+        : progress < fw.storyHoldEnd ? "story"
+        : progress < fw.morphEnd ? "morph"
+        : progress < fw.morphHoldEnd ? "morph-hold"
         : "ramp-out";
       return `7-focus → card-${CARD_CONFIG[k].entryId} (${sub})`;
     }
   }
 
   const lastFw = focusWindows[focusWindows.length - 1];
-  return progress >= lastFw?.rampOutEnd ? "7-focus-done" : "7-focus";
+  if (!lastFw) return "7-focus";
+  const dissolveStart = lastFw.rampOutEnd + DISSOLVE.delay;
+  const dissolveEnd = dissolveStart + DISSOLVE.duration;
+  if (progress < dissolveStart) return "7-focus-done";
+  if (progress < dissolveEnd) return "8-dissolve";
+  return "8-dissolved";
 }
 
 /* ── Derived timing (module-level for resolvePhase access) ── */
@@ -155,6 +171,8 @@ export function useCurtainThesis() {
   const postCurtainRef = useRef<HTMLDivElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
   const artifactRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const cardFrontRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const cardBackRefs = useRef<(HTMLDivElement | null)[]>([]);
   const storyRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const cardPositionsRef = useRef<CardPosition[]>([]);
@@ -281,20 +299,28 @@ export function useCurtainThesis() {
       const positions = cardPositionsRef.current;
       if (positions.length === 0) return;
 
-      // Per-card focus: trapezoidal (rampIn → hold → rampOut)
+      // Per-card focus: rampIn → storyHold → morph → morphHold → rampOut
       const focusValues: number[] = [];
       const focusWindows: FocusWindow[] = [];
       for (let i = 0; i < positions.length; i++) {
         const ws = FOCUS_CYCLE_START + i * FOCUS_CARD_STAGGER;
         const rampInEnd = ws + FOCUS_CYCLE.rampIn;
-        const holdEnd = rampInEnd + FOCUS_CYCLE.hold;
-        const rampOutEnd = holdEnd + FOCUS_CYCLE.rampOut;
-        focusWindows.push({ ws, rampInEnd, holdEnd, rampOutEnd });
+        const storyHoldEnd = rampInEnd + FOCUS_CYCLE.storyHold;
+        const morphEnd = storyHoldEnd + FOCUS_CYCLE.morphDur;
+        const morphHoldEnd = morphEnd + FOCUS_CYCLE.morphHold;
+        const rampOutEnd = morphHoldEnd + FOCUS_CYCLE.rampOut;
+        focusWindows.push({ ws, rampInEnd, storyHoldEnd, morphEnd, morphHoldEnd, rampOutEnd });
 
         const up = smoothstep(ws, rampInEnd, progress);
-        const down = 1 - smoothstep(holdEnd, rampOutEnd, progress);
+        const down = 1 - smoothstep(morphHoldEnd, rampOutEnd, progress);
         focusValues.push(up * down);
       }
+
+      // Dissolve: after all cards complete, they all fade out together
+      const lastFw = focusWindows[focusWindows.length - 1];
+      const dissolveStart = lastFw.rampOutEnd + DISSOLVE.delay;
+      const dissolveEnd = dissolveStart + DISSOLVE.duration;
+      const dissolveFade = 1 - smoothstep(dissolveStart, dissolveEnd, progress);
 
       for (let i = 0; i < positions.length; i++) {
         const el = artifactRefs.current[i];
@@ -313,37 +339,47 @@ export function useCurtainThesis() {
 
         const myFocus = focusValues[i];
 
-        // Nudge: card moves to spotlight position during rampIn, STAYS during hold,
-        // only returns during rampOut. We split focus into position vs brightness.
+        // Nudge: card moves to spotlight position during rampIn, STAYS through morph,
+        // only returns during rampOut.
         const positionFocus = smoothstep(fw.ws, fw.rampInEnd, progress)
-          * (1 - smoothstep(fw.holdEnd, fw.rampOutEnd, progress));
+          * (1 - smoothstep(fw.morphHoldEnd, fw.rampOutEnd, progress));
 
         const nudgeScale = cfg.nudgeScale ?? FOCUS_CYCLE.nudgeScale;
-        const focusScale = lerp(1, nudgeScale, positionFocus);
         const nudgeX = cfg.nudgeX ?? FOCUS_CYCLE.nudgeX;
         const nudgeY = cfg.nudgeY ?? FOCUS_CYCLE.nudgeY;
 
+        // Morph: crossfade artifact → i-statement (fully reversible on scroll-back)
+        const morph = smoothstep(fw.storyHoldEnd, fw.morphEnd, progress);
+
+        const focusScale = lerp(1, nudgeScale, positionFocus);
+
+        // Front/back opacity
+        const frontEl = cardFrontRefs.current[i];
+        const backEl = cardBackRefs.current[i];
+        if (frontEl) frontEl.style.opacity = String(1 - morph);
+        if (backEl) backEl.style.opacity = String(morph);
+
         // Dimming: all cards dim fast at FOCUS_CYCLE_START.
-        // The spotlit card overrides back to full brightness via myFocus.
+        // Morphed cards use a higher dim floor (dark back-face needs more opacity to stay visible).
         const dimRamp = smoothstep(
           FOCUS_CYCLE_START,
           FOCUS_CYCLE_START + FOCUS_CYCLE.dimRampDuration,
           progress,
         );
-        const dimTarget = lerp(1, cfg.dimOpacity, dimRamp);
-        // myFocus (0→1) pulls from dimTarget back to 1. Spotlit card = 1. Others stay dimmed.
+        const cardDimFloor = morph > 0.5 ? MORPH.dimOpacity : cfg.dimOpacity;
+        const dimTarget = lerp(1, cardDimFloor, dimRamp);
         const focusOpacity = lerp(dimTarget, 1, myFocus);
 
         const baseOpacity = clamp(slideProgress * ARTIFACT_SHUFFLE.opacityRamp, 0, 1);
 
-        el.style.opacity = String(baseOpacity * focusOpacity);
+        el.style.opacity = String(baseOpacity * focusOpacity * dissolveFade);
         el.style.left = `${currentX + positionFocus * nudgeX}%`;
         el.style.top = `${currentY + positionFocus * nudgeY}%`;
         el.style.width = `${pos.effectiveWidthPct}%`;
         el.style.transform = `rotate(${currentRotation}deg)${focusScale !== 1 ? ` scale(${focusScale})` : ""}`;
         el.style.transformOrigin = "top left";
 
-        // Narrator story — first card waits for dim, later cards enter sooner
+        // Narrator story — fades in during storyHold, lingers through morph, fades out during rampOut
         const storyEl = storyRefs.current[i];
         if (storyEl) {
           const delay = i === 0 ? NARRATOR_STORY.firstFadeInDelay : NARRATOR_STORY.laterFadeInDelay;
@@ -353,7 +389,7 @@ export function useCurtainThesis() {
             NARRATOR_STORY.firstFadeInDuration - i * NARRATOR_STORY.fadeInAccelPerCard,
           );
           const storyUp = smoothstep(storyStart, storyStart + fadeDuration, progress);
-          const storyDown = 1 - smoothstep(fw.holdEnd, fw.rampOutEnd, progress);
+          const storyDown = 1 - smoothstep(fw.morphHoldEnd, fw.rampOutEnd, progress);
           storyEl.style.opacity = String(storyUp * storyDown);
         }
       }
@@ -383,12 +419,12 @@ export function useCurtainThesis() {
           lines.push(
             `card-${cfg.entryId}${isSpotlit ? " ★" : ""}  focus=${focusValues[j].toFixed(3)} ` +
             `op=${readRefOpacity(artifactRefs.current[j])} ` +
-            `story=${readRefOpacity(storyRefs.current[j])} ` +
-            `dim=${cfg.dimOpacity}`,
+            `morph=${readRefOpacity(cardBackRefs.current[j])} ` +
+            `story=${readRefOpacity(storyRefs.current[j])}`,
           );
           lines.push(
-            `        in=${fw.ws.toFixed(4)}→${fw.rampInEnd.toFixed(4)} ` +
-            `hold→${fw.holdEnd.toFixed(4)} ` +
+            `        in=${fw.ws.toFixed(4)} story→${fw.storyHoldEnd.toFixed(4)} ` +
+            `morph→${fw.morphEnd.toFixed(4)} hold→${fw.morphHoldEnd.toFixed(4)} ` +
             `out→${fw.rampOutEnd.toFixed(4)}`,
           );
         }
@@ -512,7 +548,7 @@ export function useCurtainThesis() {
         );
       })}
 
-      {/* Artifact cards — percentage width relative to capped container */}
+      {/* Artifact cards — front/back for morph, percentage width relative to capped container */}
       {CARD_CONFIG.map((cfg, i) => (
         <div
           key={cfg.entryId}
@@ -527,9 +563,42 @@ export function useCurtainThesis() {
             zIndex: Z.cards + i,
             transformOrigin: "top left",
           }}>
-          {renderChoreographyCard(cfg.entryId, {
-            boxShadow: cfg.brightness === "light" ? CARD_SHADOWS.light : CARD_SHADOWS.dark,
-          })}
+          {/* Front: artifact card */}
+          <div
+            ref={(el) => { cardFrontRefs.current[i] = el; }}
+            style={{ willChange: "opacity" }}>
+            {renderChoreographyCard(cfg.entryId, {
+              boxShadow: cfg.brightness === "light" ? CARD_SHADOWS.light : CARD_SHADOWS.dark,
+            })}
+          </div>
+          {/* Back: i-statement card */}
+          <div
+            ref={(el) => { cardBackRefs.current[i] = el; }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: MORPH.borderRadius,
+              background: MORPH.bgGradient,
+              border: MORPH.border,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: MORPH.padding,
+              opacity: 0,
+              willChange: "opacity",
+            }}>
+            <div
+              className="font-serif"
+              style={{
+                fontSize: MORPH.fontSize,
+                color: MORPH.textColor,
+                textAlign: "center",
+                lineHeight: MORPH.lineHeight,
+                fontStyle: "italic",
+              }}>
+              {getEntry(cfg.entryId)?.iStatement}
+            </div>
+          </div>
         </div>
       ))}
 
