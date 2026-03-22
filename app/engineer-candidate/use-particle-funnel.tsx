@@ -293,6 +293,12 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
       const particles = particlesRef.current;
       const minDim = Math.min(viewportW, viewportH);
 
+      // Lazy re-measure: SVG may not have been laid out when handleResize ran on mount
+      if (svgRectRef.current.width === 0 && funnelSvgRef.current) {
+        const r = funnelSvgRef.current.getBoundingClientRect();
+        svgRectRef.current = { left: r.left, top: r.top, width: r.width, height: r.height };
+      }
+
       for (const particle of particles) {
         const target = FUNNEL_TOP_POSITIONS[particle.streamIdx];
         const { px: targetX, py: targetY } = svgToPixel(
