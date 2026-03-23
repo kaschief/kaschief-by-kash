@@ -27,6 +27,7 @@ export const LAB_ROUTES: readonly LabRoute[] = [
   { href: "/lab-artifacts", label: "Artifacts", desc: "Skeuomorphic UI fragments — Jira, Sentry, Slack, Figma, GitHub", section: "reference" },
 
   // Scroll explorations (newest first)
+  { href: "/lab-lens-styles", label: "Lens Styles", desc: "3 distinct presentation styles: scattered spotlight, split compare, layered cascade", section: "scroll" },
   { href: "/lab-transitions", label: "Transitions", desc: "5 approaches: scattered cards → story → I-statement reveal", section: "scroll" },
   { href: "/lab-lenses", label: "Lenses", desc: "Multi-lens scroll: thesis → curtain → keyword → artifact cards → story → morph", section: "scroll" },
   { href: "/lab-pillars", label: "Pillars", desc: "Card-stack pillar exploration with scroll-driven stories", section: "scroll" },

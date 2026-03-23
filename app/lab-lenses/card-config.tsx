@@ -67,7 +67,7 @@ export const USERS_CARDS: readonly CardConfig[] = [
     fromY: 20,
     fromRotation: -18,
     toRotation: -3.5,
-    dimOpacity: 0.02,
+    dimOpacity: 0,
     // Story: card is TL → gap between upper/lower, right of center, upper portion of gap
     storyX: 58, storyY: 48,
   },
@@ -82,7 +82,7 @@ export const USERS_CARDS: readonly CardConfig[] = [
     fromY: 120,
     fromRotation: -6,
     toRotation: -1.5,
-    dimOpacity: 0.02,
+    dimOpacity: 0,
     // Story: card is bottom → open space above, centered
     storyX: 50, storyY: 22,
   },
@@ -97,7 +97,7 @@ export const USERS_CARDS: readonly CardConfig[] = [
     fromY: 15,
     fromRotation: 12,
     toRotation: 2.5,
-    dimOpacity: 0.07,
+    dimOpacity: 0,
     // Story: card is TR → gap between upper/lower, left of center, upper portion of gap
     storyX: 42, storyY: 48,
   },
@@ -118,7 +118,7 @@ export const GAPS_CARDS: readonly CardConfig[] = [
     fromY: 25,
     fromRotation: -14,
     toRotation: -2.5,
-    dimOpacity: 0.02,
+    dimOpacity: 0,
     storyX: 50, storyY: 35,
   },
   {
@@ -132,7 +132,7 @@ export const GAPS_CARDS: readonly CardConfig[] = [
     fromY: 105,
     fromRotation: 7,
     toRotation: 1.5,
-    dimOpacity: 0.02,
+    dimOpacity: 0,
     storyX: 50, storyY: 35,
   },
   {
@@ -146,7 +146,7 @@ export const GAPS_CARDS: readonly CardConfig[] = [
     fromY: 18,
     fromRotation: 10,
     toRotation: 2,
-    dimOpacity: 0.07,
+    dimOpacity: 0,
     storyX: 50, storyY: 35,
   },
   {
@@ -160,7 +160,7 @@ export const GAPS_CARDS: readonly CardConfig[] = [
     fromY: 110,
     fromRotation: -8,
     toRotation: -1.5,
-    dimOpacity: 0.02,
+    dimOpacity: 0,
     storyX: 50, storyY: 35,
   },
 ];
@@ -179,7 +179,7 @@ export const PATTERNS_CARDS: readonly CardConfig[] = [
     fromY: 15,
     fromRotation: -16,
     toRotation: -3,
-    dimOpacity: 0.02,
+    dimOpacity: 0,
     storyX: 50, storyY: 35,
   },
   {
@@ -193,7 +193,7 @@ export const PATTERNS_CARDS: readonly CardConfig[] = [
     fromY: 12,
     fromRotation: 12,
     toRotation: 2.5,
-    dimOpacity: 0.02,
+    dimOpacity: 0,
     storyX: 50, storyY: 35,
   },
   {
@@ -207,7 +207,7 @@ export const PATTERNS_CARDS: readonly CardConfig[] = [
     fromY: 115,
     fromRotation: -10,
     toRotation: -2,
-    dimOpacity: 0.07,
+    dimOpacity: 0,
     storyX: 50, storyY: 35,
   },
   {
@@ -221,7 +221,7 @@ export const PATTERNS_CARDS: readonly CardConfig[] = [
     fromY: 110,
     fromRotation: 8,
     toRotation: 1.5,
-    dimOpacity: 0.02,
+    dimOpacity: 0,
     storyX: 50, storyY: 35,
   },
 ];

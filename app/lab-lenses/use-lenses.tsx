@@ -18,6 +18,7 @@ import {
 import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
 import { LENS_DISPLAY, getEntry } from "@data";
 import { renderChoreographyCard } from "./card-config";
+import { renderCard } from "../lab-artifacts/render-card";
 import { CARD_SHELL_RADIUS } from "../lab-artifacts/artifact-cards";
 import {
   CARD_HEIGHT_RATIO,
@@ -27,6 +28,7 @@ import {
   KEYWORD_RISE,
   FOCUS_CYCLE,
   KEYWORD_CURTAIN_HEADSTART,
+  CROSSFADE_PER_CARD,
   MORPH,
   FINAL_DISSOLVE,
   KEYWORD_FONT_CAP,
@@ -51,6 +53,35 @@ export { SMOOTH_LERP_FACTOR } from "./lenses.config";
 
 const thesisData = CONTENT.thesis;
 const KEYWORD_COUNT = thesisData.keywords.length;
+
+/* ── Easing (GSAP power1 equivalents for crossfade style) ── */
+
+/** power1.out = quadratic ease out */
+function easeOutQuad(t: number): number { return 1 - (1 - t) * (1 - t); }
+/** power1.in = quadratic ease in */
+function easeInQuad(t: number): number { return t * t; }
+/** Eased progress: map value in [start, end] to eased [0, 1] */
+function ep(v: number, s: number, e: number, ease: (t: number) => number): number {
+  return ease(clamp((v - s) / (e - s), 0, 1));
+}
+
+/* ── Crossfade timing (EC word-distillation ratios) ── */
+
+const CF = {
+  cardIn: 0, cardDone: 0.26,
+  iIn: 0.34, iDone: 0.50,
+  storyIn: 0.50, storyDone: 0.62,
+  driftEnd: 0.78,
+  fadeS: 0.78, fadeE: 1.0,
+} as const;
+
+/* ── Crossfade Y offsets (px) matching EC ── */
+
+const CFY = {
+  card:  { from: 65,  rest: 4,  drift: -4, exit: -22 },
+  iStmt: { from: -60, rest: -3, drift: 3,  exit: 16  },
+  story: { from: 40,  rest: 2,  drift: -2, exit: 16  },
+} as const;
 
 /* ── Card positions ── */
 
@@ -106,10 +137,14 @@ export function useLenses() {
   const subtitleRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // Flat card refs (indexed by CARD_OFFSETS[segIdx] + cardIdx)
+  // Used by scattered style; crossfade reuses artifactRefs + storyRefs
   const artifactRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
   const cardFrontRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
   const cardBackRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
   const storyRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
+  // Crossfade-specific: i-statement text + company label (right column)
+  const iStmtRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
+  const companyRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
 
   // Per-segment positions
   const positionsRef = useRef<CardPosition[][]>(LENS_SEGMENTS.map(() => []));
@@ -122,7 +157,9 @@ export function useLenses() {
     for (let s = 0; s < LENS_SEGMENTS.length; s++) {
       const seg = LENS_SEGMENTS[s];
       positionsRef.current[s] = computeCardPositions(seg.cards, vw);
-      kwRestYRef.current[s] = computeKeywordRestY(positionsRef.current[s], seg.cards);
+      kwRestYRef.current[s] = seg.style === "crossfade"
+        ? 50 // crossfade: keyword at center, no scattered zones
+        : computeKeywordRestY(positionsRef.current[s], seg.cards);
     }
   }, []);
 
@@ -308,82 +345,142 @@ export function useLenses() {
         }
       }
 
-      /* ── Cards ── */
+      /* ── Style-specific card update ── */
 
-      if (positions.length === 0) continue;
-      const fws = B.focusWindows;
+      if (seg.style === "scattered") {
+        // ── SCATTERED: scatter → spotlight → morph ──
+        if (positions.length === 0) continue;
+        const fws = B.focusWindows;
 
-      const focusValues: number[] = [];
-      for (let i = 0; i < seg.cards.length; i++) {
-        const fw = fws[i];
-        focusValues.push(
-          smoothstep(fw.ws, fw.rampInEnd, lp) *
-          (1 - smoothstep(fw.morphHoldEnd, fw.rampOutEnd, lp)),
-        );
-      }
+        const focusValues: number[] = [];
+        for (let i = 0; i < seg.cards.length; i++) {
+          const fw = fws[i];
+          focusValues.push(
+            smoothstep(fw.ws, fw.rampInEnd, lp) *
+            (1 - smoothstep(fw.morphHoldEnd, fw.rampOutEnd, lp)),
+          );
+        }
 
-      let dissolveFade = 1;
-      if (isLastLens) {
-        const ds = fws[fws.length - 1].rampOutEnd + FINAL_DISSOLVE.delay;
-        dissolveFade = 1 - smoothstep(ds, ds + FINAL_DISSOLVE.duration, lp);
-      }
+        let dissolveFade = 1;
+        if (isLastLens) {
+          const ds = fws[fws.length - 1].rampOutEnd + FINAL_DISSOLVE.delay;
+          dissolveFade = 1 - smoothstep(ds, ds + FINAL_DISSOLVE.duration, lp);
+        }
 
-      for (let i = 0; i < seg.cards.length; i++) {
-        const el = artifactRefs.current[offset + i];
-        if (!el) continue;
+        for (let i = 0; i < seg.cards.length; i++) {
+          const el = artifactRefs.current[offset + i];
+          if (!el) continue;
 
-        const pos = positions[i];
-        const cfg = seg.cards[i];
-        const fw = fws[i];
+          const pos = positions[i];
+          const cfg = seg.cards[i];
+          const fw = fws[i];
 
-        const cardStart = B.shuffleStart + i * ARTIFACT_SHUFFLE.stagger;
-        const slide = smoothstep(cardStart, cardStart + ARTIFACT_SHUFFLE.entranceDuration, lp);
+          const cardStart = B.shuffleStart + i * ARTIFACT_SHUFFLE.stagger;
+          const slide = smoothstep(cardStart, cardStart + ARTIFACT_SHUFFLE.entranceDuration, lp);
 
-        const curX = lerp(cfg.fromX, pos.toX, slide);
-        const curY = lerp(cfg.fromY, pos.toY, slide);
-        const curRot = lerp(cfg.fromRotation, cfg.toRotation, slide);
+          const curX = lerp(cfg.fromX, pos.toX, slide);
+          const curY = lerp(cfg.fromY, pos.toY, slide);
+          const curRot = lerp(cfg.fromRotation, cfg.toRotation, slide);
 
-        const posFocus = smoothstep(fw.ws, fw.rampInEnd, lp)
-          * (1 - smoothstep(fw.morphHoldEnd, fw.rampOutEnd, lp));
+          const posFocus = smoothstep(fw.ws, fw.rampInEnd, lp)
+            * (1 - smoothstep(fw.morphHoldEnd, fw.rampOutEnd, lp));
 
-        const nudgeScale = cfg.nudgeScale ?? FOCUS_CYCLE.nudgeScale;
-        const nudgeX = cfg.nudgeX ?? FOCUS_CYCLE.nudgeX;
-        const nudgeY = cfg.nudgeY ?? FOCUS_CYCLE.nudgeY;
-        const focusScale = lerp(1, nudgeScale, posFocus);
+          const nudgeScale = cfg.nudgeScale ?? FOCUS_CYCLE.nudgeScale;
+          const nudgeX = cfg.nudgeX ?? FOCUS_CYCLE.nudgeX;
+          const nudgeY = cfg.nudgeY ?? FOCUS_CYCLE.nudgeY;
+          const focusScale = lerp(1, nudgeScale, posFocus);
 
-        const morph = smoothstep(fw.storyHoldEnd, fw.morphEnd, lp);
+          const morph = smoothstep(fw.storyHoldEnd, fw.morphEnd, lp);
 
-        const front = cardFrontRefs.current[offset + i];
-        const back = cardBackRefs.current[offset + i];
-        if (front) front.style.opacity = String(1 - morph);
-        if (back) back.style.opacity = String(morph);
+          const front = cardFrontRefs.current[offset + i];
+          const back = cardBackRefs.current[offset + i];
+          if (front) front.style.opacity = String(1 - morph);
+          if (back) back.style.opacity = String(morph);
 
-        const dimRamp = smoothstep(B.focusCycleStart, B.focusCycleStart + FOCUS_CYCLE.dimRampDuration, lp);
-        const dimFloor = morph > 0.5 ? MORPH.dimOpacity : cfg.dimOpacity;
-        const focusOp = lerp(lerp(1, dimFloor, dimRamp), 1, focusValues[i]);
+          const dimRamp = smoothstep(B.focusCycleStart, B.focusCycleStart + FOCUS_CYCLE.dimRampDuration, lp);
+          const dimFloor = morph > 0.5 ? MORPH.dimOpacity : cfg.dimOpacity;
+          const focusOp = lerp(lerp(1, dimFloor, dimRamp), 1, focusValues[i]);
 
-        // Hold phase: all cards re-brighten after last card completes
-        const holdBrighten = smoothstep(B.holdStart, B.holdEnd, lp);
-        const finalOp = lerp(focusOp, 1, holdBrighten);
+          const holdBrighten = smoothstep(B.holdStart, B.holdEnd, lp);
+          const finalOp = lerp(focusOp, 1, holdBrighten);
 
-        const baseOp = clamp(slide * ARTIFACT_SHUFFLE.opacityRamp, 0, 1);
+          const baseOp = clamp(slide * ARTIFACT_SHUFFLE.opacityRamp, 0, 1);
 
-        el.style.opacity = String(baseOp * finalOp * dissolveFade);
-        el.style.left = `${curX + posFocus * nudgeX}%`;
-        el.style.top = `${curY + posFocus * nudgeY}%`;
-        el.style.width = `${pos.effectiveWidthPct}%`;
-        el.style.transform = `rotate(${curRot}deg)${focusScale !== 1 ? ` scale(${focusScale})` : ""}`;
-        el.style.transformOrigin = "top left";
+          el.style.opacity = String(baseOp * finalOp * dissolveFade);
+          el.style.left = `${curX + posFocus * nudgeX}%`;
+          el.style.top = `${curY + posFocus * nudgeY}%`;
+          el.style.width = `${pos.effectiveWidthPct}%`;
+          el.style.transform = `rotate(${curRot}deg)${focusScale !== 1 ? ` scale(${focusScale})` : ""}`;
+          el.style.transformOrigin = "top left";
 
-        // Story narrator
-        const storyEl = storyRefs.current[offset + i];
-        if (storyEl) {
-          const delay = i === 0 ? NARRATOR_STORY.firstFadeInDelay : NARRATOR_STORY.laterFadeInDelay;
-          const stStart = fw.ws + delay;
-          const dur = Math.max(NARRATOR_STORY.minFadeInDuration, NARRATOR_STORY.firstFadeInDuration - i * NARRATOR_STORY.fadeInAccelPerCard);
-          const up = smoothstep(stStart, stStart + dur, lp);
-          const down = 1 - smoothstep(fw.storyHoldEnd, fw.morphEnd, lp);
-          storyEl.style.opacity = String(up * down);
+          const storyEl = storyRefs.current[offset + i];
+          if (storyEl) {
+            const delay = i === 0 ? NARRATOR_STORY.firstFadeInDelay : NARRATOR_STORY.laterFadeInDelay;
+            const stStart = fw.ws + delay;
+            const dur = Math.max(NARRATOR_STORY.minFadeInDuration, NARRATOR_STORY.firstFadeInDuration - i * NARRATOR_STORY.fadeInAccelPerCard);
+            const up = smoothstep(stStart, stStart + dur, lp);
+            const down = 1 - smoothstep(fw.storyHoldEnd, fw.morphEnd, lp);
+            storyEl.style.opacity = String(up * down);
+          }
+        }
+
+      } else if (seg.style === "crossfade") {
+        // ── CROSSFADE: card left, i-statement + story right, EC parallax ──
+        // Cards start AFTER keyword has risen and faded
+        const N = seg.cards.length;
+        const cfStart = B.keywordRiseEnd;
+        const span = CROSSFADE_PER_CARD;
+
+        for (let i = 0; i < N; i++) {
+          const L = clamp((lp - cfStart - i * span) / span, -0.05, 1.05);
+
+          // Container fade
+          const fadeIn = ep(L, CF.cardIn, CF.cardDone, easeOutQuad);
+          const fadeOut = (i < N - 1) ? ep(L, CF.fadeS, CF.fadeE, easeInQuad) : 0;
+          const itemOp = fadeIn * (1 - fadeOut);
+
+          // Outer wrapper: controls visibility only
+          const el = artifactRefs.current[offset + i];
+          if (el) {
+            el.style.opacity = String(itemOp);
+            el.style.visibility = itemOp > 0.005 ? "visible" : "hidden";
+          }
+
+          // Card inner: parallax Y motion (reuses cardFrontRefs for crossfade)
+          const cardInner = cardFrontRefs.current[offset + i];
+          if (cardInner) {
+            const entry = ep(L, CF.cardIn, CF.cardDone, easeOutQuad);
+            const drift = ep(L, CF.cardDone, CF.driftEnd, (t) => t);
+            const exitP = (i < N - 1) ? ep(L, CF.fadeS, CF.fadeE, easeInQuad) : 0;
+            const y = lerp(CFY.card.from, CFY.card.rest, entry) + drift * CFY.card.drift + exitP * CFY.card.exit;
+            cardInner.style.transform = `translateY(${y}px)`;
+          }
+
+          // Company label
+          const comp = companyRefs.current[offset + i];
+          if (comp) comp.style.opacity = String(ep(L, CF.cardIn + 0.08, CF.cardDone + 0.05, easeOutQuad) * 0.5 * (1 - fadeOut));
+
+          // I-statement: descends from above
+          const iStmt = iStmtRefs.current[offset + i];
+          if (iStmt) {
+            const entry = ep(L, CF.iIn, CF.iDone, easeOutQuad);
+            const drift = ep(L, CF.iDone, CF.driftEnd, (t) => t);
+            const exitP = (i < N - 1) ? ep(L, CF.fadeS, CF.fadeE, easeInQuad) : 0;
+            const y = lerp(CFY.iStmt.from, CFY.iStmt.rest, entry) + drift * CFY.iStmt.drift + exitP * CFY.iStmt.exit;
+            iStmt.style.transform = `translateY(${y}px)`;
+            iStmt.style.opacity = String(entry * (1 - fadeOut));
+          }
+
+          // Story: rises from below
+          const storyEl = storyRefs.current[offset + i];
+          if (storyEl) {
+            const entry = ep(L, CF.storyIn, CF.storyDone, easeOutQuad);
+            const drift = ep(L, CF.storyDone, CF.driftEnd, (t) => t);
+            const exitP = (i < N - 1) ? ep(L, CF.fadeS, CF.fadeE, easeInQuad) : 0;
+            const y = lerp(CFY.story.from, CFY.story.rest, entry) + drift * CFY.story.drift + exitP * CFY.story.exit;
+            storyEl.style.transform = `translateY(${y}px)`;
+            storyEl.style.opacity = String(entry * (1 - fadeOut));
+          }
         }
       }
     }
@@ -481,62 +578,123 @@ export function useLenses() {
               </div>
             </div>
 
-            {/* Stories */}
-            {seg.cards.map((cfg, i) => {
-              const entry = getEntry(cfg.entryId);
-              if (!entry) return null;
-              return (
-                <div
-                  key={`story-${cfg.entryId}`}
-                  ref={(el) => { storyRefs.current[offset + i] = el; }}
-                  className="absolute select-none pointer-events-none"
-                  style={{
-                    opacity: 0, left: `${cfg.storyX}%`, top: `${cfg.storyY}%`,
-                    transform: "translate(-50%, -50%)", textAlign: "center",
-                    maxWidth: NARRATOR_STORY.maxWidth, fontSize: NARRATOR_STORY.fontSize,
-                    lineHeight: NARRATOR_STORY.lineHeight, fontFamily: "var(--font-narrator)",
-                    fontStyle: "italic", fontWeight: 400, color: "var(--cream-muted)",
-                    background: NARRATOR_STORY.bgGradient, padding: NARRATOR_STORY.bgPadding,
-                    zIndex: Z.narrator, willChange: "opacity",
-                  }}>
-                  {entry.story}
-                </div>
-              );
-            })}
-
-            {/* Cards: front + back */}
-            {seg.cards.map((cfg, i) => (
-              <div
-                key={cfg.entryId}
-                ref={(el) => { artifactRefs.current[offset + i] = el; }}
-                className="absolute pointer-events-none"
-                style={{
-                  opacity: 0, left: `${cfg.fromX}%`, top: `${cfg.fromY}%`,
-                  transform: `rotate(${cfg.fromRotation}deg)`,
-                  width: `${cfg.widthPct}%`, zIndex: Z.cards + i, transformOrigin: "top left",
-                }}>
-                <div ref={(el) => { cardFrontRefs.current[offset + i] = el; }} style={{ willChange: "opacity" }}>
-                  {renderChoreographyCard(cfg.entryId, {
-                    boxShadow: cfg.brightness === "light" ? CARD_SHADOWS.light : CARD_SHADOWS.dark,
-                  })}
-                </div>
-                <div
-                  ref={(el) => { cardBackRefs.current[offset + i] = el; }}
-                  style={{
-                    position: "absolute", inset: 0, borderRadius: CARD_SHELL_RADIUS,
-                    background: MORPH.bgGradient, border: MORPH.border,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    padding: MORPH.padding, opacity: 0, willChange: "opacity",
-                  }}>
-                  <div className="font-serif" style={{
-                    fontSize: MORPH.fontSize, color: MORPH.textColor,
-                    textAlign: "center", lineHeight: MORPH.lineHeight, fontStyle: "italic",
-                  }}>
-                    {getEntry(cfg.entryId)?.iStatement}
+            {/* Style-specific card rendering */}
+            {seg.style === "scattered" ? (
+              <>
+                {/* Scattered: stories + cards with front/back morph */}
+                {seg.cards.map((cfg, i) => {
+                  const entry = getEntry(cfg.entryId);
+                  if (!entry) return null;
+                  return (
+                    <div
+                      key={`story-${cfg.entryId}`}
+                      ref={(el) => { storyRefs.current[offset + i] = el; }}
+                      className="absolute select-none pointer-events-none"
+                      style={{
+                        opacity: 0, left: `${cfg.storyX}%`, top: `${cfg.storyY}%`,
+                        transform: "translate(-50%, -50%)", textAlign: "center",
+                        maxWidth: NARRATOR_STORY.maxWidth, fontSize: NARRATOR_STORY.fontSize,
+                        lineHeight: NARRATOR_STORY.lineHeight, fontFamily: "var(--font-narrator)",
+                        fontStyle: "italic", fontWeight: 400, color: "var(--cream-muted)",
+                        background: NARRATOR_STORY.bgGradient, padding: NARRATOR_STORY.bgPadding,
+                        zIndex: Z.narrator, willChange: "opacity",
+                      }}>
+                      {entry.story}
+                    </div>
+                  );
+                })}
+                {seg.cards.map((cfg, i) => (
+                  <div
+                    key={cfg.entryId}
+                    ref={(el) => { artifactRefs.current[offset + i] = el; }}
+                    className="absolute pointer-events-none"
+                    style={{
+                      opacity: 0, left: `${cfg.fromX}%`, top: `${cfg.fromY}%`,
+                      transform: `rotate(${cfg.fromRotation}deg)`,
+                      width: `${cfg.widthPct}%`, zIndex: Z.cards + i, transformOrigin: "top left",
+                    }}>
+                    <div ref={(el) => { cardFrontRefs.current[offset + i] = el; }} style={{ willChange: "opacity" }}>
+                      {renderChoreographyCard(cfg.entryId, {
+                        boxShadow: cfg.brightness === "light" ? CARD_SHADOWS.light : CARD_SHADOWS.dark,
+                      })}
+                    </div>
+                    <div
+                      ref={(el) => { cardBackRefs.current[offset + i] = el; }}
+                      style={{
+                        position: "absolute", inset: 0, borderRadius: CARD_SHELL_RADIUS,
+                        background: MORPH.bgGradient, border: MORPH.border,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        padding: MORPH.padding, opacity: 0, willChange: "opacity",
+                      }}>
+                      <div className="font-serif" style={{
+                        fontSize: MORPH.fontSize, color: MORPH.textColor,
+                        textAlign: "center", lineHeight: MORPH.lineHeight, fontStyle: "italic",
+                      }}>
+                        {getEntry(cfg.entryId)?.iStatement}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                ))}
+              </>
+            ) : (
+              <>
+                {/* Crossfade: card left, i-statement + story right, EC parallax */}
+                {seg.cards.map((cfg, i) => {
+                  const entry = getEntry(cfg.entryId);
+                  if (!entry) return null;
+                  return (
+                    <div
+                      key={cfg.entryId}
+                      ref={(el) => { artifactRefs.current[offset + i] = el; }}
+                      className="absolute inset-0 flex items-center px-8 pointer-events-none"
+                      style={{ opacity: 0, visibility: "hidden", zIndex: Z.cards }}>
+                      <div className="flex w-full mx-auto items-center gap-14" style={{ maxWidth: 1100 }}>
+                        {/* Left: card */}
+                        <div style={{ width: "42%" }}>
+                          <div
+                            ref={(el) => { cardFrontRefs.current[offset + i] = el; }}
+                            style={{ willChange: "transform" }}>
+                            {renderCard(entry, { boxShadow: "0 8px 40px rgba(0,0,0,0.45)" })}
+                          </div>
+                          <div
+                            ref={(el) => { companyRefs.current[offset + i] = el; }}
+                            className="font-ui mt-4 text-center"
+                            style={{
+                              opacity: 0, fontSize: 10, letterSpacing: "0.18em",
+                              textTransform: "uppercase", color: "var(--gold-dim)",
+                            }}>
+                            {entry.company} &middot; {entry.years}
+                          </div>
+                        </div>
+                        {/* Right: i-statement (large) + story (smaller) */}
+                        <div style={{ width: "50%" }}>
+                          <div
+                            ref={(el) => { iStmtRefs.current[offset + i] = el; }}
+                            style={{
+                              opacity: 0, willChange: "transform, opacity",
+                              fontFamily: "var(--font-serif)", fontStyle: "italic",
+                              fontSize: "clamp(1.1rem, 2vw, 1.6rem)", lineHeight: 1.35,
+                              letterSpacing: "-0.01em", color: "var(--gold)", fontWeight: 400,
+                            }}>
+                            {entry.iStatement}
+                          </div>
+                          <div
+                            ref={(el) => { storyRefs.current[offset + i] = el; }}
+                            style={{
+                              opacity: 0, marginTop: 32, willChange: "transform, opacity",
+                              fontFamily: "var(--font-narrator)", fontStyle: "italic",
+                              fontSize: "clamp(0.78rem, 1vw, 0.9rem)", lineHeight: 1.75,
+                              color: "var(--text-dim)",
+                            }}>
+                            {entry.story}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
           </Fragment>
         );
       })}
