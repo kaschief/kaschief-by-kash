@@ -2,21 +2,25 @@
  * Timeline builder for the multi-lens scroll choreography.
  * Pure computation at module level — no React, no DOM, no side effects.
  *
- * All timing values are normalized to 0–1 progress space (matching scrollYProgress).
- * CONTAINER_HEIGHT_VH is auto-derived so physical scroll pacing stays comfortable.
+ * Architecture: LOCAL PROGRESS per lens.
+ * Each lens occupies a fixed-size scroll region. The hook converts global
+ * scrollYProgress (0–1) into a local progress (0–1) per lens. Within that
+ * local space, all config constants work exactly as they did in the original
+ * single-lens hook — no normalization, no scaling, no coordinate mismatch.
+ *
+ * The prologue (thesis + first curtain) uses the same raw config constants
+ * the old hook used, mapped to its own local progress.
  */
 
 import {
   THESIS as EC_THESIS,
   CONTAINER_VH as EC_CONTAINER_VH,
-  CURTAIN_THESIS,
   POST_CURTAIN,
 } from "../engineer-candidate/engineer-candidate.types";
 import { CONTENT } from "../engineer-candidate/engineer-data";
 import { LENS_NAMES, getLens, LENS_DISPLAY } from "@data";
-import { LENS_CARD_CONFIGS } from "./card-config";
+import { LENS_CARD_CONFIGS, type CardConfig } from "./card-config";
 import {
-  BASE_SCROLL_VH,
   TUNED_CONTAINER_VH,
   THESIS_PHASE_START,
   THESIS_PHASE_DURATION,
@@ -27,33 +31,58 @@ import {
   FOCUS_CARD_STAGGER,
   HOLD_AFTER_FOCUS,
   INTER_LENS_PAUSE,
+  CURTAIN_PAUSE_AFTER_WORDS,
+  CURTAIN_SWEEP_DURATION,
   FINAL_DISSOLVE,
 } from "./lenses.config";
-import type { LensSegment, PrologueTiming, FocusWindow } from "./lenses.types";
+import type { FocusWindow, PrologueTiming } from "./lenses.types";
 
-/* ══════════════════════════════════════════════════════
-   Phase 1: Build raw (unnormalized) timeline
-   All values in the same fractional space as the config
-   constants. Will be rescaled to 0–1 after totalling.
-   ══════════════════════════════════════════════════════ */
+/* ── Prologue timing (raw config-constant space, 0–~0.62) ── */
 
 const thesisData = CONTENT.thesis;
 const KEYWORD_COUNT = thesisData.keywords.length;
+const EC_SCALE = EC_CONTAINER_VH / TUNED_CONTAINER_VH;
 
-const tempScale = EC_CONTAINER_VH / TUNED_CONTAINER_VH;
-const rawKwRevealStart = THESIS_PHASE_START + THESIS_PHASE_DURATION * EC_THESIS.wordZoneFrac;
-const rawKwStagger = EC_THESIS.wordStagger * tempScale;
-const rawKwRevealDur = EC_THESIS.wordRevealDur * tempScale;
-const rawKwEnd = rawKwRevealStart + (KEYWORD_COUNT - 1) * rawKwStagger + rawKwRevealDur;
+const kwRevealStart = THESIS_PHASE_START + THESIS_PHASE_DURATION * EC_THESIS.wordZoneFrac;
+const kwStagger = EC_THESIS.wordStagger * EC_SCALE;
+const kwRevealDur = EC_THESIS.wordRevealDur * EC_SCALE;
+const kwEnd = kwRevealStart + (KEYWORD_COUNT - 1) * kwStagger + kwRevealDur;
+const prologueCurtainStart = kwEnd + CURTAIN_PAUSE_AFTER_WORDS;
+const prologueCurtainEnd = prologueCurtainStart + CURTAIN_SWEEP_DURATION;
 
-const rawCurtain1Start = rawKwEnd + CURTAIN_THESIS.pauseAfterWords;
-const rawCurtain1End = rawCurtain1Start + CURTAIN_THESIS.sweepDuration;
+/** Prologue timing in raw space — consumed by the hook directly for the thesis/curtain. */
+export const PROLOGUE: PrologueTiming = {
+  thesisStart: THESIS_PHASE_START,
+  thesisDuration: THESIS_PHASE_DURATION,
+  keywordRevealStart: kwRevealStart,
+  keywordStagger: kwStagger,
+  keywordRevealDuration: kwRevealDur,
+  finalKeywordEnd: kwEnd,
+  curtainStart: prologueCurtainStart,
+  curtainEnd: prologueCurtainEnd,
+};
 
-/* ── Per-lens focus windows ── */
+/** Raw size of the prologue in progress units. */
+const PROLOGUE_SIZE = prologueCurtainEnd;
 
-function buildFocusWindows(start: number, count: number): FocusWindow[] {
-  return Array.from({ length: count }, (_, i) => {
-    const ws = start + i * FOCUS_CARD_STAGGER;
+/* ── Per-lens body size (raw config space) ── */
+
+/** Compute the raw progress size of one lens body (keyword → shuffle → focus → hold). */
+function lensBodySize(cardCount: number): number {
+  const shuffleEnd = POST_CURTAIN.appearDuration
+    + (cardCount - 1) * ARTIFACT_SHUFFLE.stagger
+    + ARTIFACT_SHUFFLE.entranceDuration;
+  const kwRiseStart = shuffleEnd + KEYWORD_RISE.holdAfterShrink;
+  const focusEnd = kwRiseStart + (cardCount - 1) * FOCUS_CARD_STAGGER + FOCUS_CARD_TOTAL;
+  const holdEnd = focusEnd + HOLD_AFTER_FOCUS.duration;
+  return holdEnd;
+}
+
+/* ── Lens body timing (in LOCAL 0–bodySize space) ── */
+
+function buildLocalFocusWindows(focusStart: number, cardCount: number): FocusWindow[] {
+  return Array.from({ length: cardCount }, (_, i) => {
+    const ws = focusStart + i * FOCUS_CARD_STAGGER;
     return {
       ws,
       rampInEnd: ws + FOCUS_CYCLE.rampIn,
@@ -65,26 +94,60 @@ function buildFocusWindows(start: number, count: number): FocusWindow[] {
   });
 }
 
-/* ── Build all segments ── */
-
-interface RawSeg {
-  lensName: (typeof LENS_NAMES)[number];
-  keyword: string;
-  subtitle: string;
-  cards: LensSegment["cards"];
-  curtainStart: number; curtainEnd: number;
-  keywordAppearStart: number;
-  shuffleStart: number; shuffleEnd: number;
-  keywordRiseStart: number; keywordRiseEnd: number;
+/** Per-lens body timing — all values in LOCAL progress space (0 to bodySize). */
+export interface LensBodyTiming {
+  /** Keyword appears at 0, shrinks as cards shuffle */
+  shuffleStart: number;
+  shuffleEnd: number;
+  keywordRiseStart: number;
+  keywordRiseEnd: number;
   focusCycleStart: number;
-  focusWindows: FocusWindow[];
-  holdStart: number; holdEnd: number;
-  segmentEnd: number;
+  focusWindows: readonly FocusWindow[];
+  holdStart: number;
+  holdEnd: number;
 }
 
-function buildRawSegments(): { segs: RawSeg[]; rawPrologue: PrologueTiming; totalEnd: number } {
-  const segs: RawSeg[] = [];
-  let cursor = rawCurtain1End;
+function buildLensBody(cardCount: number): LensBodyTiming {
+  const shuffleStart = POST_CURTAIN.appearDuration;
+  const shuffleEnd = shuffleStart + (cardCount - 1) * ARTIFACT_SHUFFLE.stagger + ARTIFACT_SHUFFLE.entranceDuration;
+  const kwRiseStart = shuffleEnd + KEYWORD_RISE.holdAfterShrink;
+  const kwRiseEnd = kwRiseStart + KEYWORD_RISE.duration;
+  const focusStart = kwRiseStart;
+  const fws = buildLocalFocusWindows(focusStart, cardCount);
+  const holdStart = fws[fws.length - 1].rampOutEnd;
+  const holdEnd = holdStart + HOLD_AFTER_FOCUS.duration;
+  return {
+    shuffleStart, shuffleEnd,
+    keywordRiseStart: kwRiseStart, keywordRiseEnd: kwRiseEnd,
+    focusCycleStart: focusStart, focusWindows: fws,
+    holdStart, holdEnd,
+  };
+}
+
+/* ── Segment layout (global progress → local progress mapping) ── */
+
+export interface LensSegment {
+  readonly lensName: (typeof LENS_NAMES)[number];
+  readonly keyword: string;
+  readonly subtitle: string;
+  readonly cards: readonly CardConfig[];
+  /** Global progress where this lens's curtain starts */
+  readonly globalStart: number;
+  /** Global progress where this lens ends */
+  readonly globalEnd: number;
+  /** Size of the curtain sweep in global progress */
+  readonly curtainSize: number;
+  /** Size of the lens body in global progress */
+  readonly bodySize: number;
+  /** Global progress where the body starts (after curtain) */
+  readonly bodyStart: number;
+  /** Timing in LOCAL body progress space (0–bodySize). Add bodyStart to get global. */
+  readonly body: LensBodyTiming;
+}
+
+function buildSegments(): { segments: LensSegment[]; totalSize: number } {
+  const segments: LensSegment[] = [];
+  let cursor = PROLOGUE_SIZE; // after the prologue
 
   for (let i = 0; i < LENS_NAMES.length; i++) {
     const lensName = LENS_NAMES[i];
@@ -93,92 +156,54 @@ function buildRawSegments(): { segs: RawSeg[]; rawPrologue: PrologueTiming; tota
     const isFirst = i === 0;
     const isLast = i === LENS_NAMES.length - 1;
 
-    const curtainStart = isFirst ? rawCurtain1Start : cursor;
-    const curtainEnd = isFirst ? rawCurtain1End : cursor + CURTAIN_THESIS.sweepDuration;
-    const bodyStart = curtainEnd;
-    if (!isFirst) cursor = curtainEnd;
+    // First lens: curtain already happened in prologue
+    const curtainSize = isFirst ? 0 : CURTAIN_SWEEP_DURATION;
+    const globalStart = cursor;
+    const bodyStart = cursor + curtainSize;
+    const bodyRawSize = lensBodySize(cards.length);
 
-    const shuffleStart = bodyStart + POST_CURTAIN.appearDuration;
-    const shuffleEnd = shuffleStart + (cards.length - 1) * ARTIFACT_SHUFFLE.stagger + ARTIFACT_SHUFFLE.entranceDuration;
-    const kwRiseStart = shuffleEnd + KEYWORD_RISE.holdAfterShrink;
-    const kwRiseEnd = kwRiseStart + KEYWORD_RISE.duration;
-    const focusStart = kwRiseStart;
-    const fws = buildFocusWindows(focusStart, cards.length);
-    const holdStart = fws[fws.length - 1].rampOutEnd;
-    const holdEnd = holdStart + HOLD_AFTER_FOCUS.duration;
-    const segEnd = isLast
-      ? holdEnd + FINAL_DISSOLVE.delay + FINAL_DISSOLVE.duration
-      : holdEnd + INTER_LENS_PAUSE;
+    // Add final dissolve for last lens, inter-lens pause for others
+    const tailSize = isLast
+      ? FINAL_DISSOLVE.delay + FINAL_DISSOLVE.duration
+      : INTER_LENS_PAUSE;
 
-    segs.push({
-      lensName, keyword: LENS_DISPLAY[lensName], subtitle: lens.desc, cards,
-      curtainStart, curtainEnd,
-      keywordAppearStart: bodyStart,
-      shuffleStart, shuffleEnd,
-      keywordRiseStart: kwRiseStart, keywordRiseEnd: kwRiseEnd,
-      focusCycleStart: focusStart, focusWindows: fws,
-      holdStart, holdEnd, segmentEnd: segEnd,
+    const globalEnd = bodyStart + bodyRawSize + tailSize;
+
+    segments.push({
+      lensName,
+      keyword: LENS_DISPLAY[lensName],
+      subtitle: lens.desc,
+      cards,
+      globalStart,
+      globalEnd,
+      curtainSize,
+      bodySize: bodyRawSize,
+      bodyStart,
+      body: buildLensBody(cards.length),
     });
 
-    cursor = segEnd;
+    cursor = globalEnd;
   }
 
-  const rawPrologue: PrologueTiming = {
-    thesisStart: THESIS_PHASE_START,
-    thesisDuration: THESIS_PHASE_DURATION,
-    keywordRevealStart: rawKwRevealStart,
-    keywordStagger: rawKwStagger,
-    keywordRevealDuration: rawKwRevealDur,
-    finalKeywordEnd: rawKwEnd,
-    curtainStart: rawCurtain1Start,
-    curtainEnd: rawCurtain1End,
-  };
-
-  return { segs, rawPrologue, totalEnd: cursor };
+  return { segments, totalSize: cursor };
 }
 
-/* ══════════════════════════════════════════════════════
-   Phase 2: Normalize everything to 0–1
-   ══════════════════════════════════════════════════════ */
+const { segments, totalSize } = buildSegments();
 
-function rescaleFw(fw: FocusWindow, s: number): FocusWindow {
-  return {
-    ws: fw.ws * s, rampInEnd: fw.rampInEnd * s,
-    storyHoldEnd: fw.storyHoldEnd * s, morphEnd: fw.morphEnd * s,
-    morphHoldEnd: fw.morphHoldEnd * s, rampOutEnd: fw.rampOutEnd * s,
-  };
-}
+export const LENS_SEGMENTS: readonly LensSegment[] = segments;
 
-const { segs, rawPrologue, totalEnd: rawTotal } = buildRawSegments();
-const S = 1 / rawTotal;
+/**
+ * Container height: totalSize × TUNED_CONTAINER_VH.
+ * Using TUNED_CONTAINER_VH (2400) ensures each raw progress unit maps to the
+ * same physical scroll distance the original single-lens hook was tuned against.
+ */
+export const CONTAINER_HEIGHT_VH = Math.ceil(totalSize * TUNED_CONTAINER_VH);
 
-export const PROLOGUE: PrologueTiming = {
-  thesisStart: rawPrologue.thesisStart * S,
-  thesisDuration: rawPrologue.thesisDuration * S,
-  keywordRevealStart: rawPrologue.keywordRevealStart * S,
-  keywordStagger: rawPrologue.keywordStagger * S,
-  keywordRevealDuration: rawPrologue.keywordRevealDuration * S,
-  finalKeywordEnd: rawPrologue.finalKeywordEnd * S,
-  curtainStart: rawPrologue.curtainStart * S,
-  curtainEnd: rawPrologue.curtainEnd * S,
-};
-
-export const LENS_SEGMENTS: readonly LensSegment[] = segs.map((r) => ({
-  lensName: r.lensName, keyword: r.keyword, subtitle: r.subtitle, cards: r.cards,
-  timing: {
-    curtainStart: r.curtainStart * S, curtainEnd: r.curtainEnd * S,
-    keywordAppearStart: r.keywordAppearStart * S,
-    shuffleStart: r.shuffleStart * S, shuffleEnd: r.shuffleEnd * S,
-    keywordRiseStart: r.keywordRiseStart * S, keywordRiseEnd: r.keywordRiseEnd * S,
-    focusCycleStart: r.focusCycleStart * S,
-    focusWindows: r.focusWindows.map((fw) => rescaleFw(fw, S)),
-    holdStart: r.holdStart * S, holdEnd: r.holdEnd * S,
-    segmentEnd: r.segmentEnd * S,
-  },
-}));
-
-/** Auto-derived container height: rawTotal × BASE_SCROLL_VH */
-export const CONTAINER_HEIGHT_VH = Math.ceil(rawTotal * BASE_SCROLL_VH);
+/**
+ * Convert global scrollYProgress (0–1) to the raw progress value within
+ * the full timeline. All segment boundaries are in this raw space.
+ */
+export const TOTAL_RAW_SIZE = totalSize;
 
 /* ── Flat ref index helpers ── */
 

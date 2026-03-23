@@ -13,7 +13,12 @@
  * this determines the total scroll height: CONTAINER_HEIGHT_VH = ceil(TIMELINE_END * BASE_SCROLL_VH).
  * Higher = more physical scroll per progress unit = slower, more luxurious pacing.
  */
-export const BASE_SCROLL_VH = 1800;
+/**
+ * Must equal TUNED_CONTAINER_VH so that each raw progress unit maps to the
+ * same physical scroll distance the old single-lens hook was tuned against.
+ * Changing this changes the pacing of EVERY phase. Don't.
+ */
+export const BASE_SCROLL_VH = 2400;
 
 /**
  * The original single-lens container height (vh) that the thesis/curtain/keyword
@@ -122,7 +127,8 @@ export const FOCUS_CARD_STAGGER = FOCUS_CARD_TOTAL + FOCUS_CYCLE.cardGap;
 export const MORPH = {
   /** Dim opacity override for morphed cards — dark back-face needs higher floor to stay visible */
   dimOpacity: 0.16,
-  /** Back face: dark gradient background */
+  /** Back face: semi-transparent tints of --bg (#07070A) and --bg-surface (#131319) at 95%.
+   *  Update if palette changes. */
   bgGradient:
     "linear-gradient(145deg, rgba(15,14,18,0.95), rgba(26,24,32,0.95))",
   /** Back face: gold-dim border */
@@ -132,7 +138,6 @@ export const MORPH = {
   textColor: "var(--gold)",
   lineHeight: 1.55,
   padding: "clamp(16px, 3vw, 28px)",
-  borderRadius: 8,
 } as const;
 
 /* ── Inter-lens transitions ── */
@@ -145,6 +150,15 @@ export const HOLD_AFTER_FOCUS = {
 
 /** Pause between lens segments — breathing room before the next curtain sweeps */
 export const INTER_LENS_PAUSE = 0.01;
+
+/** Pause after thesis keywords land before curtain begins */
+export const CURTAIN_PAUSE_AFTER_WORDS = 0.03;
+
+/** Curtain sweep duration — single value for ALL curtains (prologue + inter-lens) */
+export const CURTAIN_SWEEP_DURATION = 0.12;
+
+/** Fraction of the curtain sweep during which the next keyword starts fading in */
+export const KEYWORD_CURTAIN_HEADSTART = 0.2;
 
 /** Final dissolve after the last lens completes (patterns) */
 export const FINAL_DISSOLVE = {
@@ -169,7 +183,8 @@ export const NARRATOR_STORY = {
   /** Hard px cap — well under thesis max (900px). Uses min() with vw for fluid sizing. */
   maxWidth: "min(34vw, 480px)",
   lineHeight: 1.65,
-  /** Soft radial bg for readability — feathers to transparent, no hard edges */
+  /** Soft radial bg for readability — --bg (#07070A) at 85% opacity, feathers to transparent.
+   *  Update if palette changes. */
   bgGradient:
     "radial-gradient(ellipse, rgba(7,7,10,0.85) 0%, rgba(7,7,10,0) 70%)",
   /** Padding to give the gradient room to feather beyond the text bounds */
