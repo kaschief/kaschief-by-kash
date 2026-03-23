@@ -955,7 +955,7 @@ export function PlainTextBare({ context, quote, rotation = 0, style }: PlainText
           fontSize: 9,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: INK_4,
+          color: "var(--gold-dim)",
           marginBottom: 12,
           fontWeight: 600,
         }}>
@@ -966,7 +966,7 @@ export function PlainTextBare({ context, quote, rotation = 0, style }: PlainText
         style={{
           fontSize: "clamp(22px, 3.5vw, 30px)",
           lineHeight: 1.4,
-          color: INK,
+          color: "var(--cream)",
           maxWidth: 640,
           margin: 0,
           letterSpacing: "-0.015em",
