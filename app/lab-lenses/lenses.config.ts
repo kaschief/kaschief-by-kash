@@ -158,8 +158,11 @@ export const CURTAIN_PAUSE_AFTER_WORDS = 0.03;
 /** Curtain sweep duration — single value for ALL curtains (prologue + inter-lens) */
 export const CURTAIN_SWEEP_DURATION = 0.12;
 
+/** Per-card scroll duration for crossfade style (raw progress units) */
+export const CROSSFADE_PER_CARD = 0.10;
+
 /** Fraction of the curtain sweep during which the next keyword starts fading in */
-export const KEYWORD_CURTAIN_HEADSTART = 0.2;
+export const KEYWORD_CURTAIN_HEADSTART = 0.35;
 
 /** Final dissolve after the last lens completes (patterns) */
 export const FINAL_DISSOLVE = {

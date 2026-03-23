@@ -30,6 +30,7 @@ import {
   FOCUS_CARD_TOTAL,
   FOCUS_CARD_STAGGER,
   HOLD_AFTER_FOCUS,
+  CROSSFADE_PER_CARD,
   INTER_LENS_PAUSE,
   CURTAIN_PAUSE_AFTER_WORDS,
   CURTAIN_SWEEP_DURATION,
@@ -67,8 +68,8 @@ const PROLOGUE_SIZE = prologueCurtainEnd;
 
 /* ── Per-lens body size (raw config space) ── */
 
-/** Compute the raw progress size of one lens body (keyword → shuffle → focus → hold). */
-function lensBodySize(cardCount: number): number {
+/** Compute the raw progress size of one lens body — scattered style. */
+function scatteredBodySize(cardCount: number): number {
   const shuffleEnd = POST_CURTAIN.appearDuration
     + (cardCount - 1) * ARTIFACT_SHUFFLE.stagger
     + ARTIFACT_SHUFFLE.entranceDuration;
@@ -76,6 +77,26 @@ function lensBodySize(cardCount: number): number {
   const focusEnd = kwRiseStart + (cardCount - 1) * FOCUS_CARD_STAGGER + FOCUS_CARD_TOTAL;
   const holdEnd = focusEnd + HOLD_AFTER_FOCUS.duration;
   return holdEnd;
+}
+
+/** Keyword phase size — same as scattered (keyword shrinks over shuffle duration). */
+function keywordPhaseSize(cardCount: number): number {
+  const shuffleEnd = POST_CURTAIN.appearDuration
+    + (cardCount - 1) * ARTIFACT_SHUFFLE.stagger
+    + ARTIFACT_SHUFFLE.entranceDuration;
+  return shuffleEnd + KEYWORD_RISE.holdAfterShrink + KEYWORD_RISE.duration;
+}
+
+/** Compute the raw progress size of one lens body — crossfade style. */
+function crossfadeBodySize(cardCount: number): number {
+  return keywordPhaseSize(cardCount) + cardCount * CROSSFADE_PER_CARD;
+}
+
+/** Style-aware body size dispatch. */
+function lensBodySize(style: LensStyle, cardCount: number): number {
+  return style === "crossfade"
+    ? crossfadeBodySize(cardCount)
+    : scatteredBodySize(cardCount);
 }
 
 /* ── Lens body timing (in LOCAL 0–bodySize space) ── */
@@ -107,7 +128,24 @@ export interface LensBodyTiming {
   holdEnd: number;
 }
 
-function buildLensBody(cardCount: number): LensBodyTiming {
+function buildLensBody(style: LensStyle, cardCount: number): LensBodyTiming {
+  if (style === "crossfade") {
+    // Crossfade: keyword phase IDENTICAL to scattered, then cards fill the rest.
+    // Keyword shrinks over the same duration as if cards were shuffling in.
+    const shuffleStart = POST_CURTAIN.appearDuration;
+    const shuffleEnd = shuffleStart + (cardCount - 1) * ARTIFACT_SHUFFLE.stagger + ARTIFACT_SHUFFLE.entranceDuration;
+    const kwRiseStart = shuffleEnd + KEYWORD_RISE.holdAfterShrink;
+    const kwRiseEnd = kwRiseStart + KEYWORD_RISE.duration;
+    const holdEnd = kwRiseEnd + cardCount * CROSSFADE_PER_CARD;
+    return {
+      shuffleStart, shuffleEnd,
+      keywordRiseStart: kwRiseStart, keywordRiseEnd: kwRiseEnd,
+      focusCycleStart: kwRiseEnd, focusWindows: [],
+      holdStart: holdEnd, holdEnd,
+    };
+  }
+
+  // Scattered: full shuffle + focus windows
   const shuffleStart = POST_CURTAIN.appearDuration;
   const shuffleEnd = shuffleStart + (cardCount - 1) * ARTIFACT_SHUFFLE.stagger + ARTIFACT_SHUFFLE.entranceDuration;
   const kwRiseStart = shuffleEnd + KEYWORD_RISE.holdAfterShrink;
@@ -126,10 +164,20 @@ function buildLensBody(cardCount: number): LensBodyTiming {
 
 /* ── Segment layout (global progress → local progress mapping) ── */
 
+export type LensStyle = "scattered" | "crossfade";
+
+/** Which presentation style each lens uses */
+const LENS_STYLES: Record<(typeof LENS_NAMES)[number], LensStyle> = {
+  users: "scattered",
+  gaps: "crossfade",
+  patterns: "scattered",
+};
+
 export interface LensSegment {
   readonly lensName: (typeof LENS_NAMES)[number];
   readonly keyword: string;
   readonly subtitle: string;
+  readonly style: LensStyle;
   readonly cards: readonly CardConfig[];
   /** Global progress where this lens's curtain starts */
   readonly globalStart: number;
@@ -160,7 +208,8 @@ function buildSegments(): { segments: LensSegment[]; totalSize: number } {
     const curtainSize = isFirst ? 0 : CURTAIN_SWEEP_DURATION;
     const globalStart = cursor;
     const bodyStart = cursor + curtainSize;
-    const bodyRawSize = lensBodySize(cards.length);
+    const style = LENS_STYLES[lensName];
+    const bodyRawSize = lensBodySize(style, cards.length);
 
     // Add final dissolve for last lens, inter-lens pause for others
     const tailSize = isLast
@@ -173,13 +222,14 @@ function buildSegments(): { segments: LensSegment[]; totalSize: number } {
       lensName,
       keyword: LENS_DISPLAY[lensName],
       subtitle: lens.desc,
+      style: LENS_STYLES[lensName],
       cards,
       globalStart,
       globalEnd,
       curtainSize,
       bodySize: bodyRawSize,
       bodyStart,
-      body: buildLensBody(cards.length),
+      body: buildLensBody(style, cards.length),
     });
 
     cursor = globalEnd;
