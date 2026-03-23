@@ -6,6 +6,9 @@
  * Data lives in data/lenses.ts. Wiring lives in render-card.tsx.
  */
 
+/** Outer border radius shared across all card shells and the morph back-face */
+export const CARD_SHELL_RADIUS = 12;
+
 /* ── Palette ── */
 
 const INK = "#1A1917";
@@ -42,7 +45,7 @@ export function ArtifactShell({
     <div
       className={className}
       style={{
-        borderRadius: 12,
+        borderRadius: CARD_SHELL_RADIUS,
         background: bg,
         border: `1px solid ${border}`,
         boxShadow: dark

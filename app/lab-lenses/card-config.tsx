@@ -106,6 +106,7 @@ export const USERS_CARDS: readonly CardConfig[] = [
 /* ── Gaps pillar cards (4) — two upper, two lower ── */
 
 export const GAPS_CARDS: readonly CardConfig[] = [
+  // Spotlight order: side menu → ADR → Marcus → designer
   {
     entryId: 4,
     brightness: "light",
@@ -119,6 +120,20 @@ export const GAPS_CARDS: readonly CardConfig[] = [
     toRotation: -2.5,
     dimOpacity: 0.02,
     storyX: 58, storyY: 53,
+  },
+  {
+    entryId: 7,
+    brightness: "light",
+    widthPct: 34,
+    maxWidthPx: 470,
+    zone: { xMin: 56, xMax: 97, yMin: 55, yMax: 96 },
+    jitter: { x: 0.55, y: 0.35 },
+    fromX: 140,
+    fromY: 105,
+    fromRotation: 7,
+    toRotation: 1.5,
+    dimOpacity: 0.02,
+    storyX: 42, storyY: 28,
   },
   {
     entryId: 5,
@@ -147,20 +162,6 @@ export const GAPS_CARDS: readonly CardConfig[] = [
     toRotation: -1.5,
     dimOpacity: 0.02,
     storyX: 58, storyY: 28,
-  },
-  {
-    entryId: 7,
-    brightness: "light",
-    widthPct: 34,
-    maxWidthPx: 470,
-    zone: { xMin: 56, xMax: 97, yMin: 55, yMax: 96 },
-    jitter: { x: 0.55, y: 0.35 },
-    fromX: 140,
-    fromY: 105,
-    fromRotation: 7,
-    toRotation: 1.5,
-    dimOpacity: 0.02,
-    storyX: 42, storyY: 28,
   },
 ];
 
