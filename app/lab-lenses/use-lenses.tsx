@@ -382,7 +382,7 @@ export function useLenses() {
           const stStart = fw.ws + delay;
           const dur = Math.max(NARRATOR_STORY.minFadeInDuration, NARRATOR_STORY.firstFadeInDuration - i * NARRATOR_STORY.fadeInAccelPerCard);
           const up = smoothstep(stStart, stStart + dur, lp);
-          const down = 1 - smoothstep(fw.morphHoldEnd, fw.rampOutEnd, lp);
+          const down = 1 - smoothstep(fw.storyHoldEnd, fw.morphEnd, lp);
           storyEl.style.opacity = String(up * down);
         }
       }
@@ -492,7 +492,7 @@ export function useLenses() {
                   className="absolute select-none pointer-events-none"
                   style={{
                     opacity: 0, left: `${cfg.storyX}%`, top: `${cfg.storyY}%`,
-                    transform: "translateX(-50%)", textAlign: "center",
+                    transform: "translate(-50%, -50%)", textAlign: "center",
                     maxWidth: NARRATOR_STORY.maxWidth, fontSize: NARRATOR_STORY.fontSize,
                     lineHeight: NARRATOR_STORY.lineHeight, fontFamily: "var(--font-narrator)",
                     fontStyle: "italic", fontWeight: 400, color: "var(--cream-muted)",

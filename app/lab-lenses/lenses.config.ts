@@ -96,12 +96,12 @@ export const FOCUS_CYCLE = {
   /** Card brightens, others dim */
   rampIn: 0.02,
   /** Narrator fades in and holds — user reads the full story */
-  storyHold: 0.075,
-  /** Card crossfades artifact → i-statement while narrator still visible */
+  storyHold: 0.1,
+  /** Card crossfades artifact → i-statement; story fades out simultaneously */
   morphDur: 0.022,
-  /** Both i-statement and narrator visible — user reads statement, can glance back at story */
+  /** I-statement visible — user reads the takeaway */
   morphHold: 0.035,
-  /** Narrator fades, card dims but stays morphed permanently */
+  /** Card dims but stays morphed permanently */
   rampOut: 0.025,
   /** Overlap between cards (negative = overlap) */
   cardGap: -0.01,
@@ -127,10 +127,11 @@ export const FOCUS_CARD_STAGGER = FOCUS_CARD_TOTAL + FOCUS_CYCLE.cardGap;
 export const MORPH = {
   /** Dim opacity override for morphed cards — dark back-face needs higher floor to stay visible */
   dimOpacity: 0.16,
-  /** Back face: semi-transparent tints of --bg (#07070A) and --bg-surface (#131319) at 95%.
+  /** Back face: --bg-elevated (#0E0E14) to --bg-surface (#131319) at 97%.
+   *  Brighter than viewport bg so the card reads as a distinct surface.
    *  Update if palette changes. */
   bgGradient:
-    "linear-gradient(145deg, rgba(15,14,18,0.95), rgba(26,24,32,0.95))",
+    "linear-gradient(145deg, rgba(22,22,30,0.97), rgba(32,30,42,0.97))",
   /** Back face: gold-dim border */
   border: "1px solid var(--gold-dim)",
   /** I-statement text styling */

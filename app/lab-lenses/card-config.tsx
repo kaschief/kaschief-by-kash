@@ -68,8 +68,8 @@ export const USERS_CARDS: readonly CardConfig[] = [
     fromRotation: -18,
     toRotation: -3.5,
     dimOpacity: 0.02,
-    // Story: card is TL → text in the gap between upper and lower cards, right of center
-    storyX: 58, storyY: 53,
+    // Story: card is TL → gap between upper/lower, right of center, upper portion of gap
+    storyX: 58, storyY: 48,
   },
   {
     entryId: 3,
@@ -83,8 +83,8 @@ export const USERS_CARDS: readonly CardConfig[] = [
     fromRotation: -6,
     toRotation: -1.5,
     dimOpacity: 0.02,
-    // Story: card is bottom-center → text in the large open space above, centered
-    storyX: 50, storyY: 25,
+    // Story: card is bottom → open space above, centered
+    storyX: 50, storyY: 22,
   },
   {
     entryId: 2,
@@ -98,8 +98,8 @@ export const USERS_CARDS: readonly CardConfig[] = [
     fromRotation: 12,
     toRotation: 2.5,
     dimOpacity: 0.07,
-    // Story: card is TR → text in the gap between upper and lower cards, left of center
-    storyX: 42, storyY: 53,
+    // Story: card is TR → gap between upper/lower, left of center, upper portion of gap
+    storyX: 42, storyY: 48,
   },
 ];
 
@@ -119,7 +119,7 @@ export const GAPS_CARDS: readonly CardConfig[] = [
     fromRotation: -14,
     toRotation: -2.5,
     dimOpacity: 0.02,
-    storyX: 58, storyY: 53,
+    storyX: 50, storyY: 35,
   },
   {
     entryId: 7,
@@ -133,7 +133,7 @@ export const GAPS_CARDS: readonly CardConfig[] = [
     fromRotation: 7,
     toRotation: 1.5,
     dimOpacity: 0.02,
-    storyX: 42, storyY: 28,
+    storyX: 50, storyY: 35,
   },
   {
     entryId: 5,
@@ -147,7 +147,7 @@ export const GAPS_CARDS: readonly CardConfig[] = [
     fromRotation: 10,
     toRotation: 2,
     dimOpacity: 0.07,
-    storyX: 42, storyY: 53,
+    storyX: 50, storyY: 35,
   },
   {
     entryId: 6,
@@ -161,11 +161,11 @@ export const GAPS_CARDS: readonly CardConfig[] = [
     fromRotation: -8,
     toRotation: -1.5,
     dimOpacity: 0.02,
-    storyX: 58, storyY: 28,
+    storyX: 50, storyY: 35,
   },
 ];
 
-/* ── Patterns pillar cards (5) — two upper, one center, two lower ── */
+/* ── Patterns pillar cards (4) — two upper, two lower ── */
 
 export const PATTERNS_CARDS: readonly CardConfig[] = [
   {
@@ -173,70 +173,56 @@ export const PATTERNS_CARDS: readonly CardConfig[] = [
     brightness: "light",
     widthPct: 30,
     maxWidthPx: 420,
-    zone: { xMin: 2, xMax: 40, yMin: 3, yMax: 38 },
+    zone: { xMin: 2, xMax: 42, yMin: 3, yMax: 46 },
     jitter: { x: 0.3, y: 0.3 },
     fromX: -40,
     fromY: 15,
     fromRotation: -16,
     toRotation: -3,
     dimOpacity: 0.02,
-    storyX: 60, storyY: 50,
+    storyX: 50, storyY: 35,
   },
   {
     entryId: 9,
     brightness: "light",
     widthPct: 30,
     maxWidthPx: 420,
-    zone: { xMin: 58, xMax: 97, yMin: 3, yMax: 38 },
+    zone: { xMin: 56, xMax: 97, yMin: 3, yMax: 46 },
     jitter: { x: 0.65, y: 0.25 },
     fromX: 140,
     fromY: 12,
     fromRotation: 12,
     toRotation: 2.5,
     dimOpacity: 0.02,
-    storyX: 40, storyY: 50,
-  },
-  {
-    entryId: 10,
-    brightness: "light",
-    widthPct: 36,
-    maxWidthPx: 540,
-    zone: { xMin: 15, xMax: 85, yMin: 35, yMax: 65 },
-    jitter: { x: 0.5, y: 0.5 },
-    fromX: 30,
-    fromY: -30,
-    fromRotation: -4,
-    toRotation: -0.5,
-    dimOpacity: 0.02,
-    storyX: 50, storyY: 78,
+    storyX: 50, storyY: 35,
   },
   {
     entryId: 11,
     brightness: "dark",
     widthPct: 32,
     maxWidthPx: 450,
-    zone: { xMin: 2, xMax: 40, yMin: 62, yMax: 96 },
+    zone: { xMin: 2, xMax: 42, yMin: 55, yMax: 96 },
     jitter: { x: 0.35, y: 0.4 },
     fromX: -35,
     fromY: 115,
     fromRotation: -10,
     toRotation: -2,
     dimOpacity: 0.07,
-    storyX: 60, storyY: 25,
+    storyX: 50, storyY: 35,
   },
   {
     entryId: 12,
     brightness: "light",
     widthPct: 31,
     maxWidthPx: 430,
-    zone: { xMin: 58, xMax: 97, yMin: 62, yMax: 96 },
+    zone: { xMin: 56, xMax: 97, yMin: 55, yMax: 96 },
     jitter: { x: 0.6, y: 0.35 },
     fromX: 140,
     fromY: 110,
     fromRotation: 8,
     toRotation: 1.5,
     dimOpacity: 0.02,
-    storyX: 40, storyY: 25,
+    storyX: 50, storyY: 35,
   },
 ];
 
