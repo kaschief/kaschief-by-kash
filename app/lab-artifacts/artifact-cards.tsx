@@ -63,6 +63,7 @@ export function ArtifactShell({
         transform: rotation ? `rotate(${rotation}deg)` : undefined,
         position: "relative",
         overflow: "hidden",
+        containerType: "inline-size",
         ...style,
       }}>
       {children}
@@ -167,21 +168,21 @@ export function JiraCard({
             </svg>
           </div>
           <div>
-            <div style={{ fontSize: 15, lineHeight: 1.4, fontWeight: 500, color: INK, marginBottom: 4 }}>
+            <div style={{ fontSize: 14, lineHeight: 1.4, fontWeight: 500, color: INK, marginBottom: 4 }}>
               {title}
             </div>
-            <div style={{ fontSize: 12, color: "#1868DB", fontWeight: 500 }}>{ticketId}</div>
+            <div style={{ fontSize: 11, color: "#1868DB", fontWeight: 500 }}>{ticketId}</div>
           </div>
         </div>
 
         {/* Description */}
         <div
           style={{
-            fontSize: 13,
-            lineHeight: 1.65,
+            fontSize: 12,
+            lineHeight: 1.6,
             color: INK_2,
-            marginBottom: 18,
-            padding: "10px 12px",
+            marginBottom: 14,
+            padding: "8px 10px",
             background: "#F8F7F5",
             borderRadius: 6,
             border: "1px solid #EDEAE4",
@@ -293,11 +294,11 @@ export function SentryCard({
             <svg width="18" height="18" viewBox="0 0 72 66" fill="#E1567C">
               <path d="M29 2.26a3.68 3.68 0 00-6.38 0L1.22 40.8a3.71 3.71 0 001.6 5 3.67 3.67 0 001.58.36h8.73a.47.47 0 00.43-.25 20.32 20.32 0 00-2.14-21.43A3.68 3.68 0 0114.6 20h16.18L22.4 6.47 8.53 30.34a.47.47 0 00.06.53 16.43 16.43 0 011.72 17.38H5.39L22.44 7.56z" />
             </svg>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#E8E0F0", fontFamily: SYSTEM }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#E8E0F0", fontFamily: SYSTEM, whiteSpace: "nowrap" }}>
               {project.org}
             </span>
-            <span style={{ fontSize: 12, color: "#6B5A80" }}>/</span>
-            <span style={{ fontSize: 12, color: "#8B7BA0", fontFamily: SYSTEM }}>
+            <span style={{ fontSize: 11, color: "#6B5A80" }}>/</span>
+            <span style={{ fontSize: 11, color: "#8B7BA0", fontFamily: SYSTEM, wordBreak: "break-word" }}>
               {project.repo}
             </span>
           </div>
@@ -485,7 +486,7 @@ export function SlackMessage({
               <span style={{ fontWeight: 800, fontSize: 14, color: INK }}>{sender}</span>
               <span style={{ fontSize: 11, color: INK_4, fontWeight: 400 }}>{timestamp}</span>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.58, color: INK, fontWeight: 400 }}>{text}</div>
+            <div style={{ fontSize: 13, lineHeight: 1.58, color: INK, fontWeight: 400 }}>{text}</div>
             {emoji && (
               <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
                 {emoji.map((e) => (
@@ -582,12 +583,12 @@ export function FigmaComment({
       </div>
 
       {/* Comment thread */}
-      <div style={{ padding: "14px 16px", fontFamily: SYSTEM }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+      <div style={{ padding: "10px 12px", fontFamily: SYSTEM }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
           <div
             style={{
-              width: 28,
-              height: 28,
+              width: 24,
+              height: 24,
               borderRadius: 999,
               background: "linear-gradient(135deg, #A259FF, #7B2FE0)",
               color: "#fff",
@@ -766,48 +767,45 @@ export function AdrComment({
 }: AdrCommentProps) {
   return (
     <ArtifactShell style={style}>
-      {/* Doc header */}
+      {/* Doc header — row 1: icon + ID + badge right, row 2: subject */}
       <div
         style={{
-          padding: "8px 12px",
+          padding: "8px 10px",
           background: "#FAFAF8",
           borderBottom: `1px solid ${BORDER}`,
-          display: "flex",
-          alignItems: "flex-start",
-          gap: 6,
-          flexWrap: "wrap",
           fontFamily: SYSTEM,
         }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-          <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
+          <svg width="10" height="10" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
             <rect x="1" y="1" width="12" height="12" rx="2" stroke="#6366F1" strokeWidth="1.3" />
             <path d="M4 5h6M4 7h4M4 9h5" stroke="#6366F1" strokeWidth="1" strokeLinecap="round" />
           </svg>
-          <span style={{ fontSize: 10, color: "#6366F1", fontWeight: 600, fontFamily: MONO }}>{docId}</span>
+          <span style={{ fontSize: 10, color: "#6366F1", fontWeight: 600, fontFamily: MONO, whiteSpace: "nowrap" }}>{docId}</span>
+          <div style={{ flex: 1 }} />
+          <span
+            style={{
+              fontSize: 8,
+              color: "#B45309",
+              background: "#FFFBEB",
+              border: "1px solid #FDE68A",
+              padding: "1px 5px",
+              borderRadius: 3,
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+            }}>
+            {status.label}
+          </span>
         </div>
-        <span style={{ fontSize: 10, color: INK_3, flex: 1, minWidth: 60 }}>{subject}</span>
-        <span
-          style={{
-            fontSize: 9,
-            color: "#B45309",
-            background: "#FFFBEB",
-            border: "1px solid #FDE68A",
-            padding: "2px 6px",
-            borderRadius: 4,
-            fontWeight: 600,
-            flexShrink: 0,
-            whiteSpace: "nowrap",
-          }}>
-          {status.label}
-        </span>
+        <div style={{ fontSize: 10, color: INK_3, lineHeight: 1.35 }}>{subject}</div>
       </div>
 
-      <div style={{ padding: "14px 16px", fontFamily: SYSTEM }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+      {/* Comment — commenter inline, full width for text */}
+      <div style={{ padding: "8px 10px", fontFamily: SYSTEM }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 6, flexWrap: "wrap" }}>
           <div
             style={{
-              width: 28,
-              height: 28,
+              width: 20,
+              height: 20,
               borderRadius: 999,
               background: "#E0E7FF",
               color: "#4338CA",
@@ -815,29 +813,25 @@ export function AdrComment({
               alignItems: "center",
               justifyContent: "center",
               fontWeight: 700,
-              fontSize: 12,
+              fontSize: 9,
               flexShrink: 0,
             }}>
             {commenter.avatar}
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{commenter.role}</span>
-              <span style={{ fontSize: 11, color: INK_4 }}>commented</span>
-            </div>
-            <div
-              style={{
-                fontSize: 14,
-                lineHeight: 1.6,
-                color: INK_2,
-                padding: "8px 12px",
-                background: "#F8F7FF",
-                borderRadius: 6,
-                borderLeft: "3px solid #6366F1",
-              }}>
-              {comment}
-            </div>
-          </div>
+          <span style={{ fontSize: 11, fontWeight: 700, color: INK }}>{commenter.role}</span>
+          <span style={{ fontSize: 9, color: INK_4 }}>commented</span>
+        </div>
+        <div
+          style={{
+            fontSize: 11,
+            lineHeight: 1.55,
+            color: INK_2,
+            padding: "6px 8px",
+            background: "#F8F7FF",
+            borderRadius: 5,
+            borderLeft: "3px solid #6366F1",
+          }}>
+          {comment}
         </div>
       </div>
     </ArtifactShell>
@@ -891,17 +885,17 @@ export function GithubReviewCard({
             <svg width="16" height="16" viewBox="0 0 16 16" fill="#1F883D">
               <path d="M7.177 3.073L9.573.677A.25.25 0 0110 .854v4.792a.25.25 0 01-.427.177L7.177 3.427a.25.25 0 010-.354zM3.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122v5.256a2.251 2.251 0 11-1.5 0V5.372A2.25 2.25 0 011.5 3.25zM11 2.5h-1V4h1a1 1 0 011 1v5.628a2.251 2.251 0 101.5 0V5A2.5 2.5 0 0011 2.5zm1 10.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM3.75 12a.75.75 0 100 1.5.75.75 0 000-1.5z" />
             </svg>
-            <span style={{ fontSize: 18, fontWeight: 600, color: "#24292F", lineHeight: 1.3 }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: "#24292F", lineHeight: 1.3 }}>
               {pr.title}
             </span>
-            <span style={{ fontSize: 16, color: "#57606A", fontWeight: 400 }}>{pr.number}</span>
+            <span style={{ fontSize: 13, color: "#57606A", fontWeight: 400 }}>{pr.number}</span>
           </div>
-          <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+          <div style={{ display: "flex", gap: 4, marginBottom: 10, flexWrap: "wrap" }}>
             {labels.map((l) => (
               <span
                 key={l.text}
                 style={{
-                  fontSize: 11,
+                  fontSize: 10,
                   color: "#fff",
                   background: l.color,
                   padding: "2px 8px",
@@ -953,8 +947,11 @@ export function PlainTextBare({ context, quote, rotation = 0, style }: PlainText
   return (
     <div
       style={{
-        padding: "6px 0",
+        padding: "16px 20px 18px",
         transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        background: "var(--bg-surface, #131319)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: CARD_SHELL_RADIUS,
         ...style,
       }}>
       <div
@@ -964,7 +961,7 @@ export function PlainTextBare({ context, quote, rotation = 0, style }: PlainText
           letterSpacing: "0.22em",
           textTransform: "uppercase",
           color: "var(--gold-dim)",
-          marginBottom: 12,
+          marginBottom: 10,
           fontWeight: 600,
         }}>
         {context}
@@ -972,7 +969,7 @@ export function PlainTextBare({ context, quote, rotation = 0, style }: PlainText
       <p
         className="font-serif"
         style={{
-          fontSize: "clamp(16px, 2.5vw, 26px)",
+          fontSize: "clamp(14px, 2.2vw, 22px)",
           lineHeight: 1.4,
           color: "var(--cream)",
           maxWidth: 640,
@@ -1090,7 +1087,7 @@ export function PlainTextAnnotation({
         </div>
         <p
           style={{
-            fontSize: 16,
+            fontSize: 14,
             lineHeight: 1.6,
             color: INK,
             margin: 0,
