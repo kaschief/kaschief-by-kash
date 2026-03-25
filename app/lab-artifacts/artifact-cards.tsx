@@ -114,8 +114,15 @@ export function JiraCard({
 
   return (
     <ArtifactShell style={style}>
+      <style>{`
+        @container (max-width: 280px) {
+          .jira-body { padding: 10px 12px 12px; }
+          .jira-spacer { display: none; }
+          .jira-reporter { width: 100%; margin-top: 6px; }
+        }
+      `}</style>
       <div style={{ height: 3, background: "#1868DB" }} />
-      <div style={{ padding: "14px 18px 16px", fontFamily: SYSTEM }}>
+      <div className="jira-body" style={{ padding: "14px 18px 16px", fontFamily: SYSTEM }}>
         {/* Breadcrumb */}
         <div
           style={{
@@ -222,8 +229,8 @@ export function JiraCard({
             }}>
             {status.label}
           </div>
-          <div style={{ flex: 1 }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: INK_3 }}>
+          <div className="jira-spacer" style={{ flex: 1 }} />
+          <div className="jira-reporter" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: INK_3 }}>
             <span>Reporter</span>
             <div
               style={{
@@ -273,15 +280,22 @@ export function SentryCard({
 }: SentryCardProps) {
   return (
     <ArtifactShell bg="#140C1F" border="#2A1D3A" dark style={style}>
+      <style>{`
+        @container (max-width: 320px) {
+          .sentry-hdr { flex-direction: column; align-items: flex-start; }
+          .sentry-body { padding: 10px 12px 12px; }
+        }
+      `}</style>
       <div
         style={{
           height: 2,
           background: "linear-gradient(90deg, #6C5FC7 0%, #E1567C 50%, #F5B234 100%)",
         }}
       />
-      <div style={{ padding: "16px 18px 18px" }}>
+      <div className="sentry-body" style={{ padding: "16px 18px 18px" }}>
         {/* Header */}
         <div
+          className="sentry-hdr"
           style={{
             display: "flex",
             alignItems: "center",
@@ -430,6 +444,12 @@ export function SlackMessage({
 }: SlackMessageProps) {
   return (
     <ArtifactShell border="#E8E5DF" style={style}>
+      <style>{`
+        @container (max-width: 280px) {
+          .slack-body { padding: 8px 10px 10px; }
+          .slack-avatar { width: 28px; height: 28px; font-size: 11px; }
+        }
+      `}</style>
       {/* Workspace header */}
       <div
         style={{
@@ -462,9 +482,10 @@ export function SlackMessage({
         <span>{channel || "Direct Message"}</span>
       </div>
 
-      <div style={{ padding: "12px 16px 14px", fontFamily: SYSTEM }}>
+      <div className="slack-body" style={{ padding: "12px 16px 14px", fontFamily: SYSTEM }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
           <div
+            className="slack-avatar"
             style={{
               width: 36,
               height: 36,
@@ -659,8 +680,16 @@ export function MeetingNote({
 }: MeetingNoteProps) {
   return (
     <ArtifactShell bg="#FFFFFF" border="#E8E5DF" style={style}>
+      <style>{`
+        @container (max-width: 300px) {
+          .mn-topbar { flex-wrap: wrap; }
+          .mn-viewers-label { display: none; }
+          .mn-body { padding: 10px 12px 14px; }
+        }
+      `}</style>
       {/* Notion-style top bar */}
       <div
+        className="mn-topbar"
         style={{
           display: "flex",
           alignItems: "center",
@@ -692,13 +721,13 @@ export function MeetingNote({
               {v.avatar}
             </div>
           ))}
-          <span style={{ fontSize: 10, color: INK_4, marginLeft: 4, alignSelf: "center" }}>
+          <span className="mn-viewers-label" style={{ fontSize: 10, color: INK_4, marginLeft: 4, alignSelf: "center" }}>
             {viewers.length} viewers
           </span>
         </div>
       </div>
 
-      <div style={{ padding: "14px 16px 18px", fontFamily: SYSTEM }}>
+      <div className="mn-body" style={{ padding: "14px 16px 18px", fontFamily: SYSTEM }}>
         <div style={{ fontSize: 10, color: INK_4, marginBottom: 4, fontWeight: 500 }}>{date}</div>
         <h3
           style={{
@@ -859,6 +888,13 @@ export function GithubReviewCard({
 }: GithubReviewCardProps) {
   return (
     <ArtifactShell border="#D0D7DE" style={style}>
+      <style>{`
+        @container (max-width: 280px) {
+          .gh-body { padding: 10px 12px 12px; }
+          .gh-review { flex-wrap: wrap; }
+          .gh-review-spacer { display: none; }
+        }
+      `}</style>
       {/* GitHub header */}
       <div
         style={{
@@ -878,7 +914,7 @@ export function GithubReviewCard({
         <span style={{ fontSize: 12, color: "#0969DA", fontWeight: 600 }}>{repo.name}</span>
       </div>
 
-      <div style={{ padding: "14px 16px 16px", fontFamily: SYSTEM }}>
+      <div className="gh-body" style={{ padding: "14px 16px 16px", fontFamily: SYSTEM }}>
         {/* PR title */}
         <div style={{ marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -910,6 +946,7 @@ export function GithubReviewCard({
 
         {/* Review status */}
         <div
+          className="gh-review"
           style={{
             display: "flex",
             alignItems: "center",
@@ -920,11 +957,11 @@ export function GithubReviewCard({
             borderRadius: 6,
             fontSize: 12,
           }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="#9A6700">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="#9A6700" style={{ flexShrink: 0 }}>
             <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0114.082 15H1.918a1.75 1.75 0 01-1.543-2.575zM8 5a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5A.75.75 0 008 5zm1 6a1 1 0 11-2 0 1 1 0 012 0z" />
           </svg>
           <span style={{ color: "#7C5B00", fontWeight: 500 }}>{reviewer.name} requested your review</span>
-          <div style={{ flex: 1 }} />
+          <div className="gh-review-spacer" style={{ flex: 1 }} />
           <span style={{ color: "#9A6700", fontWeight: 400, fontSize: 11 }}>{reviewer.timeAgo}</span>
         </div>
       </div>
