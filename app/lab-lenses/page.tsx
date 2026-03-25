@@ -49,7 +49,7 @@ function StoryOverlay({
     document.addEventListener("keydown", onKey);
     // Focus the panel so screen readers announce it
     panelRef.current?.focus();
-    // Prevent background scroll while overlay is open
+    // Prevent background scroll — works on iOS Safari + all browsers
     const html = document.documentElement;
     const body = document.body;
     const scrollY = window.scrollY;
@@ -58,13 +58,17 @@ function StoryOverlay({
     body.style.position = "fixed";
     body.style.top = `-${scrollY}px`;
     body.style.width = "100%";
+    body.style.touchAction = "none";
+    html.style.touchAction = "none";
     return () => {
       document.removeEventListener("keydown", onKey);
       html.style.overflow = "";
+      html.style.touchAction = "";
       body.style.overflow = "";
       body.style.position = "";
       body.style.top = "";
       body.style.width = "";
+      body.style.touchAction = "";
       window.scrollTo(0, scrollY);
     };
   }, [onClose]);
@@ -75,7 +79,7 @@ function StoryOverlay({
       role="dialog"
       aria-modal="true"
       aria-label={`Story: ${entry.headline}`}
-      style={{ zIndex: 10001, background: "rgba(4,4,6,0.94)", backdropFilter: "blur(20px)" }}
+      style={{ zIndex: 10001, background: "rgba(4,4,6,0.94)", backdropFilter: "blur(20px)", overscrollBehavior: "none" }}
       onClick={onClose}
     >
       {/* Hidden scrollbar styles */}
@@ -91,15 +95,15 @@ function StoryOverlay({
         style={{ maxWidth: 720, maxHeight: "88vh", padding: "32px 0 40px" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button — top-right, gold accent on hover */}
+        {/* Close button — fixed to viewport, never overlaps content */}
         <button
           onClick={onClose}
           aria-label="Close story"
-          className="sticky top-2 float-right z-10"
           style={{
-            width: 36, height: 36, borderRadius: 999,
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            position: "fixed", top: 16, right: 16, zIndex: 10002,
+            width: 40, height: 40, borderRadius: 999,
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.1)",
             color: "var(--cream-muted)",
             fontSize: 16, lineHeight: 1,
             cursor: "pointer",
@@ -108,22 +112,20 @@ function StoryOverlay({
             transition: "background 0.2s ease, border-color 0.2s ease, color 0.2s ease",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(201,168,76,0.12)";
+            e.currentTarget.style.background = "rgba(201,168,76,0.15)";
             e.currentTarget.style.borderColor = "var(--gold-dim)";
             e.currentTarget.style.color = "var(--gold)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+            e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
             e.currentTarget.style.color = "var(--cream-muted)";
           }}
         >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         </button>
-
-        <div style={{ clear: "both" }} />
 
         {/* Card */}
         <div className="mx-auto mb-7" style={{ maxWidth: 360 }}>
@@ -193,7 +195,7 @@ function DeskCard({
 
   return (
     <button
-      className="text-left group"
+      className="text-left group shore-desk-card"
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -208,31 +210,31 @@ function DeskCard({
         transition: "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
       }}
     >
-      {/* Card — responsive width */}
-      <div className="shore-card-scale sm:w-[200px] lg:w-[220px] xl:w-[260px]" style={{ pointerEvents: "none" }}>
+      {/* Card — responsive width via CSS classes */}
+      <div className="shore-card-w" style={{ pointerEvents: "none" }}>
         {renderCard(entry, {
           boxShadow: hovered
             ? "0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px var(--gold-dim)"
             : "0 4px 20px rgba(0,0,0,0.3)",
         })}
       </div>
-      {/* I-statement — appears on hover */}
+      {/* I-statement — hover on desktop, always visible on mobile */}
       <div
+        className="shore-i-stmt"
         style={{
-          marginTop: 10,
+          marginTop: 8,
           fontFamily: "var(--font-serif)", fontStyle: "italic",
-          fontSize: 13, lineHeight: 1.4,
+          fontSize: 12, lineHeight: 1.4,
           color: "var(--gold)",
           opacity: hovered ? 1 : 0,
           transform: hovered ? "translateY(0)" : "translateY(6px)",
           transition: "opacity 0.35s ease, transform 0.35s ease",
-          maxWidth: 240,
         }}
       >
         {entry.iStatement}
       </div>
       <div
-        className="font-ui mt-2 text-center"
+        className="font-ui mt-1 text-center"
         style={{
           fontSize: 8, letterSpacing: "0.15em",
           textTransform: "uppercase",
@@ -241,7 +243,7 @@ function DeskCard({
           transition: "opacity 0.3s ease",
         }}
       >
-        {entry.company} &middot; {entry.years}
+        {entry.company}
       </div>
     </button>
   );
@@ -297,25 +299,40 @@ function ShoreDesk() {
         style={{ maxWidth: 1200, opacity: 0, willChange: "transform, opacity" }}
       >
         <style>{`
-          .shore-grid { grid-template-columns: repeat(2, 1fr); padding-top: 16px; }
+          /* ── Base ── */
+          .shore-grid { grid-template-columns: repeat(2, 1fr); padding-top: 8px; }
+          .shore-card-w { width: 100%; }
+
+          /* ── Mobile (<640): 2 cols, no scatter, cards zoomed to fit, i-statements visible ── */
           @media (max-width: 639px) {
+            .shore-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 16px 8px !important; padding: 0 !important; }
             .shore-grid-item { transform: none !important; }
-            .shore-card-scale { zoom: 0.5; }
+            .shore-desk-card { transform: none !important; width: 100%; }
+            .shore-i-stmt { opacity: 1 !important; transform: none !important; font-size: 10px !important; line-height: 1.35 !important; margin-top: 5px !important; }
+            .shore-card-w { width: 100%; zoom: 0.52; }
           }
+
+          /* ── Tablet: 3 columns ── */
           @media (min-width: 640px) {
-            .shore-grid { grid-template-columns: repeat(3, 1fr); }
+            .shore-grid { grid-template-columns: repeat(3, 1fr); overflow: visible; }
+            .shore-card-w { width: 200px; }
           }
+          /* ── Desktop: 4 columns ── */
           @media (min-width: 1024px) {
             .shore-grid { grid-template-columns: repeat(4, 1fr); }
+            .shore-card-w { width: 220px; }
+          }
+          @media (min-width: 1280px) {
+            .shore-card-w { width: 260px; }
           }
         `}</style>
-        <div className="shore-grid grid gap-y-12 gap-x-4 sm:gap-x-6 justify-items-center" style={{ padding: "16px 8px" }}>
+        <div className="shore-grid grid gap-y-10 sm:gap-y-12 gap-x-4 sm:gap-x-6 justify-items-center" style={{ padding: "8px" }}>
           {REMAINING_ENTRIES.map((entry, i) => {
             const pos = POSITIONS[i % POSITIONS.length];
             return (
               <div
                 key={entry.id}
-                className="shore-grid-item"
+                className="shore-grid-item min-w-0"
                 style={{
                   transform: `translate(${pos.nudgeX}px, ${pos.nudgeY}px)`,
                 }}
