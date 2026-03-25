@@ -24,6 +24,8 @@ import {
   CURTAIN_EDGE,
   Z,
   BLUR_THRESHOLD,
+  COMPANY_LABEL,
+  CARD_ZOOM,
 } from "./lenses.config";
 import {
   PROLOGUE,
@@ -106,8 +108,6 @@ export function useLenses() {
   const pillContainerRef = useRef<HTMLDivElement>(null);
   const pillBgRefs = useRef<(HTMLDivElement | null)[]>(new Array(H).fill(null));
   const pillFillRefs = useRef<(HTMLDivElement | null)[]>(new Array(H).fill(null));
-
-  const debugRef = useRef<HTMLPreElement>(null);
 
   /* ── Update ── */
 
@@ -296,7 +296,7 @@ export function useLenses() {
 
       // Company label
       const comp = companyRefs.current[i];
-      if (comp) comp.style.opacity = "0.5";
+      if (comp) comp.style.opacity = String(COMPANY_LABEL.visible);
 
       // I-statement: descends from above
       const iStmt = iStmtRefs.current[i];
@@ -350,10 +350,6 @@ export function useLenses() {
       }
     }
 
-    // Debug HUD
-    if (debugRef.current) {
-      debugRef.current.textContent = `progress: ${scrollProgress.toFixed(4)}\nraw: ${p.toFixed(4)}`;
-    }
   }
 
   /* ── JSX ── */
@@ -378,7 +374,7 @@ export function useLenses() {
         <span ref={prefixSpanRef} style={{ willChange: "filter, opacity" }}>
           {thesisData.prefix}
         </span>
-        <span style={{ whiteSpace: "nowrap" }}>
+        <span>
           {thesisData.keywords.map((word, i) => (
             <span key={word}>
               <span
@@ -444,8 +440,8 @@ export function useLenses() {
   const contentJsx = (
     <>
       <style>{`
-        .card-zoom-wrap { zoom: 0.65; }
-        @media (min-width: 1024px) { .card-zoom-wrap { zoom: 1; } }
+        .card-zoom-wrap { zoom: ${CARD_ZOOM.tablet}; }
+        @media (min-width: 1024px) { .card-zoom-wrap { zoom: ${CARD_ZOOM.desktop}; } }
       `}</style>
       {/* Crossfade highlight cards */}
       {HIGHLIGHT_ENTRIES.map((entry, i) => {
@@ -482,11 +478,11 @@ export function useLenses() {
                     }}
                     className="font-ui mt-4 text-center"
                     style={{
-                      opacity: 0.5,
+                      opacity: COMPANY_LABEL.visible,
                       fontSize: 10,
                       letterSpacing: "0.18em",
                       textTransform: "uppercase",
-                      color: "var(--gold-dim)",
+                      color: COMPANY_LABEL.color,
                     }}>
                     {entry.company} &middot; {entry.years}
                   </div>
@@ -573,7 +569,7 @@ export function useLenses() {
             </div>
 
             {/* Phone: stacked centered */}
-            <div className="flex sm:hidden flex-col items-center w-full mx-auto" style={{ maxWidth: 300 }}>
+            <div className="flex sm:hidden flex-col items-center w-full mx-auto" style={{ maxWidth: 240 }}>
               <div
                 ref={undefined}
                 style={{ width: "100%", willChange: "transform" }}>
@@ -587,8 +583,8 @@ export function useLenses() {
                   fontSize: 9,
                   letterSpacing: "0.15em",
                   textTransform: "uppercase",
-                  color: "var(--gold-dim)",
-                  opacity: 0.5,
+                  color: COMPANY_LABEL.color,
+                  opacity: COMPANY_LABEL.visible,
                 }}>
                 {entry.company} &middot; {entry.years}
               </div>
@@ -645,27 +641,6 @@ export function useLenses() {
         ))}
       </div>
 
-      {/* Debug HUD */}
-      <pre
-        ref={debugRef}
-        style={{
-          position: "absolute",
-          bottom: 12,
-          right: 12,
-          zIndex: Z.debug,
-          background: "rgba(0,0,0,0.85)",
-          color: "#0f0",
-          fontFamily: "ui-monospace, SFMono-Regular, monospace",
-          fontSize: 11,
-          lineHeight: 1.4,
-          padding: "10px 14px",
-          borderRadius: 6,
-          border: "1px solid rgba(0,255,0,0.15)",
-          pointerEvents: "none",
-          whiteSpace: "pre",
-          minWidth: 280,
-        }}
-      />
     </>
   );
 

@@ -59,9 +59,29 @@ export const Z = {
   curtain: 2,
   cards: 4,
   keyword: 10,
-  debug: 999,
 } as const;
 
 /* ── Blur threshold ── */
 
 export const BLUR_THRESHOLD = 0.1;
+
+/* ── Company label ── */
+
+/** Shared style for the company label across crossfade, shore desk, and overlay */
+export const COMPANY_LABEL = {
+  /** Color — cream-muted is readable on dark bg without opacity hacks */
+  color: "var(--cream-muted)",
+  /** Opacity for static/visible contexts (crossfade, overlay, touch shore) */
+  visible: 0.6,
+  /** Opacity for shore desk resting (desktop, not hovered) */
+  resting: 0.35,
+} as const;
+
+/* ── Card zoom per breakpoint ── */
+
+export const CARD_ZOOM = {
+  /** Tablet (640–1023px) */
+  tablet: 0.82,
+  /** Desktop (1024px+) */
+  desktop: 1,
+} as const;
