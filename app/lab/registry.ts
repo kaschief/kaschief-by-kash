@@ -23,12 +23,7 @@ export const LAB_ROUTES: readonly LabRoute[] = [
   { href: "/lab-sankey", label: "Horizontal Sankey", desc: "Left-to-right SVG Sankey, streams flow through company bars", section: "reference" },
   { href: "/lab-particles", label: "Particle Flow", desc: "Canvas particles with glow, trails, wobble along stream paths", section: "reference" },
 
-  // Design explorations
-  { href: "/lab-artifacts", label: "Artifacts", desc: "Skeuomorphic UI fragments — Jira, Sentry, Slack, Figma, GitHub", section: "reference" },
-
   // Scroll explorations (newest first)
-  { href: "/lab-lens-styles", label: "Lens Styles", desc: "3 distinct presentation styles: scattered spotlight, split compare, layered cascade", section: "scroll" },
-  { href: "/lab-transitions", label: "Transitions", desc: "5 approaches: scattered cards → story → I-statement reveal", section: "scroll" },
   { href: "/lab-lenses", label: "Lenses", desc: "Multi-lens scroll: thesis → curtain → keyword → artifact cards → story → morph", section: "scroll" },
   { href: "/lab-pillars", label: "Pillars", desc: "Card-stack pillar exploration with scroll-driven stories", section: "scroll" },
   { href: "/lab-wordtype", label: "WordType", desc: "Word-typing scroll prototype", section: "scroll" },

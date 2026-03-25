@@ -100,6 +100,7 @@ export function renderCard(
           style={style}
           date={entry.chrome.date}
           title={entry.chrome.title}
+          heading={entry.chrome.heading}
           agendaLabel={entry.chrome.agendaLabel}
           agendaText={entry.chrome.agendaText}
           highlightedQuote={entry.chrome.highlightedQuote}

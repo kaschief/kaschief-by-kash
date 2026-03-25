@@ -17,6 +17,8 @@ interface LensEntryBase {
   id: number;
   company: string;
   years: string;
+  /** One-line title framing the scenario */
+  headline: string;
   artifact: string;
   story: string;
   iStatement: string;
@@ -82,6 +84,8 @@ interface MeetingNoteChrome {
   chrome: {
     date: string;
     title: string;
+    /** Optional separate heading for the body — if omitted, title is reused */
+    heading?: string;
     agendaLabel: string;
     agendaText: string;
     highlightedQuote: string;
@@ -175,13 +179,13 @@ export interface Lens {
 /* ── USERS ── */
 
 const USERS: Lens = {
-
   desc: "What people actually experience.",
   entries: [
     {
       id: 1,
       company: "AMBOSS",
       years: "2018\u20132019",
+      headline: "How do I approach a bug found by accident?",
       cardType: "jira",
       artifact:
         "The images on the cardiology article are not showing up on my phone. Tested on iPhone 11, Safari. Other articles seem fine.",
@@ -203,6 +207,7 @@ const USERS: Lens = {
       id: 2,
       company: "Compado",
       years: "2019\u20132021",
+      headline: "How do I look for trouble before someone reports it?",
       cardType: "sentry",
       artifact:
         "Sentry log: TypeError on the meal kit recommendation page. Frequency: 300+ in the last 24 hours. All from mobile Safari.",
@@ -230,6 +235,7 @@ const USERS: Lens = {
       id: 3,
       company: "DKB",
       years: "2021\u20132024",
+      headline: "How do I assess whether something is really done?",
       cardType: "slack-channel",
       artifact:
         "Kash, have you seen the transfer page? The recipient name is missing. A user would not know where their money is going.",
@@ -254,13 +260,13 @@ const USERS: Lens = {
 /* ── GAPS ── */
 
 const GAPS: Lens = {
-
   desc: "What is missing, misaligned, or disconnected.",
   entries: [
     {
       id: 4,
       company: "AMBOSS",
       years: "2018\u20132019",
+      headline: "How do I view a design that feels complete?",
       cardType: "figma-comment",
       artifact: "Here is the menu. It opens from the side.",
       story:
@@ -276,6 +282,7 @@ const GAPS: Lens = {
       id: 5,
       company: "Compado",
       years: "2019\u20132021",
+      headline: "How do I respond when something looks smaller than it is?",
       cardType: "slack-direct",
       artifact:
         "This ticket said \u2018small change\u2019 but I have been on it for two days.",
@@ -293,6 +300,7 @@ const GAPS: Lens = {
       id: 6,
       company: "CAPinside",
       years: "2021",
+      headline: "How do I respond when design and data disagree?",
       cardType: "figma-comment",
       artifact:
         "The new fund detail page looks clean in Figma but the data it needs does not exist in the API the same way.",
@@ -311,6 +319,7 @@ const GAPS: Lens = {
       id: 7,
       company: "CAPinside",
       years: "2021",
+      headline: "How do I react when my reasoning is challenged?",
       cardType: "adr-comment",
       artifact:
         "Why did you choose this approach over the alternative? Walk us through the trade-offs.",
@@ -332,20 +341,20 @@ const GAPS: Lens = {
 /* ── PATTERNS ── */
 
 const PATTERNS: Lens = {
-
   desc: "What repeats, accumulates, or became a shared practice.",
   entries: [
     {
       id: 8,
       company: "AMBOSS",
       years: "2018\u20132019",
+      headline: "How do I start when the shape is still unclear?",
       cardType: "plain-bare",
       artifact:
         "Can you start on this? We will figure out the details as we go.",
       story:
         "I have learned that a short conversation before building is magic.",
       iStatement:
-        "I have learned that a short conversation before building is magic.",
+        "I use a short conversation to make the work clearer before it grows.",
       keywords: ["Patience", "Communication"],
       chrome: {
         context: "1:1 with Product Owner",
@@ -356,6 +365,7 @@ const PATTERNS: Lens = {
       id: 9,
       company: "AMBOSS",
       years: "2018\u20132019",
+      headline: "How do I listen to someone who just arrived?",
       cardType: "plain-sticky",
       artifact: "How does anyone work on this file? It is massive.",
       story:
@@ -372,6 +382,7 @@ const PATTERNS: Lens = {
       id: 10,
       company: "Compado",
       years: "2019\u20132021",
+      headline: "How do I work across different languages for the same thing?",
       cardType: "meeting-note",
       artifact:
         "Cross-team sync: marketing keeps referring to \u201Cthe widget\u201D and engineering keeps asking \u201Cwhich widget?\u201D",
@@ -383,6 +394,7 @@ const PATTERNS: Lens = {
       chrome: {
         date: "March 14, 2024",
         title: "Cross-team sync notes",
+        heading: "Naming alignment",
         agendaLabel: "Agenda",
         agendaText: "Marketing terminology and implementation handoff",
         highlightedQuote:
@@ -399,6 +411,7 @@ const PATTERNS: Lens = {
       id: 11,
       company: "DKB",
       years: "2021\u20132024",
+      headline: "How do I close the loop before shipping?",
       cardType: "github-review",
       artifact:
         "I finish a feature and tag the designer for review. Next day, nothing. I follow up. They have moved on to the next project and assumed it was fine.",
@@ -421,6 +434,7 @@ const PATTERNS: Lens = {
       id: 12,
       company: "DKB",
       years: "2021\u20132024",
+      headline: "How do I think about temporary things that stay too long?",
       cardType: "plain-annotation",
       artifact:
         "We have fourteen feature flags in production. Does anyone know which ones are still active?",

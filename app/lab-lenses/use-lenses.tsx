@@ -1,51 +1,35 @@
 "use client";
 
 /**
- * Multi-lens scroll choreography hook (local progress architecture).
+ * Lenses scroll choreography hook — prologue + crossfade highlights.
  *
  * Global scrollYProgress (0–1) → raw progress via TOTAL_RAW_SIZE.
- * Each lens body uses local progress (raw p - seg.bodyStart).
- * Config constants work as-is — zero normalization.
+ * Prologue: thesis sentence → keyword stagger → curtain sweep.
+ * Cinematic: 4 highlight cards in crossfade (left card / right text layout).
+ *
+ * The Shore desk section is a separate React component in page.tsx.
  */
 
-import { Fragment, useRef, useCallback } from "react";
+import { useRef } from "react";
 import { CONTENT } from "../engineer-candidate/engineer-data";
 import {
   THESIS as EC_THESIS,
   PREFIX_DISSOLVE,
-  POST_CURTAIN,
 } from "../engineer-candidate/engineer-candidate.types";
 import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
-import { LENS_DISPLAY, getEntry } from "@data";
-import { renderChoreographyCard } from "./card-config";
 import { renderCard } from "../lab-artifacts/render-card";
-import { CARD_SHELL_RADIUS } from "../lab-artifacts/artifact-cards";
+import { HIGHLIGHT_ENTRIES } from "./card-config";
 import {
-  CARD_HEIGHT_RATIO,
-  ZONE_SPLIT_Y,
-  ARTIFACT_SHUFFLE,
-  SUBTITLE,
-  KEYWORD_RISE,
-  FOCUS_CYCLE,
-  KEYWORD_CURTAIN_HEADSTART,
   CROSSFADE_PER_CARD,
-  MORPH,
-  FINAL_DISSOLVE,
-  KEYWORD_FONT_CAP,
-  NARRATOR_STORY,
   CURTAIN_EDGE,
-  CARD_SHADOWS,
   Z,
   BLUR_THRESHOLD,
 } from "./lenses.config";
 import {
   PROLOGUE,
-  LENS_SEGMENTS,
-  CONTAINER_HEIGHT_VH,
+  CINEMATIC_START,
   TOTAL_RAW_SIZE,
-  CARD_OFFSETS,
-  TOTAL_CARDS,
-  type LensSegment,
+  CONTAINER_HEIGHT_VH,
 } from "./lenses.timing";
 
 export { CONTAINER_HEIGHT_VH };
@@ -53,71 +37,46 @@ export { SMOOTH_LERP_FACTOR } from "./lenses.config";
 
 const thesisData = CONTENT.thesis;
 const KEYWORD_COUNT = thesisData.keywords.length;
+const H = HIGHLIGHT_ENTRIES.length;
 
-/* ── Easing (GSAP power1 equivalents for crossfade style) ── */
+/* ── Easing (GSAP power1 equivalents) ── */
 
-/** power1.out = quadratic ease out */
-function easeOutQuad(t: number): number { return 1 - (1 - t) * (1 - t); }
-/** power1.in = quadratic ease in */
-function easeInQuad(t: number): number { return t * t; }
-/** Eased progress: map value in [start, end] to eased [0, 1] */
-function ep(v: number, s: number, e: number, ease: (t: number) => number): number {
+function easeOutQuad(t: number): number {
+  return 1 - (1 - t) * (1 - t);
+}
+function easeInQuad(t: number): number {
+  return t * t;
+}
+function ep(
+  v: number,
+  s: number,
+  e: number,
+  ease: (t: number) => number,
+): number {
   return ease(clamp((v - s) / (e - s), 0, 1));
 }
 
 /* ── Crossfade timing (EC word-distillation ratios) ── */
 
 const CF = {
-  cardIn: 0, cardDone: 0.26,
-  iIn: 0.34, iDone: 0.50,
-  storyIn: 0.50, storyDone: 0.62,
+  cardIn: 0,
+  cardDone: 0.26,
+  iIn: 0.34,
+  iDone: 0.5,
+  storyIn: 0.5,
+  storyDone: 0.62,
   driftEnd: 0.78,
-  fadeS: 0.78, fadeE: 1.0,
+  fadeS: 0.78,
+  fadeE: 1.0,
 } as const;
 
 /* ── Crossfade Y offsets (px) matching EC ── */
 
 const CFY = {
-  card:  { from: 65,  rest: 4,  drift: -4, exit: -22 },
-  iStmt: { from: -60, rest: -3, drift: 3,  exit: 16  },
-  story: { from: 40,  rest: 2,  drift: -2, exit: 16  },
+  card: { from: 65, rest: 4, drift: -4, exit: -22 },
+  iStmt: { from: 40, rest: 0, drift: -2, exit: 16 },
+  story: { from: 30, rest: 0, drift: -2, exit: 16 },
 } as const;
-
-/* ── Card positions ── */
-
-interface CardPosition { toX: number; toY: number; effectiveWidthPct: number }
-
-function computeCardPositions(
-  cards: LensSegment["cards"],
-  viewportWidth: number,
-): CardPosition[] {
-  return cards.map((cfg) => {
-    const { zone, jitter, widthPct, maxWidthPx } = cfg;
-    const pctPx = (widthPct / 100) * viewportWidth;
-    const capped = pctPx > maxWidthPx;
-    const ewp = capped ? (maxWidthPx / viewportWidth) * 100 : widthPct;
-
-    const sr = capped ? ewp / widthPct : 1;
-    const cx = (zone.xMin + zone.xMax) / 2;
-    const cy = (zone.yMin + zone.yMax) / 2;
-    const hw = ((zone.xMax - zone.xMin) / 2) * sr;
-    const hh = ((zone.yMax - zone.yMin) / 2) * sr;
-
-    return {
-      toX: lerp(cx - hw, Math.max(cx - hw, cx + hw - ewp), jitter.x),
-      toY: lerp(cy - hh, Math.max(cy - hh, cy + hh - ewp * CARD_HEIGHT_RATIO), jitter.y),
-      effectiveWidthPct: ewp,
-    };
-  });
-}
-
-function computeKeywordRestY(pos: CardPosition[], cards: LensSegment["cards"]): number {
-  const up = pos.filter((_, i) => cards[i].zone.yMax <= ZONE_SPLIT_Y);
-  const lo = pos.filter((_, i) => cards[i].zone.yMin >= ZONE_SPLIT_Y);
-  const uBot = up.length ? Math.max(...up.map((p) => p.toY + p.effectiveWidthPct * CARD_HEIGHT_RATIO)) : 0;
-  const lTop = lo.length ? Math.min(...lo.map((p) => p.toY)) : 100;
-  return (uBot + lTop) / 2;
-}
 
 /* ── Hook ── */
 
@@ -127,374 +86,273 @@ export function useLenses() {
   const prefixSpanRef = useRef<HTMLSpanElement>(null);
   const keywordSpanRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
-  // Curtain (single element, reused across lenses)
+  // Curtain (single element, prologue only now)
   const curtainOverlayRef = useRef<HTMLDivElement>(null);
   const curtainAccentLineRef = useRef<HTMLDivElement>(null);
   const curtainGradientRef = useRef<HTMLDivElement>(null);
 
-  // Per-lens keyword + subtitle
-  const keywordRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const subtitleRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // Crossfade card refs (flat, 4 highlight cards)
+  const artifactRefs = useRef<(HTMLDivElement | null)[]>(new Array(H).fill(null));
+  const cardFrontRefs = useRef<(HTMLDivElement | null)[]>(new Array(H).fill(null));
+  const storyRefs = useRef<(HTMLDivElement | null)[]>(new Array(H).fill(null));
+  const iStmtRefs = useRef<(HTMLDivElement | null)[]>(new Array(H).fill(null));
+  const companyRefs = useRef<(HTMLDivElement | null)[]>(new Array(H).fill(null));
+  const headlineWrapRefs = useRef<(HTMLDivElement | null)[]>(new Array(H).fill(null));
+  const headlineWordRefs = useRef<(HTMLSpanElement | null)[][]>(
+    Array.from({ length: H }, () => []),
+  );
 
-  // Flat card refs (indexed by CARD_OFFSETS[segIdx] + cardIdx)
-  // Used by scattered style; crossfade reuses artifactRefs + storyRefs
-  const artifactRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
-  const cardFrontRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
-  const cardBackRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
-  const storyRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
-  // Crossfade-specific: i-statement text + company label (right column)
-  const iStmtRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
-  const companyRefs = useRef<(HTMLDivElement | null)[]>(new Array(TOTAL_CARDS).fill(null));
-
-  // Per-segment positions
-  const positionsRef = useRef<CardPosition[][]>(LENS_SEGMENTS.map(() => []));
-  const kwRestYRef = useRef<number[]>(LENS_SEGMENTS.map(() => 50));
+  // Progress pills
+  const pillContainerRef = useRef<HTMLDivElement>(null);
+  const pillBgRefs = useRef<(HTMLDivElement | null)[]>(new Array(H).fill(null));
+  const pillFillRefs = useRef<(HTMLDivElement | null)[]>(new Array(H).fill(null));
 
   const debugRef = useRef<HTMLPreElement>(null);
 
-  const recomputePositions = useCallback((viewportEl: HTMLDivElement) => {
-    const vw = viewportEl.clientWidth;
-    for (let s = 0; s < LENS_SEGMENTS.length; s++) {
-      const seg = LENS_SEGMENTS[s];
-      positionsRef.current[s] = computeCardPositions(seg.cards, vw);
-      kwRestYRef.current[s] = seg.style === "crossfade"
-        ? 50 // crossfade: keyword at center, no scattered zones
-        : computeKeywordRestY(positionsRef.current[s], seg.cards);
-    }
-  }, []);
-
   /* ── Update ── */
 
-  function update(scrollProgress: number, viewportRef: React.RefObject<HTMLDivElement | null>) {
+  function update(
+    scrollProgress: number,
+    viewportRef: React.RefObject<HTMLDivElement | null>,
+  ) {
     const p = scrollProgress * TOTAL_RAW_SIZE;
 
     /* ═══ Prologue ═══ */
 
     if (thesisSentenceRef.current) {
-      // Hide thesis permanently after prologue curtain completes
       if (p > PROLOGUE.curtainEnd) {
         thesisSentenceRef.current.style.opacity = "0";
       } else {
-      const P = PROLOGUE;
-      const fadeInEnd = P.thesisStart + P.thesisDuration * EC_THESIS.fadeInFrac;
-      const fadeIn = smoothstep(P.thesisStart, fadeInEnd, p);
-      const fastDrift = smoothstep(P.thesisStart, P.keywordRevealStart, p);
-      const slowDrift = smoothstep(P.keywordRevealStart, P.finalKeywordEnd, p);
-      const drift = fastDrift * EC_THESIS.driftFastWeight + slowDrift * EC_THESIS.driftSlowWeight;
-      const vOff = lerp(EC_THESIS.yStartLg, EC_THESIS.yEndLg, drift);
-      const blur = lerp(EC_THESIS.initialBlur, 0, fadeIn);
+        const P = PROLOGUE;
+        const fadeInEnd =
+          P.thesisStart + P.thesisDuration * EC_THESIS.fadeInFrac;
+        const fadeIn = smoothstep(P.thesisStart, fadeInEnd, p);
+        const fastDrift = smoothstep(P.thesisStart, P.keywordRevealStart, p);
+        const slowDrift = smoothstep(
+          P.keywordRevealStart,
+          P.finalKeywordEnd,
+          p,
+        );
+        const drift =
+          fastDrift * EC_THESIS.driftFastWeight +
+          slowDrift * EC_THESIS.driftSlowWeight;
+        const vOff = lerp(EC_THESIS.yStartLg, EC_THESIS.yEndLg, drift);
+        const blur = lerp(EC_THESIS.initialBlur, 0, fadeIn);
 
-      thesisSentenceRef.current.style.opacity = String(fadeIn);
-      thesisSentenceRef.current.style.transform = `translate(-50%, calc(-50% + ${vOff}vh))`;
-      thesisSentenceRef.current.style.filter = blur > BLUR_THRESHOLD ? `blur(${blur}px)` : "none";
+        thesisSentenceRef.current.style.opacity = String(fadeIn);
+        thesisSentenceRef.current.style.transform = `translate(-50%, calc(-50% + ${vOff}vh))`;
+        thesisSentenceRef.current.style.filter =
+          blur > BLUR_THRESHOLD ? `blur(${blur}px)` : "none";
 
-      for (let i = 0; i < KEYWORD_COUNT; i++) {
-        const span = keywordSpanRefs.current[i];
-        if (!span) continue;
-        const ks = P.keywordRevealStart + i * P.keywordStagger;
-        const kp = smoothstep(ks, ks + P.keywordRevealDuration, p);
-        span.style.opacity = String(kp);
-        span.style.transform = `translateY(${lerp(EC_THESIS.wordDropPx, 0, kp)}px)`;
-        span.style.display = "inline-block";
-      }
+        for (let i = 0; i < KEYWORD_COUNT; i++) {
+          const span = keywordSpanRefs.current[i];
+          if (!span) continue;
+          const ks = P.keywordRevealStart + i * P.keywordStagger;
+          const kp = smoothstep(ks, ks + P.keywordRevealDuration, p);
+          span.style.opacity = String(kp);
+          span.style.transform = `translateY(${lerp(EC_THESIS.wordDropPx, 0, kp)}px)`;
+          span.style.display = "inline-block";
+        }
 
-      // Prefix dissolution
-      if (prefixSpanRef.current && viewportRef.current) {
-        const cp = clamp((p - P.curtainStart) / (P.curtainEnd - P.curtainStart), 0, 1);
-        if (cp > 0) {
-          const vr = viewportRef.current.getBoundingClientRect();
-          const dist = vr.height * (1 - cp) - (prefixSpanRef.current.getBoundingClientRect().bottom - vr.top);
-          const la = vr.height * PREFIX_DISSOLVE.lookaheadFrac;
-          if (dist < la) {
-            const d = clamp(1 - dist / la, 0, 1);
-            prefixSpanRef.current.style.filter = d * PREFIX_DISSOLVE.fullBlurPx > BLUR_THRESHOLD ? `blur(${d * PREFIX_DISSOLVE.fullBlurPx}px)` : "none";
-            prefixSpanRef.current.style.opacity = String(lerp(1, PREFIX_DISSOLVE.minOpacity, d));
-          } else {
-            prefixSpanRef.current.style.filter = "none";
-            prefixSpanRef.current.style.opacity = "1";
+        // Prefix dissolution
+        if (prefixSpanRef.current && viewportRef.current) {
+          const cp = clamp(
+            (p - P.curtainStart) / (P.curtainEnd - P.curtainStart),
+            0,
+            1,
+          );
+          if (cp > 0) {
+            const vr = viewportRef.current.getBoundingClientRect();
+            const dist =
+              vr.height * (1 - cp) -
+              (prefixSpanRef.current.getBoundingClientRect().bottom - vr.top);
+            const la = vr.height * PREFIX_DISSOLVE.lookaheadFrac;
+            if (dist < la) {
+              const d = clamp(1 - dist / la, 0, 1);
+              prefixSpanRef.current.style.filter =
+                d * PREFIX_DISSOLVE.fullBlurPx > BLUR_THRESHOLD
+                  ? `blur(${d * PREFIX_DISSOLVE.fullBlurPx}px)`
+                  : "none";
+              prefixSpanRef.current.style.opacity = String(
+                lerp(1, PREFIX_DISSOLVE.minOpacity, d),
+              );
+            } else {
+              prefixSpanRef.current.style.filter = "none";
+              prefixSpanRef.current.style.opacity = "1";
+            }
           }
         }
       }
-      } // end else (prologue active)
     }
 
-    /* ═══ Curtain — single element reused across all lens transitions ═══ */
-    // After each curtain completes, it must reset to 0% so the next one can sweep.
-    // We find which curtain event is currently relevant and drive it.
+    /* ═══ Curtain — prologue only ═══ */
 
     if (curtainOverlayRef.current) {
-      // The curtain has two jobs:
-      // 1. Prologue: sweeps 0→100% to cover thesis, stays at 100% as background
-      // 2. Inter-lens: sweeps 0→100% to wipe previous lens, stays at 100% as background
-      //
-      // After a curtain completes, it stays at 100% (hiding what's behind it).
-      // It only resets to 0% at the START of the next inter-lens curtain sweep,
-      // which creates the visual of the new lens being "revealed" as it sweeps up.
-      //
-      // Actually the curtain sweeps bottom-to-top: it starts at 0% height (bottom),
-      // grows to 100% covering the screen. After that, the new content appears
-      // ON TOP of the curtain (same bg color), and the curtain stays at 100%.
-      // When the next lens transition starts, the curtain resets to 0% instantly
-      // (content from the current lens is still on screen), then sweeps 0→100% again.
-
       let curtainP: number;
-      let isInterLensCurtain = false;
-
       if (p < PROLOGUE.curtainStart) {
         curtainP = 0;
       } else if (p < PROLOGUE.curtainEnd) {
-        // Prologue curtain: covers thesis (z:1), cards not yet visible
-        curtainP = clamp((p - PROLOGUE.curtainStart) / (PROLOGUE.curtainEnd - PROLOGUE.curtainStart), 0, 1);
+        curtainP = clamp(
+          (p - PROLOGUE.curtainStart) /
+            (PROLOGUE.curtainEnd - PROLOGUE.curtainStart),
+          0,
+          1,
+        );
       } else {
-        // Default: curtain at 0% (scene visible)
-        curtainP = 0;
-
-        // Check for inter-lens curtain sweeps
-        for (let s = 1; s < LENS_SEGMENTS.length; s++) {
-          const seg = LENS_SEGMENTS[s];
-          const cStart = seg.globalStart;
-          const cEnd = cStart + seg.curtainSize;
-
-          if (p >= cStart && p < cEnd) {
-            curtainP = clamp((p - cStart) / (cEnd - cStart), 0, 1);
-            isInterLensCurtain = true;
-            break;
-          } else if (p >= cEnd && p < seg.bodyStart) {
-            // Curtain just finished — hold at 100% until body starts
-            curtainP = 1;
-            isInterLensCurtain = true;
-            break;
-          }
-        }
+        // After curtain: stays at 100% as background for crossfade
+        curtainP = 1;
       }
-
-      // Inter-lens curtain must be ABOVE cards (z:4) and narrator (z:8) to wipe the scene
-      curtainOverlayRef.current.style.zIndex = String(isInterLensCurtain ? Z.keyword + 1 : Z.curtain);
 
       curtainOverlayRef.current.style.height = `${curtainP * 100}%`;
       const moving = curtainP > 0 && curtainP < 1;
-      if (curtainAccentLineRef.current) curtainAccentLineRef.current.style.opacity = moving ? String(CURTAIN_EDGE.movingOpacity) : "0";
-      if (curtainGradientRef.current) curtainGradientRef.current.style.opacity = moving ? "1" : "0";
+      if (curtainAccentLineRef.current)
+        curtainAccentLineRef.current.style.opacity = moving
+          ? String(CURTAIN_EDGE.movingOpacity)
+          : "0";
+      if (curtainGradientRef.current)
+        curtainGradientRef.current.style.opacity = moving ? "1" : "0";
     }
 
-    /* ═══ Per-segment updates ═══ */
+    /* ═══ Crossfade highlight cards ═══ */
 
-    for (let s = 0; s < LENS_SEGMENTS.length; s++) {
-      const seg = LENS_SEGMENTS[s];
-      const offset = CARD_OFFSETS[s];
-      const positions = positionsRef.current[s];
+    const cfStart = CINEMATIC_START;
+    const span = CROSSFADE_PER_CARD;
 
-      // Skip future segments
-      if (p < seg.globalStart - 0.01) {
-        // Ensure hidden
-        for (let i = 0; i < seg.cards.length; i++) {
-          const el = artifactRefs.current[offset + i];
-          if (el) el.style.opacity = "0";
-          const st = storyRefs.current[offset + i];
-          if (st) st.style.opacity = "0";
-        }
-        const kw = keywordRefs.current[s];
-        if (kw) kw.style.opacity = "0";
-        break;
+    // Show/hide pill container — only visible during crossfade
+    if (pillContainerRef.current) {
+      const inCrossfade = p >= cfStart && p <= cfStart + H * span + 0.02;
+      const pillFadeIn = ep(p, cfStart, cfStart + 0.02, easeOutQuad);
+      const pillFadeOut = ep(p, cfStart + H * span - 0.02, cfStart + H * span + 0.02, easeInQuad);
+      const pillOp = inCrossfade ? pillFadeIn * (1 - pillFadeOut) : 0;
+      pillContainerRef.current.style.opacity = String(pillOp);
+      pillContainerRef.current.style.visibility = pillOp > 0.01 ? "visible" : "hidden";
+    }
+
+    for (let i = 0; i < H; i++) {
+      const L = clamp((p - cfStart - i * span) / span, -0.05, 1.05);
+      const last = i === H - 1;
+
+      // Container fade — last card holds (no fade out)
+      const fadeIn = ep(L, CF.cardIn, CF.cardDone, easeOutQuad);
+      const fadeOut = last ? 0 : ep(L, CF.fadeS, CF.fadeE, easeInQuad);
+      const itemOp = fadeIn * (1 - fadeOut);
+
+      const el = artifactRefs.current[i];
+      if (el) {
+        el.style.opacity = String(itemOp);
+        el.style.visibility = itemOp > 0.005 ? "visible" : "hidden";
       }
 
-      // Past segments: hide the instant the next curtain reaches 100%.
-      // The curtain resets to 0% when the next body starts — cards must be gone by then.
-      const nextSeg = LENS_SEGMENTS[s + 1];
-      const hideAt = nextSeg ? nextSeg.bodyStart : seg.globalEnd;
-      if (p >= hideAt) {
-        for (let i = 0; i < seg.cards.length; i++) {
-          const el = artifactRefs.current[offset + i];
-          if (el) el.style.opacity = "0";
-          const st = storyRefs.current[offset + i];
-          if (st) st.style.opacity = "0";
-        }
-        const kw = keywordRefs.current[s];
-        if (kw) kw.style.opacity = "0";
-        continue;
+      // Headline wrapper: gentle upward drift
+      const hlWrap = headlineWrapRefs.current[i];
+      if (hlWrap) {
+        const hlDrift = ep(L, 0.1, CF.driftEnd, (t) => t);
+        const hlExitY = last ? 0 : ep(L, CF.fadeS, CF.fadeE, easeInQuad) * -12;
+        hlWrap.style.transform = `translateY(${hlDrift * -8 + hlExitY}px)`;
       }
 
-      // Active segment — local progress within the body
-      const lp = p - seg.bodyStart;
-      const B = seg.body;
-      const restY = kwRestYRef.current[s];
-      const isLastLens = s === LENS_SEGMENTS.length - 1;
+      // Headline word-by-word reveal
+      const words = headlineWordRefs.current[i];
+      if (words && words.length > 0) {
+        const hlStart = -0.03;
+        const hlEnd = 0.35;
+        const hlRange = hlEnd - hlStart;
+        const hlProgress = clamp((L - hlStart) / hlRange, 0, 1);
+        const currentFloat = hlProgress * words.length;
 
-      /* ── Keyword ── */
+        for (let w = 0; w < words.length; w++) {
+          const word = words[w];
+          if (!word) continue;
+          const diff = currentFloat - w;
 
-      const kwEl = keywordRefs.current[s];
-      if (kwEl) {
-        // Keyword starts appearing during the tail of the curtain sweep
-        const kwHeadStart = seg.curtainSize * KEYWORD_CURTAIN_HEADSTART;
-        const appear = smoothstep(-kwHeadStart, POST_CURTAIN.appearDuration, lp);
-        const shrink = smoothstep(B.shuffleStart, B.shuffleEnd, lp);
-        const rise = smoothstep(B.keywordRiseStart, B.keywordRiseEnd, lp);
-
-        kwEl.style.opacity = String(appear * (1 - rise));
-        const midVw = lerp(POST_CURTAIN.startFontSizeVw, POST_CURTAIN.endFontSizeVw, shrink);
-        const midCap = lerp(KEYWORD_FONT_CAP.startMaxPx, KEYWORD_FONT_CAP.endMaxPx, shrink);
-        kwEl.style.fontSize = `min(${lerp(midVw, KEYWORD_RISE.endFontSizeVw, rise)}vw, ${lerp(midCap, KEYWORD_FONT_CAP.riseMaxPx, rise)}px)`;
-        kwEl.style.top = `${lerp(restY, KEYWORD_RISE.endTopPercent, rise)}%`;
-        kwEl.style.transform = `translate(-50%, -${lerp(50, 0, rise)}%)`;
-
-        const subEl = subtitleRefs.current[s];
-        if (subEl) {
-          const sIn = smoothstep(B.shuffleStart + SUBTITLE.fadeInDelay, B.shuffleStart + SUBTITLE.fadeInDelay + SUBTITLE.fadeInDuration, lp);
-          const sOut = smoothstep(B.keywordRiseStart, B.keywordRiseStart + SUBTITLE.fadeOutDuration, lp);
-          subEl.style.opacity = String(sIn * (1 - sOut));
+          if (diff < 0) {
+            word.style.opacity = "0";
+            word.style.transform = "scale(1)";
+            word.style.color = "var(--cream)";
+          } else if (diff < 1) {
+            word.style.opacity = String(diff * (1 - fadeOut));
+            word.style.transform = `scale(${1 + 0.02 * (1 - diff)})`;
+            word.style.color = diff < 0.5 ? "var(--gold)" : "var(--cream)";
+          } else {
+            word.style.opacity = String(1 - fadeOut);
+            word.style.transform = "scale(1)";
+            word.style.color = "var(--cream)";
+          }
         }
       }
 
-      /* ── Style-specific card update ── */
+      // Card inner: parallax Y
+      const cardInner = cardFrontRefs.current[i];
+      if (cardInner) {
+        const entry = ep(L, CF.cardIn, CF.cardDone, easeOutQuad);
+        const drift = ep(L, CF.cardDone, CF.driftEnd, (t) => t);
+        const exitP = last ? 0 : ep(L, CF.fadeS, CF.fadeE, easeInQuad);
+        const y =
+          lerp(CFY.card.from, CFY.card.rest, entry) +
+          drift * CFY.card.drift +
+          exitP * CFY.card.exit;
+        cardInner.style.transform = `translateY(${y}px)`;
+      }
 
-      if (seg.style === "scattered") {
-        // ── SCATTERED: scatter → spotlight → morph ──
-        if (positions.length === 0) continue;
-        const fws = B.focusWindows;
+      // Company label
+      const comp = companyRefs.current[i];
+      if (comp) comp.style.opacity = "0.5";
 
-        const focusValues: number[] = [];
-        for (let i = 0; i < seg.cards.length; i++) {
-          const fw = fws[i];
-          focusValues.push(
-            smoothstep(fw.ws, fw.rampInEnd, lp) *
-            (1 - smoothstep(fw.morphHoldEnd, fw.rampOutEnd, lp)),
-          );
-        }
+      // I-statement: descends from above
+      const iStmt = iStmtRefs.current[i];
+      if (iStmt) {
+        const entry = ep(L, CF.iIn, CF.iDone, easeOutQuad);
+        const drift = ep(L, CF.iDone, CF.driftEnd, (t) => t);
+        const exitP = last ? 0 : ep(L, CF.fadeS, CF.fadeE, easeInQuad);
+        const y =
+          lerp(CFY.iStmt.from, CFY.iStmt.rest, entry) +
+          drift * CFY.iStmt.drift +
+          exitP * CFY.iStmt.exit;
+        iStmt.style.transform = `translateY(${y}px)`;
+        iStmt.style.opacity = String(entry * (1 - fadeOut));
+      }
 
-        let dissolveFade = 1;
-        if (isLastLens) {
-          const ds = fws[fws.length - 1].rampOutEnd + FINAL_DISSOLVE.delay;
-          dissolveFade = 1 - smoothstep(ds, ds + FINAL_DISSOLVE.duration, lp);
-        }
+      // Story: rises from below
+      const storyEl = storyRefs.current[i];
+      if (storyEl) {
+        const entry = ep(L, CF.storyIn, CF.storyDone, easeOutQuad);
+        const drift = ep(L, CF.storyDone, CF.driftEnd, (t) => t);
+        const exitP = last ? 0 : ep(L, CF.fadeS, CF.fadeE, easeInQuad);
+        const y =
+          lerp(CFY.story.from, CFY.story.rest, entry) +
+          drift * CFY.story.drift +
+          exitP * CFY.story.exit;
+        storyEl.style.transform = `translateY(${y}px)`;
+        storyEl.style.opacity = String(entry * (1 - fadeOut));
+      }
+    }
 
-        for (let i = 0; i < seg.cards.length; i++) {
-          const el = artifactRefs.current[offset + i];
-          if (!el) continue;
-
-          const pos = positions[i];
-          const cfg = seg.cards[i];
-          const fw = fws[i];
-
-          const cardStart = B.shuffleStart + i * ARTIFACT_SHUFFLE.stagger;
-          const slide = smoothstep(cardStart, cardStart + ARTIFACT_SHUFFLE.entranceDuration, lp);
-
-          const curX = lerp(cfg.fromX, pos.toX, slide);
-          const curY = lerp(cfg.fromY, pos.toY, slide);
-          const curRot = lerp(cfg.fromRotation, cfg.toRotation, slide);
-
-          const posFocus = smoothstep(fw.ws, fw.rampInEnd, lp)
-            * (1 - smoothstep(fw.morphHoldEnd, fw.rampOutEnd, lp));
-
-          const nudgeScale = cfg.nudgeScale ?? FOCUS_CYCLE.nudgeScale;
-          const nudgeX = cfg.nudgeX ?? FOCUS_CYCLE.nudgeX;
-          const nudgeY = cfg.nudgeY ?? FOCUS_CYCLE.nudgeY;
-          const focusScale = lerp(1, nudgeScale, posFocus);
-
-          const morph = smoothstep(fw.storyHoldEnd, fw.morphEnd, lp);
-
-          const front = cardFrontRefs.current[offset + i];
-          const back = cardBackRefs.current[offset + i];
-          if (front) front.style.opacity = String(1 - morph);
-          if (back) back.style.opacity = String(morph);
-
-          const dimRamp = smoothstep(B.focusCycleStart, B.focusCycleStart + FOCUS_CYCLE.dimRampDuration, lp);
-          const dimFloor = morph > 0.5 ? MORPH.dimOpacity : cfg.dimOpacity;
-          const focusOp = lerp(lerp(1, dimFloor, dimRamp), 1, focusValues[i]);
-
-          const holdBrighten = smoothstep(B.holdStart, B.holdEnd, lp);
-          const finalOp = lerp(focusOp, 1, holdBrighten);
-
-          const baseOp = clamp(slide * ARTIFACT_SHUFFLE.opacityRamp, 0, 1);
-
-          el.style.opacity = String(baseOp * finalOp * dissolveFade);
-          el.style.left = `${curX + posFocus * nudgeX}%`;
-          el.style.top = `${curY + posFocus * nudgeY}%`;
-          el.style.width = `${pos.effectiveWidthPct}%`;
-          el.style.transform = `rotate(${curRot}deg)${focusScale !== 1 ? ` scale(${focusScale})` : ""}`;
-          el.style.transformOrigin = "top left";
-
-          const storyEl = storyRefs.current[offset + i];
-          if (storyEl) {
-            const delay = i === 0 ? NARRATOR_STORY.firstFadeInDelay : NARRATOR_STORY.laterFadeInDelay;
-            const stStart = fw.ws + delay;
-            const dur = Math.max(NARRATOR_STORY.minFadeInDuration, NARRATOR_STORY.firstFadeInDuration - i * NARRATOR_STORY.fadeInAccelPerCard);
-            const up = smoothstep(stStart, stStart + dur, lp);
-            const down = 1 - smoothstep(fw.storyHoldEnd, fw.morphEnd, lp);
-            storyEl.style.opacity = String(up * down);
-          }
-        }
-
-      } else if (seg.style === "crossfade") {
-        // ── CROSSFADE: card left, i-statement + story right, EC parallax ──
-        // Cards start AFTER keyword has risen and faded
-        const N = seg.cards.length;
-        const cfStart = B.keywordRiseEnd;
-        const span = CROSSFADE_PER_CARD;
-
-        for (let i = 0; i < N; i++) {
-          const L = clamp((lp - cfStart - i * span) / span, -0.05, 1.05);
-
-          // Container fade
-          const fadeIn = ep(L, CF.cardIn, CF.cardDone, easeOutQuad);
-          const fadeOut = (i < N - 1) ? ep(L, CF.fadeS, CF.fadeE, easeInQuad) : 0;
-          const itemOp = fadeIn * (1 - fadeOut);
-
-          // Outer wrapper: controls visibility only
-          const el = artifactRefs.current[offset + i];
-          if (el) {
-            el.style.opacity = String(itemOp);
-            el.style.visibility = itemOp > 0.005 ? "visible" : "hidden";
-          }
-
-          // Card inner: parallax Y motion (reuses cardFrontRefs for crossfade)
-          const cardInner = cardFrontRefs.current[offset + i];
-          if (cardInner) {
-            const entry = ep(L, CF.cardIn, CF.cardDone, easeOutQuad);
-            const drift = ep(L, CF.cardDone, CF.driftEnd, (t) => t);
-            const exitP = (i < N - 1) ? ep(L, CF.fadeS, CF.fadeE, easeInQuad) : 0;
-            const y = lerp(CFY.card.from, CFY.card.rest, entry) + drift * CFY.card.drift + exitP * CFY.card.exit;
-            cardInner.style.transform = `translateY(${y}px)`;
-          }
-
-          // Company label
-          const comp = companyRefs.current[offset + i];
-          if (comp) comp.style.opacity = String(ep(L, CF.cardIn + 0.08, CF.cardDone + 0.05, easeOutQuad) * 0.5 * (1 - fadeOut));
-
-          // I-statement: descends from above
-          const iStmt = iStmtRefs.current[offset + i];
-          if (iStmt) {
-            const entry = ep(L, CF.iIn, CF.iDone, easeOutQuad);
-            const drift = ep(L, CF.iDone, CF.driftEnd, (t) => t);
-            const exitP = (i < N - 1) ? ep(L, CF.fadeS, CF.fadeE, easeInQuad) : 0;
-            const y = lerp(CFY.iStmt.from, CFY.iStmt.rest, entry) + drift * CFY.iStmt.drift + exitP * CFY.iStmt.exit;
-            iStmt.style.transform = `translateY(${y}px)`;
-            iStmt.style.opacity = String(entry * (1 - fadeOut));
-          }
-
-          // Story: rises from below
-          const storyEl = storyRefs.current[offset + i];
-          if (storyEl) {
-            const entry = ep(L, CF.storyIn, CF.storyDone, easeOutQuad);
-            const drift = ep(L, CF.storyDone, CF.driftEnd, (t) => t);
-            const exitP = (i < N - 1) ? ep(L, CF.fadeS, CF.fadeE, easeInQuad) : 0;
-            const y = lerp(CFY.story.from, CFY.story.rest, entry) + drift * CFY.story.drift + exitP * CFY.story.exit;
-            storyEl.style.transform = `translateY(${y}px)`;
-            storyEl.style.opacity = String(entry * (1 - fadeOut));
-          }
-        }
+    // Progress pills
+    const pillP = clamp((p - cfStart) / (H * span), 0, 1);
+    const active = clamp(Math.floor(pillP * H), 0, H - 1);
+    for (let i = 0; i < H; i++) {
+      const bg = pillBgRefs.current[i];
+      const fill = pillFillRefs.current[i];
+      if (!bg || !fill) continue;
+      if (i < active) {
+        bg.style.width = "8px"; bg.style.borderRadius = "999px";
+        fill.style.width = "100%"; fill.style.opacity = "0.6";
+        fill.style.background = "var(--gold-dim)";
+      } else if (i === active) {
+        bg.style.width = "28px"; bg.style.borderRadius = "4px";
+        const localP = (pillP * H) - i;
+        fill.style.width = `${clamp(localP * 100, 0, 100)}%`;
+        fill.style.opacity = "1";
+        fill.style.background = "var(--gold-dim)";
+      } else {
+        bg.style.width = "8px"; bg.style.borderRadius = "999px";
+        fill.style.width = "0%"; fill.style.opacity = "0.3";
       }
     }
 
     // Debug HUD
     if (debugRef.current) {
-      let activeLens = "";
-      for (const seg of LENS_SEGMENTS) {
-        if (p >= seg.globalStart && p <= seg.globalEnd) {
-          activeLens = seg.lensName;
-          break;
-        }
-      }
-      debugRef.current.textContent = `progress: ${scrollProgress.toFixed(4)}\nraw: ${p.toFixed(4)}\nlens: ${activeLens}`;
+      debugRef.current.textContent = `progress: ${scrollProgress.toFixed(4)}\nraw: ${p.toFixed(4)}`;
     }
   }
 
@@ -502,213 +360,314 @@ export function useLenses() {
 
   const fullScreenJsx = (
     <>
+      {/* Thesis sentence */}
       <div
         ref={thesisSentenceRef}
         className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
         style={{
-          opacity: 0, fontFamily: "var(--font-serif)",
-          fontSize: "clamp(1.4rem, 3vw, 2.4rem)", color: "var(--cream)",
-          fontWeight: 400, maxWidth: EC_THESIS.maxWidthLg, lineHeight: 1.5,
-          willChange: "transform, opacity, filter", zIndex: Z.thesis,
+          opacity: 0,
+          fontFamily: "var(--font-serif)",
+          fontSize: "clamp(1.4rem, 3vw, 2.4rem)",
+          color: "var(--cream)",
+          fontWeight: 400,
+          maxWidth: EC_THESIS.maxWidthLg,
+          lineHeight: 1.5,
+          willChange: "transform, opacity, filter",
+          zIndex: Z.thesis,
         }}>
-        <span ref={prefixSpanRef} style={{ willChange: "filter, opacity" }}>{thesisData.prefix}</span>
+        <span ref={prefixSpanRef} style={{ willChange: "filter, opacity" }}>
+          {thesisData.prefix}
+        </span>
         <span style={{ whiteSpace: "nowrap" }}>
           {thesisData.keywords.map((word, i) => (
             <span key={word}>
               <span
-                ref={(el) => { keywordSpanRefs.current[i] = el; }}
+                ref={(el) => {
+                  keywordSpanRefs.current[i] = el;
+                }}
                 style={{
-                  opacity: 0, willChange: "opacity, transform",
-                  marginRight: i < thesisData.keywords.length - 1 ? "0.3em" : undefined,
+                  opacity: 0,
+                  willChange: "opacity, transform",
+                  marginRight:
+                    i < thesisData.keywords.length - 1 ? "0.3em" : undefined,
                 }}>
-                {i === thesisData.keywords.length - 1 ? `${thesisData.conjunction}${word}.` : `${word},`}
+                {i === thesisData.keywords.length - 1
+                  ? `${thesisData.conjunction}${word}.`
+                  : `${word},`}
               </span>
             </span>
           ))}
         </span>
       </div>
 
+      {/* Curtain overlay */}
       <div
         ref={curtainOverlayRef}
         style={{
-          position: "absolute", bottom: 0, left: 0, right: 0,
-          height: "0%", zIndex: Z.curtain, background: "var(--bg, #07070A)", pointerEvents: "none",
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "0%",
+          zIndex: Z.curtain,
+          background: "var(--bg, #07070A)",
+          pointerEvents: "none",
         }}>
-        <div ref={curtainAccentLineRef} style={{
-          position: "absolute", top: 0, left: 0, right: 0,
-          height: CURTAIN_EDGE.accentLineHeight, background: "var(--gold, #C9A84C)", opacity: 0,
-        }} />
-        <div ref={curtainGradientRef} style={{
-          position: "absolute", top: -CURTAIN_EDGE.gradientOvershoot, left: 0, right: 0,
-          height: CURTAIN_EDGE.gradientOvershoot,
-          background: `linear-gradient(to bottom, transparent, var(--bg, #07070A))`, opacity: 0,
-        }} />
+        <div
+          ref={curtainAccentLineRef}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: CURTAIN_EDGE.accentLineHeight,
+            background: "var(--gold, #C9A84C)",
+            opacity: 0,
+          }}
+        />
+        <div
+          ref={curtainGradientRef}
+          style={{
+            position: "absolute",
+            top: -CURTAIN_EDGE.gradientOvershoot,
+            left: 0,
+            right: 0,
+            height: CURTAIN_EDGE.gradientOvershoot,
+            background: `linear-gradient(to bottom, transparent, var(--bg, #07070A))`,
+            opacity: 0,
+          }}
+        />
       </div>
     </>
   );
 
   const contentJsx = (
     <>
-      {LENS_SEGMENTS.map((seg, segIdx) => {
-        const offset = CARD_OFFSETS[segIdx];
+      <style>{`
+        .card-zoom-wrap { zoom: 0.65; }
+        @media (min-width: 1024px) { .card-zoom-wrap { zoom: 1; } }
+      `}</style>
+      {/* Crossfade highlight cards */}
+      {HIGHLIGHT_ENTRIES.map((entry, i) => {
         return (
-          <Fragment key={seg.lensName}>
-            {/* Keyword + subtitle */}
+          <div
+            key={entry.id}
+            ref={(el) => {
+              artifactRefs.current[i] = el;
+            }}
+            className="absolute inset-0 flex items-center px-4 sm:px-8 pointer-events-none"
+            style={{
+              opacity: 0,
+              visibility: "hidden",
+              zIndex: Z.cards,
+            }}>
+            {/* Desktop/tablet: side by side */}
             <div
-              ref={(el) => { keywordRefs.current[segIdx] = el; }}
-              className="absolute select-none pointer-events-none"
-              style={{
-                opacity: 0, left: "50%", top: "50%", transform: "translate(-50%, -50%)",
-                fontFamily: "var(--font-serif)",
-                fontSize: `min(${POST_CURTAIN.startFontSizeVw}vw, ${KEYWORD_FONT_CAP.startMaxPx}px)`,
-                fontWeight: 400, color: POST_CURTAIN.color, letterSpacing: "0.06em",
-                textAlign: "center", zIndex: Z.keyword,
-                willChange: "opacity, font-size, top, transform",
-              }}>
-              {LENS_DISPLAY[seg.lensName]}
+              className="hidden sm:flex w-full mx-auto items-center gap-6 lg:gap-14"
+              style={{ maxWidth: 1100 }}>
+              {/* Left: card — zoom scales on tablet */}
+              <div className="sm:w-[38%] lg:w-[42%]">
+                <div
+                  ref={(el) => {
+                    cardFrontRefs.current[i] = el;
+                  }}
+                  className="card-zoom-wrap"
+                  style={{ willChange: "transform" }}>
+                  {renderCard(entry, {
+                    boxShadow: "0 8px 40px rgba(0,0,0,0.45)",
+                  })}
+                  <div
+                    ref={(el) => {
+                      companyRefs.current[i] = el;
+                    }}
+                    className="font-ui mt-4 text-center"
+                    style={{
+                      opacity: 0.5,
+                      fontSize: 10,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      color: "var(--gold-dim)",
+                    }}>
+                    {entry.company} &middot; {entry.years}
+                  </div>
+                </div>
+              </div>
+              {/* Right: headline + i-statement + story */}
               <div
-                ref={(el) => { subtitleRefs.current[segIdx] = el; }}
-                style={{
-                  opacity: 0, fontSize: SUBTITLE.fontSize, fontFamily: "var(--font-serif)",
-                  fontStyle: "italic", color: "var(--cream-muted)", fontWeight: 400,
-                  letterSpacing: "0.01em", marginTop: "0.5em", whiteSpace: "nowrap",
-                  willChange: "opacity",
-                }}>
-                {seg.subtitle}
+                className="relative sm:w-[55%] lg:w-[50%]"
+                style={{ paddingTop: 48 }}>
+                {/* Headline */}
+                <div
+                  ref={(el) => {
+                    headlineWrapRefs.current[i] = el;
+                  }}
+                  className="absolute left-0 right-0"
+                  style={{
+                    top: 0,
+                    lineHeight: 1.6,
+                    willChange: "transform",
+                  }}>
+                  {entry.headline.split(" ").map((word, w) => (
+                    <span
+                      key={w}
+                      ref={(el) => {
+                        if (!headlineWordRefs.current[i])
+                          headlineWordRefs.current[i] = [];
+                        headlineWordRefs.current[i][w] = el;
+                      }}
+                      className="font-narrator"
+                      style={{
+                        opacity: 0,
+                        display: "inline-block",
+                        marginRight: "0.3em",
+                        fontSize: "clamp(0.82rem, 1.4vw, 1.2rem)",
+                        fontStyle: "italic",
+                        color: "var(--cream)",
+                        transition: "color 0.15s ease",
+                        willChange: "opacity, color",
+                      }}>
+                      {word}
+                    </span>
+                  ))}
+                </div>
+                {/* I-statement */}
+                <div
+                  ref={(el) => {
+                    iStmtRefs.current[i] = el;
+                  }}
+                  style={{
+                    opacity: 0,
+                    willChange: "transform, opacity",
+                  }}>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-serif)",
+                      fontStyle: "italic",
+                      fontSize: "clamp(0.95rem, 1.8vw, 1.5rem)",
+                      lineHeight: 1.35,
+                      letterSpacing: "-0.01em",
+                      color: "var(--gold)",
+                      fontWeight: 400,
+                    }}>
+                    {entry.iStatement}
+                  </div>
+                </div>
+                {/* Story */}
+                <div
+                  ref={(el) => {
+                    storyRefs.current[i] = el;
+                  }}
+                  style={{
+                    opacity: 0,
+                    marginTop: 24,
+                    willChange: "transform, opacity",
+                    fontFamily: "var(--font-narrator)",
+                    fontStyle: "italic",
+                    fontSize: "clamp(0.72rem, 0.95vw, 0.88rem)",
+                    lineHeight: 1.75,
+                    color: "var(--text-dim)",
+                  }}>
+                  {entry.story}
+                </div>
               </div>
             </div>
 
-            {/* Style-specific card rendering */}
-            {seg.style === "scattered" ? (
-              <>
-                {/* Scattered: stories + cards with front/back morph */}
-                {seg.cards.map((cfg, i) => {
-                  const entry = getEntry(cfg.entryId);
-                  if (!entry) return null;
-                  return (
-                    <div
-                      key={`story-${cfg.entryId}`}
-                      ref={(el) => { storyRefs.current[offset + i] = el; }}
-                      className="absolute select-none pointer-events-none"
-                      style={{
-                        opacity: 0, left: `${cfg.storyX}%`, top: `${cfg.storyY}%`,
-                        transform: "translate(-50%, -50%)", textAlign: "center",
-                        maxWidth: NARRATOR_STORY.maxWidth, fontSize: NARRATOR_STORY.fontSize,
-                        lineHeight: NARRATOR_STORY.lineHeight, fontFamily: "var(--font-narrator)",
-                        fontStyle: "italic", fontWeight: 400, color: "var(--cream-muted)",
-                        background: NARRATOR_STORY.bgGradient, padding: NARRATOR_STORY.bgPadding,
-                        zIndex: Z.narrator, willChange: "opacity",
-                      }}>
-                      {entry.story}
-                    </div>
-                  );
+            {/* Phone: stacked centered */}
+            <div className="flex sm:hidden flex-col items-center w-full mx-auto" style={{ maxWidth: 300 }}>
+              <div
+                ref={undefined}
+                style={{ width: "100%", willChange: "transform" }}>
+                {renderCard(entry, {
+                  boxShadow: "0 8px 40px rgba(0,0,0,0.45)",
                 })}
-                {seg.cards.map((cfg, i) => (
-                  <div
-                    key={cfg.entryId}
-                    ref={(el) => { artifactRefs.current[offset + i] = el; }}
-                    className="absolute pointer-events-none"
-                    style={{
-                      opacity: 0, left: `${cfg.fromX}%`, top: `${cfg.fromY}%`,
-                      transform: `rotate(${cfg.fromRotation}deg)`,
-                      width: `${cfg.widthPct}%`, zIndex: Z.cards + i, transformOrigin: "top left",
-                    }}>
-                    <div ref={(el) => { cardFrontRefs.current[offset + i] = el; }} style={{ willChange: "opacity" }}>
-                      {renderChoreographyCard(cfg.entryId, {
-                        boxShadow: cfg.brightness === "light" ? CARD_SHADOWS.light : CARD_SHADOWS.dark,
-                      })}
-                    </div>
-                    <div
-                      ref={(el) => { cardBackRefs.current[offset + i] = el; }}
-                      style={{
-                        position: "absolute", inset: 0, borderRadius: CARD_SHELL_RADIUS,
-                        background: MORPH.bgGradient, border: MORPH.border,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        padding: MORPH.padding, opacity: 0, willChange: "opacity",
-                      }}>
-                      <div className="font-serif" style={{
-                        fontSize: MORPH.fontSize, color: MORPH.textColor,
-                        textAlign: "center", lineHeight: MORPH.lineHeight, fontStyle: "italic",
-                      }}>
-                        {getEntry(cfg.entryId)?.iStatement}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </>
-            ) : (
-              <>
-                {/* Crossfade: card left, i-statement + story right, EC parallax */}
-                {seg.cards.map((cfg, i) => {
-                  const entry = getEntry(cfg.entryId);
-                  if (!entry) return null;
-                  return (
-                    <div
-                      key={cfg.entryId}
-                      ref={(el) => { artifactRefs.current[offset + i] = el; }}
-                      className="absolute inset-0 flex items-center px-8 pointer-events-none"
-                      style={{ opacity: 0, visibility: "hidden", zIndex: Z.cards }}>
-                      <div className="flex w-full mx-auto items-center gap-14" style={{ maxWidth: 1100 }}>
-                        {/* Left: card */}
-                        <div style={{ width: "42%" }}>
-                          <div
-                            ref={(el) => { cardFrontRefs.current[offset + i] = el; }}
-                            style={{ willChange: "transform" }}>
-                            {renderCard(entry, { boxShadow: "0 8px 40px rgba(0,0,0,0.45)" })}
-                          </div>
-                          <div
-                            ref={(el) => { companyRefs.current[offset + i] = el; }}
-                            className="font-ui mt-4 text-center"
-                            style={{
-                              opacity: 0, fontSize: 10, letterSpacing: "0.18em",
-                              textTransform: "uppercase", color: "var(--gold-dim)",
-                            }}>
-                            {entry.company} &middot; {entry.years}
-                          </div>
-                        </div>
-                        {/* Right: i-statement (large) + story (smaller) */}
-                        <div style={{ width: "50%" }}>
-                          <div
-                            ref={(el) => { iStmtRefs.current[offset + i] = el; }}
-                            style={{
-                              opacity: 0, willChange: "transform, opacity",
-                              fontFamily: "var(--font-serif)", fontStyle: "italic",
-                              fontSize: "clamp(1.1rem, 2vw, 1.6rem)", lineHeight: 1.35,
-                              letterSpacing: "-0.01em", color: "var(--gold)", fontWeight: 400,
-                            }}>
-                            {entry.iStatement}
-                          </div>
-                          <div
-                            ref={(el) => { storyRefs.current[offset + i] = el; }}
-                            style={{
-                              opacity: 0, marginTop: 32, willChange: "transform, opacity",
-                              fontFamily: "var(--font-narrator)", fontStyle: "italic",
-                              fontSize: "clamp(0.78rem, 1vw, 0.9rem)", lineHeight: 1.75,
-                              color: "var(--text-dim)",
-                            }}>
-                            {entry.story}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </>
-            )}
-          </Fragment>
+              </div>
+              <div
+                className="font-ui mt-3 text-center"
+                style={{
+                  fontSize: 9,
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  color: "var(--gold-dim)",
+                  opacity: 0.5,
+                }}>
+                {entry.company} &middot; {entry.years}
+              </div>
+              <div
+                className="mt-4 text-center"
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontStyle: "italic",
+                  fontSize: "clamp(1rem, 4vw, 1.3rem)",
+                  lineHeight: 1.4,
+                  color: "var(--gold)",
+                }}>
+                {entry.iStatement}
+              </div>
+              <div
+                className="mt-3 text-center"
+                style={{
+                  fontFamily: "var(--font-narrator)",
+                  fontStyle: "italic",
+                  fontSize: "clamp(0.75rem, 3vw, 0.85rem)",
+                  lineHeight: 1.7,
+                  color: "var(--text-dim)",
+                }}>
+                {entry.story}
+              </div>
+            </div>
+          </div>
         );
       })}
 
-      <pre ref={debugRef} style={{
-        position: "absolute", bottom: 12, right: 12, zIndex: Z.debug,
-        background: "rgba(0,0,0,0.85)", color: "#0f0",
-        fontFamily: "ui-monospace, SFMono-Regular, monospace",
-        fontSize: 11, lineHeight: 1.4, padding: "10px 14px",
-        borderRadius: 6, border: "1px solid rgba(0,255,0,0.15)",
-        pointerEvents: "none", whiteSpace: "pre", minWidth: 280,
-      }} />
+      {/* Progress pills — hidden during prologue/curtain, visible during crossfade */}
+      <div
+        ref={pillContainerRef}
+        className="absolute left-1/2 flex items-center gap-2 pointer-events-none"
+        style={{ bottom: "4%", transform: "translateX(-50%)", zIndex: Z.keyword, opacity: 0, visibility: "hidden" }}>
+        {HIGHLIGHT_ENTRIES.map((entry, i) => (
+          <div
+            key={entry.id}
+            ref={(el) => { pillBgRefs.current[i] = el; }}
+            style={{
+              width: 8, height: 8, borderRadius: 999,
+              background: "var(--stroke)", overflow: "hidden",
+              transition: "width 0.3s ease, border-radius 0.3s ease",
+            }}>
+            <div
+              ref={(el) => { pillFillRefs.current[i] = el; }}
+              style={{
+                width: "0%", height: "100%",
+                background: "var(--gold-dim)", borderRadius: "inherit",
+                transition: "opacity 0.3s ease",
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Debug HUD */}
+      <pre
+        ref={debugRef}
+        style={{
+          position: "absolute",
+          bottom: 12,
+          right: 12,
+          zIndex: Z.debug,
+          background: "rgba(0,0,0,0.85)",
+          color: "#0f0",
+          fontFamily: "ui-monospace, SFMono-Regular, monospace",
+          fontSize: 11,
+          lineHeight: 1.4,
+          padding: "10px 14px",
+          borderRadius: 6,
+          border: "1px solid rgba(0,255,0,0.15)",
+          pointerEvents: "none",
+          whiteSpace: "pre",
+          minWidth: 280,
+        }}
+      />
     </>
   );
 
-  return { update, fullScreenJsx, contentJsx, recomputePositions };
+  return { update, fullScreenJsx, contentJsx };
 }
