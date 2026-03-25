@@ -331,13 +331,14 @@ export function SentryCard({
         {/* Error title */}
         <div
           style={{
-            fontSize: 16,
+            fontSize: 14,
             lineHeight: 1.4,
             color: "#F9FAFB",
             fontFamily: MONO,
             marginBottom: 6,
             fontWeight: 500,
             letterSpacing: "-0.01em",
+            wordBreak: "break-word",
           }}>
           {error.type}<span style={{ color: "#6B5A80" }}>:</span>{" "}
           <span style={{ color: "#E8B4B8" }}>{error.message}</span>
@@ -355,6 +356,7 @@ export function SentryCard({
             borderRadius: 6,
             border: "1px solid rgba(255,255,255,0.04)",
             lineHeight: 1.7,
+            overflowWrap: "anywhere",
           }}>
           <div>
             <span style={{ color: "#A78BFA" }}>{stackTrace.file}</span>
@@ -600,16 +602,16 @@ export function FigmaComment({
             {avatar}
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{author}</span>
-              <span style={{ fontSize: 11, color: INK_4 }}>2m ago</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: INK }}>{author}</span>
+              <span style={{ fontSize: 10, color: INK_4 }}>2m ago</span>
               <span
                 style={{
-                  fontSize: 9,
+                  fontSize: 8,
                   color: "#D97706",
                   background: "#FFFBEB",
                   border: "1px solid #FDE68A",
-                  padding: "2px 6px",
+                  padding: "1px 5px",
                   borderRadius: 3,
                   fontWeight: 600,
                   textTransform: "uppercase",
@@ -618,7 +620,7 @@ export function FigmaComment({
                 Unresolved
               </span>
             </div>
-            <div style={{ fontSize: 13, lineHeight: 1.6, color: INK_2 }}>{comment}</div>
+            <div style={{ fontSize: 12, lineHeight: 1.6, color: INK_2 }}>{comment}</div>
           </div>
         </div>
       </div>
@@ -633,6 +635,8 @@ export function FigmaComment({
 export interface MeetingNoteProps {
   date: string;
   title: string;
+  /** Optional separate heading for the body — if omitted, title is reused */
+  heading?: string;
   agendaLabel: string;
   agendaText: string;
   highlightedQuote: string;
@@ -644,6 +648,7 @@ export interface MeetingNoteProps {
 export function MeetingNote({
   date,
   title,
+  heading,
   agendaLabel,
   agendaText,
   highlightedQuote,
@@ -663,10 +668,9 @@ export function MeetingNote({
           borderBottom: "1px solid #F0EDE7",
           fontFamily: SYSTEM,
         }}>
-        <span style={{ fontSize: 16 }}>&#x1F4DD;</span>
-        <span style={{ fontSize: 12, color: INK_3, fontWeight: 500 }}>{title}</span>
-        <div style={{ flex: 1 }} />
-        <div style={{ display: "flex", gap: 3 }}>
+        <span style={{ fontSize: 14, flexShrink: 0 }}>&#x1F4DD;</span>
+        <span style={{ fontSize: 11, color: INK_3, fontWeight: 500, flex: 1, minWidth: 0 }}>{title}</span>
+        <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
           {viewers.map((v) => (
             <div
               key={v.avatar}
@@ -693,21 +697,21 @@ export function MeetingNote({
         </div>
       </div>
 
-      <div style={{ padding: "16px 20px 20px", fontFamily: SYSTEM }}>
-        <div style={{ fontSize: 11, color: INK_4, marginBottom: 6, fontWeight: 500 }}>{date}</div>
+      <div style={{ padding: "14px 16px 18px", fontFamily: SYSTEM }}>
+        <div style={{ fontSize: 10, color: INK_4, marginBottom: 4, fontWeight: 500 }}>{date}</div>
         <h3
           style={{
-            fontSize: 20,
+            fontSize: 17,
             fontWeight: 700,
             color: INK,
-            margin: "0 0 16px",
+            margin: "0 0 12px",
             lineHeight: 1.3,
             fontFamily: "Georgia, 'Times New Roman', serif",
           }}>
-          {title}
+          {heading ?? title}
         </h3>
 
-        <div style={{ fontSize: 14, lineHeight: 1.75, color: INK_2 }}>
+        <div style={{ fontSize: 13, lineHeight: 1.7, color: INK_2 }}>
           <div
             style={{
               fontSize: 11,
@@ -765,30 +769,34 @@ export function AdrComment({
       {/* Doc header */}
       <div
         style={{
-          padding: "10px 16px",
+          padding: "8px 12px",
           background: "#FAFAF8",
           borderBottom: `1px solid ${BORDER}`,
           display: "flex",
-          alignItems: "center",
-          gap: 8,
+          alignItems: "flex-start",
+          gap: 6,
+          flexWrap: "wrap",
           fontFamily: SYSTEM,
         }}>
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <rect x="1" y="1" width="12" height="12" rx="2" stroke="#6366F1" strokeWidth="1.3" />
-          <path d="M4 5h6M4 7h4M4 9h5" stroke="#6366F1" strokeWidth="1" strokeLinecap="round" />
-        </svg>
-        <span style={{ fontSize: 12, color: "#6366F1", fontWeight: 600, fontFamily: MONO }}>{docId}</span>
-        <span style={{ fontSize: 12, color: INK_3 }}>{subject}</span>
-        <div style={{ flex: 1 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+            <rect x="1" y="1" width="12" height="12" rx="2" stroke="#6366F1" strokeWidth="1.3" />
+            <path d="M4 5h6M4 7h4M4 9h5" stroke="#6366F1" strokeWidth="1" strokeLinecap="round" />
+          </svg>
+          <span style={{ fontSize: 10, color: "#6366F1", fontWeight: 600, fontFamily: MONO }}>{docId}</span>
+        </div>
+        <span style={{ fontSize: 10, color: INK_3, flex: 1, minWidth: 60 }}>{subject}</span>
         <span
           style={{
-            fontSize: 10,
+            fontSize: 9,
             color: "#B45309",
             background: "#FFFBEB",
             border: "1px solid #FDE68A",
-            padding: "2px 7px",
+            padding: "2px 6px",
             borderRadius: 4,
             fontWeight: 600,
+            flexShrink: 0,
+            whiteSpace: "nowrap",
           }}>
           {status.label}
         </span>
@@ -964,7 +972,7 @@ export function PlainTextBare({ context, quote, rotation = 0, style }: PlainText
       <p
         className="font-serif"
         style={{
-          fontSize: "clamp(22px, 3.5vw, 30px)",
+          fontSize: "clamp(16px, 2.5vw, 26px)",
           lineHeight: 1.4,
           color: "var(--cream)",
           maxWidth: 640,
