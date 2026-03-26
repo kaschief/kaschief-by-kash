@@ -11,12 +11,12 @@
  */
 
 import { useRef } from "react";
-import { CONTENT } from "../engineer-candidate/engineer-data";
+import { CONTENT } from "./engineer-data";
 import {
   THESIS as EC_THESIS,
   PREFIX_DISSOLVE,
-} from "../engineer-candidate/engineer-candidate.types";
-import { smoothstep, lerp, clamp } from "../engineer-candidate/math";
+} from "./engineer-candidate.types";
+import { smoothstep, lerp, clamp } from "./math";
 import { renderCard } from "../lab-artifacts/render-card";
 import { HIGHLIGHT_ENTRIES } from "./card-config";
 import {

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Shore Desk — resting composition with hover/click exploration.
+ * Story Desk — resting composition with hover/click exploration.
  * Extracted for reuse in both lab-lenses and engineer-candidate.
  */
 
@@ -277,7 +277,7 @@ function DeskCard({
 
   return (
     <button
-      className="text-left group shore-desk-card"
+      className="text-left group story-desk-card"
       onClick={onClick}
       onMouseEnter={touch ? undefined : () => setHovered(true)}
       onMouseLeave={touch ? undefined : () => setHovered(false)}
@@ -299,7 +299,7 @@ function DeskCard({
           : "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
       }}>
       {/* Card — responsive width via CSS classes */}
-      <div className="shore-card-w" style={{ pointerEvents: "none" }}>
+      <div className="story-card-w" style={{ pointerEvents: "none" }}>
         {renderCard(entry, {
           boxShadow: touch
             ? "0 4px 20px rgba(0,0,0,0.3)"
@@ -310,7 +310,7 @@ function DeskCard({
       </div>
       {/* I-statement — always visible on touch, hover on desktop */}
       <div
-        className="shore-i-stmt text-center"
+        className="story-i-stmt text-center"
         style={{
           marginTop: 8,
           fontFamily: "var(--font-narrator)",
@@ -348,7 +348,7 @@ function DeskCard({
   );
 }
 
-export function ShoreDesk() {
+export function StoryDesk() {
   const [selected, setSelected] = useState<LensEntry | null>(null);
   const handleClose = useCallback(() => setSelected(null), []);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -409,37 +409,37 @@ export function ShoreDesk() {
           willChange: "transform, opacity",
         }}>
         <style>{`
-          .shore-card-w { width: 100%; }
+          .story-card-w { width: 100%; }
 
           /* ── Mobile (<640): 2 cols, no scatter, cards zoomed to fit, i-statements visible ── */
           @media (max-width: 639px) {
-            .shore-grid-item { transform: none !important; width: calc(50% - 8px); }
-            .shore-desk-card { transform: none !important; width: 100%; }
-            .shore-i-stmt { opacity: 1 !important; transform: none !important; font-size: 11px !important; line-height: 1.35 !important; margin-top: 5px !important; }
-            .shore-card-w { width: 100%; zoom: 0.62; }
+            .story-grid-item { transform: none !important; width: calc(50% - 8px); }
+            .story-desk-card { transform: none !important; width: 100%; }
+            .story-i-stmt { opacity: 1 !important; transform: none !important; font-size: 11px !important; line-height: 1.35 !important; margin-top: 5px !important; }
+            .story-card-w { width: 100%; zoom: 0.62; }
           }
 
           /* ── Tablet: 3 columns ── */
           @media (min-width: 640px) {
-            .shore-grid-item { width: 200px; }
+            .story-grid-item { width: 200px; }
           }
           /* ── Desktop: 4 columns ── */
           @media (min-width: 1024px) {
-            .shore-grid-item { width: 220px; }
+            .story-grid-item { width: 220px; }
           }
           @media (min-width: 1280px) {
-            .shore-grid-item { width: 260px; }
+            .story-grid-item { width: 260px; }
           }
         `}</style>
         <div
-          className="shore-grid flex flex-wrap justify-center gap-y-10 sm:gap-y-12 gap-x-4 sm:gap-x-6"
+          className="story-grid flex flex-wrap justify-center gap-y-10 sm:gap-y-12 gap-x-4 sm:gap-x-6"
           style={{ padding: "8px" }}>
           {REMAINING_ENTRIES.map((entry, i) => {
             const pos = POSITIONS[i % POSITIONS.length];
             return (
               <div
                 key={entry.id}
-                className="shore-grid-item min-w-0"
+                className="story-grid-item min-w-0"
                 style={{
                   transform: `translate(${pos.nudgeX}px, ${pos.nudgeY}px)`,
                 }}>
