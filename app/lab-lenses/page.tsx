@@ -4,7 +4,7 @@
  * Lab Lenses — Prologue + Crossfade Highlights + Shore Desk
  *
  * 1. Scroll-gated: thesis → keywords → curtain → 4 highlight card crossfade
- * 2. Normal flow: Shore desk with remaining 8 cards (hover/click to explore)
+ * 2. Normal flow: Story desk with remaining 8 cards (hover/click to explore)
  */
 
 import { useRef, useEffect } from "react";
@@ -14,9 +14,9 @@ import {
   useLenses,
   CONTAINER_HEIGHT_VH,
   SMOOTH_LERP_FACTOR,
-} from "./use-lenses";
-import { MAX_CONTENT_WIDTH } from "./lenses.config";
-import { ShoreDesk } from "./shore-desk";
+} from "../engineer-candidate/use-lenses";
+import { MAX_CONTENT_WIDTH } from "../engineer-candidate/lenses.config";
+import { StoryDesk } from "../engineer-candidate/story-desk";
 import { useBreakpoint } from "@hooks";
 import { BREAKPOINTS } from "@utilities";
 
@@ -86,8 +86,8 @@ export default function LabLensesPage() {
         </div>
       </div>
 
-      {/* Normal-flow Shore desk */}
-      <ShoreDesk />
+      {/* Normal-flow Story desk */}
+      <StoryDesk />
     </>
   );
 }

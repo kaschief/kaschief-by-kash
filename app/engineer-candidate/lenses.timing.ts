@@ -12,8 +12,8 @@
 import {
   THESIS as EC_THESIS,
   CONTAINER_VH as EC_CONTAINER_VH,
-} from "../engineer-candidate/engineer-candidate.types";
-import { CONTENT } from "../engineer-candidate/engineer-data";
+} from "./engineer-candidate.types";
+import { CONTENT } from "./engineer-data";
 import {
   TUNED_CONTAINER_VH,
   THESIS_PHASE_START,

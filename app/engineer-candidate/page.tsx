@@ -39,9 +39,9 @@ import {
   useLenses,
   CONTAINER_HEIGHT_VH as LENSES_SECTION_VH,
   SMOOTH_LERP_FACTOR,
-} from "../lab-lenses/use-lenses";
-import { MAX_CONTENT_WIDTH } from "../lab-lenses/lenses.config";
-import { ShoreDesk } from "../lab-lenses/shore-desk";
+} from "./use-lenses";
+import { MAX_CONTENT_WIDTH } from "./lenses.config";
+import { StoryDesk } from "./story-desk";
 import { useBreakpoint } from "@hooks";
 
 /* ================================================================== */
@@ -427,9 +427,9 @@ export default function EngineerCandidate() {
       </div>
 
       {/* ============================================================ */}
-      {/*  SHORE DESK: Normal-flow remaining cards                      */}
+      {/*  STORY DESK: Normal-flow remaining cards                      */}
       {/* ============================================================ */}
-      <ShoreDesk />
+      <StoryDesk />
 
       {/* ============================================================ */}
       {/*  CONTAINER B: Particles → Funnel → Terminal                   */}
