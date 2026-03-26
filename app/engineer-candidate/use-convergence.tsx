@@ -49,6 +49,8 @@ export function useConvergence() {
     isDesktop: boolean,
     curtainTop: number,
     viewportHeight: number,
+    /** When true, thesis sentence is hidden — lenses prologue replaces it */
+    skipThesis = false,
   ) {
     const CURTAIN_FADE = CHROME.curtainFadePx;
 
@@ -160,7 +162,9 @@ export function useConvergence() {
     }
 
     /* ---- Thesis ---- */
-    if (thesisEls.current[0]) {
+    if (skipThesis) {
+      if (thesisEls.current[0]) thesisEls.current[0].style.opacity = "0";
+    } else if (thesisEls.current[0]) {
       const thesisFadeInEnd = THESIS_START + PHASES.thesis * THESIS.fadeInFrac;
       const thesisFadeOutStart = THESIS_END - PHASES.thesis * THESIS.fadeOutFrac;
       const fadeIn = smoothstep(THESIS_START, thesisFadeInEnd, progress),

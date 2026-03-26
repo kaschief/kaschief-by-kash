@@ -1,14 +1,15 @@
 "use client";
 
 /**
- * EngineerCandidate — Single-file workstation build.
+ * EngineerCandidate — Workstation build with integrated lenses.
  *
  * Structure:
- *   Container (2000vh — see CONTAINER_VH)
- *     └─ Sticky viewport (V0's complete scroll: convergence + thesis + beats + crystallize)
- *     └─ Summary panel (inside container, scrolls up over sticky — exactly like V0)
- *   ParticleSection (800vh)
- *     └─ Sticky viewport (explosion + fall + funnel)
+ *   Container A (title → convergence → lenses thesis/curtain/crossfade)
+ *     └─ Single sticky viewport — fragments converge seamlessly into lenses thesis
+ *     └─ Summary panel (scrolls up over sticky)
+ *   Shore Desk (normal flow — 8 remaining cards)
+ *   Container B (particles → funnel → terminal)
+ *     └─ Sticky viewport
  */
 
 import { useRef, useState, useEffect } from "react";
@@ -24,7 +25,24 @@ import { LabNav } from "../lab-nav";
 import { smoothstep } from "./math";
 import { ACT_BLUE, CONTENT } from "./engineer-data";
 import { BREAKPOINTS } from "@utilities";
-import { CONTAINER_VH, CHROME, SCROLL_PHASES } from "./engineer-candidate.types";
+import {
+  CONTAINER_VH,
+  CHROME,
+  SCROLL_PHASES,
+  PARTICLES_START,
+  THESIS_START,
+  CONVERGENCE_GATE,
+} from "./engineer-candidate.types";
+
+/* ---- Lenses imports ---- */
+import {
+  useLenses,
+  CONTAINER_HEIGHT_VH as LENSES_SECTION_VH,
+  SMOOTH_LERP_FACTOR,
+} from "../lab-lenses/use-lenses";
+import { MAX_CONTENT_WIDTH } from "../lab-lenses/lenses.config";
+import { ShoreDesk } from "../lab-lenses/shore-desk";
+import { useBreakpoint } from "@hooks";
 
 /* ================================================================== */
 /*  Breakpoint refs (no-re-render, matches Act I pattern)              */
@@ -50,7 +68,6 @@ function useBreakpointRefs() {
 import { useTerminalReplay } from "./use-terminal-replay";
 import { useConvergence } from "./use-convergence";
 import { useParticleFunnel } from "./use-particle-funnel";
-
 
 /* ================================================================== */
 /*  V0: ScrambleText                                                   */
@@ -108,6 +125,29 @@ function ScrambleWord({ text, active }: { text: string; active: boolean }) {
 }
 
 /* ================================================================== */
+/*  Container height constants                                         */
+/* ================================================================== */
+
+/**
+ * Container A = convergence + lenses in one sticky viewport.
+ *
+ * Convergence runs 0 → CONVERGENCE_GATE (fragments fully dissolve).
+ * Lenses thesis starts at THESIS_START (during embers, before fragments finish).
+ * They overlap, matching the committed version's crossfade between fragments and thesis.
+ */
+/** Lenses thesis begins slightly before THESIS_START — during embers rising */
+const LENSES_EARLY_OFFSET = 0.015;
+const LENSES_START_VH = Math.ceil(
+  (THESIS_START - LENSES_EARLY_OFFSET) * CONTAINER_VH,
+);
+
+/** Container B = particles → funnel → terminal (PARTICLES_START → 1 in EC progress) */
+const CONTAINER_B_VH = Math.ceil((1 - PARTICLES_START) * CONTAINER_VH);
+
+/** Mobile: halve the lenses scroll distance */
+const LENSES_MOBILE_SCROLL_FACTOR = 0.5;
+
+/* ================================================================== */
 /*  Component                                                          */
 /* ================================================================== */
 
@@ -115,23 +155,39 @@ export default function EngineerCandidate() {
   const { isLg } = useBreakpointRefs();
   const isStandalone = usePathname() === "/engineer-candidate";
 
-  /* ---- Refs owned by this orchestrator ---- */
-  const stickyViewportRef = useRef<HTMLDivElement>(null);
-  const summaryPanelRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  /* ---- Refs: Container A (convergence + lenses, one viewport) ---- */
+  const containerARef = useRef<HTMLDivElement>(null);
+  const stickyViewportARef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const titleInViewRef = useRef<HTMLDivElement>(null);
+  const summaryPanelRef = useRef<HTMLDivElement>(null);
+
+  /* ---- Lenses smoothing refs ---- */
+  const lensesSmoothedProgress = useRef(0);
+  const lensesRawProgress = useRef(0);
+  const lensesAnimFrameId = useRef(0);
+
+  /* ---- Refs: Container B (particles → funnel → terminal) ---- */
+  const containerBRef = useRef<HTMLDivElement>(null);
   const vignetteEl = useRef<HTMLDivElement>(null);
   const beatGlowEl = useRef<HTMLDivElement>(null);
 
-  /* ---- Animation hooks (each owns its refs + scroll update + JSX) ---- */
+  /* ---- Animation hooks ---- */
   const convergence = useConvergence();
   const terminalReplay = useTerminalReplay({
-    scrollContainerRef,
+    scrollContainerRef: containerBRef,
     beatGlowEl,
     vignetteEl,
   });
   const particleFunnel = useParticleFunnel({ isLgRef: isLg });
+  const lenses = useLenses();
+
+  /* ---- Responsive height for Container A ---- */
+  const isSmUp = useBreakpoint(BREAKPOINTS.sm);
+  const lensesVh = isSmUp
+    ? LENSES_SECTION_VH
+    : Math.ceil(LENSES_SECTION_VH * LENSES_MOBILE_SCROLL_FACTOR);
+  const containerAHeight = LENSES_START_VH + lensesVh;
 
   /* ---- Title scramble ---- */
   const titleInView = useInView(titleInViewRef, { once: true, amount: 0.5 });
@@ -140,26 +196,37 @@ export default function EngineerCandidate() {
     if (titleInView) setTitleActive(true);
   }, [titleInView]);
 
-  /* ---- Scroll progress (V0 — 2000vh) ---- */
-  const { scrollYProgress: scrollProgress } = useScroll({
-    target: scrollContainerRef,
+  /* ================================================================ */
+  /*  Scroll: Container A (convergence + lenses in one viewport)       */
+  /* ================================================================ */
+
+  const { scrollYProgress: progressA } = useScroll({
+    target: containerARef,
     offset: ["start start", "end end"],
   });
 
-  useMotionValueEvent(scrollProgress, "change", (progress) => {
-    /* ---- Curtain edge: where the summary panel top is on screen ---- */
-    let curtainTop = window.innerHeight; // default: off-screen (no curtain)
+  useMotionValueEvent(progressA, "change", (p) => {
+    // Convert local progress (0→1) to scroll position in vh
+    const scrollVh = p * containerAHeight;
+
+    /* ---- Curtain edge from summary panel ---- */
+    let curtainTop = window.innerHeight;
     if (summaryPanelRef.current) {
       const summaryTop = summaryPanelRef.current.getBoundingClientRect().top;
       if (summaryTop < window.innerHeight) curtainTop = Math.max(0, summaryTop);
     }
 
-
-    /* ---- Title fade: slow scroll fade + fast erase when panel arrives ---- */
+    /* ---- Title fade ---- */
+    // Map to EC progress for title phases
+    const ecProgress = Math.min(scrollVh / CONTAINER_VH, CONVERGENCE_GATE);
     if (titleRef.current) {
-      // Slow fade over a wide scroll range
-      const slowFade = 1 - smoothstep(SCROLL_PHASES.TITLE.start, SCROLL_PHASES.TITLE.end * CHROME.titleSlowFadeMult, progress);
-      // Fast erase when panel is on-screen — same curtainReveal as fragments
+      const slowFade =
+        1 -
+        smoothstep(
+          SCROLL_PHASES.TITLE.start,
+          SCROLL_PHASES.TITLE.end * CHROME.titleSlowFadeMult,
+          ecProgress,
+        );
       const curtainFade =
         curtainTop >= window.innerHeight
           ? 1
@@ -171,24 +238,50 @@ export default function EngineerCandidate() {
       titleRef.current.style.opacity = String(Math.min(slowFade, curtainFade));
     }
 
-    /* ============================================================== */
-    /*  MOVEMENT 1: CONVERGENCE — delegated to useConvergence          */
-    /* ============================================================== */
+    /* ---- Convergence (fragments, embers, grid) ---- */
     const viewportHeight = window.innerHeight;
     const isDesktop = isLg.current;
-    convergence.update(progress, isDesktop, curtainTop, viewportHeight);
+    convergence.update(ecProgress, isDesktop, curtainTop, viewportHeight, true);
 
-    /* ============================================================== */
-    /*  PARTICLES → DOTS → RIBBONS + MID NARRATOR                      */
-    /*  Delegated to useParticleFunnel hook                             */
-    /* ============================================================== */
-    particleFunnel.update(progress);
+    /* ---- Lenses (thesis, curtain, crossfade) ---- */
+    // Lenses starts at THESIS_START (during embers), overlapping with convergence tail
+    if (scrollVh >= LENSES_START_VH) {
+      const lensesLocalProgress = (scrollVh - LENSES_START_VH) / lensesVh;
+      lensesRawProgress.current = Math.min(1, Math.max(0, lensesLocalProgress));
+    } else {
+      lensesRawProgress.current = 0;
+    }
+  });
 
-    /* ============================================================== */
-    /*  MOVEMENT 2: TERMINAL REPLAY — delegated to useTerminalReplay   */
-    /* ============================================================== */
-    terminalReplay.update(progress, isDesktop);
+  /* ---- RAF loop for smoothed lenses progress ---- */
+  const lensesUpdate = lenses.update;
+  useEffect(() => {
+    const tick = () => {
+      lensesSmoothedProgress.current +=
+        (lensesRawProgress.current - lensesSmoothedProgress.current) *
+        SMOOTH_LERP_FACTOR;
+      lensesUpdate(lensesSmoothedProgress.current, stickyViewportARef);
+      lensesAnimFrameId.current = requestAnimationFrame(tick);
+    };
+    lensesAnimFrameId.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(lensesAnimFrameId.current);
+  }, [lensesUpdate]);
 
+  /* ================================================================ */
+  /*  Scroll: Container B (particles → funnel → terminal)              */
+  /* ================================================================ */
+
+  const { scrollYProgress: progressB } = useScroll({
+    target: containerBRef,
+    offset: ["start start", "end end"],
+  });
+
+  useMotionValueEvent(progressB, "change", (p) => {
+    // Map container-local progress (0→1) to EC progress (PARTICLES_START→1)
+    const ecProgress = PARTICLES_START + p * (1 - PARTICLES_START);
+    const isDesktop = isLg.current;
+    particleFunnel.update(ecProgress);
+    terminalReplay.update(ecProgress, isDesktop);
   });
 
   /* ================================================================ */
@@ -200,15 +293,15 @@ export default function EngineerCandidate() {
       {isStandalone && <LabNav />}
 
       {/* ============================================================ */}
-      {/*  SCROLL CONTAINER (2000vh) — V0's complete sequence           */}
+      {/*  CONTAINER A: Convergence + Lenses (one sticky viewport)     */}
       {/* ============================================================ */}
       <div
-        ref={scrollContainerRef}
+        ref={containerARef}
         data-sticky-zone
-        style={{ height: `${CONTAINER_VH}vh` }}
+        style={{ height: `${containerAHeight}vh` }}
         className="relative">
         <div
-          ref={stickyViewportRef}
+          ref={stickyViewportARef}
           className="sticky top-0 h-screen w-full overflow-hidden [container-type:size] [--frag-scale:0.6] sm:[--frag-scale:0.85]"
           style={{ background: "var(--bg)", zIndex: 1 }}>
           <div
@@ -217,30 +310,19 @@ export default function EngineerCandidate() {
             style={{ height: 0, opacity: 0, background: "var(--bg)" }}
           />
 
-          {/* Convergence atmosphere, glow, embers — rendered by useConvergence hook */}
+          {/* Convergence atmosphere, glow, embers, fragments */}
           {convergence.jsx}
 
+          {/* Lenses: thesis sentence, curtain, crossfade cards (fullscreen layer) */}
+          {lenses.fullScreenJsx}
+
+          {/* Lenses: crossfade content (cards, pills — constrained width layer) */}
           <div
-            ref={vignetteEl}
-            aria-hidden
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              opacity: 0,
-              background:
-                "radial-gradient(ellipse 60% 60% at 50% 50%, transparent 0%, var(--bg) 100%)",
-            }}
-          />
-          <div
-            ref={beatGlowEl}
-            aria-hidden
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            style={{
-              width: "100vw",
-              height: "100vh",
-              opacity: 0,
-              willChange: "opacity, background",
-            }}
-          />
+            className="relative h-full mx-auto"
+            style={{ maxWidth: MAX_CONTENT_WIDTH }}>
+            {lenses.contentJsx}
+          </div>
+
           {/* Title */}
           <div
             ref={titleRef}
@@ -287,14 +369,6 @@ export default function EngineerCandidate() {
             </div>
           </div>
 
-          {/* Convergence fragments + thesis — rendered by useConvergence hook */}
-
-          {/* Particle canvas, funnel SVG, narrator panels, mobile skills, mid narrator — rendered by useParticleFunnel hook */}
-          {particleFunnel.jsx}
-
-          {/* Terminal + Narrative + Dot indicator — rendered by useTerminalReplay hook */}
-          {terminalReplay.jsx}
-
           {/* Chrome — page title only visible on standalone route */}
           {isStandalone && (
             <div
@@ -309,7 +383,7 @@ export default function EngineerCandidate() {
           )}
         </div>
 
-        {/* ---- Post-section summary (INSIDE container, scrolls up over sticky) ---- */}
+        {/* ---- Summary panel (INSIDE container A, scrolls up over sticky) ---- */}
         <div
           ref={summaryPanelRef}
           className="relative flex flex-col items-center justify-center py-32 px-6 sm:px-8"
@@ -352,6 +426,51 @@ export default function EngineerCandidate() {
         </div>
       </div>
 
+      {/* ============================================================ */}
+      {/*  SHORE DESK: Normal-flow remaining cards                      */}
+      {/* ============================================================ */}
+      <ShoreDesk />
+
+      {/* ============================================================ */}
+      {/*  CONTAINER B: Particles → Funnel → Terminal                   */}
+      {/* ============================================================ */}
+      <div
+        ref={containerBRef}
+        data-sticky-zone
+        style={{ height: `${CONTAINER_B_VH}vh` }}
+        className="relative">
+        <div
+          className="sticky top-0 h-screen w-full overflow-hidden [container-type:size]"
+          style={{ background: "var(--bg)", zIndex: 1 }}>
+          <div
+            ref={vignetteEl}
+            aria-hidden
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              opacity: 0,
+              background:
+                "radial-gradient(ellipse 60% 60% at 50% 50%, transparent 0%, var(--bg) 100%)",
+            }}
+          />
+          <div
+            ref={beatGlowEl}
+            aria-hidden
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            style={{
+              width: "100vw",
+              height: "100vh",
+              opacity: 0,
+              willChange: "opacity, background",
+            }}
+          />
+
+          {/* Particle canvas, funnel SVG, narrator panels, mobile skills, mid narrator */}
+          {particleFunnel.jsx}
+
+          {/* Terminal + Narrative + Dot indicator */}
+          {terminalReplay.jsx}
+        </div>
+      </div>
     </>
   );
 }
