@@ -63,6 +63,8 @@ import {
   CREAM_MUTED,
   TEXT_DIM,
   TEXT_FAINT,
+  GOLD,
+  PROMOTED as PROMOTED_GREEN,
   COMMIT_TYPE_COLORS,
   COMMIT_TYPE_FALLBACK,
 } from "../../act-ii-legacy/act-ii.constants";
@@ -140,6 +142,10 @@ export function useRolesCloud() {
   const rolesGridEl = useRef<HTMLDivElement>(null);
   const gridSeedRefs = useRef<Map<string, HTMLSpanElement>>(new Map());
   const gridFillEls = useRef<(HTMLElement | null)[]>([]);
+  /** Commit line elements (blur out during drain) */
+  const commitLineEls = useRef<(HTMLElement | null)[]>([]);
+  /** Impact metric elements (fade in during drain) */
+  const impactLineEls = useRef<(HTMLElement | null)[]>([]);
   const stickyViewportRef = useRef<HTMLDivElement | null>(null);
 
   /** Measured target positions (px from viewport center) */
@@ -392,15 +398,13 @@ export function useRolesCloud() {
         progress,
       );
 
-      // Elegant drain: grayscale builds through first 60% of drain,
-      // then opacity fades through the last 50% — overlapping for a soft dissolve
+      // Drain: commits blur out, impacts fade in, then whole grid fades
       const drainP = smoothstep(ROLES_HOLD_END, ROLES_DRAIN_END, progress);
-      const grayscale = smoothstep(0, 0.6, drainP);
-      const opacityFade = 1 - smoothstep(0.5, 1.0, drainP);
+      // Grid stays visible through most of drain, fades at the very end
+      const gridFadeOut = 1 - smoothstep(0.85, 1.0, drainP);
 
-      rolesGridEl.current.style.opacity = String(gridAppear * opacityFade);
-      rolesGridEl.current.style.filter =
-        grayscale > 0.01 ? `grayscale(${grayscale})` : "none";
+      rolesGridEl.current.style.opacity = String(gridAppear * gridFadeOut);
+      rolesGridEl.current.style.filter = "none";
     }
 
     // Seed placeholders in grid: appear as flying seeds fade (based on fly phase)
@@ -433,11 +437,40 @@ export function useRolesCloud() {
       );
       const wordEnd = wordStart + fillWordDur;
       const wordP = smoothstep(wordStart, wordEnd, progress);
-      // Fade out during drain — complete at ROLES_DRAIN_END
-      const fillDrainMid = ROLES_HOLD_END + (ROLES_DRAIN_END - ROLES_HOLD_END) * 0.8;
-      const drainFade = 1 - smoothstep(fillDrainMid, ROLES_DRAIN_END, progress);
-      el.style.opacity = String(wordP * drainFade);
+      el.style.opacity = String(wordP);
       el.style.transform = `translateY(${lerp(6, 0, wordP)}px)`;
+    });
+
+    /* ═══ DRAIN: commits blur out, impacts fade in ═══ */
+    const drainP = smoothstep(ROLES_HOLD_END, ROLES_DRAIN_END, progress);
+
+    // Commit lines: blur + fade during first 35% of drain
+    commitLineEls.current.forEach((el, i) => {
+      if (!el) return;
+      const stagger = (i % 4) * 0.05;
+      const lineP = smoothstep(stagger, 0.35 + stagger * 0.3, drainP);
+      el.style.opacity = String(1 - lineP);
+      el.style.filter = lineP > 0.01 ? `blur(${lerp(0, 4, lineP)}px)` : "none";
+    });
+
+    // Seed word placeholders: also fade during drain
+    if (drainP > 0.01) {
+      gridSeedRefs.current.forEach((el) => {
+        const seedDrain = smoothstep(0.05, 0.35, drainP);
+        const currentOpacity = parseFloat(el.style.opacity || "1");
+        el.style.opacity = String(Math.min(currentOpacity, 1 - seedDrain));
+        if (seedDrain > 0.01) el.style.filter = `blur(${lerp(0, 4, seedDrain)}px)`;
+      });
+    }
+
+    // Impact metrics: fade in 20–40%, hold 40–82%, fade out 82–96%
+    impactLineEls.current.forEach((el, i) => {
+      if (!el) return;
+      const stagger = (i % 4) * 0.04;
+      const fadeIn = smoothstep(0.20 + stagger, 0.40 + stagger, drainP);
+      const fadeOut = 1 - smoothstep(0.82, 0.96, drainP);
+      el.style.opacity = String(fadeIn * fadeOut);
+      el.style.transform = `translateY(${lerp(4, 0, fadeIn)}px)`;
     });
 
     /* ═══ THESIS ═══ */
@@ -496,6 +529,16 @@ export function useRolesCloud() {
   const setFillRef = (el: HTMLElement | null) => {
     const idx = fillIdx++;
     gridFillEls.current[idx] = el;
+  };
+  let commitLineIdx = 0;
+  const setCommitLineRef = (el: HTMLElement | null) => {
+    const idx = commitLineIdx++;
+    commitLineEls.current[idx] = el;
+  };
+  let impactLineIdx = 0;
+  const setImpactLineRef = (el: HTMLElement | null) => {
+    const idx = impactLineIdx++;
+    impactLineEls.current[idx] = el;
   };
 
   const jsx = (
@@ -762,72 +805,111 @@ export function useRolesCloud() {
                   style={{ color: TEXT_DIM, opacity: 0 }}>
                   {company.location} &middot; {company.period}
                 </div>
-                <ul
-                  className="flex flex-col"
-                  style={{ marginTop: "0.5rem", gap: "0.125rem" }}>
-                  {company.commits.map((commit, commitIdx) => {
-                    const typeColor =
-                      COMMIT_TYPE_COLORS[commit.type] ?? COMMIT_TYPE_FALLBACK;
-                    return (
-                      <li
-                        key={commitIdx}
-                        className="font-ui text-[10px] leading-[1.7] sm:text-[11px] md:text-[12px]">
-                        <span
-                          ref={setFillRef}
-                          style={{ color: typeColor, opacity: 0 }}>
-                          {commit.type}
-                        </span>
-                        <span
-                          ref={setFillRef}
-                          style={{ color: TEXT_FAINT, opacity: 0 }}>
-                          :{" "}
-                        </span>
-                        {commit.msg.split(/\s+/).map((word, wordIdx) => {
-                          const lower = word
-                            .toLowerCase()
-                            .replace(/[^a-z]/g, "");
-                          const claimKey = `${ci}-${lower}`;
-                          const isSeed =
-                            seedSet.has(lower) && !claimed.has(claimKey);
-                          const msgWords = commit.msg.split(/\s+/);
-                          const space =
-                            wordIdx < msgWords.length - 1 ? "\u00A0" : "";
-                          if (isSeed) {
-                            claimed.add(claimKey);
-                            const refKey = `${ci}-${commitIdx}-${wordIdx}`;
+                {/* Commits + overlaid impact metrics */}
+                <div className="relative" style={{ marginTop: "0.5rem" }}>
+                  {/* Commit lines (blur out during drain) */}
+                  <ul className="flex flex-col" style={{ gap: "0.125rem" }}>
+                    {company.commits.map((commit, commitIdx) => {
+                      const typeColor =
+                        COMMIT_TYPE_COLORS[commit.type] ?? COMMIT_TYPE_FALLBACK;
+                      return (
+                        <li
+                          key={commitIdx}
+                          ref={setCommitLineRef}
+                          className="font-ui text-[10px] leading-[1.7] sm:text-[11px] md:text-[12px]">
+                          <span
+                            ref={setFillRef}
+                            style={{ color: typeColor, opacity: 0 }}>
+                            {commit.type}
+                          </span>
+                          <span
+                            ref={setFillRef}
+                            style={{ color: TEXT_FAINT, opacity: 0 }}>
+                            :{" "}
+                          </span>
+                          {commit.msg.split(/\s+/).map((word, wordIdx) => {
+                            const lower = word
+                              .toLowerCase()
+                              .replace(/[^a-z]/g, "");
+                            const claimKey = `${ci}-${lower}`;
+                            const isSeed =
+                              seedSet.has(lower) && !claimed.has(claimKey);
+                            const msgWords = commit.msg.split(/\s+/);
+                            const space =
+                              wordIdx < msgWords.length - 1 ? "\u00A0" : "";
+                            if (isSeed) {
+                              claimed.add(claimKey);
+                              const refKey = `${ci}-${commitIdx}-${wordIdx}`;
+                              return (
+                                <span
+                                  key={wordIdx}
+                                  ref={(el) => {
+                                    if (el)
+                                      gridSeedRefs.current.set(refKey, el);
+                                  }}
+                                  className="inline-block"
+                                  style={{
+                                    color: CREAM,
+                                    opacity: 0,
+                                    visibility: "hidden",
+                                  }}>
+                                  {word}
+                                  {space}
+                                </span>
+                              );
+                            }
                             return (
                               <span
                                 key={wordIdx}
-                                ref={(el) => {
-                                  if (el)
-                                    gridSeedRefs.current.set(refKey, el);
-                                }}
+                                ref={setFillRef}
                                 className="inline-block"
-                                style={{
-                                  color: CREAM,
-                                  opacity: 0,
-                                  visibility: "hidden",
-                                }}>
+                                style={{ color: CREAM_MUTED, opacity: 0 }}>
                                 {word}
                                 {space}
                               </span>
                             );
-                          }
-                          return (
-                            <span
-                              key={wordIdx}
-                              ref={setFillRef}
-                              className="inline-block"
-                              style={{ color: CREAM_MUTED, opacity: 0 }}>
-                              {word}
-                              {space}
-                            </span>
+                          })}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {/* Impact metrics (fade in at same positions during drain) */}
+                  <ul
+                    className="absolute inset-0 flex flex-col"
+                    style={{ gap: "0.125rem" }}>
+                    {company.repo.impact.map((metric, mi) => {
+                      const isPromotion = metric.promoted === true;
+                      const baseColor = isPromotion ? GOLD : CREAM_MUTED;
+                      const displayText = metric.text ?? metric.label;
+                      const hl = metric.highlight;
+
+                      // Split text around highlight substring
+                      let content: React.ReactNode = displayText;
+                      if (hl && !isPromotion) {
+                        const idx = displayText.indexOf(hl);
+                        if (idx >= 0) {
+                          content = (
+                            <>
+                              {displayText.slice(0, idx)}
+                              <span style={{ color: PROMOTED_GREEN }}>{hl}</span>
+                              {displayText.slice(idx + hl.length)}
+                            </>
                           );
-                        })}
-                      </li>
-                    );
-                  })}
-                </ul>
+                        }
+                      }
+
+                      return (
+                        <li
+                          key={mi}
+                          ref={setImpactLineRef}
+                          className="font-ui text-[10px] leading-[1.7] sm:text-[11px] md:text-[12px]"
+                          style={{ opacity: 0, color: baseColor }}>
+                          {content}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               </div>
             );
           })}

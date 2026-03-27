@@ -90,6 +90,12 @@ export interface Tag {
 export interface ImpactMetric {
   readonly stat: string
   readonly label: string
+  /** Full sentence form for the roles grid drain animation */
+  readonly text?: string
+  /** Substring within text to highlight in green (the evidence) */
+  readonly highlight?: string
+  /** Whether this is a promotion line (rendered in gold) */
+  readonly promoted?: boolean
 }
 
 export interface Repo {
@@ -440,9 +446,23 @@ export const COMPANIES: readonly Company[] = [
         "The goal wasn't just to ship features, but to move the needle on engagement through rigorous A/B testing. It taught me that engineering decisions must be informed by real usage, not just intuition.",
       ],
       impact: [
-        { stat: "500K+", label: "students supported" },
-        { stat: "beta → prod", label: "product maturation" },
-        { stat: "+20%", label: "engagement from A/B testing" },
+        {
+          stat: "",
+          label: "product launched to 500K students",
+          text: "product launched to 500K students",
+          highlight: "500K",
+        },
+        {
+          stat: "",
+          label: "research embedded into the development process",
+          text: "research embedded into the development process",
+        },
+        {
+          stat: "",
+          label: "engagement up 20% through tested decisions",
+          text: "engagement up 20% through tested decisions",
+          highlight: "20%",
+        },
       ],
       stack: [
         { text: "React", color: ENGINEER_HEX },
@@ -509,9 +529,24 @@ export const COMPANIES: readonly Company[] = [
         "This role shifted my focus toward the 'cost' of code. The fastest code is often what you have the discipline to remove. That mix of technical depth and business alignment led to my promotion to Senior.",
       ],
       impact: [
-        { stat: "+SEO", label: "organic traffic growth" },
-        { stat: "+50%", label: "page load speed" },
-        { stat: "promoted", label: "to Senior Frontend Engineer" },
+        {
+          stat: "",
+          label: "Lighthouse scores from 30s to 90+",
+          text: "Lighthouse scores from 30s to 90+",
+          highlight: "90+",
+        },
+        {
+          stat: "",
+          label: "organic traffic doubled",
+          text: "organic traffic doubled",
+          highlight: "doubled",
+        },
+        {
+          stat: "",
+          label: "promoted to Senior Frontend Engineer",
+          text: "promoted to Senior Frontend Engineer",
+          promoted: true,
+        },
       ],
       stack: [
         { text: "Vue.js", color: ENGINEER_HEX },
@@ -581,9 +616,22 @@ export const COMPANIES: readonly Company[] = [
         "This project reinforced a core belief: seniority is about knowing when to stop patching and when to start rebuilding. I left the team with a predictable, stable system they could actually grow.",
       ],
       impact: [
-        { stat: "rebuilt", label: "legacy frontend" },
-        { stat: "10K+", label: "advisors supported" },
-        { stat: "-35%", label: "page load time" },
+        {
+          stat: "",
+          label: "legacy system replaced with Vue 3/TS",
+          text: "legacy system replaced with a modern Vue 3/TS stack",
+        },
+        {
+          stat: "",
+          label: "team shipping with confidence",
+          text: "team shipping with confidence, not caution",
+        },
+        {
+          stat: "",
+          label: "10K advisors on a stable platform",
+          text: "10K advisors on a stable platform",
+          highlight: "10K",
+        },
       ],
       stack: [
         { text: "Vue 3", color: ENGINEER_HEX },
@@ -655,10 +703,35 @@ export const COMPANIES: readonly Company[] = [
         "Within 12 months I was promoted to Engineering Manager. I was already doing the work — unblocking engineers, fixing process, and taking responsibility for outcomes beyond my own code. As EM I led a group of engineers, designers, QA, and freelancers. Grew the core team from 6 to 10 and moved releases from monthly to weekly.",
       ],
       impact: [
-        { stat: "5M+", label: "active banking users" },
-        { stat: "0 → full", label: "test automation introduced" },
-        { stat: "-30%", label: "production bugs" },
-        { stat: "promoted", label: "to Engineering Manager" },
+        {
+          stat: "",
+          label: "test automation across critical flows",
+          text: "test automation introduced across critical flows",
+        },
+        {
+          stat: "",
+          label: "releases monthly to weekly",
+          text: "releases moved from monthly to weekly",
+          highlight: "weekly",
+        },
+        {
+          stat: "",
+          label: "production bugs down 30%",
+          text: "production bugs down 30%",
+          highlight: "30%",
+        },
+        {
+          stat: "",
+          label: "team grew from 6 to 10",
+          text: "team grew from 6 to 10",
+          highlight: "6 to 10",
+        },
+        {
+          stat: "",
+          label: "promoted to Engineering Manager",
+          text: "promoted to Engineering Manager",
+          promoted: true,
+        },
       ],
       stack: [
         { text: "React", color: ENGINEER_HEX },

@@ -61,11 +61,11 @@ export const PHASES = {
   rolesDissolve: 0.05, // non-seeds dissolve while seeds drift toward grid
   rolesFly: 0.08, // seeds fly to grid positions, fill words appear
   rolesHold: 0.06, // grid visible for reading
-  rolesDrain: 0.08, // grayscale drain + elegant fade-out
+  rolesDrain: 0.14, // commits → accomplishments transform + hold + fade
   thesisOverlap: 0.04, // thesis starts this far before convergence ends (crossfade)
   thesis: 0.1, // sentence visible + word reveals
   thesisToParticles: 0.0, // gap (0 = immediate)
-  particles: 0.14, // canvas dots explode → converge to SVG
+  particles: 0.0, // DISABLED — particles removed, funnel starts immediately
   funnel: 0.1, // SVG ribbons grow tier by tier
   funnelLinger: 0.02, // funnel holds complete before fading
   funnelFade: 0.025, // funnel fade-out
