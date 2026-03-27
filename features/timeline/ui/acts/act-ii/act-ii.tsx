@@ -12,7 +12,7 @@
  *     └─ Sticky viewport
  */
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import {
   motion,
   useScroll,
@@ -38,15 +38,15 @@ import {
   useLenses,
   CONTAINER_HEIGHT_VH as LENSES_SECTION_VH,
   SMOOTH_LERP_FACTOR,
-} from "./use-lenses";
-import { MAX_CONTENT_WIDTH } from "./lenses.config";
+} from "./lenses/use-lenses";
+import { MAX_CONTENT_WIDTH } from "./lenses/lenses.config";
 import {
   CINEMATIC_START,
   TOTAL_RAW_SIZE,
   CINEMATIC_SIZE,
-} from "./lenses.timing";
-import { StoryDesk } from "./story-desk";
-import { useBreakpoint, useLenis } from "@hooks";
+} from "./lenses/lenses.timing";
+import { StoryDesk } from "./lenses/story-desk";
+import { useBreakpoint, useLenis, useNavStore } from "@hooks";
 
 /* ================================================================== */
 /*  Breakpoint refs (no-re-render, matches Act I pattern)              */
@@ -69,9 +69,9 @@ function useBreakpointRefs() {
 }
 
 /* Sub-hooks — each owns a scroll section */
-import { useTerminalReplay } from "./use-terminal-replay";
-import { useConvergence } from "./use-convergence";
-import { useParticleFunnel } from "./use-particle-funnel";
+import { useTerminalReplay } from "./terminal/use-terminal-replay";
+import { useConvergence } from "./convergence/use-convergence";
+import { useParticleFunnel } from "./particles/use-particle-funnel";
 
 /* ================================================================== */
 /*  V0: ScrambleText                                                   */
@@ -231,99 +231,126 @@ export function ActIIEngineer() {
     offset: ["start start", "end end"],
   });
 
-  useMotionValueEvent(progressA, "change", (p) => {
-    // Convert local progress (0→1) to scroll position in vh
-    const scrollVh = p * containerAHeight;
+  /** Apply all Container A scroll-driven state for a given local progress. */
+  const applyContainerAProgress = useCallback(
+    (p: number) => {
+      // Convert local progress (0→1) to scroll position in vh
+      const scrollVh = p * containerAHeight;
 
-    /* ---- Curtain edge from summary panel ---- */
-    let curtainTop = window.innerHeight;
-    if (summaryPanelRef.current) {
-      const summaryTop = summaryPanelRef.current.getBoundingClientRect().top;
-      if (summaryTop < window.innerHeight) curtainTop = Math.max(0, summaryTop);
-    }
-
-    /* ---- Title fade ---- */
-    // Map to EC progress for title phases
-    const ecProgress = Math.min(scrollVh / CONTAINER_VH, CONVERGENCE_GATE);
-    if (titleRef.current) {
-      const slowFade =
-        1 -
-        smoothstep(
-          SCROLL_PHASES.TITLE.start,
-          SCROLL_PHASES.TITLE.end * EC_UI_CONFIG.titleSlowFadeMult,
-          ecProgress,
-        );
-      const curtainFade =
-        curtainTop >= window.innerHeight
-          ? 1
-          : Math.max(
-              0,
-              (curtainTop -
-                window.innerHeight * EC_UI_CONFIG.titleCurtainThreshold) /
-                (window.innerHeight * EC_UI_CONFIG.titleCurtainRange),
-            );
-      titleRef.current.style.opacity = String(Math.min(slowFade, curtainFade));
-    }
-
-    /* ---- HUD ---- */
-    if (hudRef.current) {
-      const lensP = lensesRawProgress.current;
-      let frame = "—";
-      // EC convergence phases (granular)
-      if (ecProgress <= SCROLL_PHASES.TITLE.end) frame = "title";
-      else if (ecProgress < SCROLL_PHASES.CONVERGENCE.start)
-        frame = "title→convergence";
-      else if (ecProgress < SCROLL_PHASES.EMBERS.start)
-        frame = "convergence:fragments-drift";
-      else if (ecProgress < SCROLL_PHASES.CONVERGENCE.end)
-        frame = "convergence:embers+fragments";
-      else if (ecProgress < CONVERGENCE_GATE) frame = "convergence:tail";
-      else frame = "convergence:gate";
-      // Lenses phases (overlay on top of convergence)
-      if (scrollVh >= LENSES_START_VH) {
-        if (lensP < SCROLL_PHASES.THESIS.start + 0.001)
-          frame = "lenses:thesis-start";
-        else frame = "lenses:thesis";
+      /* ---- Curtain edge from summary panel ---- */
+      let curtainTop = window.innerHeight;
+      if (summaryPanelRef.current) {
+        const summaryTop =
+          summaryPanelRef.current.getBoundingClientRect().top;
+        if (summaryTop < window.innerHeight)
+          curtainTop = Math.max(0, summaryTop);
       }
-      // Lenses sub-phases derived from timing constants
-      const kwStart = (CINEMATIC_START * 0.5) / TOTAL_RAW_SIZE;
-      if (lensP > kwStart) frame = "lenses:thesis+keywords";
-      if (lensP > LENSES_CURTAIN_START * 0.85) frame = "lenses:dissolution";
-      if (lensP > LENSES_CURTAIN_START) frame = "lenses:curtain";
-      if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 0)
-        frame = "lenses:storycard-1";
-      if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 1)
-        frame = "lenses:storycard-2";
-      if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 2)
-        frame = "lenses:storycard-3";
-      if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 3)
-        frame = "lenses:storycard-4";
-      if (lensP > 0.98) frame = "lenses:end";
-      hudRef.current.textContent = `${frame} | ec:${ecProgress.toFixed(3)} lens:${lensP.toFixed(3)} scroll:${scrollVh.toFixed(0)}vh`;
-    }
 
-    /* ---- Convergence (fragments, embers, grid) ---- */
-    const viewportHeight = window.innerHeight;
-    const isDesktop = isLg.current;
-    convergence.update(ecProgress, isDesktop, curtainTop, viewportHeight, true);
+      /* ---- Title fade ---- */
+      // Map to EC progress for title phases
+      const ecProgress = Math.min(scrollVh / CONTAINER_VH, CONVERGENCE_GATE);
+      if (titleRef.current) {
+        const slowFade =
+          1 -
+          smoothstep(
+            SCROLL_PHASES.TITLE.start,
+            SCROLL_PHASES.TITLE.end * EC_UI_CONFIG.titleSlowFadeMult,
+            ecProgress,
+          );
+        const curtainFade =
+          curtainTop >= window.innerHeight
+            ? 1
+            : Math.max(
+                0,
+                (curtainTop -
+                  window.innerHeight * EC_UI_CONFIG.titleCurtainThreshold) /
+                  (window.innerHeight * EC_UI_CONFIG.titleCurtainRange),
+              );
+        titleRef.current.style.opacity = String(
+          Math.min(slowFade, curtainFade),
+        );
+      }
 
-    /* ---- Lenses (thesis, curtain, crossfade) ---- */
-    // Lenses starts at THESIS_START (during embers), overlapping with convergence tail
-    if (scrollVh >= LENSES_START_VH) {
-      const lensesLocalProgress = (scrollVh - LENSES_START_VH) / lensesVh;
-      lensesRawProgress.current = Math.min(1, Math.max(0, lensesLocalProgress));
-    } else {
-      lensesRawProgress.current = 0;
-    }
-  });
+      /* ---- HUD ---- */
+      if (hudRef.current) {
+        const lensP = lensesRawProgress.current;
+        let frame = "—";
+        // EC convergence phases (granular)
+        if (ecProgress <= SCROLL_PHASES.TITLE.end) frame = "title";
+        else if (ecProgress < SCROLL_PHASES.CONVERGENCE.start)
+          frame = "title→convergence";
+        else if (ecProgress < SCROLL_PHASES.EMBERS.start)
+          frame = "convergence:fragments-drift";
+        else if (ecProgress < SCROLL_PHASES.CONVERGENCE.end)
+          frame = "convergence:embers+fragments";
+        else if (ecProgress < CONVERGENCE_GATE) frame = "convergence:tail";
+        else frame = "convergence:gate";
+        // Lenses phases (overlay on top of convergence)
+        if (scrollVh >= LENSES_START_VH) {
+          if (lensP < SCROLL_PHASES.THESIS.start + 0.001)
+            frame = "lenses:thesis-start";
+          else frame = "lenses:thesis";
+        }
+        // Lenses sub-phases derived from timing constants
+        const kwStart = (CINEMATIC_START * 0.5) / TOTAL_RAW_SIZE;
+        if (lensP > kwStart) frame = "lenses:thesis+keywords";
+        if (lensP > LENSES_CURTAIN_START * 0.85) frame = "lenses:dissolution";
+        if (lensP > LENSES_CURTAIN_START) frame = "lenses:curtain";
+        if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 0)
+          frame = "lenses:storycard-1";
+        if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 1)
+          frame = "lenses:storycard-2";
+        if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 2)
+          frame = "lenses:storycard-3";
+        if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 3)
+          frame = "lenses:storycard-4";
+        if (lensP > 0.98) frame = "lenses:end";
+        hudRef.current.textContent = `${frame} | ec:${ecProgress.toFixed(3)} lens:${lensP.toFixed(3)} scroll:${scrollVh.toFixed(0)}vh`;
+      }
+
+      /* ---- Convergence (fragments, embers, grid) ---- */
+      const viewportHeight = window.innerHeight;
+      const isDesktop = isLg.current;
+      convergence.update(
+        ecProgress,
+        isDesktop,
+        curtainTop,
+        viewportHeight,
+        true,
+      );
+
+      /* ---- Lenses (thesis, curtain, crossfade) ---- */
+      // Lenses starts at THESIS_START (during embers), overlapping with convergence tail
+      if (scrollVh >= LENSES_START_VH) {
+        const lensesLocalProgress = (scrollVh - LENSES_START_VH) / lensesVh;
+        lensesRawProgress.current = Math.min(
+          1,
+          Math.max(0, lensesLocalProgress),
+        );
+      } else {
+        lensesRawProgress.current = 0;
+      }
+    },
+    [containerAHeight, lensesVh, convergence, isLg],
+  );
+
+  useMotionValueEvent(progressA, "change", applyContainerAProgress);
 
   /* ---- RAF loop for smoothed lenses progress ---- */
   const lensesUpdate = lenses.update;
   useEffect(() => {
     const tick = () => {
-      lensesSmoothedProgress.current +=
-        (lensesRawProgress.current - lensesSmoothedProgress.current) *
-        SMOOTH_LERP_FACTOR;
+      // During programmatic navigation, snap immediately — LERP smoothing
+      // would leave stale intermediate state visible when the fade-jump
+      // restores visibility after only a few frames.
+      const navigating = useNavStore.getState().isNavigating;
+      if (navigating) {
+        lensesSmoothedProgress.current = lensesRawProgress.current;
+      } else {
+        lensesSmoothedProgress.current +=
+          (lensesRawProgress.current - lensesSmoothedProgress.current) *
+          SMOOTH_LERP_FACTOR;
+      }
       lensesUpdate(lensesSmoothedProgress.current, stickyViewportARef);
       lensesAnimFrameId.current = requestAnimationFrame(tick);
     };
@@ -340,34 +367,43 @@ export function ActIIEngineer() {
     offset: ["start start", "end end"],
   });
 
-  useMotionValueEvent(progressB, "change", (p) => {
-    // Map container-local progress (0→1) to EC progress (PARTICLES_START→1)
-    const ecProgress = PARTICLES_START + p * (1 - PARTICLES_START);
-    const isDesktop = isLg.current;
-    particleFunnel.update(ecProgress);
-    terminalReplay.update(ecProgress, isDesktop);
+  /** Apply all Container B scroll-driven state for a given local progress. */
+  const applyContainerBProgress = useCallback(
+    (p: number) => {
+      // Map container-local progress (0→1) to EC progress (PARTICLES_START→1)
+      const ecProgress = PARTICLES_START + p * (1 - PARTICLES_START);
+      const isDesktop = isLg.current;
+      particleFunnel.update(ecProgress);
+      terminalReplay.update(ecProgress, isDesktop);
 
-    /* ---- HUD ---- */
-    if (hudRef.current) {
-      let frame = "particles:explosion";
-      if (ecProgress > SCROLL_PHASES.CANVAS_OUT.start)
-        frame = "particles:canvas-out";
-      if (ecProgress > SCROLL_PHASES.SVG_IN.start) frame = "funnel:svg-in";
-      if (ecProgress > SCROLL_PHASES.DOTS_IN.start) frame = "funnel:dots";
-      if (ecProgress > SCROLL_PHASES.LABELS_IN.start) frame = "funnel:labels";
-      if (ecProgress > SCROLL_PHASES.CONVERGE_PT.start)
-        frame = "funnel:converge";
-      if (ecProgress > SCROLL_PHASES.MID_NARRATOR.start)
-        frame = "funnel:narrator";
-      if (ecProgress > SCROLL_PHASES.FUNNEL_OUT.start)
-        frame = "funnel:fade-out";
-      for (let i = 0; i < SCROLL_PHASES.BEATS.length; i++) {
-        if (ecProgress > SCROLL_PHASES.BEATS[i].start)
-          frame = `terminal:beat-${i + 1}`;
+      /* ---- HUD ---- */
+      if (hudRef.current) {
+        let frame = "particles:explosion";
+        if (ecProgress > SCROLL_PHASES.CANVAS_OUT.start)
+          frame = "particles:canvas-out";
+        if (ecProgress > SCROLL_PHASES.SVG_IN.start) frame = "funnel:svg-in";
+        if (ecProgress > SCROLL_PHASES.DOTS_IN.start) frame = "funnel:dots";
+        if (ecProgress > SCROLL_PHASES.LABELS_IN.start)
+          frame = "funnel:labels";
+        if (ecProgress > SCROLL_PHASES.CONVERGE_PT.start)
+          frame = "funnel:converge";
+        if (ecProgress > SCROLL_PHASES.MID_NARRATOR.start)
+          frame = "funnel:narrator";
+        if (ecProgress > SCROLL_PHASES.FUNNEL_OUT.start)
+          frame = "funnel:fade-out";
+        for (let i = 0; i < SCROLL_PHASES.BEATS.length; i++) {
+          if (ecProgress > SCROLL_PHASES.BEATS[i].start)
+            frame = `terminal:beat-${i + 1}`;
+        }
+        if (ecProgress > SCROLL_PHASES.CHROME_END) frame = "terminal:end";
+        hudRef.current.textContent = `${frame} | ec:${ecProgress.toFixed(3)} p:${p.toFixed(3)}`;
       }
-      if (ecProgress > SCROLL_PHASES.CHROME_END) frame = "terminal:end";
-      hudRef.current.textContent = `${frame} | ec:${ecProgress.toFixed(3)} p:${p.toFixed(3)}`;
-    }
+    },
+    [particleFunnel, terminalReplay, isLg],
+  );
+
+  useMotionValueEvent(progressB, "change", (p) => {
+    applyContainerBProgress(p);
   });
 
   /* ================================================================ */

@@ -45,6 +45,18 @@ export const LAB_ROUTES: readonly LabRoute[] = [
     desc: "Card-stack pillar exploration with scroll-driven stories",
     section: "scroll",
   },
+  {
+    href: "/lab-converge",
+    label: "Convergence",
+    desc: "Fragments drift in chaos then resolve into 4 job cards",
+    section: "scroll",
+  },
+  {
+    href: "/lab-distill",
+    label: "Distillation",
+    desc: "Job cards appear then dissolve — signal fragments remain",
+    section: "scroll",
+  },
 ];
 
 const SECTION_LABELS: Record<LabRoute["section"], string> = {

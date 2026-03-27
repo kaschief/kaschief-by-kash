@@ -13,3 +13,4 @@ tsconfig.tsbuildinfo
 # Test artifacts
 test-results/
 playwright-report/
+.claude/worktrees/

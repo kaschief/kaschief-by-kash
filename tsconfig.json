@@ -9,6 +9,8 @@
     "target": "ES6",
     "skipLibCheck": true,
     "strict": true,
+    // TODO Phase 9: enable noUncheckedIndexedAccess (232 errors to fix)
+    // "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noEmit": true,

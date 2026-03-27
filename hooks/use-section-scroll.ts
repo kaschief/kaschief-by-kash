@@ -48,6 +48,18 @@ const EASE_OUT_QUART = (t: number) => 1 - Math.pow(1 - t, 4);
 
 /* ── Helpers ── */
 
+/** Get absolute top position of an element by walking up the offset chain.
+ *  Unlike getBoundingClientRect, this is not affected by sticky elements. */
+function getAbsoluteTop(el: HTMLElement): number {
+  let top = 0;
+  let current: HTMLElement | null = el;
+  while (current) {
+    top += current.offsetTop;
+    current = current.offsetParent as HTMLElement | null;
+  }
+  return top;
+}
+
 /** Clamp a distance-based duration between `min` and `max` seconds. */
 function clampDuration(distance: number, divisor: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, distance / divisor));
@@ -89,23 +101,34 @@ function fadeJumpSlide(
   container.style.opacity = "0";
 
   setTimeout(() => {
+    // Hide completely during jump — prevents any intermediate scroll state from painting
+    container.style.visibility = "hidden";
     lenis.scrollTo(jumpTo, { immediate: true, force: true });
 
+    // Wait 3 frames for all scroll-driven animations to settle:
+    //   Frame 1: scroll events fire, raw progress refs update
+    //   Frame 2: RAF loops (e.g. lenses LERP) snap to new raw values
+    //   Frame 3: DOM mutations from frame-2 updates are committed
     requestAnimationFrame(() => {
-      container.style.transition = `opacity ${SCROLL_NAV.fadeInMs}ms ease-in`;
-      container.style.opacity = "1";
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          container.style.visibility = "";
+          container.style.transition = `opacity ${SCROLL_NAV.fadeInMs}ms ease-in`;
+          container.style.opacity = "1";
 
-      const resolvedTarget = typeof slideTo === "function" ? slideTo() : slideTo;
+          const resolvedTarget = typeof slideTo === "function" ? slideTo() : slideTo;
 
-      lenis.scrollTo(resolvedTarget, {
-        duration: slideDuration,
-        easing: EASE_OUT_QUART,
-        lock: true,
-        force: true,
-        onComplete: () => {
-          container.style.transition = "";
-          setTimeout(onDone, END_NAV_DELAY_MS);
-        },
+          lenis.scrollTo(resolvedTarget, {
+            duration: slideDuration,
+            easing: EASE_OUT_QUART,
+            lock: true,
+            force: true,
+            onComplete: () => {
+              container.style.transition = "";
+              setTimeout(onDone, END_NAV_DELAY_MS);
+            },
+          });
+        });
       });
     });
   }, SCROLL_NAV.fadeOutMs);
@@ -171,6 +194,9 @@ export function useSectionScroll() {
       const el = document.getElementById(sectionId);
       if (!el) return false;
 
+      // Prevent re-entrant calls while a navigation is already in flight
+      if (useNavStore.getState().isNavigating) return false;
+
       const {
         updateHistory = true,
         offset = SECTION_SCROLL_OFFSET[sectionId] ?? DEFAULT_SCROLL_OFFSET,
@@ -197,29 +223,46 @@ export function useSectionScroll() {
         return true;
       }
 
-      const sectionTop = el.getBoundingClientRect().top + window.scrollY;
+      // Use offsetTop to get the static layout position — getBoundingClientRect
+      // is affected by sticky elements shifting during scroll
+      const sectionTop = getAbsoluteTop(el);
       const finalTarget = sectionTop - offset;
       const currentScroll = lenis.scroll;
       const distance = Math.abs(finalTarget - currentScroll);
+      const skipTarget = getPinSkipTarget(currentScroll, finalTarget);
       const isLongJump =
         distance > window.innerHeight * SCROLL_NAV.longJumpThresholdVh ||
-        getPinSkipTarget(currentScroll, finalTarget) !== null;
+        skipTarget !== null;
+
+      console.log(`[nav] ${sectionId} | from:${Math.round(currentScroll)} to:${Math.round(finalTarget)} dist:${Math.round(distance)} offset:${offset} longJump:${isLongJump} skip:${skipTarget !== null ? Math.round(skipTarget) : "none"}`);
+
+      // For sections with offset: 0 (full-viewport sticky containers), the
+      // scroll target must land a few pixels PAST the section top so that
+      // scrollY > sectionTop, guaranteeing the sticky element is pinned.
+      // Landing exactly on the boundary leaves the sticky unpinned due to
+      // sub-pixel rounding or Lenis settling.
+      const stickyOvershoot = offset === 0 ? PIN_EDGE_OFFSET_PX : 0;
 
       if (isLongJump) {
         const jumpTo = Math.max(0, finalTarget - SCROLL_NAV.approachPx);
         // Slide target is recalculated after the jump via callback — pin
         // spacers may shift element positions during the instant scroll.
-        const slideTo = () => el.getBoundingClientRect().top + window.scrollY - offset;
+        const slideTo = () => {
+          const recalc = getAbsoluteTop(el) - offset + stickyOvershoot;
+          console.log(`[nav] slideTo recalc: ${Math.round(recalc)} (jump landed at ${Math.round(window.scrollY)})`);
+          return recalc;
+        };
 
         fadeJumpSlide(lenis, jumpTo, slideTo, SCROLL_NAV.slideInDuration, endNavigation);
       } else {
+        const adjustedTarget = finalTarget + stickyOvershoot;
         const duration = clampDuration(
           distance,
           SCROLL_NAV.shortScrollDivisor,
           SCROLL_NAV.shortScrollMinS,
           SCROLL_NAV.shortScrollMaxS,
         );
-        smoothScroll(lenis, finalTarget, duration, endNavigation);
+        smoothScroll(lenis, adjustedTarget, duration, endNavigation);
       }
 
       setTimeout(() => endNavigation(), SAFETY_FALLBACK_MS);

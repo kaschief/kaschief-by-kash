@@ -17,8 +17,8 @@
 
 import { useRef, useEffect, useCallback, type RefObject } from "react";
 import { STREAMS, NODES } from "@data";
-import { smoothstep, lerp } from "./math";
-import { hashToUnit, CONTENT } from "./act-ii.data";
+import { smoothstep, lerp } from "../math";
+import { hashToUnit, CONTENT } from "../act-ii.data";
 import {
   PARTICLE,
   FUNNEL,
@@ -44,7 +44,7 @@ import {
   NARRATOR_TIERS,
   MID_NARRATOR_START,
   MID_NARRATOR_END,
-} from "./act-ii.types";
+} from "../act-ii.types";
 
 /* ================================================================== */
 /*  Particle types                                                      */

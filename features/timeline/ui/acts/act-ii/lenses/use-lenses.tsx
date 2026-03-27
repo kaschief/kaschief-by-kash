@@ -11,12 +11,12 @@
  */
 
 import { useRef } from "react";
-import { CONTENT } from "./act-ii.data";
+import { CONTENT } from "../act-ii.data";
 import {
   THESIS as EC_THESIS,
   PREFIX_DISSOLVE,
-} from "./act-ii.types";
-import { smoothstep, lerp, clamp } from "./math";
+} from "../act-ii.types";
+import { smoothstep, lerp, clamp } from "../math";
 import { renderCard } from "./render-card";
 import { HIGHLIGHT_ENTRIES } from "./card-config";
 import {
