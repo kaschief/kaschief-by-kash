@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { COMPANIES, LENS_NAMES } from "@data";
+import { COMPANIES, COMPANY_ID, LENS_NAMES, type CompanyId } from "@data";
 export { clamp, smoothstep, lerp } from "./math";
 
 /* ================================================================== */
@@ -24,21 +24,36 @@ export function hashToUnit(seed: number): number {
 
 export const ACT_BLUE = "#5B9EC2";
 
-/** Roles per company — single source of truth (DKB = Engineering Manager per promotion) */
-export const COMPANY_ROLES: Record<string, string> = {
-  AMBOSS: "Frontend Engineer",
-  Compado: "Senior Frontend Engineer",
-  CAPinside: "Senior Frontend Engineer",
-  DKB: "Engineering Manager",
-};
+/** Roles per company — derived from canonical COMPANIES data */
+export const COMPANY_ROLES: Record<string, string> = Object.fromEntries(
+  COMPANIES.map((c) => [c.shortName, c.promotedRole]),
+);
 
-/** Base RGB palette (4 company colors) — single source of truth for rgba() and hex */
+/** Base RGB palette (4 company colors) — single source of truth for rgba() and hex.
+ *  Indexed positionally: 0=AMBOSS, 1=Compado, 2=CAPinside, 3=DKB.
+ *  Kept as a positional array for backward compatibility — many consumers index by number. */
 export const CC: readonly [number, number, number][] = [
   [96, 165, 250],  // blue  — AMBOSS
   [66, 184, 131],  // green — Compado
   [6, 182, 212],   // cyan  — CAPinside
   [244, 114, 182], // pink  — DKB
 ];
+
+/** Company index → CompanyId mapping (preserves CC positional order) */
+export const COMPANY_IDS_ORDERED: readonly CompanyId[] = [
+  COMPANY_ID.AMBOSS,
+  COMPANY_ID.COMPADO,
+  COMPANY_ID.CAPINSIDE,
+  COMPANY_ID.DKB,
+] as const;
+
+/** RGB palette keyed by CompanyId — type-safe alternative to positional CC access */
+export const COMPANY_RGB: Readonly<Record<CompanyId, readonly [number, number, number]>> = {
+  [COMPANY_ID.AMBOSS]:   [96, 165, 250],
+  [COMPANY_ID.COMPADO]:  [66, 184, 131],
+  [COMPANY_ID.CAPINSIDE]: [6, 182, 212],
+  [COMPANY_ID.DKB]:      [244, 114, 182],
+};
 
 /** Hex colors derived from CC — for CSS color properties */
 export const COMPANY_COLORS = CC.map(

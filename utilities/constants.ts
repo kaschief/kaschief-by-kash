@@ -12,7 +12,7 @@ export const Z_INDEX = {
   detailOverlay: 800, // full-screen detail overlays
   repoPanel: 900, // repo panel overlay (above detail overlays, below nav)
   nav: 950, // navigation bar (always visible above overlays)
-  cursor: 9999, // custom cursor (always on top)
+  cursor: 100000, // custom cursor (always on top — must exceed all overlays including story desk at 10001)
 } as const;
 
 /** Layout spacing and offset values shared across components. */
