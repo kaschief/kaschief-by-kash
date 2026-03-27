@@ -11,17 +11,34 @@ import {
   CONTENT,
 } from "./engineer-data";
 import {
-  SEED, FRAGMENTS, EMBER, GRID, THESIS, CHROME, PHASES,
+  SEED,
+  FRAGMENTS,
+  EMBER,
+  GRID,
+  THESIS,
+  EC_UI_CONFIG,
+  PHASES,
   SCROLL_PHASES,
-  CONVERGENCE_START, CONVERGENCE_END,
-  EMBERS_START, EMBERS_END, GLOW_START, GLOW_END,
-  SEED_FADE_IN_START, SEED_FADE_IN_END,
-  SEED_DRIFT_START, SEED_DRIFT_END,
-  SEED_CONVERGE_START, SEED_CONVERGE_END,
-  SEED_HEAT_START, SEED_HEAT_END,
-  SEED_SCALE_SHRINK_START, SEED_SCALE_SHRINK_END,
-  FRAG_FADE_IN_START, FRAG_FADE_IN_END,
-  THESIS_START, THESIS_END,
+  CONVERGENCE_START,
+  CONVERGENCE_END,
+  EMBERS_START,
+  EMBERS_END,
+  GLOW_START,
+  GLOW_END,
+  SEED_FADE_IN_START,
+  SEED_FADE_IN_END,
+  SEED_DRIFT_START,
+  SEED_DRIFT_END,
+  SEED_CONVERGE_START,
+  SEED_CONVERGE_END,
+  SEED_HEAT_START,
+  SEED_HEAT_END,
+  SEED_SCALE_SHRINK_START,
+  SEED_SCALE_SHRINK_END,
+  FRAG_FADE_IN_START,
+  FRAG_FADE_IN_END,
+  THESIS_START,
+  THESIS_END,
 } from "./engineer-candidate.types";
 
 /**
@@ -52,7 +69,7 @@ export function useConvergence() {
     /** When true, thesis sentence is hidden — lenses prologue replaces it */
     skipThesis = false,
   ) {
-    const CURTAIN_FADE = CHROME.curtainFadePx;
+    const CURTAIN_FADE = EC_UI_CONFIG.curtainFadePx;
 
     /* ---- Fragments ---- */
     if (progress < SCROLL_PHASES.CONVERGENCE_GATE) {
@@ -60,9 +77,17 @@ export function useConvergence() {
         const element = fragmentEls.current[i];
         if (!element) return;
         if (fragment.isSeed) {
-          const fadeIn = smoothstep(SEED_FADE_IN_START, SEED_FADE_IN_END, progress);
+          const fadeIn = smoothstep(
+            SEED_FADE_IN_START,
+            SEED_FADE_IN_END,
+            progress,
+          );
           const drift = smoothstep(SEED_DRIFT_START, SEED_DRIFT_END, progress),
-            converge = smoothstep(SEED_CONVERGE_START, SEED_CONVERGE_END, progress),
+            converge = smoothstep(
+              SEED_CONVERGE_START,
+              SEED_CONVERGE_END,
+              progress,
+            ),
             heat = smoothstep(SEED_HEAT_START, SEED_HEAT_END, progress);
           const driftedX = fragment.x0 + fragment.dx * drift,
             driftedY = fragment.y0 + fragment.dy * drift;
@@ -71,8 +96,17 @@ export function useConvergence() {
           const rotation = lerp(fragment.rot, 0, converge);
           const scale =
             lerp(1, SEED.heatMaxScale, heat) *
-            lerp(1, SEED.shrinkMinScale, smoothstep(SEED_SCALE_SHRINK_START, SEED_SCALE_SHRINK_END, progress));
-          const fragScreenY = viewportHeight * 0.5 + (translateY * viewportHeight) / 100;
+            lerp(
+              1,
+              SEED.shrinkMinScale,
+              smoothstep(
+                SEED_SCALE_SHRINK_START,
+                SEED_SCALE_SHRINK_END,
+                progress,
+              ),
+            );
+          const fragScreenY =
+            viewportHeight * 0.5 + (translateY * viewportHeight) / 100;
           const curtainReveal =
             curtainTop >= viewportHeight
               ? 1
@@ -93,16 +127,38 @@ export function useConvergence() {
           const initialBlur = lerp(
             1,
             0,
-            smoothstep(SEED_FADE_IN_START, SEED_FADE_IN_START + SEED.initialBlurDur, progress),
+            smoothstep(
+              SEED_FADE_IN_START,
+              SEED_FADE_IN_START + SEED.initialBlurDur,
+              progress,
+            ),
           );
           element.style.transform = `translate(calc(-50% + ${translateX}vw), calc(-50% + ${translateY}vh)) rotate(${rotation}deg) scale(${scale})`;
           element.style.opacity = String(fadeIn * fadeOut * curtainReveal);
           element.style.filter = `blur(${initialBlur}px)`;
         } else {
-          const fadeIn = smoothstep(FRAG_FADE_IN_START, FRAG_FADE_IN_END, progress),
-            fadeOut = 1 - smoothstep(fragment.dissolveStart * FRAGMENTS.dissolveSpeed, fragment.dissolveEnd * FRAGMENTS.dissolveSpeed, progress);
-          const drift = smoothstep(CONVERGENCE_START + FRAGMENTS.driftInset, CONVERGENCE_END - FRAGMENTS.driftInset, progress),
-            dissolve = smoothstep(fragment.dissolveStart * FRAGMENTS.dissolveSpeed, fragment.dissolveEnd * FRAGMENTS.dissolveSpeed, progress);
+          const fadeIn = smoothstep(
+              FRAG_FADE_IN_START,
+              FRAG_FADE_IN_END,
+              progress,
+            ),
+            fadeOut =
+              1 -
+              smoothstep(
+                fragment.dissolveStart * FRAGMENTS.dissolveSpeed,
+                fragment.dissolveEnd * FRAGMENTS.dissolveSpeed,
+                progress,
+              );
+          const drift = smoothstep(
+              CONVERGENCE_START + FRAGMENTS.driftInset,
+              CONVERGENCE_END - FRAGMENTS.driftInset,
+              progress,
+            ),
+            dissolve = smoothstep(
+              fragment.dissolveStart * FRAGMENTS.dissolveSpeed,
+              fragment.dissolveEnd * FRAGMENTS.dissolveSpeed,
+              progress,
+            );
           const translateX = fragment.x0 + fragment.dx * drift,
             translateY = fragment.y0 + fragment.dy * drift,
             rotation = fragment.rot * (1 + drift * FRAGMENTS.rotDriftFactor);
@@ -118,7 +174,8 @@ export function useConvergence() {
             default:
               baseAlpha = FRAGMENTS.alphaDefault;
           }
-          const fragScreenY = viewportHeight * 0.5 + (translateY * viewportHeight) / 100;
+          const fragScreenY =
+            viewportHeight * 0.5 + (translateY * viewportHeight) / 100;
           const curtainReveal =
             curtainTop >= viewportHeight
               ? 1
@@ -144,19 +201,35 @@ export function useConvergence() {
     embers.forEach((e, i) => {
       const element = emberEls.current[i];
       if (!element) return;
-      const heat = smoothstep(EMBERS_START + e.delay, EMBERS_START + EMBER.heatDuration, progress),
+      const heat = smoothstep(
+          EMBERS_START + e.delay,
+          EMBERS_START + EMBER.heatDuration,
+          progress,
+        ),
         cool = smoothstep(EMBERS_END - EMBER.coolLead, EMBERS_END, progress),
         active = heat * (1 - cool);
-      const rise = smoothstep(EMBERS_START + EMBER.riseDelay + e.delay, EMBERS_END, progress);
+      const rise = smoothstep(
+        EMBERS_START + EMBER.riseDelay + e.delay,
+        EMBERS_END,
+        progress,
+      );
       element.style.transform = `translate(calc(-50% + ${e.x0 + e.dx * rise}vw), calc(-50% + ${lerp(e.y0, -e.speed, rise)}vh))`;
-      element.style.opacity = String(active * (EMBER.baseOpacity + Math.sin(progress * EMBER.flickerFreq + i) * EMBER.flickerAmp));
+      element.style.opacity = String(
+        active *
+          (EMBER.baseOpacity +
+            Math.sin(progress * EMBER.flickerFreq + i) * EMBER.flickerAmp),
+      );
     });
 
     /* ---- Convergence atmosphere — disabled, no visible glows ---- */
     if (glowEl.current) glowEl.current.style.opacity = "0";
     if (innerGlowEl.current) innerGlowEl.current.style.opacity = "0";
     if (gridEl.current) {
-      const appear = smoothstep(GLOW_START, GLOW_START + GRID.appearDuration, progress),
+      const appear = smoothstep(
+          GLOW_START,
+          GLOW_START + GRID.appearDuration,
+          progress,
+        ),
         fade = 1 - smoothstep(GLOW_END - GRID.fadeLead, GLOW_END, progress);
       gridEl.current.style.opacity = String(appear * fade * GRID.maxOpacity);
     }
@@ -166,24 +239,29 @@ export function useConvergence() {
       if (thesisEls.current[0]) thesisEls.current[0].style.opacity = "0";
     } else if (thesisEls.current[0]) {
       const thesisFadeInEnd = THESIS_START + PHASES.thesis * THESIS.fadeInFrac;
-      const thesisFadeOutStart = THESIS_END - PHASES.thesis * THESIS.fadeOutFrac;
+      const thesisFadeOutStart =
+        THESIS_END - PHASES.thesis * THESIS.fadeOutFrac;
       const fadeIn = smoothstep(THESIS_START, thesisFadeInEnd, progress),
         fadeOut = 1 - smoothstep(thesisFadeOutStart, THESIS_END, progress);
       // Two-speed drift: fast approach before words, near-still during reveals
       const wordRevealZone = THESIS_START + PHASES.thesis * THESIS.wordZoneFrac;
       const driftFast = smoothstep(THESIS_START, wordRevealZone, progress);
       const driftSlow = smoothstep(wordRevealZone, THESIS_END, progress);
-      const drift = driftFast * THESIS.driftFastWeight + driftSlow * THESIS.driftSlowWeight;
+      const drift =
+        driftFast * THESIS.driftFastWeight + driftSlow * THESIS.driftSlowWeight;
       const yStart = isDesktop ? THESIS.yStartLg : THESIS.yStartSm;
       const yEnd = isDesktop ? THESIS.yEndLg : THESIS.yEndSm;
       thesisEls.current[0].style.opacity = String(fadeIn * fadeOut);
       thesisEls.current[0].style.transform = `translate(-50%, calc(-50% + ${lerp(yStart, yEnd, drift)}vh))`;
       thesisEls.current[0].style.filter = `blur(${lerp(THESIS.initialBlur, 0, fadeIn)}px)`;
-      thesisEls.current[0].style.maxWidth = isDesktop ? THESIS.maxWidthLg : THESIS.maxWidthSm;
+      thesisEls.current[0].style.maxWidth = isDesktop
+        ? THESIS.maxWidthLg
+        : THESIS.maxWidthSm;
 
       // Sequential word reveal: each word drops in with translateY
-      const WORD_THRESHOLDS = Array.from({ length: THESIS.wordCount }, (_, i) =>
-        wordRevealZone + i * THESIS.wordStagger,
+      const WORD_THRESHOLDS = Array.from(
+        { length: THESIS.wordCount },
+        (_, i) => wordRevealZone + i * THESIS.wordStagger,
       );
       for (let wordIdx = 0; wordIdx < THESIS.wordCount; wordIdx++) {
         const wordEl = thesisWordRefs.current[wordIdx];
@@ -358,7 +436,9 @@ export function useConvergence() {
                   letterSpacing: "0.01em",
                   willChange: "transform, opacity, filter",
                 }}>
-                <span style={{ color: fcExt(fragment.companyIdx, 0.85) }}>$ </span>
+                <span style={{ color: fcExt(fragment.companyIdx, 0.85) }}>
+                  ${" "}
+                </span>
                 <span style={{ color: fcExt(fragment.companyIdx, 0.7) }}>
                   {fragment.cmd}
                 </span>
@@ -416,17 +496,26 @@ export function useConvergence() {
         }}>
         {CONTENT.thesis.prefix}
         <span style={{ whiteSpace: "nowrap" }}>
-        {CONTENT.thesis.keywords.map((word, wordIdx) => (
-          <span key={word}>
-            <span
-              ref={(element) => { thesisWordRefs.current[wordIdx] = element; }}
-              style={{ opacity: 0, willChange: "opacity, transform", marginRight: wordIdx < CONTENT.thesis.keywords.length - 1 ? "0.3em" : undefined }}>
-              {wordIdx === CONTENT.thesis.keywords.length - 1
-                ? `${CONTENT.thesis.conjunction}${word}.`
-                : `${word},`}
+          {CONTENT.thesis.keywords.map((word, wordIdx) => (
+            <span key={word}>
+              <span
+                ref={(element) => {
+                  thesisWordRefs.current[wordIdx] = element;
+                }}
+                style={{
+                  opacity: 0,
+                  willChange: "opacity, transform",
+                  marginRight:
+                    wordIdx < CONTENT.thesis.keywords.length - 1
+                      ? "0.3em"
+                      : undefined,
+                }}>
+                {wordIdx === CONTENT.thesis.keywords.length - 1
+                  ? `${CONTENT.thesis.conjunction}${word}.`
+                  : `${word},`}
+              </span>
             </span>
-          </span>
-        ))}
+          ))}
         </span>
       </div>
     </>

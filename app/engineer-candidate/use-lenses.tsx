@@ -20,7 +20,7 @@ import { smoothstep, lerp, clamp } from "./math";
 import { renderCard } from "../lab-artifacts/render-card";
 import { HIGHLIGHT_ENTRIES } from "./card-config";
 import {
-  CROSSFADE_PER_CARD,
+  STORYCARD_SCROLL_SPAN,
   CURTAIN_EDGE,
   Z,
   BLUR_THRESHOLD,
@@ -216,7 +216,7 @@ export function useLenses() {
     /* ═══ Crossfade highlight cards ═══ */
 
     const cfStart = CINEMATIC_START;
-    const span = CROSSFADE_PER_CARD;
+    const span = STORYCARD_SCROLL_SPAN;
 
     // Show/hide pill container — only visible during crossfade
     if (pillContainerRef.current) {
