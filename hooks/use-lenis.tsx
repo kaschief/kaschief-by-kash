@@ -4,7 +4,7 @@ import {
   createContext,
   useContext,
   useEffect,
-  useRef,
+  useState,
   type ReactNode,
 } from "react";
 import Lenis from "lenis";
@@ -26,7 +26,9 @@ export function useLenis() {
 }
 
 export function LenisProvider({ children }: { children: ReactNode }) {
-  const getterRef = useRef({ getLenis: () => globalLenis });
+  // Stable getter via lazy initializer — identity never changes across renders.
+  // The inner closure reads the module-level `globalLenis` which is always current.
+  const [getter] = useState(() => ({ getLenis: () => globalLenis }));
 
   useEffect(() => {
     const instance = new Lenis({
@@ -58,7 +60,7 @@ export function LenisProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <LenisContext.Provider value={getterRef.current}>
+    <LenisContext.Provider value={getter}>
       {children}
     </LenisContext.Provider>
   );

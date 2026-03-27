@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { useMotionValue, useSpring } from "framer-motion";
 import { BREAKPOINTS } from "@utilities";
 import {
@@ -10,19 +10,38 @@ import {
   SPRING_CONFIG,
 } from "./chaos-to-order.constants";
 
-/** Ref-based breakpoint check — no re-renders on resize */
-export function useIsLgRef() {
+const LG_QUERY = `(min-width: ${BREAKPOINTS.lg}px)`;
+
+/**
+ * Breakpoint check returning both a ref (for scroll/animation callbacks)
+ * and a boolean state (safe to read during render).
+ */
+export function useIsLg() {
   const ref = useRef(false);
-  useEffect(() => {
-    const mq = window.matchMedia(`(min-width: ${BREAKPOINTS.lg}px)`);
-    ref.current = mq.matches;
+
+  const subscribe = useCallback((onStoreChange: () => void) => {
+    const mq = window.matchMedia(LG_QUERY);
     const handler = (e: MediaQueryListEvent) => {
       ref.current = e.matches;
+      onStoreChange();
     };
+    ref.current = mq.matches;
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
-  return ref;
+
+  const getSnapshot = useCallback(() => window.matchMedia(LG_QUERY).matches, []);
+  const getServerSnapshot = useCallback(() => false, []);
+
+  const isLg = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  // Keep ref in sync for imperative scroll callbacks that need
+  // the latest breakpoint without triggering re-renders.
+  useEffect(() => {
+    ref.current = isLg;
+  }, [isLg]);
+
+  return { isLg, lgRef: ref };
 }
 
 /** Water-like repulsion via useSpring — desktop only (no re-renders) */

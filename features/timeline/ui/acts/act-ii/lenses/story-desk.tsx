@@ -106,6 +106,7 @@ function StoryOverlay({
   }, [onClose]);
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- backdrop dismiss: Escape key handled via document keydown listener in useEffect above
     <div
       className="fixed inset-0 flex items-end sm:items-center justify-end sm:justify-center sm:px-4"
       role="dialog"
@@ -134,6 +135,7 @@ function StoryOverlay({
         }
       `}</style>
 
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- click stops propagation to backdrop; keyboard close handled by Escape listener */}
       <div
         ref={panelRef}
         tabIndex={-1}

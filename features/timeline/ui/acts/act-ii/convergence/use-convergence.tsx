@@ -57,8 +57,8 @@ export function useConvergence() {
   const gridEl = useRef<HTMLDivElement>(null);
 
   /* ---- Data ---- */
-  const fragments = useMemo(createFragments, []);
-  const embers = useMemo(createEmbers, []);
+  const fragments = useMemo(() => createFragments(), []);
+  const embers = useMemo(() => createEmbers(), []);
 
   /* ---- Scroll update ---- */
   function update(

@@ -11,7 +11,7 @@ import {
   BURST_RESET_VIEWPORT,
   BASE_DRIFT_RANGE,
 } from "./chaos-to-order.constants";
-import { useIsLgRef } from "./chaos-to-order.hooks";
+import { useIsLg } from "./chaos-to-order.hooks";
 import { SkillCard } from "./skill-card";
 import { NarrativeText } from "./narrative-text";
 import { ScrollIndicator } from "./scroll-indicator";
@@ -72,7 +72,7 @@ export function ChaosToOrder() {
       window.removeEventListener(NAVIGATION_SCROLL_EVENT, handleNavScroll);
   }, [resetBurst]);
 
-  const lgRef = useIsLgRef();
+  const { isLg, lgRef } = useIsLg();
 
   const { scrollYProgress } = useScroll({
     target: sceneRef,
@@ -128,6 +128,7 @@ export function ChaosToOrder() {
             containerRef={stickyRef}
             scrollProgress={scrollYProgress}
             lgRef={lgRef}
+            isLg={isLg}
           />
         ))}
 
