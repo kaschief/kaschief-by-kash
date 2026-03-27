@@ -16,7 +16,7 @@
  */
 
 import { useRef, useEffect, useCallback, type RefObject } from "react";
-import { STREAMS, NODES } from "@app/sankey-data";
+import { STREAMS, NODES } from "@data";
 import { smoothstep, lerp } from "./math";
 import { hashToUnit, CONTENT } from "./act-ii.data";
 import {

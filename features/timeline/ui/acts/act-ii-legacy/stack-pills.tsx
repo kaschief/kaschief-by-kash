@@ -13,7 +13,7 @@ export function StackPills({ stack }: StackPillsProps) {
       {stack.map((tag) => (
         <span
           key={tag.text}
-          className="rounded-full border px-2.5 py-0.5 font-mono text-[10px]"
+          className="rounded-full border px-2.5 py-0.5 font-ui text-[10px]"
           style={{
             background: `${tag.color}${TAG_ALPHA_BG}`,
             color: tag.color,

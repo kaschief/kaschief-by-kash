@@ -236,7 +236,7 @@ export function buildLines(co: CompanyBlock): TermLine[] {
 }
 
 // Intentional: terminal section uses real monospace for code authenticity.
-// The rest of the site avoids mono (--font-mono remapped to Urbanist).
+// The rest of the site avoids mono (--font-ui remapped to Urbanist).
 export const TERMINAL_FONT = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
 /** Pre-build all company lines once (module-level). */

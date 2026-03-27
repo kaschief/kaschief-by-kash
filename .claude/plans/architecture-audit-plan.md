@@ -4,7 +4,7 @@ Each phase is a discrete, testable refactor. Commit after each. Test after each.
 
 ---
 
-## Phase 1 — Font Loading (CQ-1)
+## Phase 1 — Font Loading (CQ-1) [DONE]
 
 **Impact:** LCP/FCP, bundle size
 **Risk:** Low
@@ -18,7 +18,7 @@ Each phase is a discrete, testable refactor. Commit after each. Test after each.
 
 ---
 
-## Phase 2 — ESLint Setup (DX-1)
+## Phase 2 — ESLint Setup (DX-1) [DONE]
 
 **Impact:** Code quality foundation
 **Risk:** Low (may surface lint errors to fix)
@@ -33,7 +33,7 @@ Each phase is a discrete, testable refactor. Commit after each. Test after each.
 
 ---
 
-## Phase 3 — Pre-commit Hooks (DX-2)
+## Phase 3 — Pre-commit Hooks (DX-2) [DONE]
 
 **Impact:** Quality gate
 **Risk:** Low
@@ -131,7 +131,7 @@ act-ii/
 
 ---
 
-## Phase 8 — Accessibility: Skip Navigation + Landmarks (A11Y-2, A11Y-3)
+## Phase 8 — Accessibility: Skip Navigation + Landmarks (A11Y-2, A11Y-3) [DONE]
 
 **Impact:** Keyboard navigation, screen reader UX
 **Risk:** Low
@@ -223,7 +223,7 @@ Once fixed, remove all "warn" overrides from `eslint.config.mjs` — every rule 
 
 ---
 
-## Phase 14 — Final Polish (CQ-4, CQ-5, DX-4, TS-2)
+## Phase 14 — Final Polish (CQ-4, CQ-5, DX-4, TS-2) [DONE]
 
 **Impact:** Professional finish
 **Risk:** Minimal

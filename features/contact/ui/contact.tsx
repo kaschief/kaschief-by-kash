@@ -94,7 +94,7 @@ export function Contact() {
 
       <div className="relative z-10 mx-auto max-w-2xl text-center">
         <FadeIn>
-          <p className="mb-5 font-mono text-[10px] font-medium uppercase tracking-[0.4em] text-[var(--gold-dim)]">
+          <p className="mb-5 font-ui text-[10px] font-medium uppercase tracking-[0.4em] text-[var(--gold-dim)]">
             Next Act
           </p>
         </FadeIn>
@@ -131,7 +131,7 @@ export function Contact() {
                 {({ hovered }) => (
                   <>
                     <div className="min-w-0 flex-1 pr-2">
-                      <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-faint)] transition-colors group-hover:text-[var(--cream-muted)]">
+                      <p className="mb-1 font-ui text-[9px] uppercase tracking-[0.22em] text-[var(--text-faint)] transition-colors group-hover:text-[var(--cream-muted)]">
                         {link.label}
                       </p>
                       <p className="text-sm leading-relaxed text-[var(--cream-muted)] transition-colors group-hover:text-[var(--cream)] break-all">

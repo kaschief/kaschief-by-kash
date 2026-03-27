@@ -28,7 +28,7 @@ function TimelineFallback({ label }: { label: string }) {
       className="mx-auto w-full max-w-7xl px-[var(--page-gutter)] py-20"
       aria-live="polite">
       <div className="rounded-xl border border-[var(--stroke)] bg-[var(--bg-elevated)]/60 px-6 py-8">
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--text-dim)]">
+        <p className="font-ui text-xs uppercase tracking-[0.2em] text-[var(--text-dim)]">
           {label}
         </p>
       </div>

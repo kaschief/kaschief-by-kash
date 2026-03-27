@@ -232,7 +232,7 @@ export function Methods() {
               style={{ backgroundColor: gold }}
             />
             <span
-              className="font-mono text-[10px] font-medium uppercase tracking-[0.25em]"
+              className="font-ui text-[10px] font-medium uppercase tracking-[0.25em]"
               style={{ color: gold }}>
               Methods
             </span>
@@ -250,7 +250,7 @@ export function Methods() {
                   captureMobileContentAnchor();
                   setMobilePanel(i);
                 }}
-                className="mr-6 shrink-0 whitespace-nowrap pb-3 font-mono text-xs uppercase tracking-wider transition-colors"
+                className="mr-6 shrink-0 whitespace-nowrap pb-3 font-ui text-xs uppercase tracking-wider transition-colors"
                 style={{
                   color: i === mobilePanel ? cream : textFaint,
                   borderBottom:

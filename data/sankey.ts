@@ -40,6 +40,7 @@ export const NODES: SankeyNode[] = [
 
 /* ---- Math helpers (re-exported from canonical source) ---- */
 export { smoothstep, lerp, clamp } from "../features/timeline/ui/acts/act-ii/math";
+// TODO: math helpers should move to a shared utility, not re-exported from a feature
 
 /* ---- SVG path generator for a Sankey flow (horizontal) ---- */
 

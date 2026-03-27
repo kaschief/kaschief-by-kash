@@ -30,7 +30,7 @@ function MobileNavLink({
         event.preventDefault();
         onNavigate(link.sectionId);
       }}
-      className="cursor-pointer py-1.5 text-left font-mono text-sm font-light uppercase tracking-[0.15em] transition-colors"
+      className="cursor-pointer py-1.5 text-left font-ui text-sm font-light uppercase tracking-[0.15em] transition-colors"
       style={{
         color: resolveNavLinkColor({
           activeSection,

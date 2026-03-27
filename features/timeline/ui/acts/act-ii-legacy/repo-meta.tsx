@@ -10,7 +10,7 @@ interface RepoMetaProps {
 export function RepoMeta({ repo }: RepoMetaProps) {
   return (
     <div
-      className="mb-5 flex flex-wrap items-center gap-4 font-mono text-xs"
+      className="mb-5 flex flex-wrap items-center gap-4 font-ui text-xs"
       aria-label="Repository metadata">
       <span className="flex items-center gap-1.5">
         <span

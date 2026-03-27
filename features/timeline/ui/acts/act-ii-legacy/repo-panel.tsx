@@ -104,7 +104,7 @@ export function RepoPanel({ company, onClose }: RepoPanelProps) {
           className="overflow-hidden rounded-md border"
           style={{ borderColor: PANEL_BORDER }}>
           <div
-            className="flex items-center gap-2 border-b px-4 py-2.5 font-mono text-xs text-(--cream-muted)"
+            className="flex items-center gap-2 border-b px-4 py-2.5 font-ui text-xs text-(--cream-muted)"
             style={{ background: PANEL_HEADER_BG, borderColor: PANEL_BORDER }}>
             {"\uD83D\uDCC4"} README.md
           </div>
@@ -117,7 +117,7 @@ export function RepoPanel({ company, onClose }: RepoPanelProps) {
             href={repo.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center justify-center rounded-md border px-6 py-2.5 font-mono text-xs no-underline transition-all active:scale-[0.97]"
+            className="inline-flex min-h-11 items-center justify-center rounded-md border px-6 py-2.5 font-ui text-xs no-underline transition-all active:scale-[0.97]"
             style={{
               color: linkHovered ? ACT_BLUE_HOVER : ACT_BLUE,
               borderColor: linkHovered ? actBlueRgba(0.5) : actBlueRgba(0.2),

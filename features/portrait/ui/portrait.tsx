@@ -192,7 +192,7 @@ export function Portrait() {
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, ease: EASE, delay: 0.2 }}>
             <p
-              className="font-mono font-medium uppercase tracking-[0.25em]"
+              className="font-ui font-medium uppercase tracking-[0.25em]"
               style={{ color: gold, fontSize: S(1.3), marginBottom: S(1.5) }}>
               Berlin, Germany
             </p>

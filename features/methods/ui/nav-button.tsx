@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { TOKENS, TRANSITION } from "@utilities";
 import type { NavButtonProps } from "./methods.types";
-const { creamMuted, fontMono, gold, stroke, textDim, textFaint } = TOKENS;
+const { creamMuted, fontUi, gold, stroke, textDim, textFaint } = TOKENS;
 
 export function NavButton({ label, isActive, onClick }: NavButtonProps) {
   const [hovered, setHovered] = useState(false);
@@ -28,7 +28,7 @@ export function NavButton({ label, isActive, onClick }: NavButtonProps) {
       }}>
       <span
         style={{
-          fontFamily: fontMono,
+          fontFamily: fontUi,
           fontSize: 9,
           textTransform: "uppercase",
           letterSpacing: "0.18em",

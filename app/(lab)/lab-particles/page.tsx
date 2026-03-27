@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useScroll, useMotionValueEvent } from "framer-motion";
-import { STREAMS, NODES, smoothstep, lerp } from "../../sankey-data";
+import { STREAMS, NODES, smoothstep, lerp } from "@data";
 import { LabNav } from "../lab-nav";
 
 /* ------------------------------------------------------------------ */

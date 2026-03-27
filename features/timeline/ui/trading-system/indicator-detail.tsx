@@ -21,7 +21,7 @@ export function IndicatorDetail({ indicator, onClose }: IndicatorDetailProps) {
             className="h-2.5 w-2.5 rounded-full"
             style={{ backgroundColor: indicator.color }}
           />
-          <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]">
+          <span className="font-ui text-[9px] uppercase tracking-wider text-[var(--text-faint)]">
             {indicator.category}
           </span>
         </div>

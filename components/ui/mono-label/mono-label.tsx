@@ -9,7 +9,7 @@ export function MonoLabel({
 }: MonoLabelProps) {
   return (
     <p
-      className={`font-mono text-[9px] font-medium uppercase tracking-[0.25em] ${className ?? ""}`}
+      className={`font-ui text-[9px] font-medium uppercase tracking-[0.25em] ${className ?? ""}`}
       style={{ color }}>
       {label}
     </p>

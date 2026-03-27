@@ -72,6 +72,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={fontVariables}>
       <body className="font-sans antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded focus:bg-[var(--gold)] focus:px-4 focus:py-2 focus:font-ui focus:text-xs focus:font-semibold focus:uppercase focus:tracking-wider focus:text-[var(--bg)]">
+          Skip to content
+        </a>
         {/*
           Scroll-exit fade — fixed gradient at the top of the viewport.
           As content scrolls up and exits, it dissolves into the background.
@@ -91,7 +96,7 @@ export default function RootLayout({
             zIndex: scrollFade,
           }}
         />
-        {children}
+        <main id="main-content">{children}</main>
         <Analytics />
       </body>
     </html>

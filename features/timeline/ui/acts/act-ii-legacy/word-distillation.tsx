@@ -359,7 +359,7 @@ export function WordDistillation({ companies, scrollTarget }: WordDistillationPr
           clone.textContent = word;
           Object.assign(clone.style, {
             position: "absolute", left: `${sourceX}px`, top: `${sourceY}px`,
-            fontFamily: "var(--font-mono)",
+            fontFamily: "var(--font-ui)",
             fontSize: window.getComputedStyle(source).fontSize,
             color: CREAM, pointerEvents: "none",
             willChange: "transform, opacity, filter",
@@ -695,22 +695,22 @@ export function WordDistillation({ companies, scrollTarget }: WordDistillationPr
                     style={{ borderColor: dotColor, backgroundColor: company.promoted ? dotColor : SECTION_BG }}
                   />
 
-                  <div data-meta="" data-trim="" className="mb-1 font-mono text-[11px] tracking-[0.05em]" style={{ color: GOLD }}>
+                  <div data-meta="" data-trim="" className="mb-1 font-ui text-[11px] tracking-[0.05em]" style={{ color: GOLD }}>
                     {company.hash}
                   </div>
                   <div data-meta="" className="text-sm font-bold sm:text-base lg:text-lg" style={{ color: CREAM }}>
                     {company.company}
                   </div>
-                  <div data-meta="" className="mt-0.5 font-mono text-xs" style={{ color: ACT_BLUE }}>
+                  <div data-meta="" className="mt-0.5 font-ui text-xs" style={{ color: ACT_BLUE }}>
                     {company.role}
                   </div>
-                  <div data-meta="" data-trim="" className="mt-1 font-mono text-[11px]" style={{ color: TEXT_DIM }}>
+                  <div data-meta="" data-trim="" className="mt-1 font-ui text-[11px]" style={{ color: TEXT_DIM }}>
                     {company.location} · {company.period}
                   </div>
 
                   <ul className="mt-3 flex flex-col gap-1.5">
                     {company.commits.map((commit, commitIndex) => (
-                      <li key={commitIndex} className="font-mono text-[10px] leading-[1.7] sm:text-[11px] md:text-[12px]">
+                      <li key={commitIndex} className="font-ui text-[10px] leading-[1.7] sm:text-[11px] md:text-[12px]">
                         <span data-dissolve="" style={{ color: COMMIT_TYPE_COLORS[commit.type] ?? COMMIT_TYPE_FALLBACK }}>
                           {commit.type}
                         </span>
@@ -742,7 +742,7 @@ export function WordDistillation({ companies, scrollTarget }: WordDistillationPr
 
                   <div data-meta="" data-trim="" className="mt-3 flex flex-wrap gap-2">
                     {company.tags.map((tag) => (
-                      <span key={tag.text} className="rounded px-2 py-0.5 font-mono text-[10px]"
+                      <span key={tag.text} className="rounded px-2 py-0.5 font-ui text-[10px]"
                         style={{ backgroundColor: `${tag.color}${TAG_ALPHA_BG}`, color: tag.color }}>
                         {tag.text}
                       </span>

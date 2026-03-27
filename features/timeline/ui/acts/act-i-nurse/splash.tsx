@@ -142,10 +142,10 @@ export function Splash() {
               className="absolute -top-2 right-0 z-10 hidden text-right sm:-top-4 md:block"
               initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}}
               transition={{ duration: 1, delay: 0.5, ease: EASE }}>
-              <p className="font-mono text-4xl font-bold leading-none tracking-tight sm:text-5xl" style={{ color: COLOR }}>
+              <p className="font-ui text-4xl font-bold leading-none tracking-tight sm:text-5xl" style={{ color: COLOR }}>
                 {bpm}
               </p>
-              <p className="mt-1 font-mono text-[11px] tracking-wide" style={{ color: COLOR, opacity: 0.5 }}>
+              <p className="mt-1 font-ui text-[11px] tracking-wide" style={{ color: COLOR, opacity: 0.5 }}>
                 <motion.span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: COLOR }}
                   animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
                   transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }} />
@@ -169,10 +169,10 @@ export function Splash() {
               className="mt-4 flex items-center justify-center gap-2 md:hidden"
               initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}}
               transition={{ duration: 1, delay: 0.5, ease: EASE }}>
-              <p className="font-mono text-base font-bold leading-none tracking-tight" style={{ color: COLOR }}>
+              <p className="font-ui text-base font-bold leading-none tracking-tight" style={{ color: COLOR }}>
                 {bpm}
               </p>
-              <p className="font-mono text-[11px] tracking-wide" style={{ color: COLOR, opacity: 0.5 }}>
+              <p className="font-ui text-[11px] tracking-wide" style={{ color: COLOR, opacity: 0.5 }}>
                 <motion.span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: COLOR }}
                   animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
                   transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }} />
@@ -183,7 +183,7 @@ export function Splash() {
 
           {/* Location row */}
           <motion.div
-            className="mt-4 flex flex-wrap items-center justify-center gap-2 font-mono text-[11px] tracking-wide sm:mt-8 sm:gap-3"
+            className="mt-4 flex flex-wrap items-center justify-center gap-2 font-ui text-[11px] tracking-wide sm:mt-8 sm:gap-3"
             initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}}
             transition={{ duration: 0.8, delay: 1, ease: EASE }}>
             <span className="text-(--cream-muted)">NYU Langone</span>

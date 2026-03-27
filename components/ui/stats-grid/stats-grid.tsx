@@ -133,8 +133,8 @@ export function StatsGrid({
           <p
             className={
               isRow
-                ? "font-mono uppercase tracking-[0.2em] text-[var(--cream-muted)]"
-                : "mt-1 font-mono text-[9px] uppercase tracking-wider text-[var(--text-faint)]"
+                ? "font-ui uppercase tracking-[0.2em] text-[var(--cream-muted)]"
+                : "mt-1 font-ui text-[9px] uppercase tracking-wider text-[var(--text-faint)]"
             }
             style={isRow ? { fontSize: PS(1.1), marginTop: PS(0.3) } : undefined}>
             {stat.label}
