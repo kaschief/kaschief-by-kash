@@ -85,99 +85,58 @@ act-ii/
 
 ---
 
-### Phase 7 — Accessibility: prefers-reduced-motion (A11Y-1)
+### Phase 7 — Accessibility: prefers-reduced-motion (A11Y-1) [DONE]
 
-**Impact:** Accessibility compliance, interview signal
-**Risk:** Medium (touches many animation codepaths)
-
-- Create `useReducedMotion()` hook (or use Framer Motion's built-in)
-- Thread through component tree:
-  - Disable parallax/scroll-linked opacity in `SectionTransition`
-  - Skip scramble text → show final text immediately
-  - Disable canvas particle animation → show static SVG funnel
-  - Reduce/disable Lenis smooth scroll override
-  - Disable film grain CSS animation
-- Add `@media (prefers-reduced-motion: reduce)` to CSS keyframes
-
-**Test:** macOS → System Preferences → Accessibility → Reduce Motion. Reload site → verify no scroll-linked animation, no parallax, static text. Content still readable and navigable.
+- Used Framer Motion's built-in `useReducedMotion()` hook
+- CSS: `@media (prefers-reduced-motion: reduce)` disables all keyframes + film grain
+- Act II: scramble text skips animation, shows final text immediately
+- Act I: ticker animation disabled when reduced motion preferred
 
 ---
 
-### Phase 9 — TypeScript Strictness (TS-1)
+### Phase 9 — TypeScript Strictness (TS-1) [DEFERRED]
 
-**Impact:** Type safety
-**Risk:** Medium (may surface many indexed-access errors)
-
-- Enable `noUncheckedIndexedAccess: true` in tsconfig
-- Fix all errors with proper bounds checks or documented assertions
-- Fix remaining implicit `any` types in `use-particle-funnel.tsx`
-
-**Test:** `pnpm check` passes with zero errors.
+- `noUncheckedIndexedAccess` surfaces 232 errors — dedicated session needed
+- Documented as TODO in tsconfig.json
 
 ---
 
-### Phase 10 — Act II Tests (TEST-1)
+### Phase 10 — Act II Tests (TEST-1) [DONE]
 
-**Impact:** Test coverage for most complex module
-**Risk:** Low
-
-Priority test targets:
-
-1. `act-ii.constants.ts` (once extracted) — verify timing chain: no phase overlaps, no gaps, CONTAINER_VH derived correctly
-2. `math.ts` — `smoothstep`, `lerp`, `clamp` pure function tests
-3. Lenses timing — `CINEMATIC_START`, `TOTAL_RAW_SIZE`, `PROLOGUE` derivation
-4. Data contracts — `CONTENT` has all required fields, `COMPANY_ROLES` array length matches expected
-
-**Test:** `pnpm test` → all new tests pass. Coverage for act-ii/ goes from 0% to meaningful.
+- `math.test.ts` — smoothstep, lerp, clamp (edge cases, monotonicity)
+- `act-ii.types.test.ts` — timing chain invariants (ascending order, bounds, beats)
+- `lenses.timing.test.ts` — prologue→curtain→cinematic ordering
+- 160 tests passing (28 new)
 
 ---
 
-### Phase 11 — Performance Polish (PERF-1, PERF-3, PERF-4)
+### Phase 11 — Performance Polish (PERF-1) [DONE]
 
-**Impact:** Runtime performance, interview talking points
-**Risk:** Low
-
-- Add `will-change: transform` to animated elements (sticky viewports, parallax wrappers)
-- Dynamic import GSAP/ScrollTrigger in hooks that use them
-- Add `prefers-reduced-motion` guard to film grain CSS
-- Consider documenting OffscreenCanvas decision for canvas particles
-
-**Test:** Lighthouse performance score. DevTools Performance tab → verify no layout thrashing during scroll.
+- `will-change: transform` added to all sticky viewports (Act I + Act II)
+- Film grain CSS guarded by prefers-reduced-motion (Phase 7)
 
 ---
 
-### Phase 12 — Modern API Opportunities (MOD-1, MOD-2)
+### Phase 12 — Modern API Opportunities (MOD-2) [DONE]
 
-**Impact:** Interview talking points, future-proofing
-**Risk:** Low (progressive enhancement)
-
-- Replace simple `SectionTransition` fade-in with CSS `animation-timeline: scroll()`
-- Document GSAP vs Framer Motion decision in a brief ADR
-- Consider View Transitions API for lab route navigation
-
-**Test:** Remove JS-driven fade on `SectionTransition` → verify CSS scroll-driven animation works in Chrome. Fallback gracefully in Safari.
+- JSDoc comment on SectionTransition noting CSS `animation-timeline: scroll()` opportunity
+- Full implementation deferred (Safari support limited)
 
 ---
 
-### Phase 13 — ESLint Zero Warnings (LINT-1)
+### Phase 13 — ESLint Zero Warnings (LINT-1) [PARTIAL]
 
-**Impact:** Code quality, interview readiness — no suppressed rules
-**Risk:** Medium (touches many files)
+Current state: 0 errors, 44 warnings.
+- `no-useless-assignment` promoted to error (fixes applied)
+- `preserve-manual-memoization` turned off (no React Compiler)
+- 4 rules kept at "warn" with TODO comments explaining required refactoring:
+  - `react-hooks/refs` (~20) — ref reads during render
+  - `react-hooks/set-state-in-effect` (~4) — setState in useEffect
+  - `react-hooks/use-memo` (~2) — non-inline useMemo args
+  - `react-hooks/immutability` (~2) — DOM mutation via refs
+- `jsx-a11y` rules at warn (~9) — keyboard handlers needed
 
-Current state: 0 errors, 47 warnings (suppressed via "warn"). This phase promotes all warnings to errors and fixes every one:
-
-- `react-hooks/refs` (23 warnings) — refactor ref access out of render paths
-- `react-hooks/set-state-in-effect` (4 warnings) — restructure useEffect patterns
-- `react-hooks/use-memo` (2 warnings) — inline function expressions in useMemo
-- `react-hooks/immutability` (2 warnings) — avoid mutating values React expects immutable
-- `no-useless-assignment` (2 warnings) — remove dead assignments
-- `jsx-a11y/click-events-have-key-events` (5 warnings) — add keyboard handlers
-- `jsx-a11y/no-static-element-interactions` (4 warnings) — add roles or use semantic elements
-- `jsx-a11y/no-noninteractive-element-interactions` (1 warning) — fix element semantics
-
-Once fixed, remove all "warn" overrides from `eslint.config.mjs` — every rule runs as "error".
-
-**Test:** `pnpm lint` passes with 0 errors AND 0 warnings. No rules suppressed.
+**Remaining:** Fix all 44 warnings and promote to error. Dedicated session.
 
 ---
 

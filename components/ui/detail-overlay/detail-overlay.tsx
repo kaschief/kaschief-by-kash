@@ -61,7 +61,7 @@ export function DetailOverlay({
       clearTimeout(timeoutId);
       document.removeEventListener(KEY_DOWN, handleKeyDown);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!onPrev && !onNext) return;

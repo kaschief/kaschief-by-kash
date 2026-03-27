@@ -33,11 +33,24 @@ export default tseslint.config(
     rules: {
       // React hooks
       ...reactHooks.configs.recommended.rules,
+      // TODO: react-hooks/refs — ~20 warnings. Requires refactoring components
+      // that read ref.current during render (e.g., navigation, skill-card) to
+      // use state or derive values inside effects/callbacks instead.
       "react-hooks/refs": "warn",
+      // TODO: react-hooks/set-state-in-effect — requires replacing synchronous
+      // setState calls inside useEffect bodies with useSyncExternalStore or
+      // initializer patterns (e.g., useMediaQuery, portrait).
       "react-hooks/set-state-in-effect": "warn",
+      // TODO: react-hooks/use-memo — useMemo first arg must be inline function
+      // expression (convergence createEmbers). Minor refactor.
       "react-hooks/use-memo": "warn",
+      // TODO: react-hooks/immutability — terminal replay modifies ref'd DOM
+      // elements passed as props. Requires restructuring to use callback refs
+      // or lifting DOM manipulation to the parent component.
       "react-hooks/immutability": "warn",
-      "no-useless-assignment": "warn",
+      // Not using React Compiler — manual memoization is intentional
+      "react-hooks/preserve-manual-memoization": "off",
+      "no-useless-assignment": "error",
 
       // TypeScript — relax rules that conflict with the codebase patterns
       "@typescript-eslint/no-unused-vars": [

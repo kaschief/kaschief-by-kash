@@ -696,6 +696,22 @@ html[data-custom-cursor="on"] *::after {
   }
 }
 
+/* ─── Reduced motion: disable all CSS keyframe animations ───────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .film-grain::after {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}
+
 
 /* ─── Scroll-fade overlay — responsive height ─────────────────────────────── */
 :root {

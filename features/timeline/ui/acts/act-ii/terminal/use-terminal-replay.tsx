@@ -144,7 +144,7 @@ export function useTerminalReplay({
           const charCounts = CHAR_COUNTS[companyIdx];
 
           // How many chars to reveal
-          let charsToShow = 0;
+          let charsToShow: number;
           if (companyProgress <= TYPING_PHASE_1_END) {
             charsToShow = Math.floor(
               remap(companyProgress, 0, TYPING_PHASE_1_END, 0, charCounts.p1),
