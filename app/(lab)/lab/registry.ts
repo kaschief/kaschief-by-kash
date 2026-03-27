@@ -46,6 +46,12 @@ export const LAB_ROUTES: readonly LabRoute[] = [
     section: "scroll",
   },
   {
+    href: "/lab-roles",
+    label: "Roles Convergence",
+    desc: "Act II convergence cloud — base for roles transition experiment",
+    section: "scroll",
+  },
+  {
     href: "/lab-converge",
     label: "Convergence",
     desc: "Fragments drift in chaos then resolve into 4 job cards",
