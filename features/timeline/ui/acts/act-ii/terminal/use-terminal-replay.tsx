@@ -10,6 +10,7 @@
 
 import { useRef, type RefObject } from "react";
 import { smoothstep, lerp, remap } from "../math";
+import { COMPANIES } from "@data";
 import { COMPANY_COLORS, COMPANY_ROLES, CONTENT } from "../act-ii.data";
 import {
   TERMINAL,
@@ -278,9 +279,9 @@ export function useTerminalReplay({
 
           if (nameEl) {
             nameEl.textContent =
-              TERM_COMPANIES[companyIdx].company +
+              COMPANIES[companyIdx].shortName +
               " · " +
-              TERM_COMPANIES[companyIdx].location;
+              COMPANIES[companyIdx].location;
             nameEl.style.color = COMPANY_COLORS[companyIdx];
             nameEl.style.opacity = String(
               smoothstep(0, TERMINAL_NARRATOR.headerFadeEnd, narrativeProgress),
@@ -502,7 +503,7 @@ export function useTerminalReplay({
             const narrative = TERM_NARRATIVES[companyIndex];
             return (
               <div
-                key={company.company}
+                key={company.companyId}
                 ref={(element) => {
                   mobileCardRefs.current[companyIndex] = element;
                 }}
@@ -527,7 +528,7 @@ export function useTerminalReplay({
                       textTransform: "uppercase",
                       color: COMPANY_COLORS[companyIndex],
                     }}>
-                    {company.company} &middot; {company.location}
+                    {COMPANIES[companyIndex].shortName} &middot; {COMPANIES[companyIndex].location}
                   </div>
                   <div
                     className="font-sans"
@@ -537,7 +538,7 @@ export function useTerminalReplay({
                       marginTop: "0.25rem",
                       letterSpacing: "0.04em",
                     }}>
-                    {COMPANY_ROLES[company.company]}
+                    {COMPANY_ROLES[COMPANIES[companyIndex].shortName]}
                   </div>
                 </div>
                 {/* Glass card container */}

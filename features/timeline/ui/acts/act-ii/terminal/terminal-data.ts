@@ -3,6 +3,7 @@
    Extracted from page.tsx for terminal-replay.tsx consumption.
    ================================================================== */
 
+import { COMPANIES, COMPANY_ID, type CompanyId } from "@data";
 import { COMPANY_ROLES, CONTENT } from "../act-ii.data";
 
 /* ---- Terminal color palette (GitHub dark theme) ---- */
@@ -25,11 +26,8 @@ export const TERMINAL_COLORS = {
 
 /* ---- Company data for terminal replay ---- */
 export interface CompanyBlock {
-  hash: string;
-  company: string;
+  companyId: CompanyId;
   authorEmail: string;
-  location: string;
-  dates: string;
   commitType: string;
   commitMsg: string;
   commitBody: string;
@@ -38,13 +36,13 @@ export interface CompanyBlock {
   promotion?: string; // e.g. "→ Promoted to Senior Engineer"
 }
 
+/** Canonical company lookup by id — used by buildLines() to derive identity fields */
+const COMPANY_BY_ID = new Map(COMPANIES.map((c) => [c.id, c]));
+
 export const TERM_COMPANIES: CompanyBlock[] = [
   {
-    hash: "a3f7e2d",
-    company: "AMBOSS",
+    companyId: COMPANY_ID.AMBOSS,
     authorEmail: "kash@amboss.com",
-    location: "Berlin",
-    dates: "2018-2019",
     commitType: "feat",
     commitMsg: "migrate study flows from vanilla JS to React",
     commitBody:
@@ -64,11 +62,8 @@ export const TERM_COMPANIES: CompanyBlock[] = [
     ],
   },
   {
-    hash: "b8c4f19",
-    company: "Compado",
+    companyId: COMPANY_ID.COMPADO,
     authorEmail: "kash@compado.com",
-    location: "Berlin",
-    dates: "2019-2021",
     commitType: "fix",
     commitMsg: "replace duplicated sites with component system",
     commitBody:
@@ -100,11 +95,8 @@ export const TERM_COMPANIES: CompanyBlock[] = [
     promotion: "✦ promoted to Senior Frontend Engineer",
   },
   {
-    hash: "c2e6a03",
-    company: "CAPinside",
+    companyId: COMPANY_ID.CAPINSIDE,
     authorEmail: "kash@capinside.com",
-    location: "Hamburg",
-    dates: "2021-2023",
     commitType: "feat",
     commitMsg: "introduce TypeScript + code review process",
     commitBody:
@@ -135,11 +127,8 @@ export const TERM_COMPANIES: CompanyBlock[] = [
     ],
   },
   {
-    hash: "d9f1b77",
-    company: "DKB",
+    companyId: COMPANY_ID.DKB,
     authorEmail: "kash@dkb.de",
-    location: "Berlin",
-    dates: "2021-2024",
     commitType: "feat",
     commitMsg: "add Playwright tests + feature flags + weekly releases",
     commitBody:
@@ -186,9 +175,15 @@ export interface TermLine {
 }
 
 export function buildLines(co: CompanyBlock): TermLine[] {
+  const canonical = COMPANY_BY_ID.get(co.companyId);
+  const hash = canonical?.hash ?? "0000000";
+  const company = canonical?.shortName ?? co.companyId;
+  const role = COMPANY_ROLES[company] || "Frontend Engineer";
+  const dates = canonical?.periodShort ?? "";
+
   const lines: TermLine[] = [];
   lines.push({
-    text: `commit ${co.hash} (HEAD -> main)`,
+    text: `commit ${hash} (HEAD -> main)`,
     style: "keyword",
     phase: 1,
   });
@@ -198,12 +193,12 @@ export function buildLines(co: CompanyBlock): TermLine[] {
     phase: 1,
   });
   lines.push({
-    text: `Role:   ${COMPANY_ROLES[co.company] || "Frontend Engineer"}`,
+    text: `Role:   ${role}`,
     style: "string",
     phase: 1,
   });
   lines.push({
-    text: `Date:   ${co.dates}`,
+    text: `Date:   ${dates}`,
     style: "text",
     phase: 1,
   });
