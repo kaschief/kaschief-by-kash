@@ -60,8 +60,8 @@ export const PHASES = {
   convergenceTail: 0.04, // extra time after convergence for cleanup
   rolesDissolve: 0.05, // non-seeds dissolve while seeds drift toward grid
   rolesFly: 0.08, // seeds fly to grid positions, fill words appear
-  rolesHold: 0.10, // grid visible for reading
-  rolesDrain: 0.06, // grayscale drain on grid
+  rolesHold: 0.12, // grid visible for reading (longer hold)
+  rolesDrain: 0.08, // grayscale drain + elegant fade-out
   thesisOverlap: 0.04, // thesis starts this far before convergence ends (crossfade)
   thesis: 0.1, // sentence visible + word reveals
   thesisToParticles: 0.0, // gap (0 = immediate)
@@ -343,8 +343,8 @@ const rawRolesFlyEnd = rawRolesFlyStart + PHASES.rolesFly;
 const rawRolesHoldEnd = rawRolesFlyEnd + PHASES.rolesHold;
 const rawRolesDrainEnd = rawRolesHoldEnd + PHASES.rolesDrain;
 
-/* Thesis — starts cleanly after roles drain (no overlap) */
-const rawThesisStart = rawRolesDrainEnd + 0.01;
+/* Thesis — starts cleanly after roles drain (tiny gap) */
+const rawThesisStart = rawRolesDrainEnd + 0.003;
 const rawThesisEnd = rawThesisStart + PHASES.thesis;
 
 /* Seed sub-phases */

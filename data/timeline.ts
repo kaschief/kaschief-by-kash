@@ -1,148 +1,168 @@
-import { ROLES } from "./site";
-const [nurseRole, engineerRole, leaderRole, builderRole] = ROLES;
+import { ROLES } from "./site"
+const [nurseRole, engineerRole, leaderRole, builderRole] = ROLES
+
+/* ------------------------------------------------------------------ */
+/*  Company identity                                                   */
+/* ------------------------------------------------------------------ */
+
+export const COMPANY_ID = {
+  AMBOSS: "amboss",
+  COMPADO: "compado",
+  CAPINSIDE: "capinside",
+  DKB: "dkb",
+} as const
+
+export type CompanyId = (typeof COMPANY_ID)[keyof typeof COMPANY_ID]
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
 export interface Job {
-  readonly id: string;
-  readonly company: string;
-  readonly role: string;
-  readonly period: string;
-  readonly location: string;
-  readonly color: string;
-  readonly tech: readonly string[];
-  readonly summary: string;
-  readonly url: string;
+  readonly id: string
+  readonly company: string
+  readonly role: string
+  readonly period: string
+  readonly location: string
+  readonly color: string
+  readonly tech: readonly string[]
+  readonly summary: string
+  readonly url: string
   readonly deepDive: {
-    readonly context: string;
-    readonly contribution: string;
-    readonly outcome: string;
-    readonly skills: readonly string[];
-  };
+    readonly context: string
+    readonly contribution: string
+    readonly outcome: string
+    readonly skills: readonly string[]
+  }
 }
 
 export interface ManagementStory {
-  readonly id: string;
-  readonly tags: readonly string[];
-  readonly color: string;
-  readonly title: string;
-  readonly teaser: string;
-  readonly text: string;
+  readonly id: string
+  readonly tags: readonly string[]
+  readonly color: string
+  readonly title: string
+  readonly teaser: string
+  readonly text: string
 }
 
 export interface Stat {
-  readonly value: string;
-  readonly label: string;
+  readonly value: string
+  readonly label: string
 }
 
 export interface SkillRef {
-  readonly id: string;
-  readonly label: string;
+  readonly id: string
+  readonly label: string
 }
 
 export interface ActContent {
-  readonly act: string;
-  readonly title: string;
-  readonly period: string;
-  readonly location: string;
-  readonly color: string;
-  readonly splash: string;
-  readonly body: string;
-  readonly takeaway: string;
-  readonly takeawaySerif?: boolean;
-  readonly throughline: string;
-  readonly stats: readonly Stat[];
-  readonly statsColor?: string;
-  readonly skills: readonly SkillRef[];
+  readonly act: string
+  readonly title: string
+  readonly period: string
+  readonly location: string
+  readonly color: string
+  readonly splash: string
+  readonly body: string
+  readonly takeaway: string
+  readonly takeawaySerif?: boolean
+  readonly throughline: string
+  readonly stats: readonly Stat[]
+  readonly statsColor?: string
+  readonly skills: readonly SkillRef[]
 }
 
 export interface NurseFeature {
-  readonly label: string;
-  readonly text: string;
+  readonly label: string
+  readonly text: string
 }
 
 export interface Commit {
-  readonly type: string;
-  readonly msg: string;
+  readonly type: string
+  readonly msg: string
 }
 
 export interface Tag {
-  readonly text: string;
+  readonly text: string
   /** Hex color — must be hex (not CSS var) for alpha suffix manipulation */
-  readonly color: string;
+  readonly color: string
 }
 
 export interface ImpactMetric {
-  readonly stat: string;
-  readonly label: string;
+  readonly stat: string
+  readonly label: string
 }
 
 export interface Repo {
-  readonly org: string;
-  readonly name: string;
-  readonly url: string;
-  readonly branch: string;
-  readonly stars: string;
-  readonly language: string;
-  readonly languageColor: string;
-  readonly description: string;
-  readonly readme: readonly string[];
-  readonly impact: readonly ImpactMetric[];
-  readonly stack: readonly Tag[];
+  readonly org: string
+  readonly name: string
+  readonly url: string
+  readonly branch: string
+  readonly stars: string
+  readonly language: string
+  readonly languageColor: string
+  readonly description: string
+  readonly readme: readonly string[]
+  readonly impact: readonly ImpactMetric[]
+  readonly stack: readonly Tag[]
 }
 
 export interface Distillation {
   /** Words preserved from commits that fly into the question */
-  readonly seedWords: readonly string[];
+  readonly seedWords: readonly string[]
   /** The question the seed words form */
-  readonly question: string;
+  readonly question: string
   /** One-sentence engineering principle this role crystallised */
-  readonly principle: string;
+  readonly principle: string
   /** Longer narrative detail — shown in the interactive view */
-  readonly detail: string;
+  readonly detail: string
 }
 
 export interface Company {
-  readonly hash: string;
-  readonly company: string;
-  readonly role: string;
-  readonly location: string;
-  readonly period: string;
-  readonly industry: string;
-  readonly commits: readonly Commit[];
-  readonly tags: readonly Tag[];
-  readonly promoted: boolean;
-  readonly repo: Repo;
+  readonly id: CompanyId
+  readonly hash: string
+  readonly company: string
+  /** Short display name for terminal/UI contexts (e.g. "AMBOSS", "DKB") */
+  readonly shortName: string
+  readonly role: string
+  /** Final/promoted title at this company */
+  readonly promotedRole: string
+  readonly location: string
+  readonly period: string
+  /** Compact period for space-constrained UI (e.g. "2018–2019") */
+  readonly periodShort: string
+  readonly industry: string
+  readonly commits: readonly Commit[]
+  readonly tags: readonly Tag[]
+  readonly promoted: boolean
+  readonly repo: Repo
   /** Word-distillation animation data */
-  readonly distillation: Distillation;
+  readonly distillation: Distillation
 }
 
 export interface SkillScenario {
-  readonly id: string;
-  readonly question: string;
+  readonly id: string
+  readonly question: string
   /** Substring of question to highlight in accent color during order phase */
-  readonly accentText: string;
-  readonly title: string;
-  readonly proof: string;
-  readonly capability: string;
+  readonly accentText: string
+  readonly title: string
+  readonly proof: string
+  readonly capability: string
 }
 
 export interface ActINurseContent {
-  readonly act: string;
-  readonly title: string;
-  readonly period: string;
-  readonly location: string;
-  readonly color: string;
-  readonly splash: string;
-  readonly intro: string;
-  readonly detail: string;
-  readonly features: readonly NurseFeature[];
-  readonly skills: readonly SkillRef[];
-  readonly trainedHeadline: string;
-  readonly throughline: string;
-  readonly skillScenarios: readonly SkillScenario[];
+  readonly act: string
+  readonly title: string
+  readonly period: string
+  readonly location: string
+  readonly color: string
+  readonly splash: string
+  readonly intro: string
+  readonly detail: string
+  readonly features: readonly NurseFeature[]
+  readonly skills: readonly SkillRef[]
+  readonly trainedHeadline: string
+  readonly throughline: string
+  readonly skillScenarios: readonly SkillScenario[]
 }
 
 /* ------------------------------------------------------------------ */
@@ -179,13 +199,11 @@ export const ACT_I: ActINurseContent = {
     { id: "s5", label: "Cross-Domain Translation" },
   ],
   trainedHeadline: "What that environment trained into me.",
-  throughline:
-    "The ICU was not just a previous career. It was where my operating system started.",
+  throughline: "The ICU was not just a previous career. It was where my operating system started.",
   skillScenarios: [
     {
       id: "detection",
-      question:
-        "What do you do when the numbers are not telling the whole story yet?",
+      question: "What do you do when the numbers are not telling the whole story yet?",
       accentText: "you do",
       title: "Recognize the signal before it is obvious",
       proof:
@@ -200,13 +218,11 @@ export const ACT_I: ActINurseContent = {
       title: "Start with what changed",
       proof:
         "Checked the ventilator, reviewed medication changes, assessed secretions, and worked backwards through what had changed when something suddenly looked wrong.",
-      capability:
-        "Trace problems back to their cause instead of reacting to the loudest symptom.",
+      capability: "Trace problems back to their cause instead of reacting to the loudest symptom.",
     },
     {
       id: "communication",
-      question:
-        "How do you explain something critical to someone who has never seen it before?",
+      question: "How do you explain something critical to someone who has never seen it before?",
       accentText: "explain something",
       title: "Put complex things into plain language",
       proof:
@@ -221,13 +237,11 @@ export const ACT_I: ActINurseContent = {
       title: "Stop. Breathe. Focus.",
       proof:
         "Adjusted ventilators, titrated vasopressors, drew labs, documented changes, and moved between patients without losing track of the details.",
-      capability:
-        "Execute precisely while tracking everything else that is unfolding.",
+      capability: "Execute precisely while tracking everything else that is unfolding.",
     },
     {
       id: "triage",
-      question:
-        "How do you decide where your attention goes when every patient is critical?",
+      question: "How do you decide where your attention goes when every patient is critical?",
       accentText: "decide",
       title: "Fix the most dangerous problem first",
       proof:
@@ -242,11 +256,10 @@ export const ACT_I: ActINurseContent = {
       title: "Anchor and keep direction",
       proof:
         "Stayed steady during tense moments so the room could focus on the next step instead of the stress.",
-      capability:
-        "Stay steady so the room can think clearly and move to the next step.",
+      capability: "Stay steady so the room can think clearly and move to the next step.",
     },
   ],
-};
+}
 
 /* ------------------------------------------------------------------ */
 /*  ACT II — The Engineer                                              */
@@ -294,11 +307,7 @@ export const JOBS: readonly Job[] = [
         "I went deep on Core Web Vitals, lazy loading strategies, and how to architect Vue apps that score well on Lighthouse while still being rich and interactive.",
       outcome:
         "The promotion to Senior wasn't about tenure — it came because I took ownership of the entire frontend performance story and delivered measurable business results: 50% faster load times, 25% more organic traffic.",
-      skills: [
-        "Performance optimization",
-        "SEO engineering",
-        "Ownership mentality",
-      ],
+      skills: ["Performance optimization", "SEO engineering", "Ownership mentality"],
     },
   },
   {
@@ -318,11 +327,7 @@ export const JOBS: readonly Job[] = [
         "The challenge wasn't just technical — it was convincing a fintech company serving 10,000 financial advisors that a full rewrite was safer than continuing to patch. I mapped every feature, built migration paths, and delivered a Vue + TypeScript application that loaded 35% faster.",
       outcome:
         "The lesson: sometimes the most senior thing you can do is have the conviction to say 'this needs to be rebuilt' and then prove it.",
-      skills: [
-        "Technical conviction",
-        "Migration planning",
-        "Stakeholder alignment",
-      ],
+      skills: ["Technical conviction", "Migration planning", "Stakeholder alignment"],
     },
   },
   {
@@ -342,14 +347,10 @@ export const JOBS: readonly Job[] = [
         "What set me apart wasn't the code. I introduced testing culture: Jest for units, Playwright for e2e. The team had been shipping without automated tests. I built the testing infrastructure, wrote the patterns, and coached others to adopt them.",
       outcome:
         "Within 12 months, I was promoted to Engineering Manager — not because I asked, but because I was already doing the work: unblocking people, improving processes, and taking responsibility for outcomes beyond my own PRs.",
-      skills: [
-        "Testing infrastructure",
-        "Process improvement",
-        "Leadership through action",
-      ],
+      skills: ["Testing infrastructure", "Process improvement", "Leadership through action"],
     },
   },
-];
+]
 
 export const ACT_II: ActContent = {
   act: "ACT II",
@@ -381,24 +382,28 @@ export const ACT_II: ActContent = {
     { id: "s14", label: "Fintech" },
     { id: "s15", label: "Agile Delivery" },
   ],
-};
+}
 
 /* ------------------------------------------------------------------ */
 /*  ACT II — Engineer Companies (git log)                              */
 /* ------------------------------------------------------------------ */
 
 /** Hex value of --act-blue, needed for hex-alpha tag backgrounds */
-const ENGINEER_HEX = "#5B9EC2";
-const PROMOTED_HEX = "#5EBB73";
-const INDUSTRY_HEX = "#9B8FCE";
+const ENGINEER_HEX = "#5B9EC2"
+const PROMOTED_HEX = "#5EBB73"
+const INDUSTRY_HEX = "#9B8FCE"
 
 export const COMPANIES: readonly Company[] = [
   {
+    id: COMPANY_ID.AMBOSS,
     hash: "a3f7b21",
     company: "AMBOSS",
+    shortName: "AMBOSS",
     role: "Frontend Engineer",
+    promotedRole: "Frontend Engineer",
     location: "Berlin",
     period: "Sep 2018 — Oct 2019",
+    periodShort: "2018–2019",
     industry: "Med-Ed",
     commits: [
       {
@@ -448,20 +453,23 @@ export const COMPANIES: readonly Company[] = [
       ],
     },
     distillation: {
-      seedWords: ["research", "decisions"],
-      question:
-        "How do you incorporate user research into your engineering decisions?",
+      seedWords: ["research", "decisions", "production"],
+      question: "How do you incorporate user research into your engineering decisions?",
       principle: "I build from observed behaviour, not assumption.",
       detail:
         "I watched medical students use flows I thought were straightforward and saw where they hesitated, misread, or took the long way through. That changed how I build. What feels obvious in the code is not always obvious in the experience.",
     },
   },
   {
+    id: COMPANY_ID.COMPADO,
     hash: "8c2e4d9",
     company: "Compado",
+    shortName: "Compado",
     role: "Frontend Engineer → Senior Frontend Engineer",
+    promotedRole: "Senior Frontend Engineer",
     location: "Berlin",
     period: "Oct 2019 — Jun 2021",
+    periodShort: "2019–2021",
     industry: "Marketing",
     commits: [
       {
@@ -492,8 +500,7 @@ export const COMPANIES: readonly Company[] = [
       stars: "SEO Growth",
       language: "Vue.js",
       languageColor: "#42B883",
-      description:
-        "High-traffic comparison platforms where speed drove organic growth.",
+      description: "High-traffic comparison platforms where speed drove organic growth.",
       readme: [
         "At Compado, performance was a business metric, not a technical preference. In the world of SEO and comparison engines, milliseconds are directly tied to traffic and revenue.",
         "",
@@ -516,19 +523,22 @@ export const COMPANIES: readonly Company[] = [
     },
     distillation: {
       seedWords: ["product", "systems"],
-      question:
-        "How do you tell the difference between a product problem and a systems problem?",
+      question: "How do you tell the difference between a product problem and a systems problem?",
       principle: "I trace the issue to the layer that is creating it.",
       detail:
         "The page was still slow, even after the local fixes looked right on paper. I stepped back and looked at the loading flow itself, what was arriving too early, what could wait, and what was blocking the experience. Once I reworked that layer, the improvement was real.",
     },
   },
   {
+    id: COMPANY_ID.CAPINSIDE,
     hash: "1f9a0c3",
     company: "CAPinside",
+    shortName: "CAPinside",
     role: "Senior Frontend Engineer",
+    promotedRole: "Senior Frontend Engineer",
     location: "Hamburg",
     period: "Jun 2021 — Oct 2021",
+    periodShort: "2021",
     industry: "Fintech",
     commits: [
       {
@@ -541,7 +551,7 @@ export const COMPANIES: readonly Company[] = [
       },
       {
         type: "test",
-        msg: "raised code quality and test coverage across the platform",
+        msg: "raise code quality and test coverage across the platform",
       },
       {
         type: "perf",
@@ -583,20 +593,23 @@ export const COMPANIES: readonly Company[] = [
       ],
     },
     distillation: {
-      seedWords: ["raised", "quality", "code", "platform"],
-      question: "How do you get code quality raised across a platform?",
-      principle:
-        "I raise quality by shaping the code so the right decisions are easier to make.",
+      seedWords: ["frontend", "quality", "code", "platform"],
+      question: "How do you raise code quality across a platform?",
+      principle: "I raise quality by shaping the code so the right decisions are easier to make.",
       detail:
         "The frontend had drifted into something people edited carefully rather than extended confidently. I reduced one-off patterns, pulled logic into shared structures, and added tests around brittle flows so new work could build on the system instead of working around it.",
     },
   },
   {
+    id: COMPANY_ID.DKB,
     hash: "5e7d2a1",
     company: "DKB Code Factory",
+    shortName: "DKB",
     role: "Senior Frontend Engineer → Engineering Manager",
+    promotedRole: "Engineering Manager",
     location: "Berlin",
     period: "Oct 2021 — Dec 2024",
+    periodShort: "2021–2024",
     industry: "Banking",
     commits: [
       {
@@ -656,16 +669,16 @@ export const COMPANIES: readonly Company[] = [
       ],
     },
     distillation: {
-      seedWords: ["speed", "safety", "platform", "millions", "users"],
+      seedWords: ["speed", "safety", "banking", "millions", "users"],
       question:
-        "How do you balance speed and safety on a platform that millions of users depend on?",
+        "How do you balance speed and safety on a banking platform that millions of users depend on?",
       principle:
         "I put enough testing in place so that we can ship without second-guessing ourselves.",
       detail:
         "I helped push testing into the release process because too much was being caught late and too much depended on people remembering things. With Jest and Playwright in place around critical flows, shipping became more regular, less tense, and easier for the team to trust.",
     },
   },
-];
+]
 
 /* ------------------------------------------------------------------ */
 /*  ACT III — The Leader                                               */
@@ -726,41 +739,40 @@ export const MGMT_STORIES: readonly ManagementStory[] = [
       "HR wanted to close whichever candidate finished first. I pushed back: run both in parallel, give the team a real comparison.",
     text: "Two candidates in the pipeline. HR wanted to close whichever finished first. I pushed back: run both in parallel, give the team a comparison. Delegated code reviews to the engineers who would actually work with the hire. Set a clear timeline: one week for submission, 7-day follow-up. Hired the better candidate, not the faster one.",
   },
-];
+]
 
 /* ------------------------------------------------------------------ */
 /*  ACT III — The Leader (v2 cinematic)                                */
 /* ------------------------------------------------------------------ */
 
 export interface LeaderScenario {
-  readonly id: string;
-  readonly situation: string;
-  readonly response: string;
+  readonly id: string
+  readonly situation: string
+  readonly response: string
 }
 
 export interface LeaderAnnotation {
-  readonly label: string;
-  readonly text: string;
+  readonly label: string
+  readonly text: string
 }
 
 export interface LeaderContent {
-  readonly act: string;
-  readonly title: string;
-  readonly color: string;
-  readonly headline: string;
-  readonly subhead: string;
-  readonly scenarios: readonly LeaderScenario[];
-  readonly annotations: readonly LeaderAnnotation[];
-  readonly proof: readonly string[];
-  readonly closing: string;
+  readonly act: string
+  readonly title: string
+  readonly color: string
+  readonly headline: string
+  readonly subhead: string
+  readonly scenarios: readonly LeaderScenario[]
+  readonly annotations: readonly LeaderAnnotation[]
+  readonly proof: readonly string[]
+  readonly closing: string
 }
 
 export const ACT_III_LEADER: LeaderContent = {
   act: "ACT III",
   title: `The ${leaderRole.label}`,
   color: leaderRole.color,
-  headline:
-    "turned pressure into clearer decisions, calmer teams, and better outcomes.",
+  headline: "turned pressure into clearer decisions, calmer teams, and better outcomes.",
   subhead:
     "In high-stakes product environments, I helped teams align faster, narrow the real problem, and keep delivery moving when priorities shifted and confusion started to spread.",
   scenarios: [
@@ -805,7 +817,7 @@ export const ACT_III_LEADER: LeaderContent = {
   ],
   closing:
     "I was at my best where there was ambiguity to resolve, people to align, and systems that needed steadier judgment — not more noise.",
-};
+}
 
 export const ACT_III: ActContent = {
   act: "ACT III",
@@ -836,7 +848,7 @@ export const ACT_III: ActContent = {
     { id: "s22", label: "Culture Protection" },
     { id: "s23", label: "Roadmapping" },
   ],
-};
+}
 
 /* ------------------------------------------------------------------ */
 /*  ACT IV — The Builder                                               */
@@ -869,4 +881,4 @@ export const ACT_IV: ActContent = {
     { id: "s29", label: "Algorithmic Trading" },
     { id: "s30", label: "Statistical Analysis" },
   ],
-};
+}

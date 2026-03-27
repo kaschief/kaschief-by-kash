@@ -391,15 +391,16 @@ export function useRolesCloud() {
         ROLES_FLY_START + flyDur * 0.2,
         progress,
       );
-      // Fade grid to zero: starts at 80% through drain, finishes exactly at ROLES_DRAIN_END
-      const drainMid = ROLES_HOLD_END + (ROLES_DRAIN_END - ROLES_HOLD_END) * 0.8;
-      const gridFade = 1 - smoothstep(drainMid, ROLES_DRAIN_END, progress);
-      rolesGridEl.current.style.opacity = String(gridAppear * gridFade);
 
-      // Grayscale drain after hold
-      const drain = smoothstep(ROLES_HOLD_END, ROLES_DRAIN_END, progress);
+      // Elegant drain: grayscale builds through first 60% of drain,
+      // then opacity fades through the last 50% — overlapping for a soft dissolve
+      const drainP = smoothstep(ROLES_HOLD_END, ROLES_DRAIN_END, progress);
+      const grayscale = smoothstep(0, 0.6, drainP);
+      const opacityFade = 1 - smoothstep(0.5, 1.0, drainP);
+
+      rolesGridEl.current.style.opacity = String(gridAppear * opacityFade);
       rolesGridEl.current.style.filter =
-        drain > 0.01 ? `grayscale(${drain})` : "none";
+        grayscale > 0.01 ? `grayscale(${grayscale})` : "none";
     }
 
     // Seed placeholders in grid: appear as flying seeds fade (based on fly phase)
