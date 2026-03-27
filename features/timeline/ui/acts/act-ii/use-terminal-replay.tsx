@@ -10,12 +10,12 @@
 
 import { useRef, type RefObject } from "react";
 import { smoothstep, lerp, remap } from "./math";
-import { COMPANY_COLORS, COMPANY_ROLES, CONTENT } from "./engineer-data";
+import { COMPANY_COLORS, COMPANY_ROLES, CONTENT } from "./act-ii.data";
 import {
   TERMINAL,
   TERMINAL_NARRATOR,
   SCROLL_PHASES,
-} from "./engineer-candidate.types";
+} from "./act-ii.types";
 import {
   TERMINAL_COLORS,
   TERM_COMPANIES,

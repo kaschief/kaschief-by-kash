@@ -4,7 +4,7 @@ import { resolveActiveSection } from "./active-section";
 
 const {
   ACT_BUILDER,
-  ACT_ENGINEER_CANDIDATE,
+  ACT_ENGINEER,
   ACT_LEADER,
   ACT_NURSE,
   CONTACT,
@@ -34,7 +34,7 @@ describe("resolveActiveSection", () => {
     const sectionTopById = createSectionTopById({
       [PHILOSOPHY]: -200,
       [ACT_NURSE]: -100,
-      [ACT_ENGINEER_CANDIDATE]: 50,
+      [ACT_ENGINEER]: 50,
       [ACT_LEADER]: 100,
       [ACT_BUILDER]: 200,
       [METHODS]: 400,
@@ -55,7 +55,7 @@ describe("resolveActiveSection", () => {
     const sectionTopById = createSectionTopById({
       [PHILOSOPHY]: 120,
       [ACT_NURSE]: 300,
-      [ACT_ENGINEER_CANDIDATE]: 430,
+      [ACT_ENGINEER]: 430,
       [ACT_LEADER]: 800,
       [ACT_BUILDER]: 1200,
       [METHODS]: 1700,
@@ -76,7 +76,7 @@ describe("resolveActiveSection", () => {
     const sectionTopById = createSectionTopById({
       [PHILOSOPHY]: 900,
       [ACT_NURSE]: 1200,
-      [ACT_ENGINEER_CANDIDATE]: 1600,
+      [ACT_ENGINEER]: 1600,
       [ACT_LEADER]: 2000,
       [ACT_BUILDER]: 2600,
       [METHODS]: 3200,

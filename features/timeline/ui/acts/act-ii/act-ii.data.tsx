@@ -400,7 +400,7 @@ export function createEmbers(): EmberData[] {
 /*  Content — all user-facing text, no hardcoded strings in JSX        */
 /* ================================================================== */
 
-/** All visible text in the engineer-candidate scroll experience */
+/** All visible text in the Act II scroll experience */
 export const CONTENT = {
   /** Thesis sentence — keywords are animated individually */
   thesis: {

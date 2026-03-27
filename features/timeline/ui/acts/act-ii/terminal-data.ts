@@ -3,7 +3,7 @@
    Extracted from page.tsx for terminal-replay.tsx consumption.
    ================================================================== */
 
-import { COMPANY_ROLES, CONTENT } from "./engineer-data";
+import { COMPANY_ROLES, CONTENT } from "./act-ii.data";
 
 /* ---- Terminal color palette (GitHub dark theme) ---- */
 export const TERMINAL_COLORS = {

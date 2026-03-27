@@ -16,9 +16,9 @@
  */
 
 import { useRef, useEffect, useCallback, type RefObject } from "react";
-import { STREAMS, NODES } from "../sankey-data";
+import { STREAMS, NODES } from "@app/sankey-data";
 import { smoothstep, lerp } from "./math";
-import { hashToUnit, CONTENT } from "./engineer-data";
+import { hashToUnit, CONTENT } from "./act-ii.data";
 import {
   PARTICLE,
   FUNNEL,
@@ -44,7 +44,7 @@ import {
   NARRATOR_TIERS,
   MID_NARRATOR_START,
   MID_NARRATOR_END,
-} from "./engineer-candidate.types";
+} from "./act-ii.types";
 
 /* ================================================================== */
 /*  Particle types                                                      */
