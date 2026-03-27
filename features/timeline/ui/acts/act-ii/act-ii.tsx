@@ -20,8 +20,6 @@ import {
   useInView,
 } from "framer-motion";
 import { ACT_II } from "@data";
-import { usePathname } from "next/navigation";
-import { LabNav } from "@app/lab-nav";
 import { smoothstep } from "./math";
 import { ACT_BLUE, CONTENT } from "./act-ii.data";
 import { BREAKPOINTS } from "@utilities";
@@ -165,7 +163,6 @@ const LENSES_CARD_SPAN = CINEMATIC_SIZE / 4 / TOTAL_RAW_SIZE;
 
 export function ActIIEngineer() {
   const { isLg } = useBreakpointRefs();
-  const isStandalone = usePathname() === "/act-ii";
 
   /* ---- Refs: Container A (convergence + lenses, one viewport) ---- */
   const containerARef = useRef<HTMLDivElement>(null);
@@ -379,8 +376,6 @@ export function ActIIEngineer() {
 
   return (
     <>
-      {isStandalone && <LabNav />}
-
       {/* Debug HUD — bottom-right frame indicator */}
       <div
         ref={hudRef}
@@ -479,18 +474,6 @@ export function ActIIEngineer() {
             </div>
           </div>
 
-          {/* Chrome — page title only visible on standalone route */}
-          {isStandalone && (
-            <div
-              className="absolute top-8 left-1/2 -translate-x-1/2 font-sans tracking-widest uppercase"
-              style={{
-                color: "var(--text-dim)",
-                fontSize: "0.7rem",
-                letterSpacing: "0.2em",
-              }}>
-              {CONTENT.pageTitle}
-            </div>
-          )}
         </div>
 
         {/* ---- Summary panel (INSIDE container A, scrolls up over sticky) ---- */}

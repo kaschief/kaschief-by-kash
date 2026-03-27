@@ -9,7 +9,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { COMPANY_LABEL } from "./lenses.config";
 import { REMAINING_ENTRIES } from "./card-config";
-import { renderCard } from "@app/lab-artifacts/render-card";
+import { renderCard } from "./render-card";
 import type { LensEntry } from "@data";
 import { useMediaQuery } from "@hooks";
 

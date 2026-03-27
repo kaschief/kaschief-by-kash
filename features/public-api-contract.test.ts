@@ -34,11 +34,12 @@ describe("feature public-api contracts", () => {
     expect(Object.keys(MethodsFeature)).toEqual(["Methods"]);
     expect(Object.keys(ContactFeature)).toEqual(["Contact"]);
     expect(Object.keys(TimelineFeature).sort()).toEqual([
-      "ActI",
-      "ActII",
-      "ActIII",
+      "ActIIEngineer",
       "ActIIILeader",
-      "ActIV",
+      "ActIIILegacy",
+      "ActIILegacy",
+      "ActINurse",
+      "ActIVBuilder",
       "Timeline",
       "TradingArsenal",
       "TradingSystem",

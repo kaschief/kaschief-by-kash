@@ -8,7 +8,7 @@ import { ChaosToOrder } from "./chaos-to-order";
 
 const { ACT_NURSE } = SECTION_ID;
 
-export function ActI() {
+export function ActINurse() {
   return (
     <div id={ACT_NURSE} className="relative">
       <Splash />

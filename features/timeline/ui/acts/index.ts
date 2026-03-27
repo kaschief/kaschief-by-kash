@@ -1,7 +1,8 @@
-export { ActI } from "./act-i";
-export { ActII } from "./act-ii-legacy";
-export { ActIII } from "./act-iii";
+export { ActINurse } from "./act-i-nurse";
+export { ActIIEngineer } from "./act-ii";
+export { ActIILegacy } from "./act-ii-legacy";
 export { ActIIILeader } from "./act-iii-leader";
-export { ActIV } from "./act-iv";
+export { ActIIILegacy } from "./act-iii-legacy";
+export { ActIVBuilder } from "./act-iv-builder";
 
-export type { CaseStudyCardProps, StoryDetailOverlayProps } from "./act-iii";
+export type { CaseStudyCardProps, StoryDetailOverlayProps } from "./act-iii-legacy";

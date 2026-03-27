@@ -1,1 +1,1 @@
-export { ActII } from "./act-ii";
+export { ActIILegacy } from "./act-ii-legacy";

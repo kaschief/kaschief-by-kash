@@ -5,19 +5,21 @@ Each phase is a discrete, testable refactor. Commit after each. Test after each.
 ---
 
 ## Phase 1 — Font Loading (CQ-1)
+
 **Impact:** LCP/FCP, bundle size
 **Risk:** Low
 
 - Create route group `app/(lab)/` for all lab routes
 - Move 32 experimental fonts from root `layout.tsx` to `app/(lab)/layout.tsx`
 - Root layout keeps only: Inter, Playfair Display, Urbanist, Crimson Pro
-- Move lab routes into `app/(lab)/`: lab, lab-sankey, lab-particles, lab-lenses, lab-pillars, lab-wordtype, old-engineer, act-ii (standalone)
+- Move lab routes into `app/(lab)/`: lab, lab-sankey, lab-particles, lab-lenses, lab-pillars, lab-wordtype, legacy-engineer, act-ii (standalone)
 
 **Test:** Load production page → DevTools Network → verify only 4 font families requested. Load a lab page → verify experimental fonts load there.
 
 ---
 
 ## Phase 2 — ESLint Setup (DX-1)
+
 **Impact:** Code quality foundation
 **Risk:** Low (may surface lint errors to fix)
 
@@ -32,6 +34,7 @@ Each phase is a discrete, testable refactor. Commit after each. Test after each.
 ---
 
 ## Phase 3 — Pre-commit Hooks (DX-2)
+
 **Impact:** Quality gate
 **Risk:** Low
 
@@ -44,10 +47,12 @@ Each phase is a discrete, testable refactor. Commit after each. Test after each.
 ---
 
 ## Phase 4 — Fix Dependency Direction (ARC-1)
+
 **Impact:** Architectural integrity
 **Risk:** Medium (file moves, import rewiring)
 
 Move these out of `app/` into proper modules:
+
 - `app/lab-artifacts/render-card.tsx` → `components/ui/render-card/` or into Act II
 - `app/sankey-data.ts` → `data/sankey.ts`
 - `app/lab-nav.tsx` → `components/layout/lab-nav.tsx`
@@ -59,24 +64,27 @@ Update all imports. Add rule to `check-architecture.mjs` disallowing `@app/` imp
 ---
 
 ## Phase 5 — Resolve Act II Legacy (ARC-3)
+
 **Impact:** Naming clarity, dead code reduction
 **Risk:** Medium
 
 - Determine which pieces from `act-ii-legacy/` are still needed
 - Extract those pieces into shared modules (e.g., `CommitEntry`, `WordDistillation`, `ScrambleText`)
-- Update `old-engineer/page.tsx` to import from shared
+- Update `legacy-engineer/page.tsx` to import from shared
 - Remove `act-ii-legacy/` from the acts barrel export
 - Clean up `features/timeline/public-api.ts`
 
-**Test:** `/old-engineer` still renders. Main page timeline renders Act II (new). No `act-ii-legacy` in barrel.
+**Test:** `/legacy-engineer` still renders. Main page timeline renders Act II (new). No `act-ii-legacy` in barrel.
 
 ---
 
 ## Phase 6 — Act II Subdirectory Organization (CQ-2)
+
 **Impact:** Maintainability, interview readability
 **Risk:** Low (internal restructure, no behavior change)
 
 Reorganize `features/timeline/ui/acts/act-ii/`:
+
 ```
 act-ii/
   index.ts
@@ -106,6 +114,7 @@ act-ii/
 ---
 
 ## Phase 7 — Accessibility: prefers-reduced-motion (A11Y-1)
+
 **Impact:** Accessibility compliance, interview signal
 **Risk:** Medium (touches many animation codepaths)
 
@@ -123,6 +132,7 @@ act-ii/
 ---
 
 ## Phase 8 — Accessibility: Skip Navigation + Landmarks (A11Y-2, A11Y-3)
+
 **Impact:** Keyboard navigation, screen reader UX
 **Risk:** Low
 
@@ -136,6 +146,7 @@ act-ii/
 ---
 
 ## Phase 9 — TypeScript Strictness (TS-1)
+
 **Impact:** Type safety
 **Risk:** Medium (may surface many indexed-access errors)
 
@@ -148,10 +159,12 @@ act-ii/
 ---
 
 ## Phase 10 — Act II Tests (TEST-1)
+
 **Impact:** Test coverage for most complex module
 **Risk:** Low
 
 Priority test targets:
+
 1. `act-ii.constants.ts` (once extracted) — verify timing chain: no phase overlaps, no gaps, CONTAINER_VH derived correctly
 2. `math.ts` — `smoothstep`, `lerp`, `clamp` pure function tests
 3. Lenses timing — `CINEMATIC_START`, `TOTAL_RAW_SIZE`, `PROLOGUE` derivation
@@ -162,6 +175,7 @@ Priority test targets:
 ---
 
 ## Phase 11 — Performance Polish (PERF-1, PERF-3, PERF-4)
+
 **Impact:** Runtime performance, interview talking points
 **Risk:** Low
 
@@ -175,6 +189,7 @@ Priority test targets:
 ---
 
 ## Phase 12 — Modern API Opportunities (MOD-1, MOD-2)
+
 **Impact:** Interview talking points, future-proofing
 **Risk:** Low (progressive enhancement)
 
@@ -187,6 +202,7 @@ Priority test targets:
 ---
 
 ## Phase 13 — Final Polish (CQ-4, CQ-5, DX-4, TS-2)
+
 **Impact:** Professional finish
 **Risk:** Minimal
 
@@ -203,6 +219,7 @@ Priority test targets:
 ## Completion Criteria
 
 All phases done when:
+
 - `pnpm check` — zero errors
 - `pnpm lint` — zero errors
 - `pnpm test` — all tests pass

@@ -10,7 +10,7 @@ import { GLOW_OPACITY, SCROLL_RANGE } from "@utilities";
 const { glow } = SCROLL_RANGE;
 const { color } = ACT_IV;
 
-export function ActIV() {
+export function ActIVBuilder() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
