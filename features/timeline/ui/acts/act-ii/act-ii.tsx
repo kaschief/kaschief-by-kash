@@ -93,7 +93,8 @@ function useScramble(
     if (!active) return;
     // Skip scramble animation entirely for reduced-motion users
     if (prefersReducedMotion) {
-      setDisplay(text);
+      // Wrapped in rAF callback so this is not a synchronous setState in an effect body
+      requestAnimationFrame(() => setDisplay(text));
       return;
     }
     const resolved = new Array(text.length).fill(false);
@@ -217,7 +218,8 @@ export function ActIIEngineer() {
   const titleHoldFired = useRef(false);
   useEffect(() => {
     if (!titleInView) return;
-    setTitleActive(true);
+    // Wrapped in rAF so this is an async callback, not synchronous setState in effect
+    requestAnimationFrame(() => setTitleActive(true));
     // Lenis hold — freeze scroll then release after configured duration
     if (titleHoldFired.current) return;
     titleHoldFired.current = true;

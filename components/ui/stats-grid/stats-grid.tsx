@@ -60,7 +60,9 @@ function AnimatedValue({
 
     frame = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frame);
-  }, [active, parsed?.number]);
+  // `parsed` is derived from `value` — using `value` avoids object-identity churn
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, value]);
 
   if (!parsed) {
     return (

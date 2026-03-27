@@ -322,8 +322,12 @@ export function useTerminalReplay({
       }
     }
 
-    // Beat glow + vignette disabled — clean dark background only
+    // Beat glow + vignette disabled — clean dark background only.
+    // DOM style mutations on ref'd elements passed as props — safe because these
+    // are imperative DOM updates in a scroll callback, not React state.
+    // eslint-disable-next-line react-hooks/immutability -- imperative DOM mutation via ref is intentional for scroll-driven animation
     if (beatGlowEl.current) beatGlowEl.current.style.opacity = "0";
+    // eslint-disable-next-line react-hooks/immutability -- imperative DOM mutation via ref is intentional for scroll-driven animation
     if (vignetteEl.current) vignetteEl.current.style.opacity = "0";
   }
 
@@ -691,11 +695,12 @@ export function useTerminalReplay({
           opacity: 0,
         }}>
         {[0, 1, 2, 3].map((i) => (
-          <div
+          <button
             key={`tp-${i}`}
             ref={(element) => {
-              termProgressRefs.current[i] = element;
+              termProgressRefs.current[i] = element as HTMLDivElement | null;
             }}
+            aria-label={`Jump to company ${i + 1}`}
             onClick={() => {
               const beatDur = SCROLL_PHASES.BEATS[i].end - SCROLL_PHASES.BEATS[i].start;
               const target = SCROLL_PHASES.BEATS[i].start + beatDur * 0.1;
@@ -718,6 +723,8 @@ export function useTerminalReplay({
               opacity: i === 0 ? 1 : 0.35,
               cursor: "pointer",
               transition: "width 0.3s, opacity 0.3s, background 0.3s",
+              border: "none",
+              padding: 0,
             }}
           />
         ))}

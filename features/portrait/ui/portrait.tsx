@@ -43,13 +43,14 @@ export function Portrait() {
 
     const mql = window.matchMedia("(min-width: 768px)");
     if (!mql.matches) {
-      setCountersActive(true);
+      // Async via rAF to avoid synchronous setState in effect body
+      requestAnimationFrame(() => setCountersActive(true));
       return;
     }
 
     // Already completed — no pin at all, just a normal section
     if (usePinStore.getState().completed["portrait"]) {
-      setCountersActive(true);
+      requestAnimationFrame(() => setCountersActive(true));
       return;
     }
 
@@ -114,7 +115,7 @@ export function Portrait() {
     return () => {
       trigger.kill();
     };
-  }, []);
+  }, [getLenis]);
 
   return (
     <section id="portrait" ref={sectionRef} style={sectionStyle}>

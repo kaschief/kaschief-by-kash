@@ -16,6 +16,7 @@ export function DetailOverlayContent({
   onClick,
 }: DetailOverlayContentProps) {
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- backdrop dismiss: keyboard handled by parent overlay's Escape key listener
     <div
       onClick={onClick}
       className="mx-auto w-full max-w-[1024px] px-5 pt-[10vh] pb-[8.5rem] sm:px-8 sm:pt-[18vh] sm:pb-[10vh] md:px-10 lg:px-12">

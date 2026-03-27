@@ -88,6 +88,7 @@ export function DetailOverlay({
   });
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- backdrop dismiss: keyboard close handled by Escape key listener in useEffect above
     <div
       onClick={onClose}
       style={{

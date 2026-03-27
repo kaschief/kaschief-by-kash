@@ -38,6 +38,8 @@ interface SkillCardProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
   scrollProgress: import("framer-motion").MotionValue<number>;
   lgRef: React.RefObject<boolean>;
+  /** Render-safe breakpoint flag — mirrors lgRef.current without ref read during render */
+  isLg: boolean;
 }
 
 export function SkillCard({
@@ -48,6 +50,7 @@ export function SkillCard({
   containerRef,
   scrollProgress,
   lgRef,
+  isLg,
 }: SkillCardProps) {
   const [hovered, setHovered] = useState(false);
   const [burstDone, setBurstDone] = useState(false);
@@ -55,7 +58,7 @@ export function SkillCard({
   const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nudgeDone = useRef(false);
   const inStack = useRef(false);
-  const interactive = lgRef.current;
+  const interactive = isLg;
 
   // Track whether we're in stack/focus phase to disable hover effects
   useMotionValueEvent(scrollProgress, "change", (p) => {
@@ -107,18 +110,18 @@ export function SkillCard({
   const { finalOpacity, titleOpacity, titleColor, proofOpacity, questionColor, accentColor, watermarkOpacity } =
     useCardColors(scrollProgress);
 
-  const isHovered = (lgRef.current && hovered) || nudged;
-  const chaosTarget = lgRef.current ? CHAOS_LG[index] : CHAOS_SM[index];
+  const isHovered = (isLg && hovered) || nudged;
+  const chaosTarget = isLg ? CHAOS_LG[index] : CHAOS_SM[index];
 
   return (
     <motion.div
       role="article"
-      tabIndex={lgRef.current ? 0 : undefined}
+      tabIndex={isLg ? 0 : undefined}
       aria-label={node.question}
-      onMouseEnter={lgRef.current ? () => { if (!inStack.current) { setHovered(true); setNudged(false); } } : undefined}
-      onMouseLeave={lgRef.current ? () => setHovered(false) : undefined}
-      onFocus={lgRef.current ? () => { if (!inStack.current) setHovered(true); } : undefined}
-      onBlur={lgRef.current ? () => setHovered(false) : undefined}
+      onMouseEnter={isLg ? () => { if (!inStack.current) { setHovered(true); setNudged(false); } } : undefined}
+      onMouseLeave={isLg ? () => setHovered(false) : undefined}
+      onFocus={isLg ? () => { if (!inStack.current) setHovered(true); } : undefined}
+      onBlur={isLg ? () => setHovered(false) : undefined}
       initial={{
         left: "50%",
         top: "50%",

@@ -125,14 +125,14 @@ export function Navigation() {
 
   const activeSection = state.activeSection;
 
-  // When navigating, lock to target. When just settled, lock to settled section
-  // until scroll detection catches up.
-  let currentActiveSection: SectionId | "" = activeSectionRef.current || activeSection;
+  // Derive active section from state/store — no ref reads during render.
+  // Priority: navigating target > settled section > reducer state.
+  let currentActiveSection: SectionId | "" = activeSection;
   if (isNavigating && targetSection) {
     currentActiveSection = targetSection;
   } else if (settledSection) {
     currentActiveSection = settledSection;
-    activeSectionRef.current = settledSection;
+    activeSectionRef.current = settledSection; // eslint-disable-line react-hooks/refs -- sync ref for scroll callbacks, not used for rendering
     // Clear after one render so scroll detection takes over
     queueMicrotask(() => clearSettled());
   }

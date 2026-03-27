@@ -1,27 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 /**
  * Generic media query hook.
- * Returns false on first render (SSR-safe), then syncs to the query value.
+ * Uses useSyncExternalStore for tear-free reads without setState-in-effect.
  */
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      const mq = window.matchMedia(query);
+      mq.addEventListener("change", onStoreChange);
+      return () => mq.removeEventListener("change", onStoreChange);
+    },
+    [query],
+  );
 
-  useEffect(() => {
-    const mq = window.matchMedia(query);
-    setMatches(mq.matches);
+  const getSnapshot = useCallback(
+    () => window.matchMedia(query).matches,
+    [query],
+  );
 
-    const handleChange = (e: MediaQueryListEvent) => {
-      setMatches(e.matches);
-    };
+  const getServerSnapshot = useCallback(() => false, []);
 
-    mq.addEventListener("change", handleChange);
-    return () => {
-      mq.removeEventListener("change", handleChange);
-    };
-  }, [query]);
-
-  return matches;
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

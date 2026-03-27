@@ -229,7 +229,8 @@ export default function ForgeTestV5() {
 
   /* ---- Animation loop ---- */
   useEffect(() => {
-    handleResize();
+    // Async via rAF to avoid synchronous setState in effect body (handleResize calls setDims)
+    requestAnimationFrame(() => handleResize());
     window.addEventListener("resize", handleResize);
 
     let rafId: number;
