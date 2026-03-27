@@ -23,10 +23,8 @@ export const LAB_ROUTES: readonly LabRoute[] = [
   { href: "/lab-sankey", label: "Horizontal Sankey", desc: "Left-to-right SVG Sankey, streams flow through company bars", section: "reference" },
   { href: "/lab-particles", label: "Particle Flow", desc: "Canvas particles with glow, trails, wobble along stream paths", section: "reference" },
 
-  // Scroll explorations (newest first)
-  { href: "/lab-lenses", label: "Lenses", desc: "Multi-lens scroll: thesis → curtain → keyword → artifact cards → story → morph", section: "scroll" },
+  // Scroll explorations
   { href: "/lab-pillars", label: "Pillars", desc: "Card-stack pillar exploration with scroll-driven stories", section: "scroll" },
-  { href: "/lab-wordtype", label: "WordType", desc: "Word-typing scroll prototype", section: "scroll" },
 ];
 
 const SECTION_LABELS: Record<LabRoute["section"], string> = {
