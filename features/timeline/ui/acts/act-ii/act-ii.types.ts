@@ -58,6 +58,10 @@ export const PHASES = {
   title: 0.032,
   convergence: 0.18, // fragments drift + converge
   convergenceTail: 0.04, // extra time after convergence for cleanup
+  rolesDissolve: 0.05, // non-seeds dissolve while seeds drift toward grid
+  rolesFly: 0.08, // seeds fly to grid positions, fill words appear
+  rolesHold: 0.10, // grid visible for reading
+  rolesDrain: 0.06, // grayscale drain on grid
   thesisOverlap: 0.04, // thesis starts this far before convergence ends (crossfade)
   thesis: 0.1, // sentence visible + word reveals
   thesisToParticles: 0.0, // gap (0 = immediate)
@@ -331,8 +335,16 @@ const rawEmbersStart = rawConvergenceStart + EMBER.delay;
 const rawGlowStart = rawConvergenceStart + GRID.delay;
 const rawGlowEnd = rawConvergenceGate + GRID.overshoot;
 
-/* Thesis */
-const rawThesisStart = rawConvergenceEnd - PHASES.thesisOverlap;
+/* Roles grid — seeds fly from cloud to 2x2 company grid */
+const rawRolesDissolveStart = rawConvergenceGate;
+const rawRolesDissolveEnd = rawRolesDissolveStart + PHASES.rolesDissolve;
+const rawRolesFlyStart = rawRolesDissolveEnd;
+const rawRolesFlyEnd = rawRolesFlyStart + PHASES.rolesFly;
+const rawRolesHoldEnd = rawRolesFlyEnd + PHASES.rolesHold;
+const rawRolesDrainEnd = rawRolesHoldEnd + PHASES.rolesDrain;
+
+/* Thesis — starts cleanly after roles drain (no overlap) */
+const rawThesisStart = rawRolesDrainEnd + 0.01;
 const rawThesisEnd = rawThesisStart + PHASES.thesis;
 
 /* Seed sub-phases */
@@ -448,6 +460,12 @@ export const SEED_SCALE_SHRINK_START = rescale(rawSeedShrinkStart);
 export const SEED_SCALE_SHRINK_END = rescale(rawConvergenceGate);
 export const FRAG_FADE_IN_START = rescale(rawFragFadeInStart);
 export const FRAG_FADE_IN_END = rescale(rawFragFadeInEnd);
+export const ROLES_DISSOLVE_START = rescale(rawRolesDissolveStart);
+export const ROLES_DISSOLVE_END = rescale(rawRolesDissolveEnd);
+export const ROLES_FLY_START = rescale(rawRolesFlyStart);
+export const ROLES_FLY_END = rescale(rawRolesFlyEnd);
+export const ROLES_HOLD_END = rescale(rawRolesHoldEnd);
+export const ROLES_DRAIN_END = rescale(rawRolesDrainEnd);
 export const PARTICLES_START = rescale(rawParticlesStart);
 export const PARTICLES_END = rescale(rawParticlesEnd);
 export const CANVAS_IN_START = rescale(rawCanvasInStart);
@@ -496,6 +514,10 @@ export const SCROLL_PHASES = {
   CONVERGENCE_GATE,
   EMBERS: { start: EMBERS_START, end: EMBERS_END },
   GLOW: { start: GLOW_START, end: GLOW_END },
+  ROLES_DISSOLVE: { start: ROLES_DISSOLVE_START, end: ROLES_DISSOLVE_END },
+  ROLES_FLY: { start: ROLES_FLY_START, end: ROLES_FLY_END },
+  ROLES_HOLD_END,
+  ROLES_DRAIN_END,
   THESIS: { start: THESIS_START, end: THESIS_END },
   PARTICLES: { start: PARTICLES_START, end: PARTICLES_END },
   CANVAS_OUT: { start: CANVAS_OUT_START, end: CANVAS_OUT_END },
