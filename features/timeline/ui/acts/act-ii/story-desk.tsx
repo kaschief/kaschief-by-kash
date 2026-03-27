@@ -2,14 +2,14 @@
 
 /**
  * Story Desk — resting composition with hover/click exploration.
- * Extracted for reuse in both lab-lenses and engineer-candidate.
+ * Story Desk for Act II — remaining storycards in a scattered grid layout.
  */
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { COMPANY_LABEL } from "./lenses.config";
 import { REMAINING_ENTRIES } from "./card-config";
-import { renderCard } from "../lab-artifacts/render-card";
+import { renderCard } from "@app/lab-artifacts/render-card";
 import type { LensEntry } from "@data";
 import { useMediaQuery } from "@hooks";
 

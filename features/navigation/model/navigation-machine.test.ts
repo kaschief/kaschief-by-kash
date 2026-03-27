@@ -5,7 +5,7 @@ import {
   navigationReducer,
 } from "./navigation-machine";
 
-const { ACT_ENGINEER_CANDIDATE, ACT_NURSE } = SECTION_ID;
+const { ACT_ENGINEER, ACT_NURSE } = SECTION_ID;
 
 describe("navigationReducer", () => {
   it("switches nav to visible on scroll and updates active section", () => {
@@ -38,7 +38,7 @@ describe("navigationReducer", () => {
       payload: {
         nowMs: 2000,
         isVisible: true,
-        activeSection: ACT_ENGINEER_CANDIDATE,
+        activeSection: ACT_ENGINEER,
       },
     });
 
@@ -61,11 +61,11 @@ describe("navigationReducer", () => {
       payload: {
         nowMs: 2600,
         isVisible: true,
-        activeSection: ACT_ENGINEER_CANDIDATE,
+        activeSection: ACT_ENGINEER,
       },
     });
 
-    expect(scrolledAfterTimeout.activeSection).toBe(ACT_ENGINEER_CANDIDATE);
+    expect(scrolledAfterTimeout.activeSection).toBe(ACT_ENGINEER);
     expect(scrolledAfterTimeout.suppression.kind).toBe("idle");
   });
 
@@ -89,10 +89,10 @@ describe("navigationReducer", () => {
 
     const withActive = navigationReducer(opened, {
       type: "SET_ACTIVE_SECTION",
-      payload: { activeSection: ACT_ENGINEER_CANDIDATE },
+      payload: { activeSection: ACT_ENGINEER },
     });
 
     expect(withActive.mobileMenu.kind).toBe("open");
-    expect(withActive.activeSection).toBe(ACT_ENGINEER_CANDIDATE);
+    expect(withActive.activeSection).toBe(ACT_ENGINEER);
   });
 });

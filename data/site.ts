@@ -3,7 +3,7 @@ import { SECTION_ID, type SectionId, TOKENS } from "@utilities";
 const { actBlue, actGold, actGreen, actRed, gold } = TOKENS;
 const {
   ACT_BUILDER,
-  ACT_ENGINEER_CANDIDATE,
+  ACT_ENGINEER,
   ACT_LEADER,
   ACT_NURSE,
   CONTACT,
@@ -25,7 +25,6 @@ export interface PersonalInfo {
 export const ROLE_LABEL = {
   NURSE: "Nurse",
   ENGINEER: "Engineer",
-  ENGINEER_CANDIDATE: "Engineer-Candidate",
   LEADER: "Leader",
   BUILDER: "Builder",
 } as const;
@@ -91,11 +90,10 @@ export const NAV_LINKS: readonly NavLink[] = [
     sectionId: ACT_NURSE,
     color: actRed,
   },
-  /* ACT_ENGINEER removed — replaced by ACT_ENGINEER_CANDIDATE */
   {
     type: NAV_LINK_TYPE.ROLE,
     label: ROLE_LABEL.ENGINEER,
-    sectionId: ACT_ENGINEER_CANDIDATE,
+    sectionId: ACT_ENGINEER,
     color: actBlue,
   },
   {

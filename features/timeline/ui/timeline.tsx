@@ -6,9 +6,11 @@ import { ActI, ActIIILeader, ActIV } from "./acts";
 import { TradingArsenal } from "./trading-system";
 import { SECTION_ID } from "@utilities";
 
-const { ACT_BUILDER, ACT_ENGINEER_CANDIDATE } = SECTION_ID;
+const { ACT_BUILDER, ACT_ENGINEER } = SECTION_ID;
 
-const EngineerCandidate = lazy(() => import("@app/engineer-candidate/page"));
+const ActII = lazy(() =>
+  import("./acts/act-ii").then((m) => ({ default: m.ActIIEngineer })),
+);
 
 /** Each act rises into view with scroll-driven parallax */
 function ActTransition({ children }: { children: React.ReactNode }) {
@@ -31,9 +33,9 @@ export function Timeline() {
   return (
     <section id="journey" className="relative">
       <ActI />
-      <section id={ACT_ENGINEER_CANDIDATE}>
+      <section id={ACT_ENGINEER}>
         <Suspense fallback={null}>
-          <EngineerCandidate />
+          <ActII />
         </Suspense>
       </section>
       <ActIIILeader />

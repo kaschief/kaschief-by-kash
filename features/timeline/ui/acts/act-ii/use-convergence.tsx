@@ -9,7 +9,7 @@ import {
   createFragments,
   createEmbers,
   CONTENT,
-} from "./engineer-data";
+} from "./act-ii.data";
 import {
   SEED,
   FRAGMENTS,
@@ -39,7 +39,7 @@ import {
   FRAG_FADE_IN_END,
   THESIS_START,
   THESIS_END,
-} from "./engineer-candidate.types";
+} from "./act-ii.types";
 
 /**
  * Convergence hook — owns fragment/ember/glow/grid/thesis

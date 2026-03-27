@@ -14,9 +14,9 @@ import {
   useLenses,
   CONTAINER_HEIGHT_VH,
   SMOOTH_LERP_FACTOR,
-} from "../engineer-candidate/use-lenses";
-import { MAX_CONTENT_WIDTH } from "../engineer-candidate/lenses.config";
-import { StoryDesk } from "../engineer-candidate/story-desk";
+} from "../../features/timeline/ui/acts/act-ii/use-lenses";
+import { MAX_CONTENT_WIDTH } from "../../features/timeline/ui/acts/act-ii/lenses.config";
+import { StoryDesk } from "../../features/timeline/ui/acts/act-ii/story-desk";
 import { useBreakpoint } from "@hooks";
 import { BREAKPOINTS } from "@utilities";
 

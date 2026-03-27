@@ -11,13 +11,13 @@
  */
 
 import { useRef } from "react";
-import { CONTENT } from "./engineer-data";
+import { CONTENT } from "./act-ii.data";
 import {
   THESIS as EC_THESIS,
   PREFIX_DISSOLVE,
-} from "./engineer-candidate.types";
+} from "./act-ii.types";
 import { smoothstep, lerp, clamp } from "./math";
-import { renderCard } from "../lab-artifacts/render-card";
+import { renderCard } from "@app/lab-artifacts/render-card";
 import { HIGHLIGHT_ENTRIES } from "./card-config";
 import {
   STORYCARD_SCROLL_SPAN,
