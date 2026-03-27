@@ -1,3 +1,3 @@
 export { Timeline } from "./ui/timeline";
 export { TradingArsenal, TradingSystem } from "./ui/trading-system";
-export { ActI, ActII, ActIII, ActIIILeader, ActIV } from "./ui/acts";
+export { ActINurse, ActIIEngineer, ActIILegacy, ActIIILeader, ActIIILegacy, ActIVBuilder } from "./ui/acts";

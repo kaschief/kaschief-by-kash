@@ -17,7 +17,7 @@ import {
   PREFIX_DISSOLVE,
 } from "./act-ii.types";
 import { smoothstep, lerp, clamp } from "./math";
-import { renderCard } from "@app/lab-artifacts/render-card";
+import { renderCard } from "./render-card";
 import { HIGHLIGHT_ENTRIES } from "./card-config";
 import {
   STORYCARD_SCROLL_SPAN,

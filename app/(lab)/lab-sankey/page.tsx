@@ -9,7 +9,7 @@ import {
   hFlowPath,
   computeHLayout,
   type StreamPos,
-} from "../sankey-data";
+} from "../../sankey-data";
 import { LabNav } from "../lab-nav";
 
 /* ================================================================== */

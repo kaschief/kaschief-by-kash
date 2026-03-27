@@ -1,16 +1,12 @@
 "use client";
 
-import { useRef, lazy, Suspense } from "react";
+import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ActI, ActIIILeader, ActIV } from "./acts";
+import { ActINurse, ActIIEngineer, ActIIILeader, ActIVBuilder } from "./acts";
 import { TradingArsenal } from "./trading-system";
 import { SECTION_ID } from "@utilities";
 
 const { ACT_BUILDER, ACT_ENGINEER } = SECTION_ID;
-
-const ActII = lazy(() =>
-  import("./acts/act-ii").then((m) => ({ default: m.ActIIEngineer })),
-);
 
 /** Each act rises into view with scroll-driven parallax */
 function ActTransition({ children }: { children: React.ReactNode }) {
@@ -32,16 +28,14 @@ function ActTransition({ children }: { children: React.ReactNode }) {
 export function Timeline() {
   return (
     <section id="journey" className="relative">
-      <ActI />
+      <ActINurse />
       <section id={ACT_ENGINEER}>
-        <Suspense fallback={null}>
-          <ActII />
-        </Suspense>
+        <ActIIEngineer />
       </section>
       <ActIIILeader />
       <ActTransition>
         <section id={ACT_BUILDER}>
-          <ActIV />
+          <ActIVBuilder />
           <TradingArsenal />
         </section>
       </ActTransition>

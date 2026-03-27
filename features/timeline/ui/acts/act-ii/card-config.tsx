@@ -8,7 +8,7 @@
  */
 
 import { ALL_ENTRIES, LENS_NAMES, LENSES, type LensName, type LensEntry } from "@data";
-import { renderCard } from "@app/lab-artifacts/render-card";
+import { renderCard } from "./render-card";
 
 /* ── Highlight card IDs (crossfade section) ── */
 
