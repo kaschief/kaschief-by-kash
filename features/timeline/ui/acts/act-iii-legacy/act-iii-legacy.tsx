@@ -23,7 +23,7 @@ import {
 import { ActSectionContent } from "../act-section-content";
 import type { CaseStudyCardProps, StoryDetailOverlayProps } from "./act-iii.types";
 
-const { cream, fontMono, fontSerif, textDim } = TOKENS;
+const { cream, fontUi, fontSerif, textDim } = TOKENS;
 const { glow } = SCROLL_RANGE;
 const { act, color } = ACT_III;
 
@@ -48,7 +48,7 @@ function StoryDetailOverlay({
         <>
           <p
             style={{
-              fontFamily: fontMono,
+              fontFamily: fontUi,
               fontSize: 11,
               textTransform: "uppercase",
               letterSpacing: "0.25em",
@@ -157,7 +157,7 @@ export function ActIII() {
               onMouseEnter={() => setCaseStudiesHovered(true)}
               onMouseLeave={() => setCaseStudiesHovered(false)}
               style={{ color: caseStudiesHovered ? cream : color }}
-              className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-xs uppercase tracking-wider transition-colors">
+              className="inline-flex cursor-pointer items-center gap-1.5 font-ui text-xs uppercase tracking-wider transition-colors">
               <ChevronDown
                 size={12}
                 className={`transition-transform duration-300 ${showCaseStudies ? "-rotate-180" : ""}`}

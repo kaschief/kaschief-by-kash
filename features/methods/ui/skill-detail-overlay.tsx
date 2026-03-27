@@ -4,7 +4,7 @@ import { DetailOverlay } from "@components";
 import { DETAIL_OVERLAY_NAV_LABEL, TOKENS } from "@utilities";
 import type { SkillDetailOverlayProps } from "./methods.types";
 
-const { cream, fontMono, fontSerif, gold, textDim } = TOKENS;
+const { cream, fontUi, fontSerif, gold, textDim } = TOKENS;
 const { NEXT_METHOD, PREVIOUS_METHOD } = DETAIL_OVERLAY_NAV_LABEL;
 
 export function SkillDetailOverlay({
@@ -29,7 +29,7 @@ export function SkillDetailOverlay({
         <>
           <p
             style={{
-              fontFamily: fontMono,
+              fontFamily: fontUi,
               fontSize: 11,
               textTransform: "uppercase",
               letterSpacing: "0.25em",

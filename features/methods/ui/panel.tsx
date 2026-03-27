@@ -65,7 +65,7 @@ export function Panel({
             transition={PULSE_TRANSITION}
           />
           <span
-            className="font-mono text-[10px] font-medium uppercase tracking-[0.25em]"
+            className="font-ui text-[10px] font-medium uppercase tracking-[0.25em]"
             style={{ color: gold }}>
             Methods
           </span>

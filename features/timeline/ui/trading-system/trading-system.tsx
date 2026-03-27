@@ -106,7 +106,7 @@ export function TradingArsenal() {
                     }`}>
                     <div className="flex items-start gap-4">
                       <span
-                        className="shrink-0 font-mono text-xs transition-colors"
+                        className="shrink-0 font-ui text-xs transition-colors"
                         style={{
                           color:
                             activeProgression === i
@@ -196,7 +196,7 @@ export function TradingArsenal() {
                       ? { borderColor: actGreen }
                       : undefined
                   }
-                  className={`cursor-pointer pb-3 font-mono text-xs uppercase tracking-wider transition-colors ${
+                  className={`cursor-pointer pb-3 font-ui text-xs uppercase tracking-wider transition-colors ${
                     activeCategory === cat
                       ? "border-b-2 text-[var(--cream)]"
                       : "text-[var(--text-faint)] hover:text-[var(--cream-muted)]"

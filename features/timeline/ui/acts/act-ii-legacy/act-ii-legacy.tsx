@@ -127,7 +127,7 @@ export function ActIILegacy() {
             <span className="h-2.5 w-2.5 rounded-full bg-(--act-red)" />
             <span className="h-2.5 w-2.5 rounded-full bg-(--act-gold)" />
             <span className="h-2.5 w-2.5 rounded-full bg-(--act-green)" />
-            <span className="ml-3 font-mono text-[11px] text-(--text-faint)">
+            <span className="ml-3 font-ui text-[11px] text-(--text-faint)">
               kaschief — ~/career — git log --oneline
             </span>
           </motion.div>
@@ -144,7 +144,7 @@ export function ActIILegacy() {
             transition={{ duration: 0.8, delay: 0.4, ease: EASE }}>
             {/* Prompt line */}
             <motion.div
-              className="mb-8 font-mono text-[13px]"
+              className="mb-8 font-ui text-[13px]"
               initial={{ opacity: 0 }}
               animate={inView ? { opacity: 1 } : {}}
               transition={{ duration: 0.6, delay: 0.5 }}>

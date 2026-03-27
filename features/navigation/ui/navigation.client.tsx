@@ -88,7 +88,7 @@ function DesktopNavLink({
       }}
       onMouseEnter={() => onHoverSection(link.sectionId)}
       onMouseLeave={() => onHoverSection(null)}
-      className="relative cursor-pointer rounded-full px-3.5 py-1.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] transition-all duration-150"
+      className="relative cursor-pointer rounded-full px-3.5 py-1.5 font-ui text-[10.5px] font-semibold uppercase tracking-[0.14em] transition-all duration-150"
       style={{
         color,
         backgroundColor: isActive

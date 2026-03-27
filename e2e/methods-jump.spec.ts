@@ -80,10 +80,6 @@ test("Methods panel nav buttons switch panels without changing scrollY", async (
 
   const afterPanelY = await page.evaluate(() => window.scrollY);
 
-  console.log(
-    `After Methods nav: scrollY=${afterMethodsY}, after panel click: scrollY=${afterPanelY}`,
-  );
-
   // With wheel hijack, panel clicks should NOT change scrollY
   expect(
     Math.abs(afterPanelY - afterMethodsY),

@@ -25,7 +25,7 @@ export function ActSectionContent({
         </h3>
       </RevealLine>
       <FadeUp delay={0.2}>
-        <p className="mt-4 font-mono text-xs text-[var(--text-faint)]">
+        <p className="mt-4 font-ui text-xs text-[var(--text-faint)]">
           {period} · {location}
         </p>
       </FadeUp>

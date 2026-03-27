@@ -13,10 +13,18 @@ export default tseslint.config(
       "*.config.*",
       "check-architecture.mjs",
       "scripts/**",
+      ".claude/**",
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
   {
     plugins: {
       "react-hooks": reactHooks,

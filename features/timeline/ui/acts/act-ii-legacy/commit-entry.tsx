@@ -77,7 +77,7 @@ export function CommitEntry({
       />
 
       {/* Hash */}
-      <div className="mb-1 font-mono text-[11px] tracking-[0.05em] text-(--gold)">
+      <div className="mb-1 font-ui text-[11px] tracking-[0.05em] text-(--gold)">
         <ScrambleText text={company.hash} active={decoded} delayMs={delay} {...SCRAMBLE_CONFIG} />
       </div>
 
@@ -94,20 +94,20 @@ export function CommitEntry({
       </div>
 
       {/* Role */}
-      <div className="mt-0.5 font-mono text-xs transition-colors duration-200"
+      <div className="mt-0.5 font-ui text-xs transition-colors duration-200"
         style={{ color: ACT_BLUE }}>
         <ScrambleText text={company.role} active={decoded} delayMs={delay} {...SCRAMBLE_CONFIG} />
       </div>
 
       {/* Location + period */}
-      <div className="mt-1 font-mono text-[11px] text-(--text-dim)">
+      <div className="mt-1 font-ui text-[11px] text-(--text-dim)">
         <ScrambleText text={`${company.location} · ${company.period}`} active={decoded} delayMs={delay} {...SCRAMBLE_CONFIG} />
       </div>
 
       {/* Commit messages */}
       <ul className="mt-3 flex list-none flex-col gap-1.5" aria-label="Commits">
         {company.commits.map((commit, i) => (
-          <li key={i} className="font-mono text-[10px] leading-[1.7] sm:text-[11px] md:text-[12px]">
+          <li key={i} className="font-ui text-[10px] leading-[1.7] sm:text-[11px] md:text-[12px]">
             <span
               style={{ color: COMMIT_TYPE_COLORS[commit.type] || COMMIT_TYPE_FALLBACK }}>
               <ScrambleText text={commit.type} active={decoded} delayMs={delay} {...SCRAMBLE_CONFIG} />
@@ -125,7 +125,7 @@ export function CommitEntry({
         {company.tags.map((tag) => (
           <span
             key={tag.text}
-            className="rounded px-2 py-0.5 font-mono text-[10px]"
+            className="rounded px-2 py-0.5 font-ui text-[10px]"
             style={{
               backgroundColor: `${tag.color}${TAG_ALPHA_BG}`,
               color: tag.color,

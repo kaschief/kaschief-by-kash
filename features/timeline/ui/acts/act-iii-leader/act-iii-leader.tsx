@@ -37,7 +37,7 @@ function Splash() {
       ref={ref}
       className="relative flex min-h-[85svh] flex-col justify-between px-(--page-gutter) pb-16 pt-10 md:pb-24 md:pt-16">
       {/* Top bar */}
-      <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
+      <div className="flex items-center justify-between font-ui text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
         <span>{act} · {title}</span>
         <span>DKB Code Factory · Berlin · 2022—2024</span>
       </div>
@@ -67,7 +67,7 @@ function Splash() {
 
       {/* Bottom annotation */}
       <motion.p
-        className="mt-12 max-w-xs border-l border-(--stroke) pl-4 font-mono text-[11px] leading-relaxed text-(--text-faint) md:ml-auto md:mt-0"
+        className="mt-12 max-w-xs border-l border-(--stroke) pl-4 font-ui text-[11px] leading-relaxed text-(--text-faint) md:ml-auto md:mt-0"
         initial={{ opacity: 0 }}
         animate={inView ? { opacity: 1 } : {}}
         transition={{ duration: 0.6, delay: 0.7, ease: EASE }}>
@@ -84,7 +84,7 @@ function ScenarioMontage() {
   return (
     <div className="border-t border-(--stroke) px-(--page-gutter) py-16 md:py-24">
       <FadeUp>
-        <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
+        <p className="mb-3 font-ui text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
           Selected scenarios
         </p>
         <h3 className="max-w-3xl font-sans text-3xl font-black uppercase leading-[0.88] tracking-[-0.03em] text-(--cream) md:text-6xl lg:text-7xl">
@@ -138,7 +138,7 @@ function Annotation({
     <FadeUp delay={delay}>
       <div className="border-l border-(--stroke) py-1 pl-5">
         <p
-          className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em]"
+          className="mb-2 font-ui text-[10px] uppercase tracking-[0.25em]"
           style={{ color: COLOR }}>
           {label}
         </p>
@@ -155,7 +155,7 @@ function CoreCapabilities() {
         {/* Left column — headline + prose */}
         <div>
           <FadeUp>
-            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
+            <p className="mb-3 font-ui text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
               What I actually did
             </p>
           </FadeUp>
@@ -197,7 +197,7 @@ function Proof() {
       <div className="grid items-start gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
         {/* Left — heading */}
         <FadeUp>
-          <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
+          <p className="mb-3 font-ui text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
             In practice
           </p>
           <h3 className="max-w-lg font-sans text-3xl font-black uppercase leading-[0.88] tracking-[-0.03em] text-(--cream) md:text-5xl lg:text-6xl">
@@ -210,7 +210,7 @@ function Proof() {
           {proof.map((line, index) => (
             <FadeUp key={index} delay={index * 0.08}>
               <div className="grid items-start gap-4 border-t border-(--stroke) py-5 md:grid-cols-[50px_1fr] md:gap-6">
-                <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-(--text-faint)">
+                <span className="font-ui text-[11px] uppercase tracking-[0.25em] text-(--text-faint)">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <p className="font-sans text-sm leading-[1.75] text-(--text-dim) md:text-base">
@@ -243,7 +243,7 @@ export function ActIIILeader() {
   const glowOpacity = useTransform(scrollYProgress, glow, GLOW_OPACITY);
 
   return (
-    <div id={ACT_LEADER} ref={ref} className="relative" style={{ backgroundColor: "#0A0A0F" }}>
+    <section id={ACT_LEADER} ref={ref} className="relative" aria-label="Act III — Leadership career" style={{ backgroundColor: "#0A0A0F" }}>
       {/* Top fog — smooth transition from Act II */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-12"
@@ -259,6 +259,6 @@ export function ActIIILeader() {
         <CoreCapabilities />
         <Proof />
       </div>
-    </div>
+    </section>
   );
 }

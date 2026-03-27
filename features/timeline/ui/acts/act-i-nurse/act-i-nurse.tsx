@@ -10,7 +10,7 @@ const { ACT_NURSE } = SECTION_ID;
 
 export function ActINurse() {
   return (
-    <div id={ACT_NURSE} className="relative">
+    <section id={ACT_NURSE} className="relative" aria-label="Act I — Nursing career">
       <Splash />
       <div className="h-10 lg:h-20" />
       <ChaosToOrder />
@@ -24,6 +24,6 @@ export function ActINurse() {
       <Takeaway id="act-i-takeaway" text={ACT_I.throughline} />
 
       <div className="h-24 md:h-40" />
-    </div>
+    </section>
   );
 }

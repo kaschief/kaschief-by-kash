@@ -29,7 +29,7 @@ export const TOKENS = {
 
   // Fonts
   fontSerif: "var(--font-serif)",
-  fontMono: "var(--font-mono)",
+  fontUi: "var(--font-ui)",
 
   // Act colors (match --act-* CSS variables)
   actRed: "var(--act-red)",

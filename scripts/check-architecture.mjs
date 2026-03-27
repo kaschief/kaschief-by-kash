@@ -190,6 +190,17 @@ function lintFile(filePath) {
     });
   }
 
+  // Features must not import from app/ — dependency direction is app → features
+  if (relPath.startsWith("features/")) {
+    findMatches({
+      relPath,
+      source,
+      regex: /from\s+["']@app\/(?:[^"']+)["']/g,
+      message:
+        "Features must not import from @app/. Move the dependency to data/, components/, or the feature itself.",
+    });
+  }
+
   checkDuplicateImports(relPath, source);
 }
 
