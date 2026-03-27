@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { ActLabel } from "@components";
 import { ACT_I } from "@data";
 import { EASE } from "@utilities";
@@ -72,6 +72,7 @@ export function Splash() {
   const tickerRef = useRef<HTMLDivElement>(null);
   const [tickerDuration, setTickerDuration] = useState(80);
   const inView = useInView(sceneRef, { once: true, amount: 0.1 });
+  const prefersReducedMotion = useReducedMotion();
   const bpm = useBpmCounter(60, 72, inView, 1200, 2000);
 
   const measureTicker = useCallback(() => {
@@ -87,9 +88,9 @@ export function Splash() {
     return () => window.removeEventListener("resize", measureTicker);
   }, [measureTicker]);
 
-  const tickerStyle: React.CSSProperties = {
-    animation: `scroll-ticker ${tickerDuration}s linear infinite`,
-  };
+  const tickerStyle: React.CSSProperties = prefersReducedMotion
+    ? {}
+    : { animation: `scroll-ticker ${tickerDuration}s linear infinite` };
 
   return (
     <div

@@ -94,6 +94,7 @@ export function ChaosToOrder() {
           containerType: "size",
           overflowX: "visible",
           overflowY: "clip",
+          willChange: "transform",
         }}>
         {/* Atmospheric glows */}
         <div

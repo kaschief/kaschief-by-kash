@@ -18,6 +18,7 @@ import {
   useScroll,
   useMotionValueEvent,
   useInView,
+  useReducedMotion,
 } from "framer-motion";
 import { ACT_II } from "@data";
 import { smoothstep } from "./math";
@@ -82,6 +83,7 @@ const SCRAMBLE_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 function useScramble(
   text: string,
   active: boolean,
+  prefersReducedMotion: boolean | null,
   staggerMs = 40,
   cyclesPerChar = 4,
   intervalMs = 50,
@@ -89,6 +91,11 @@ function useScramble(
   const [display, setDisplay] = useState(text);
   useEffect(() => {
     if (!active) return;
+    // Skip scramble animation entirely for reduced-motion users
+    if (prefersReducedMotion) {
+      setDisplay(text);
+      return;
+    }
     const resolved = new Array(text.length).fill(false);
     const cycles = new Array(text.length).fill(0);
     const iv = setInterval(() => {
@@ -119,14 +126,15 @@ function useScramble(
       if (done) clearInterval(iv);
     }, intervalMs);
     return () => clearInterval(iv);
-  }, [active, text, staggerMs, cyclesPerChar, intervalMs]);
+  }, [active, text, prefersReducedMotion, staggerMs, cyclesPerChar, intervalMs]);
   return display;
 }
 
-function ScrambleWord({ text, active }: { text: string; active: boolean }) {
+function ScrambleWord({ text, active, prefersReducedMotion }: { text: string; active: boolean; prefersReducedMotion: boolean | null }) {
   const display = useScramble(
     text,
     active,
+    prefersReducedMotion,
     EC_UI_CONFIG.titleScrambleStaggerMs,
     EC_UI_CONFIG.titleScrambleCycles,
     EC_UI_CONFIG.titleScrambleIntervalMs,
@@ -163,6 +171,7 @@ const LENSES_CARD_SPAN = CINEMATIC_SIZE / 4 / TOTAL_RAW_SIZE;
 
 export function ActIIEngineer() {
   const { isLg } = useBreakpointRefs();
+  const prefersReducedMotion = useReducedMotion();
 
   /* ---- Refs: Container A (convergence + lenses, one viewport) ---- */
   const containerARef = useRef<HTMLDivElement>(null);
@@ -274,7 +283,7 @@ export function ActIIEngineer() {
       /* ---- HUD ---- */
       if (hudRef.current) {
         const lensP = lensesRawProgress.current;
-        let frame = "—";
+        let frame: string;
         // EC convergence phases (granular)
         if (ecProgress <= SCROLL_PHASES.TITLE.end) frame = "title";
         else if (ecProgress < SCROLL_PHASES.CONVERGENCE.start)
@@ -444,7 +453,7 @@ export function ActIIEngineer() {
         <div
           ref={stickyViewportARef}
           className="sticky top-0 h-screen w-full overflow-hidden [container-type:size] [--frag-scale:0.6] sm:[--frag-scale:0.85]"
-          style={{ background: "var(--bg)", zIndex: 1 }}>
+          style={{ background: "var(--bg)", zIndex: 1, willChange: "transform" }}>
           <div
             aria-hidden
             className="pointer-events-none absolute inset-x-0 top-0 z-20"
@@ -492,7 +501,7 @@ export function ActIIEngineer() {
                   .split(" ")
                   .map((word, i) => (
                     <span key={i} className="block">
-                      <ScrambleWord text={word} active={titleActive} />
+                      <ScrambleWord text={word} active={titleActive} prefersReducedMotion={prefersReducedMotion} />
                     </span>
                   ))}
               </motion.h2>
@@ -570,7 +579,7 @@ export function ActIIEngineer() {
         className="relative">
         <div
           className="sticky top-0 h-screen w-full overflow-hidden [container-type:size]"
-          style={{ background: "var(--bg)", zIndex: 1 }}>
+          style={{ background: "var(--bg)", zIndex: 1, willChange: "transform" }}>
           <div
             ref={vignetteEl}
             aria-hidden

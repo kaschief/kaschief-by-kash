@@ -622,7 +622,7 @@ export function WordDistillation({ companies, scrollTarget }: WordDistillationPr
       clonesRef.current.forEach((c) => c.remove());
       clonesRef.current = [];
     };
-  }, [companies, prefersReducedMotion, scrollTarget]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [companies, prefersReducedMotion, scrollTarget]);
 
   /* ── Reduced motion: static crossfade items, no animation ── */
   if (prefersReducedMotion) {

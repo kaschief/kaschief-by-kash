@@ -66,6 +66,11 @@ function ScrollDivider() {
 /**
  * Scroll-driven section wrapper: applies subtle parallax and fade
  * to create depth between page sections.
+ *
+ * Progressive enhancement note: CSS `animation-timeline: scroll()` could
+ * replace this JS-driven fade/parallax once Safari support stabilizes
+ * (currently behind a flag). The Framer Motion approach remains the
+ * cross-browser baseline.
  */
 function SectionTransition({
   children,
