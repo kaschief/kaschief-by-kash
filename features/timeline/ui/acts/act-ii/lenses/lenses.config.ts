@@ -9,51 +9,51 @@
  * Must equal TUNED_CONTAINER_VH so that each raw progress unit maps to the
  * same physical scroll distance the old single-lens hook was tuned against.
  */
-export const BASE_SCROLL_VH = 2400;
+export const BASE_SCROLL_VH = 2400
 
 /**
  * The original single-lens container height (vh) that the thesis/curtain
  * timing was tuned against. Used for EC_TO_LOCAL_SCALE so the prologue pacing
  * stays identical. DO NOT CHANGE — this is the tuned reference value.
  */
-export const TUNED_CONTAINER_VH = 2400;
+export const TUNED_CONTAINER_VH = 2400
 
 /**
  * Max width for the content layer (px).
  * Cards live inside this container. Prevents layout blowup on ultra-wide.
  */
-export const MAX_CONTENT_WIDTH = 1600;
+export const MAX_CONTENT_WIDTH = 1600
 
-export const SMOOTH_LERP_FACTOR = 0.07;
+export const SMOOTH_LERP_FACTOR = 0.07
 
 /* ── Phase 1: Thesis ── */
 
-export const THESIS_PHASE_START = 0.0;
-export const THESIS_PHASE_DURATION = 0.25;
+export const THESIS_PHASE_START = 0.0
+export const THESIS_PHASE_DURATION = 0.25
 
 /* ── Curtain ── */
 
 /** Pause after thesis keywords land before curtain begins */
-export const CURTAIN_PAUSE_AFTER_WORDS = 0.015;
+export const CURTAIN_PAUSE_AFTER_WORDS = 0.015
 
 /** Curtain sweep duration */
-export const CURTAIN_SWEEP_DURATION = 0.08;
+export const CURTAIN_SWEEP_DURATION = 0.08
 
 /* ── Storycard sequence ── */
 
 /** Per-storycard scroll duration (raw progress units) */
-export const STORYCARD_SCROLL_SPAN = 0.1;
+export const STORYCARD_SCROLL_SPAN = 0.1
 
 /** First storycard appears this far before curtain finishes (overlap) */
-export const STORYCARD_CURTAIN_OVERLAP = 0.015;
+export const STORYCARD_CURTAIN_OVERLAP = 0.015
 
 /* ── Curtain edge visual ── */
 
 export const CURTAIN_EDGE = {
-  accentLineHeight: 1,
+  accentLineHeight: 3,
   gradientOvershoot: 20,
   movingOpacity: 0.7,
-} as const;
+} as const
 
 /* ── Z-index layers ── */
 
@@ -62,11 +62,11 @@ export const Z = {
   curtain: 2,
   cards: 4,
   keyword: 10,
-} as const;
+} as const
 
 /* ── Blur threshold ── */
 
-export const BLUR_THRESHOLD = 0.1;
+export const BLUR_THRESHOLD = 0.1
 
 /* ── Company label ── */
 
@@ -78,7 +78,7 @@ export const COMPANY_LABEL = {
   visible: 0.6,
   /** Opacity for shore desk resting (desktop, not hovered) */
   resting: 0.35,
-} as const;
+} as const
 
 /* ── Card zoom per breakpoint ── */
 
@@ -87,4 +87,4 @@ export const CARD_ZOOM = {
   tablet: 0.82,
   /** Desktop (1024px+) */
   desktop: 1,
-} as const;
+} as const

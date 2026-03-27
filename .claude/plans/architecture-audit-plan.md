@@ -4,49 +4,19 @@ Each phase is a discrete, testable refactor. Commit after each. Test after each.
 
 ---
 
-## Phase 1 — Font Loading (CQ-1) [DONE]
+## Completed
 
-**Impact:** LCP/FCP, bundle size
-**Risk:** Low
-
-- Create route group `app/(lab)/` for all lab routes
-- Move 32 experimental fonts from root `layout.tsx` to `app/(lab)/layout.tsx`
-- Root layout keeps only: Inter, Playfair Display, Urbanist, Crimson Pro
-- Move lab routes into `app/(lab)/`: lab, lab-sankey, lab-particles, lab-lenses, lab-pillars, lab-wordtype, legacy-engineer, act-ii (standalone)
-
-**Test:** Load production page → DevTools Network → verify only 4 font families requested. Load a lab page → verify experimental fonts load there.
+### Phase 1 — Font Loading (CQ-1) [DONE]
+### Phase 2 — ESLint Setup (DX-1) [DONE]
+### Phase 3 — Pre-commit Hooks (DX-2) [DONE]
+### Phase 8 — Accessibility: Skip Navigation + Landmarks (A11Y-2, A11Y-3) [DONE]
+### Phase 14 — Final Polish (CQ-4, CQ-5, DX-4, TS-2) [DONE]
 
 ---
 
-## Phase 2 — ESLint Setup (DX-1) [DONE]
+## In Progress
 
-**Impact:** Code quality foundation
-**Risk:** Low (may surface lint errors to fix)
-
-- Add `eslint.config.mjs` (flat config)
-- Rules: `@typescript-eslint/recommended`, `eslint-plugin-react-hooks`, `eslint-plugin-jsx-a11y`
-- Integrate with existing Prettier (eslint-config-prettier)
-- Fix any auto-fixable issues
-- Add to `predev` script alongside `check:rules`
-
-**Test:** `pnpm lint` runs clean. Intentionally break an exhaustive-deps rule → verify it catches it.
-
----
-
-## Phase 3 — Pre-commit Hooks (DX-2) [DONE]
-
-**Impact:** Quality gate
-**Risk:** Low
-
-- Add Husky + lint-staged
-- Pre-commit runs: `tsc --noEmit`, `pnpm check:rules`, `eslint` on staged files
-- Verify it blocks a bad commit
-
-**Test:** Stage a file with a type error → commit should fail. Stage a clean file → commit should pass.
-
----
-
-## Phase 4 — Fix Dependency Direction (ARC-1)
+### Phase 4 — Fix Dependency Direction (ARC-1)
 
 **Impact:** Architectural integrity
 **Risk:** Medium (file moves, import rewiring)
@@ -63,7 +33,9 @@ Update all imports. Add rule to `check-architecture.mjs` disallowing `@app/` imp
 
 ---
 
-## Phase 5 — Resolve Act II Legacy (ARC-3)
+## Open
+
+### Phase 5 — Resolve Act II Legacy (ARC-3)
 
 **Impact:** Naming clarity, dead code reduction
 **Risk:** Medium
@@ -78,7 +50,7 @@ Update all imports. Add rule to `check-architecture.mjs` disallowing `@app/` imp
 
 ---
 
-## Phase 6 — Act II Subdirectory Organization (CQ-2)
+### Phase 6 — Act II Subdirectory Organization (CQ-2)
 
 **Impact:** Maintainability, interview readability
 **Risk:** Low (internal restructure, no behavior change)
@@ -113,7 +85,7 @@ act-ii/
 
 ---
 
-## Phase 7 — Accessibility: prefers-reduced-motion (A11Y-1)
+### Phase 7 — Accessibility: prefers-reduced-motion (A11Y-1)
 
 **Impact:** Accessibility compliance, interview signal
 **Risk:** Medium (touches many animation codepaths)
@@ -131,21 +103,7 @@ act-ii/
 
 ---
 
-## Phase 8 — Accessibility: Skip Navigation + Landmarks (A11Y-2, A11Y-3) [DONE]
-
-**Impact:** Keyboard navigation, screen reader UX
-**Risk:** Low
-
-- Add skip-to-content link in `layout.tsx` (visually hidden until focused)
-- Add `role` and `aria-label` to Act II sections
-- Add keyboard handlers to interactive Act II elements (story desk cards)
-- Verify tab order through the page
-
-**Test:** Tab from top of page → skip link appears → Enter → jumps to content. Screen reader announces section names.
-
----
-
-## Phase 9 — TypeScript Strictness (TS-1)
+### Phase 9 — TypeScript Strictness (TS-1)
 
 **Impact:** Type safety
 **Risk:** Medium (may surface many indexed-access errors)
@@ -158,7 +116,7 @@ act-ii/
 
 ---
 
-## Phase 10 — Act II Tests (TEST-1)
+### Phase 10 — Act II Tests (TEST-1)
 
 **Impact:** Test coverage for most complex module
 **Risk:** Low
@@ -174,7 +132,7 @@ Priority test targets:
 
 ---
 
-## Phase 11 — Performance Polish (PERF-1, PERF-3, PERF-4)
+### Phase 11 — Performance Polish (PERF-1, PERF-3, PERF-4)
 
 **Impact:** Runtime performance, interview talking points
 **Risk:** Low
@@ -188,7 +146,7 @@ Priority test targets:
 
 ---
 
-## Phase 12 — Modern API Opportunities (MOD-1, MOD-2)
+### Phase 12 — Modern API Opportunities (MOD-1, MOD-2)
 
 **Impact:** Interview talking points, future-proofing
 **Risk:** Low (progressive enhancement)
@@ -201,7 +159,7 @@ Priority test targets:
 
 ---
 
-## Phase 13 — ESLint Zero Warnings (LINT-1)
+### Phase 13 — ESLint Zero Warnings (LINT-1)
 
 **Impact:** Code quality, interview readiness — no suppressed rules
 **Risk:** Medium (touches many files)
@@ -223,18 +181,14 @@ Once fixed, remove all "warn" overrides from `eslint.config.mjs` — every rule 
 
 ---
 
-## Phase 14 — Final Polish (CQ-4, CQ-5, DX-4, TS-2) [DONE]
+## Known Bugs
 
-**Impact:** Professional finish
-**Risk:** Minimal
-
-- Fix `package.json` name: `"my-project"` → `"kaschief-by-kash"`
-- Remove `console.log` from e2e test
-- Expand `.prettierrc` with explicit settings
-- Replace `font-mono` class usage with `font-ui` where semantic
-- Final sweep for stale comments, TODO items, dead imports
-
-**Test:** Full site walkthrough on desktop + mobile. All routes render. All tests pass. Lint clean.
+### BUG-1: Nav scroll to Engineer lands below sticky pin point
+- Navigating from hero/nav bar to Engineer section lands slightly below the sticky viewport's pin point
+- User must scroll up to reach the title
+- Does NOT happen on hard refresh to `/act-ii`
+- Likely caused by `fadeJumpSlide` approach offset (120px) + post-jump recalculation of `slideTo` not accounting for the sticky state change
+- Investigate: log the jump target vs actual landing position, compare with section element top
 
 ---
 

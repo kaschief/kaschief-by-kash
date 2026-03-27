@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useMemo } from "react";
-import { smoothstep, lerp } from "./math";
+import { smoothstep, lerp } from "../math";
 import {
   fcExt,
   CC_EXT,
@@ -9,7 +9,7 @@ import {
   createFragments,
   createEmbers,
   CONTENT,
-} from "./act-ii.data";
+} from "../act-ii.data";
 import {
   SEED,
   FRAGMENTS,
@@ -39,7 +39,7 @@ import {
   FRAG_FADE_IN_END,
   THESIS_START,
   THESIS_END,
-} from "./act-ii.types";
+} from "../act-ii.types";
 
 /**
  * Convergence hook — owns fragment/ember/glow/grid/thesis
