@@ -20,7 +20,8 @@ import {
   THESIS_PHASE_DURATION,
   CURTAIN_PAUSE_AFTER_WORDS,
   CURTAIN_SWEEP_DURATION,
-  CROSSFADE_PER_CARD,
+  STORYCARD_SCROLL_SPAN,
+  STORYCARD_CURTAIN_OVERLAP,
 } from "./lenses.config";
 import { HIGHLIGHT_ENTRIES } from "./card-config";
 import type { PrologueTiming } from "./lenses.types";
@@ -53,15 +54,15 @@ export const PROLOGUE: PrologueTiming = {
 /** Raw size of the prologue in progress units. */
 const PROLOGUE_SIZE = prologueCurtainEnd;
 
-/* ── Cinematic section (4 highlight cards in crossfade) ── */
+/* ── Storycard sequence (4 highlight cards) ── */
 
-const HIGHLIGHT_COUNT = HIGHLIGHT_ENTRIES.length;
+const STORYCARD_COUNT = HIGHLIGHT_ENTRIES.length;
 
-/** Raw progress size of the cinematic crossfade section */
-export const CINEMATIC_SIZE = HIGHLIGHT_COUNT * CROSSFADE_PER_CARD;
+/** Raw progress size of the storycard sequence */
+export const CINEMATIC_SIZE = STORYCARD_COUNT * STORYCARD_SCROLL_SPAN;
 
-/** Global progress where the cinematic crossfade starts */
-export const CINEMATIC_START = PROLOGUE_SIZE;
+/** Global progress where the first storycard begins (overlaps curtain end) */
+export const CINEMATIC_START = PROLOGUE_SIZE - STORYCARD_CURTAIN_OVERLAP;
 
 /** Total raw progress (prologue + cinematic) */
 export const TOTAL_RAW_SIZE = PROLOGUE_SIZE + CINEMATIC_SIZE;

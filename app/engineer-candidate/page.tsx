@@ -27,11 +27,12 @@ import { ACT_BLUE, CONTENT } from "./engineer-data";
 import { BREAKPOINTS } from "@utilities";
 import {
   CONTAINER_VH,
-  CHROME,
+  EC_UI_CONFIG,
   SCROLL_PHASES,
   PARTICLES_START,
   THESIS_START,
   CONVERGENCE_GATE,
+  LENSES_INTEGRATION,
 } from "./engineer-candidate.types";
 
 /* ---- Lenses imports ---- */
@@ -41,8 +42,13 @@ import {
   SMOOTH_LERP_FACTOR,
 } from "./use-lenses";
 import { MAX_CONTENT_WIDTH } from "./lenses.config";
+import {
+  CINEMATIC_START,
+  TOTAL_RAW_SIZE,
+  CINEMATIC_SIZE,
+} from "./lenses.timing";
 import { StoryDesk } from "./story-desk";
-import { useBreakpoint } from "@hooks";
+import { useBreakpoint, useLenis } from "@hooks";
 
 /* ================================================================== */
 /*  Breakpoint refs (no-re-render, matches Act I pattern)              */
@@ -120,7 +126,13 @@ function useScramble(
 }
 
 function ScrambleWord({ text, active }: { text: string; active: boolean }) {
-  const display = useScramble(text, active, 70, 6, 70);
+  const display = useScramble(
+    text,
+    active,
+    EC_UI_CONFIG.titleScrambleStaggerMs,
+    EC_UI_CONFIG.titleScrambleCycles,
+    EC_UI_CONFIG.titleScrambleIntervalMs,
+  );
   return <>{display}</>;
 }
 
@@ -136,16 +148,16 @@ function ScrambleWord({ text, active }: { text: string; active: boolean }) {
  * They overlap, matching the committed version's crossfade between fragments and thesis.
  */
 /** Lenses thesis begins slightly before THESIS_START — during embers rising */
-const LENSES_EARLY_OFFSET = 0.015;
 const LENSES_START_VH = Math.ceil(
-  (THESIS_START - LENSES_EARLY_OFFSET) * CONTAINER_VH,
+  (THESIS_START - LENSES_INTEGRATION.earlyOffset) * CONTAINER_VH,
 );
 
 /** Container B = particles → funnel → terminal (PARTICLES_START → 1 in EC progress) */
 const CONTAINER_B_VH = Math.ceil((1 - PARTICLES_START) * CONTAINER_VH);
 
-/** Mobile: halve the lenses scroll distance */
-const LENSES_MOBILE_SCROLL_FACTOR = 0.5;
+/** Derived lenses phase boundaries (normalized 0→1) for HUD */
+const LENSES_CURTAIN_START = CINEMATIC_START / TOTAL_RAW_SIZE;
+const LENSES_CARD_SPAN = CINEMATIC_SIZE / 4 / TOTAL_RAW_SIZE;
 
 /* ================================================================== */
 /*  Component                                                          */
@@ -167,6 +179,9 @@ export default function EngineerCandidate() {
   const lensesRawProgress = useRef(0);
   const lensesAnimFrameId = useRef(0);
 
+  /* ---- HUD debug ref ---- */
+  const hudRef = useRef<HTMLDivElement>(null);
+
   /* ---- Refs: Container B (particles → funnel → terminal) ---- */
   const containerBRef = useRef<HTMLDivElement>(null);
   const vignetteEl = useRef<HTMLDivElement>(null);
@@ -186,15 +201,29 @@ export default function EngineerCandidate() {
   const isSmUp = useBreakpoint(BREAKPOINTS.sm);
   const lensesVh = isSmUp
     ? LENSES_SECTION_VH
-    : Math.ceil(LENSES_SECTION_VH * LENSES_MOBILE_SCROLL_FACTOR);
+    : Math.ceil(LENSES_SECTION_VH * LENSES_INTEGRATION.mobileScrollFactor);
   const containerAHeight = LENSES_START_VH + lensesVh;
 
-  /* ---- Title scramble ---- */
+  /* ---- Title scramble + Lenis hold ---- */
+  const getLenis = useLenis();
   const titleInView = useInView(titleInViewRef, { once: true, amount: 0.5 });
   const [titleActive, setTitleActive] = useState(false);
+  const titleHoldFired = useRef(false);
   useEffect(() => {
-    if (titleInView) setTitleActive(true);
-  }, [titleInView]);
+    if (!titleInView) return;
+    setTitleActive(true);
+    // Lenis hold — freeze scroll then release after configured duration
+    if (titleHoldFired.current) return;
+    titleHoldFired.current = true;
+    const lenis = getLenis();
+    if (!lenis) return;
+    lenis.stop();
+    const timer = setTimeout(() => lenis.start(), EC_UI_CONFIG.titleHoldMs);
+    return () => {
+      clearTimeout(timer);
+      lenis.start();
+    };
+  }, [titleInView, getLenis]);
 
   /* ================================================================ */
   /*  Scroll: Container A (convergence + lenses in one viewport)       */
@@ -224,7 +253,7 @@ export default function EngineerCandidate() {
         1 -
         smoothstep(
           SCROLL_PHASES.TITLE.start,
-          SCROLL_PHASES.TITLE.end * CHROME.titleSlowFadeMult,
+          SCROLL_PHASES.TITLE.end * EC_UI_CONFIG.titleSlowFadeMult,
           ecProgress,
         );
       const curtainFade =
@@ -232,10 +261,48 @@ export default function EngineerCandidate() {
           ? 1
           : Math.max(
               0,
-              (curtainTop - window.innerHeight * CHROME.titleCurtainThreshold) /
-                (window.innerHeight * CHROME.titleCurtainRange),
+              (curtainTop -
+                window.innerHeight * EC_UI_CONFIG.titleCurtainThreshold) /
+                (window.innerHeight * EC_UI_CONFIG.titleCurtainRange),
             );
       titleRef.current.style.opacity = String(Math.min(slowFade, curtainFade));
+    }
+
+    /* ---- HUD ---- */
+    if (hudRef.current) {
+      const lensP = lensesRawProgress.current;
+      let frame = "—";
+      // EC convergence phases (granular)
+      if (ecProgress <= SCROLL_PHASES.TITLE.end) frame = "title";
+      else if (ecProgress < SCROLL_PHASES.CONVERGENCE.start)
+        frame = "title→convergence";
+      else if (ecProgress < SCROLL_PHASES.EMBERS.start)
+        frame = "convergence:fragments-drift";
+      else if (ecProgress < SCROLL_PHASES.CONVERGENCE.end)
+        frame = "convergence:embers+fragments";
+      else if (ecProgress < CONVERGENCE_GATE) frame = "convergence:tail";
+      else frame = "convergence:gate";
+      // Lenses phases (overlay on top of convergence)
+      if (scrollVh >= LENSES_START_VH) {
+        if (lensP < SCROLL_PHASES.THESIS.start + 0.001)
+          frame = "lenses:thesis-start";
+        else frame = "lenses:thesis";
+      }
+      // Lenses sub-phases derived from timing constants
+      const kwStart = (CINEMATIC_START * 0.5) / TOTAL_RAW_SIZE;
+      if (lensP > kwStart) frame = "lenses:thesis+keywords";
+      if (lensP > LENSES_CURTAIN_START * 0.85) frame = "lenses:dissolution";
+      if (lensP > LENSES_CURTAIN_START) frame = "lenses:curtain";
+      if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 0)
+        frame = "lenses:storycard-1";
+      if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 1)
+        frame = "lenses:storycard-2";
+      if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 2)
+        frame = "lenses:storycard-3";
+      if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 3)
+        frame = "lenses:storycard-4";
+      if (lensP > 0.98) frame = "lenses:end";
+      hudRef.current.textContent = `${frame} | ec:${ecProgress.toFixed(3)} lens:${lensP.toFixed(3)} scroll:${scrollVh.toFixed(0)}vh`;
     }
 
     /* ---- Convergence (fragments, embers, grid) ---- */
@@ -282,6 +349,28 @@ export default function EngineerCandidate() {
     const isDesktop = isLg.current;
     particleFunnel.update(ecProgress);
     terminalReplay.update(ecProgress, isDesktop);
+
+    /* ---- HUD ---- */
+    if (hudRef.current) {
+      let frame = "particles:explosion";
+      if (ecProgress > SCROLL_PHASES.CANVAS_OUT.start)
+        frame = "particles:canvas-out";
+      if (ecProgress > SCROLL_PHASES.SVG_IN.start) frame = "funnel:svg-in";
+      if (ecProgress > SCROLL_PHASES.DOTS_IN.start) frame = "funnel:dots";
+      if (ecProgress > SCROLL_PHASES.LABELS_IN.start) frame = "funnel:labels";
+      if (ecProgress > SCROLL_PHASES.CONVERGE_PT.start)
+        frame = "funnel:converge";
+      if (ecProgress > SCROLL_PHASES.MID_NARRATOR.start)
+        frame = "funnel:narrator";
+      if (ecProgress > SCROLL_PHASES.FUNNEL_OUT.start)
+        frame = "funnel:fade-out";
+      for (let i = 0; i < SCROLL_PHASES.BEATS.length; i++) {
+        if (ecProgress > SCROLL_PHASES.BEATS[i].start)
+          frame = `terminal:beat-${i + 1}`;
+      }
+      if (ecProgress > SCROLL_PHASES.CHROME_END) frame = "terminal:end";
+      hudRef.current.textContent = `${frame} | ec:${ecProgress.toFixed(3)} p:${p.toFixed(3)}`;
+    }
   });
 
   /* ================================================================ */
@@ -291,6 +380,27 @@ export default function EngineerCandidate() {
   return (
     <>
       {isStandalone && <LabNav />}
+
+      {/* Debug HUD — bottom-right frame indicator */}
+      <div
+        ref={hudRef}
+        className="fixed font-ui"
+        style={{
+          bottom: 16,
+          right: 16,
+          zIndex: 99999,
+          fontSize: 11,
+          letterSpacing: "0.04em",
+          color: "var(--gold-dim)",
+          background: "rgba(7,7,10,0.85)",
+          backdropFilter: "blur(8px)",
+          padding: "6px 12px",
+          borderRadius: 6,
+          border: "1px solid var(--stroke)",
+          pointerEvents: "none",
+        }}>
+        title
+      </div>
 
       {/* ============================================================ */}
       {/*  CONTAINER A: Convergence + Lenses (one sticky viewport)     */}

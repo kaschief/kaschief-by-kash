@@ -39,10 +39,13 @@ export const CURTAIN_PAUSE_AFTER_WORDS = 0.015;
 /** Curtain sweep duration */
 export const CURTAIN_SWEEP_DURATION = 0.08;
 
-/* ── Crossfade ── */
+/* ── Storycard sequence ── */
 
-/** Per-card scroll duration for crossfade style (raw progress units) */
-export const CROSSFADE_PER_CARD = 0.10;
+/** Per-storycard scroll duration (raw progress units) */
+export const STORYCARD_SCROLL_SPAN = 0.1;
+
+/** First storycard appears this far before curtain finishes (overlap) */
+export const STORYCARD_CURTAIN_OVERLAP = 0.015;
 
 /* ── Curtain edge visual ── */
 
