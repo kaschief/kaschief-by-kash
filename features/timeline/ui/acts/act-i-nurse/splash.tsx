@@ -41,9 +41,7 @@ function useBpmCounter(from: number, to: number, active: boolean, delay = 1200, 
   useEffect(() => {
     if (!active) return;
     let frame: number;
-    let timeout: ReturnType<typeof setTimeout>;
-
-    timeout = setTimeout(() => {
+    const timeout = setTimeout(() => {
       const start = performance.now();
 
       const step = (now: number) => {

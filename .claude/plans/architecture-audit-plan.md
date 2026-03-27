@@ -201,7 +201,29 @@ Priority test targets:
 
 ---
 
-## Phase 13 — Final Polish (CQ-4, CQ-5, DX-4, TS-2)
+## Phase 13 — ESLint Zero Warnings (LINT-1)
+
+**Impact:** Code quality, interview readiness — no suppressed rules
+**Risk:** Medium (touches many files)
+
+Current state: 0 errors, 47 warnings (suppressed via "warn"). This phase promotes all warnings to errors and fixes every one:
+
+- `react-hooks/refs` (23 warnings) — refactor ref access out of render paths
+- `react-hooks/set-state-in-effect` (4 warnings) — restructure useEffect patterns
+- `react-hooks/use-memo` (2 warnings) — inline function expressions in useMemo
+- `react-hooks/immutability` (2 warnings) — avoid mutating values React expects immutable
+- `no-useless-assignment` (2 warnings) — remove dead assignments
+- `jsx-a11y/click-events-have-key-events` (5 warnings) — add keyboard handlers
+- `jsx-a11y/no-static-element-interactions` (4 warnings) — add roles or use semantic elements
+- `jsx-a11y/no-noninteractive-element-interactions` (1 warning) — fix element semantics
+
+Once fixed, remove all "warn" overrides from `eslint.config.mjs` — every rule runs as "error".
+
+**Test:** `pnpm lint` passes with 0 errors AND 0 warnings. No rules suppressed.
+
+---
+
+## Phase 14 — Final Polish (CQ-4, CQ-5, DX-4, TS-2)
 
 **Impact:** Professional finish
 **Risk:** Minimal
