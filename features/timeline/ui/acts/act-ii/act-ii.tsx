@@ -71,7 +71,7 @@ function useBreakpointRefs() {
 
 /* Sub-hooks — each owns a scroll section */
 import { useTerminalReplay } from "./terminal/use-terminal-replay";
-import { useConvergence } from "./convergence/use-convergence";
+import { useRolesCloud } from "./roles/use-roles-cloud";
 import { useParticleFunnel } from "./particles/use-particle-funnel";
 
 /* ================================================================== */
@@ -195,7 +195,7 @@ export function ActIIEngineer() {
   const beatGlowEl = useRef<HTMLDivElement>(null);
 
   /* ---- Animation hooks ---- */
-  const convergence = useConvergence();
+  const rolesCloud = useRolesCloud();
   const terminalReplay = useTerminalReplay({
     scrollContainerRef: containerBRef,
     beatGlowEl,
@@ -258,8 +258,10 @@ export function ActIIEngineer() {
       }
 
       /* ---- Title fade ---- */
-      // Map to EC progress for title phases
-      const ecProgress = Math.min(scrollVh / CONTAINER_VH, CONVERGENCE_GATE);
+      // ecProgress: full EC progress (unclamped) — roles phases need values beyond CONVERGENCE_GATE
+      const ecProgressFull = scrollVh / CONTAINER_VH;
+      // ecProgress: clamped for title fade and convergence-era logic
+      const ecProgress = Math.min(ecProgressFull, CONVERGENCE_GATE);
       if (titleRef.current) {
         const slowFade =
           1 -
@@ -295,6 +297,14 @@ export function ActIIEngineer() {
         else if (ecProgress < SCROLL_PHASES.CONVERGENCE.end)
           frame = "convergence:embers+fragments";
         else if (ecProgress < CONVERGENCE_GATE) frame = "convergence:tail";
+        else if (ecProgressFull < SCROLL_PHASES.ROLES_DISSOLVE.end)
+          frame = "roles:dissolve";
+        else if (ecProgressFull < SCROLL_PHASES.ROLES_FLY.end)
+          frame = "roles:fly";
+        else if (ecProgressFull < SCROLL_PHASES.ROLES_HOLD_END)
+          frame = "roles:hold";
+        else if (ecProgressFull < SCROLL_PHASES.ROLES_DRAIN_END)
+          frame = "roles:drain";
         else frame = "convergence:gate";
         // Lenses phases (overlay on top of convergence)
         if (scrollVh >= LENSES_START_VH) {
@@ -316,14 +326,18 @@ export function ActIIEngineer() {
         if (lensP > LENSES_CURTAIN_START + LENSES_CARD_SPAN * 3)
           frame = "lenses:storycard-4";
         if (lensP > 0.98) frame = "lenses:end";
-        hudRef.current.textContent = `${frame} | ec:${ecProgress.toFixed(3)} lens:${lensP.toFixed(3)} scroll:${scrollVh.toFixed(0)}vh`;
+        hudRef.current.textContent = `${frame} | ec:${ecProgressFull.toFixed(3)} lens:${lensP.toFixed(3)} scroll:${scrollVh.toFixed(0)}vh`;
       }
 
-      /* ---- Convergence (fragments, embers, grid) ---- */
+      /* ---- Roles cloud (fragments, embers, grid, roles grid) ---- */
       const viewportHeight = window.innerHeight;
       const isDesktop = isLg.current;
-      convergence.update(
-        ecProgress,
+      // Pass unclamped progress so the hook can drive roles phases beyond CONVERGENCE_GATE.
+      // During convergence (< gate), the hook's smoothsteps are authored against
+      // the same thresholds so clamped vs unclamped makes no difference.
+      // Beyond the gate, the roles dissolve/fly/hold/drain phases activate.
+      rolesCloud.update(
+        ecProgressFull,
         isDesktop,
         curtainTop,
         viewportHeight,
@@ -342,7 +356,7 @@ export function ActIIEngineer() {
         lensesRawProgress.current = 0;
       }
     },
-    [containerAHeight, lensesVh, convergence, isLg],
+    [containerAHeight, lensesVh, rolesCloud, isLg],
   );
 
   useMotionValueEvent(progressA, "change", applyContainerAProgress);
@@ -453,7 +467,10 @@ export function ActIIEngineer() {
         style={{ height: `${containerAHeight}vh` }}
         className="relative">
         <div
-          ref={stickyViewportARef}
+          ref={(el) => {
+            stickyViewportARef.current = el;
+            rolesCloud.setStickyViewport(el);
+          }}
           className="sticky top-0 h-screen w-full overflow-hidden [container-type:size] [--frag-scale:0.6] sm:[--frag-scale:0.85]"
           style={{ background: "var(--bg)", zIndex: 1, willChange: "transform" }}>
           <div
@@ -462,8 +479,8 @@ export function ActIIEngineer() {
             style={{ height: 0, opacity: 0, background: "var(--bg)" }}
           />
 
-          {/* Convergence atmosphere, glow, embers, fragments */}
-          {convergence.jsx}
+          {/* Roles cloud: atmosphere, glow, embers, fragments, company grid */}
+          {rolesCloud.jsx}
 
           {/* Lenses: thesis sentence, curtain, crossfade cards (fullscreen layer) */}
           {lenses.fullScreenJsx}
