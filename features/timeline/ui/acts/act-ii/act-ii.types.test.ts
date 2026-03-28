@@ -10,7 +10,7 @@ import {
   CONVERGENCE_START,
   CONVERGENCE_END,
   PARTICLES_END,
-  CHROME_END,
+  MID_NARRATOR_END,
 } from "./act-ii.types";
 
 describe("Act II timing chain", () => {
@@ -26,11 +26,11 @@ describe("Act II timing chain", () => {
     expect(CONVERGENCE_END).toBeLessThanOrEqual(CONVERGENCE_GATE);
     expect(THESIS_START).toBeLessThan(PARTICLES_START);
     expect(PARTICLES_START).toBeLessThan(PARTICLES_END);
-    expect(PARTICLES_END).toBeLessThanOrEqual(CHROME_END);
+    expect(PARTICLES_END).toBeLessThanOrEqual(MID_NARRATOR_END);
   });
 
   it("has no phase exceeding 1.0", () => {
-    expect(CHROME_END).toBeLessThanOrEqual(1);
+    expect(MID_NARRATOR_END).toBeLessThanOrEqual(1);
     expect(PARTICLES_END).toBeLessThanOrEqual(1);
     expect(CONVERGENCE_GATE).toBeLessThanOrEqual(1);
   });
@@ -48,19 +48,6 @@ describe("Act II timing chain", () => {
     expect(SCROLL_PHASES.CONVERGENCE).toBeDefined();
     expect(SCROLL_PHASES.CONVERGENCE_GATE).toBeDefined();
     expect(SCROLL_PHASES.PARTICLES).toBeDefined();
-    expect(SCROLL_PHASES.BEATS).toBeDefined();
-    expect(SCROLL_PHASES.CHROME_END).toBeDefined();
-  });
-
-  it("has at least one terminal beat", () => {
-    expect(SCROLL_PHASES.BEATS.length).toBeGreaterThan(0);
-  });
-
-  it("has beats in ascending order", () => {
-    for (let i = 1; i < SCROLL_PHASES.BEATS.length; i++) {
-      expect(SCROLL_PHASES.BEATS[i]!.start).toBeGreaterThan(
-        SCROLL_PHASES.BEATS[i - 1]!.start,
-      );
-    }
+    expect(SCROLL_PHASES.MID_NARRATOR).toBeDefined();
   });
 });

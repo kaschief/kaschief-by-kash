@@ -69,9 +69,6 @@ export const PHASES = {
   funnel: 0.1, // SVG ribbons grow tier by tier
   funnelLinger: 0.02, // funnel holds complete before fading
   funnelFade: 0.025, // funnel fade-out
-  funnelToTerminal: 0.015, // gap between funnel and terminal
-  terminalCompany: 0.085, // scroll per company (typing + narrative + wipe)
-  terminalOutro: 0.02, // brief pause after last company before section ends
   titleAnchor: 0.005, // title starts this far into scroll
   convergenceToTitle: 0.025, // convergence starts this far after title
 } as const;
@@ -257,41 +254,6 @@ export const MID_NARRATOR = {
   slideY: 10, // px
 } as const;
 
-/** Terminal — code typing replay per company */
-export const TERMINAL = {
-  fadeDur: 0.01,
-  companyCount: 4,
-  // Typing sub-phases (fraction of company progress)
-  typingP1: 0.2, // first block done
-  typingP2: 0.35, // second block done
-  typingP3: 0.48, // third block done
-  narStart: 0.5, // narrative begins
-  narEnd: 0.88, // narrative complete
-  wipeStart: 0.9,
-  wipeEnd: 0.97,
-  wipeComplete: 0.99,
-  // Promotion highlight
-  promotionFg: "#FBBF24",
-  promotionBg: "rgba(251,191,36,0.08)",
-  // Dot indicator
-  dotActiveWidth: "20px",
-  dotInactiveWidth: "6px",
-  dotInactiveOpacity: 0.35,
-} as const;
-
-/** Terminal narrative sub-phases (within narStart→narEnd, mapped 0–1) */
-export const TERMINAL_NARRATOR = {
-  sceneEnd: 0.4,
-  actionStart: 0.42,
-  actionEnd: 0.6,
-  shiftStart: 0.62,
-  shiftEnd: 0.8,
-  fadeoutStart: 0.9,
-  fadeoutEnd: 0.95,
-  headerFadeEnd: 0.1,
-  slideY: 8, // px
-} as const;
-
 /** Chrome — title fade, curtain reveal */
 export const EC_UI_CONFIG = {
   labelOpacity: 0.3,
@@ -410,14 +372,6 @@ const rawCaptionTiers = rawRibbonTiers.map((t) => ({
 const rawMidNarratorStart = rawFunnelOutEnd + MID_NARRATOR.delay;
 const rawMidNarratorEnd = rawMidNarratorStart + MID_NARRATOR.duration;
 
-/* Terminal beats */
-const rawBeatsStart = rawMidNarratorEnd + PHASES.funnelToTerminal;
-const rawBeats = [0, 1, 2, 3].map((i) => ({
-  start: rawBeatsStart + i * PHASES.terminalCompany,
-  end: rawBeatsStart + (i + 1) * PHASES.terminalCompany,
-}));
-const rawBeatsEnd = rawBeats[3].end;
-
 /* ==================================================================
    AUTO-SIZED CONTAINER
    =====================
@@ -427,7 +381,7 @@ const rawBeatsEnd = rawBeats[3].end;
    to the content, with no dead space.
    ================================================================== */
 
-const rawContentEnd = rawBeatsEnd + PHASES.terminalOutro;
+const rawContentEnd = rawMidNarratorEnd + 0.01;
 
 /** Container height in vh — auto-sized to content. */
 export const CONTAINER_VH = Math.ceil(rawContentEnd * SCROLL_BASE_VH);
@@ -499,13 +453,6 @@ export const CAPTION_TIERS = rawCaptionTiers.map((t) => ({
 }));
 export const MID_NARRATOR_START = rescale(rawMidNarratorStart);
 export const MID_NARRATOR_END = rescale(rawMidNarratorEnd);
-export const BEATS_START = rescale(rawBeatsStart);
-export const BEATS = rawBeats.map((b) => ({
-  start: rescale(b.start),
-  end: rescale(b.end),
-}));
-export const BEATS_END = rescale(rawBeatsEnd);
-export const CHROME_END = rescale(rawBeatsEnd);
 
 /* ---- Assembled SCROLL_PHASES object (consumed by scroll callbacks) ---- */
 export const SCROLL_PHASES = {
@@ -530,8 +477,6 @@ export const SCROLL_PHASES = {
   CAPTION_TIERS,
   NARRATOR_TIERS,
   MID_NARRATOR: { start: MID_NARRATOR_START, end: MID_NARRATOR_END },
-  BEATS,
-  CHROME_END,
 };
 
 /** Canvas particle local phases (0–1 within PARTICLES range) */
