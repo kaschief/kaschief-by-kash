@@ -52,18 +52,6 @@ export const LAB_ROUTES: readonly LabRoute[] = [
     section: "scroll",
   },
   {
-    href: "/lab-converge",
-    label: "Convergence",
-    desc: "Fragments drift in chaos then resolve into 4 job cards",
-    section: "scroll",
-  },
-  {
-    href: "/lab-distill",
-    label: "Distillation",
-    desc: "Job cards appear then dissolve — signal fragments remain",
-    section: "scroll",
-  },
-  {
     href: "/lab-bridges",
     label: "Act II Bridges",
     desc: "Five bridge patterns from story desk to funnel to coda",

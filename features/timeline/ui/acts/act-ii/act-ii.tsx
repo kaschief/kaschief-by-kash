@@ -47,6 +47,7 @@ import {
   CINEMATIC_SIZE,
 } from "./lenses/lenses.timing";
 import { StoryDesk } from "./lenses/story-desk";
+import { StoryDeskBridge } from "./lenses/story-desk-bridge";
 import { useBreakpoint, useLenis, useNavStore } from "@hooks";
 
 /* ================================================================== */
@@ -70,7 +71,6 @@ function useBreakpointRefs() {
 }
 
 /* Sub-hooks — each owns a scroll section */
-import { useTerminalReplay } from "./terminal/use-terminal-replay";
 import { useRolesCloud } from "./roles/use-roles-cloud";
 import { useParticleFunnel } from "./particles/use-particle-funnel";
 
@@ -189,18 +189,11 @@ export function ActIIEngineer() {
   /* ---- HUD debug ref ---- */
   const hudRef = useRef<HTMLDivElement>(null);
 
-  /* ---- Refs: Container B (particles → funnel → terminal) ---- */
+  /* ---- Refs: Container B (particles → funnel) ---- */
   const containerBRef = useRef<HTMLDivElement>(null);
-  const vignetteEl = useRef<HTMLDivElement>(null);
-  const beatGlowEl = useRef<HTMLDivElement>(null);
 
   /* ---- Animation hooks ---- */
   const rolesCloud = useRolesCloud();
-  const terminalReplay = useTerminalReplay({
-    scrollContainerRef: containerBRef,
-    beatGlowEl,
-    vignetteEl,
-  });
   const particleFunnel = useParticleFunnel({ isLgRef: isLg });
   const lenses = useLenses();
 
@@ -397,9 +390,7 @@ export function ActIIEngineer() {
     (p: number) => {
       // Map container-local progress (0→1) to EC progress (PARTICLES_START→1)
       const ecProgress = PARTICLES_START + p * (1 - PARTICLES_START);
-      const isDesktop = isLg.current;
       particleFunnel.update(ecProgress);
-      terminalReplay.update(ecProgress, isDesktop);
 
       /* ---- HUD ---- */
       if (hudRef.current) {
@@ -416,15 +407,10 @@ export function ActIIEngineer() {
           frame = "funnel:narrator";
         if (ecProgress > SCROLL_PHASES.FUNNEL_OUT.start)
           frame = "funnel:fade-out";
-        for (let i = 0; i < SCROLL_PHASES.BEATS.length; i++) {
-          if (ecProgress > SCROLL_PHASES.BEATS[i].start)
-            frame = `terminal:beat-${i + 1}`;
-        }
-        if (ecProgress > SCROLL_PHASES.CHROME_END) frame = "terminal:end";
         hudRef.current.textContent = `${frame} | ec:${ecProgress.toFixed(3)} p:${p.toFixed(3)}`;
       }
     },
-    [particleFunnel, terminalReplay, isLg],
+    [particleFunnel],
   );
 
   useMotionValueEvent(progressB, "change", (p) => {
@@ -588,6 +574,8 @@ export function ActIIEngineer() {
       {/* ============================================================ */}
       <StoryDesk />
 
+      <StoryDeskBridge />
+
       {/* ============================================================ */}
       {/*  CONTAINER B: Particles → Funnel → Terminal                   */}
       {/* ============================================================ */}
@@ -599,33 +587,8 @@ export function ActIIEngineer() {
         <div
           className="sticky top-0 h-screen w-full overflow-hidden [container-type:size]"
           style={{ background: "var(--bg)", zIndex: 1, willChange: "transform" }}>
-          <div
-            ref={vignetteEl}
-            aria-hidden
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              opacity: 0,
-              background:
-                "radial-gradient(ellipse 60% 60% at 50% 50%, transparent 0%, var(--bg) 100%)",
-            }}
-          />
-          <div
-            ref={beatGlowEl}
-            aria-hidden
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            style={{
-              width: "100vw",
-              height: "100vh",
-              opacity: 0,
-              willChange: "opacity, background",
-            }}
-          />
-
           {/* Particle canvas, funnel SVG, narrator panels, mobile skills, mid narrator */}
           {particleFunnel.jsx}
-
-          {/* Terminal + Narrative + Dot indicator */}
-          {terminalReplay.jsx}
         </div>
       </div>
     </>
