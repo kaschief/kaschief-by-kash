@@ -8,7 +8,6 @@
  *   - All funnel SVG refs (dots, ribbons, labels, nodes, convergence diamond)
  *   - Narrator glass panels (right side, tied to funnel tiers)
  *   - Mobile camera-track skill cards (phone only)
- *   - Mid-narrator transition text
  *
  * Returns:
  *   update(progress) — called per scroll frame from the orchestrator
@@ -23,7 +22,6 @@ import {
   PARTICLE,
   FUNNEL,
   MOBILE_SKILLS,
-  MID_NARRATOR,
   SCROLL_PHASES,
   PARTICLE_PHASES,
   PARTICLES_START,
@@ -40,10 +38,7 @@ import {
   RIBBON_TIERS,
   CONVERGE_PT_START,
   CONVERGE_PT_END,
-  FUNNEL_OUT_END,
   NARRATOR_TIERS,
-  MID_NARRATOR_START,
-  MID_NARRATOR_END,
 } from "../act-ii.types";
 
 /* ================================================================== */
@@ -233,9 +228,6 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
   const cameraNodeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const cameraSkillRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  /* ---- Mid narrator ref ---- */
-  const midNarratorRef = useRef<HTMLDivElement>(null);
-
   /* ---- Resize (canvas + SVG rect cache) ---- */
   const handleResize = useCallback(() => {
     const w = window.innerWidth,
@@ -391,8 +383,7 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
 
     if (funnelSvgWrapRef.current) {
       const svgIn = smoothstep(SVG_IN_START, SVG_IN_END, progress);
-      const svgOut = 1 - smoothstep(SCROLL_PHASES.FUNNEL_OUT.start, SCROLL_PHASES.FUNNEL_OUT.end, progress);
-      funnelSvgWrapRef.current.style.opacity = String(svgIn * svgOut);
+      funnelSvgWrapRef.current.style.opacity = String(svgIn);
     }
 
     /* ---- SVG dots ---- */
@@ -401,11 +392,10 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
       if (!element) continue;
       const stagger = streamIndex * FUNNEL.dotStagger;
       const dotIn = smoothstep(DOTS_IN_START + stagger, DOTS_IN_END + stagger, progress);
-      const dotOut = 1 - smoothstep(SCROLL_PHASES.FUNNEL_OUT.start, SCROLL_PHASES.FUNNEL_OUT.end, progress);
       const ribbonStart = smoothstep(RIBBON_TIERS[0].start, RIBBON_TIERS[0].end, progress);
       const scale = lerp(FUNNEL.dotScaleStart, FUNNEL.dotScaleEnd, ribbonStart);
       const glowR = lerp(FUNNEL.dotGlowStart, FUNNEL.dotGlowEnd, ribbonStart);
-      element.style.opacity = String(dotIn * dotOut);
+      element.style.opacity = String(dotIn);
       element.style.transform = `scale(${dotIn > 0 ? scale : 0})`;
       const blur = element.querySelector("feGaussianBlur");
       if (blur) blur.setAttribute("stdDeviation", String(glowR));
@@ -421,8 +411,7 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
         LABELS_IN_END + stagger,
         progress,
       );
-      const labelOut = 1 - smoothstep(SCROLL_PHASES.FUNNEL_OUT.start, SCROLL_PHASES.FUNNEL_OUT.end, progress);
-      element.style.opacity = String(labelIn * labelOut);
+      element.style.opacity = String(labelIn);
       element.style.transform = `translateY(${lerp(FUNNEL.labelSlideY, 0, labelIn)}px)`;
     }
 
@@ -437,8 +426,7 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
       const threshIdx = Math.min(seg.toTier - 1, TIER_THRESHOLDS.length - 1);
       const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
       const t = smoothstep(threshStart, threshEnd, progress);
-      const fadeOut = 1 - smoothstep(SCROLL_PHASES.FUNNEL_OUT.start, SCROLL_PHASES.FUNNEL_OUT.end, progress);
-      element.style.opacity = String(lerp(0, seg.opacityEnd, t) * fadeOut);
+      element.style.opacity = String(lerp(0, seg.opacityEnd, t));
       const scaleY = lerp(0, 1, t);
       element.style.transformOrigin = `${FUNNEL_CENTER_X}px ${FUNNEL_TIER_POSITIONS[seg.fromTier]}px`;
       element.style.transform = `scaleY(${scaleY})`;
@@ -451,19 +439,14 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
       const threshIdx = Math.min(nodeIndex, TIER_THRESHOLDS.length - 1);
       const [threshStart, threshEnd] = TIER_THRESHOLDS[threshIdx];
       const nodeT = smoothstep(lerp(threshStart, threshEnd, FUNNEL.nodeAppearFrac), threshEnd, progress);
-      const fadeOut = 1 - smoothstep(SCROLL_PHASES.FUNNEL_OUT.start, SCROLL_PHASES.FUNNEL_OUT.end, progress);
-      element.style.opacity = String(nodeT * fadeOut);
+      element.style.opacity = String(nodeT);
       element.style.transform = `translateY(${lerp(FUNNEL.nodeSlideY, 0, nodeT)}px)`;
     }
 
     /* ---- Convergence point ---- */
     if (funnelConvergeRef.current) {
       const convergenceAppear = smoothstep(CONVERGE_PT_START, CONVERGE_PT_END, progress);
-      const convergenceFadeOut =
-        1 - smoothstep(SCROLL_PHASES.FUNNEL_OUT.start, SCROLL_PHASES.FUNNEL_OUT.end, progress);
-      funnelConvergeRef.current.style.opacity = String(
-        convergenceAppear * convergenceFadeOut,
-      );
+      funnelConvergeRef.current.style.opacity = String(convergenceAppear);
       if (funnelBlurRef.current) {
         funnelBlurRef.current.setAttribute(
           "stdDeviation",
@@ -492,11 +475,7 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
     if (!isDesktop) {
       if (cameraTrackRef.current) {
         const trackAppear = smoothstep(PARTICLES_START, PARTICLES_START + MOBILE_SKILLS.appearDur, progress);
-        const trackDisappear =
-          1 - smoothstep(FUNNEL_OUT_END, FUNNEL_OUT_END + MOBILE_SKILLS.disappearDur, progress);
-        cameraTrackRef.current.style.opacity = String(
-          trackAppear * trackDisappear,
-        );
+        cameraTrackRef.current.style.opacity = String(trackAppear);
       }
       const SKILL_TIER_STARTS = RIBBON_TIERS.map((t) => t.start);
       for (let streamIndex = 0; streamIndex < STREAMS.length; streamIndex++) {
@@ -506,29 +485,19 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
         const stagger = streamIndex * MOBILE_SKILLS.skillStagger;
         const tierStart = SKILL_TIER_STARTS[firstTier] + stagger;
         const skillFadeIn = smoothstep(tierStart, tierStart + MOBILE_SKILLS.skillFadeDur, progress);
-        const skillFadeOut =
-          1 - smoothstep(SCROLL_PHASES.FUNNEL_OUT.start, SCROLL_PHASES.FUNNEL_OUT.end, progress);
         const fromLeft = streamIndex % 2 === 0;
         const slideX = lerp(fromLeft ? -MOBILE_SKILLS.skillSlideX : MOBILE_SKILLS.skillSlideX, 0, skillFadeIn);
         const scale = lerp(MOBILE_SKILLS.skillScaleStart, 1, skillFadeIn);
-        element.style.opacity = String(Math.max(0, skillFadeIn * skillFadeOut));
+        element.style.opacity = String(Math.max(0, skillFadeIn));
         element.style.transform = `translateX(${slideX}px) scale(${scale})`;
       }
       const convergenceDiamond = cameraNodeRefs.current[0];
       if (convergenceDiamond) {
         const diamondIn = smoothstep(CONVERGE_PT_START, CONVERGE_PT_END, progress);
-        const diamondOut = 1 - smoothstep(SCROLL_PHASES.FUNNEL_OUT.start, SCROLL_PHASES.FUNNEL_OUT.end, progress);
-        convergenceDiamond.style.opacity = String(diamondIn * diamondOut);
+        convergenceDiamond.style.opacity = String(diamondIn);
       }
     }
 
-    /* ---- Mid narrator ---- */
-    if (midNarratorRef.current) {
-      const midIn = smoothstep(MID_NARRATOR_START, MID_NARRATOR_START + MID_NARRATOR.fadeDur, progress);
-      const midOut = 1 - smoothstep(MID_NARRATOR_END - MID_NARRATOR.fadeDur, MID_NARRATOR_END, progress);
-      midNarratorRef.current.style.opacity = String(midIn * midOut);
-      midNarratorRef.current.style.transform = `translateY(${lerp(MID_NARRATOR.slideY, 0, midIn)}px)`;
-    }
   }
 
   /* ================================================================ */
@@ -537,24 +506,6 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
 
   const jsx = (
     <>
-      {/* Mid narrator -- between funnel and terminal */}
-      <div
-        ref={midNarratorRef}
-        className="absolute inset-0 flex items-center justify-center"
-        style={{ opacity: 0, zIndex: 8, pointerEvents: "none" }}>
-        <p
-          className="font-serif text-center"
-          style={{
-            fontSize: "clamp(1.2rem, 2.5vw, 1.8rem)",
-            lineHeight: 1.5,
-            color: "var(--cream, #F0E6D0)",
-            maxWidth: "min(500px, 85vw)",
-            fontStyle: "italic",
-          }}>
-          {CONTENT.midNarrator}
-        </p>
-      </div>
-
       {/* Particle canvas (inside sticky, driven by scroll progress) -- hidden on phone */}
       <div
         ref={canvasWrapRef}

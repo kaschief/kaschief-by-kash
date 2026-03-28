@@ -10,9 +10,10 @@ import {
   SECTION_NAV_LINKS,
   type NavLink,
 } from "@data";
-import { useNavStore, useSectionScroll } from "@hooks";
+import { useNavStore, useLenis, useSectionScroll } from "@hooks";
 import {
   HISTORY_EVENT,
+  SECTION_ID,
   SECTION_IDS_ORDERED,
   TOKENS,
   TRANSITION,
@@ -30,6 +31,7 @@ import {
 const { textDim } = TOKENS;
 const { nav } = Z_INDEX;
 const { POP_STATE } = HISTORY_EVENT;
+const { PORTRAIT } = SECTION_ID;
 
 const WHO_AM_I_NAV = SECTION_NAV_LINKS.filter((l) => l.sectionId === "portrait");
 const ACT_NAV = ROLE_NAV_LINKS;
@@ -120,6 +122,7 @@ export function Navigation() {
   const pendingMobileSectionRef = useRef<SectionId | null>(null);
   const activeSectionRef = useRef<SectionId | "">("");
   const [mobileMenuLoaded, setMobileMenuLoaded] = useState(false);
+  const getLenis = useLenis();
   const { scrollToSection, scrollToTop } = useSectionScroll();
   const { isNavigating, targetSection, settledSection, clearSettled } = useNavStore();
 
@@ -145,6 +148,19 @@ export function Navigation() {
       setMobileMenuLoaded(true);
     }
   }, [mobileOpen]);
+
+  // Sync settled section back to reducer so state.activeSection survives
+  // after clearSettled runs. Without this, scroll events during the
+  // double-rAF gap (before startNavigation) can overwrite activeSection
+  // with the pre-navigation position, causing stale highlights on reopen.
+  useEffect(() => {
+    if (settledSection) {
+      dispatch({
+        type: "SET_ACTIVE_SECTION",
+        payload: { activeSection: settledSection },
+      });
+    }
+  }, [settledSection]);
 
   useEffect(() => {
     const updateActiveSection = () => {
@@ -256,25 +272,40 @@ export function Navigation() {
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
-    let raf = 0;
+    let raf1 = 0;
+    let raf2 = 0;
 
     if (!mobileOpen && pendingMobileSectionRef.current) {
       const sectionId = pendingMobileSectionRef.current;
       pendingMobileSectionRef.current = null;
 
-      // Wait one frame after menu close so mobile browsers apply restored scrolling.
-      raf = requestAnimationFrame(() => {
-        scrollToSection(sectionId, { updateHistory: true });
+      // After removing overflow:hidden, mobile browsers (especially iOS Safari)
+      // need multiple frames to fully restore scroll dimensions.
+      // Frame 1: browser recalculates layout after overflow change.
+      // Frame 2: Lenis dimensions are refreshed and scroll fires reliably.
+      raf1 = requestAnimationFrame(() => {
+        const lenis = getLenis();
+        if (lenis) {
+          lenis.resize();
+          if (lenis.isStopped) lenis.start();
+        }
+
+        raf2 = requestAnimationFrame(() => {
+          if (sectionId === PORTRAIT) {
+            scrollToTop({ updateHistory: true });
+          } else {
+            scrollToSection(sectionId, { updateHistory: true });
+          }
+        });
       });
     }
 
     return () => {
       document.body.style.overflow = "";
-      if (raf) {
-        cancelAnimationFrame(raf);
-      }
+      if (raf1) cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
     };
-  }, [mobileOpen, scrollToSection]);
+  }, [mobileOpen, getLenis, scrollToSection, scrollToTop]);
 
   useEffect(() => {
     if (!mobileOpen) return;
