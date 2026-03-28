@@ -14,7 +14,6 @@ import {
 import { useIsLg } from "./chaos-to-order.hooks";
 import { SkillCard } from "./skill-card";
 import { NarrativeText } from "./narrative-text";
-import { ScrollIndicator } from "./scroll-indicator";
 import { FocusBall } from "./focus-ball";
 import { FocusAccordion } from "./focus-accordion";
 
@@ -135,10 +134,6 @@ export function ChaosToOrder() {
         <NarrativeText scrollProgress={scrollYProgress} />
         <FocusBall scrollProgress={scrollYProgress} lgRef={lgRef} />
         <FocusAccordion scrollProgress={scrollYProgress} />
-        <ScrollIndicator
-          sectionRef={sceneRef}
-          scrollProgress={scrollYProgress}
-        />
       </div>
     </div>
   );

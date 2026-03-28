@@ -14,3 +14,5 @@ export * from "./ui/section-prose";
 export * from "./ui/stats-grid";
 export * from "./ui/takeaway";
 export * from "./ui/takeaway-block";
+export * from "./ui/sticky-zone-controls";
+export * from "./ui/sticky-zone-skip";
