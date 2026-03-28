@@ -25,12 +25,13 @@ function MobileNavLink({
       href={`#${link.sectionId}`}
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
+      whileTap={{ color: link.color, x: 4 }}
       transition={{ delay: index * 0.05 }}
       onClick={(event) => {
         event.preventDefault();
         onNavigate(link.sectionId);
       }}
-      className="cursor-pointer py-1.5 text-left font-ui text-sm font-light uppercase tracking-[0.15em] transition-colors"
+      className="cursor-pointer py-1.5 text-left font-ui text-sm font-light uppercase tracking-[0.15em]"
       style={{
         color: resolveNavLinkColor({
           activeSection,

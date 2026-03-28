@@ -116,12 +116,12 @@ export function Navigation() {
     INITIAL_NAVIGATION_STATE,
   );
   const navRef = useRef<HTMLElement | null>(null);
-  const mobileCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const pendingMobileSectionRef = useRef<SectionId | null>(null);
   const activeSectionRef = useRef<SectionId | "">("");
   const [mobileMenuLoaded, setMobileMenuLoaded] = useState(false);
   const { scrollToSection, scrollToTop } = useSectionScroll();
-  const { isNavigating, targetSection, settledSection, startNavigation, clearSettled } = useNavStore();
+  const { isNavigating, targetSection, settledSection, clearSettled } = useNavStore();
 
   const activeSection = state.activeSection;
 
@@ -336,14 +336,6 @@ export function Navigation() {
     };
   }, [scrollToSection]);
 
-  useEffect(() => {
-    return () => {
-      if (mobileCloseTimerRef.current) {
-        clearTimeout(mobileCloseTimerRef.current);
-      }
-    };
-  }, []);
-
   const handleSectionClick = (sectionId: SectionId) => {
     activeSectionRef.current = sectionId;
     dispatch({
@@ -353,15 +345,7 @@ export function Navigation() {
 
     if (mobileOpen) {
       pendingMobileSectionRef.current = sectionId;
-      startNavigation(sectionId);
-
-      if (mobileCloseTimerRef.current) {
-        clearTimeout(mobileCloseTimerRef.current);
-      }
-
-      mobileCloseTimerRef.current = setTimeout(() => {
-        dispatch({ type: "CLOSE_MOBILE_MENU" });
-      }, 200);
+      dispatch({ type: "CLOSE_MOBILE_MENU" });
       return;
     }
 

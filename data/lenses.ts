@@ -14,128 +14,128 @@
 /* ── Shared base — every entry has these ── */
 
 interface LensEntryBase {
-  id: number;
-  company: string;
-  years: string;
+  id: number
+  company: string
+  years: string
   /** One-line title framing the scenario */
-  headline: string;
-  artifact: string;
-  story: string;
-  iStatement: string;
-  keywords: string[];
+  headline: string
+  artifact: string
+  story: string
+  iStatement: string
+  keywords: string[]
 }
 
 /* ── Per-card-type chrome ── */
 
 interface JiraChrome {
-  cardType: "jira";
+  cardType: "jira"
   chrome: {
-    breadcrumb: { org: string; team: string };
-    title: string;
-    ticketId: string;
-    priority: { label: string; level: "low" | "medium" | "high" | "critical" };
-    status: { label: string; tone: "open" | "in-progress" | "done" };
-    reporter: { name: string; avatar: string };
-  };
+    breadcrumb: { org: string; team: string }
+    title: string
+    ticketId: string
+    priority: { label: string; level: "low" | "medium" | "high" | "critical" }
+    status: { label: string; tone: "open" | "in-progress" | "done" }
+    reporter: { name: string; avatar: string }
+  }
 }
 
 interface SentryChrome {
-  cardType: "sentry";
+  cardType: "sentry"
   chrome: {
-    project: { org: string; repo: string };
-    eventCount: string;
-    error: { type: string; message: string };
-    stackTrace: { file: string; line: number; code: string };
-    tags: string[];
-    firstSeen: string;
-  };
+    project: { org: string; repo: string }
+    eventCount: string
+    error: { type: string; message: string }
+    stackTrace: { file: string; line: number; code: string }
+    tags: string[]
+    firstSeen: string
+  }
 }
 
 interface SlackChannelChrome {
-  cardType: "slack-channel";
+  cardType: "slack-channel"
   chrome: {
-    channel: string;
-    sender: { name: string; avatar: string; avatarBg: string };
-    timestamp: string;
-    emoji?: { icon: string; count: number }[];
-  };
+    channel: string
+    sender: { name: string; avatar: string; avatarBg: string }
+    timestamp: string
+    emoji?: { icon: string; count: number }[]
+  }
 }
 
 interface SlackDirectChrome {
-  cardType: "slack-direct";
+  cardType: "slack-direct"
   chrome: {
-    sender: { name: string; avatar: string; avatarBg: string };
-    timestamp: string;
-    emoji?: { icon: string; count: number }[];
-  };
+    sender: { name: string; avatar: string; avatarBg: string }
+    timestamp: string
+    emoji?: { icon: string; count: number }[]
+  }
 }
 
 interface FigmaCommentChrome {
-  cardType: "figma-comment";
+  cardType: "figma-comment"
   chrome: {
-    page: string;
-    author: { name: string; avatar: string };
-    devMode?: boolean;
-  };
+    page: string
+    author: { name: string; avatar: string }
+    devMode?: boolean
+  }
 }
 
 interface MeetingNoteChrome {
-  cardType: "meeting-note";
+  cardType: "meeting-note"
   chrome: {
-    date: string;
-    title: string;
+    date: string
+    title: string
     /** Optional separate heading for the body — if omitted, title is reused */
-    heading?: string;
-    agendaLabel: string;
-    agendaText: string;
-    highlightedQuote: string;
-    footnote: string;
-    viewers: { avatar: string; color: string }[];
-  };
+    heading?: string
+    agendaLabel: string
+    agendaText: string
+    highlightedQuote: string
+    footnote: string
+    viewers: { avatar: string; color: string }[]
+  }
 }
 
 interface AdrCommentChrome {
-  cardType: "adr-comment";
+  cardType: "adr-comment"
   chrome: {
-    docId: string;
-    subject: string;
-    status: { label: string; tone: "under-review" | "accepted" | "superseded" };
-    commenter: { role: string; avatar: string };
-  };
+    docId: string
+    subject: string
+    status: { label: string; tone: "under-review" | "accepted" | "superseded" }
+    commenter: { role: string; avatar: string }
+  }
 }
 
 interface GithubReviewChrome {
-  cardType: "github-review";
+  cardType: "github-review"
   chrome: {
-    repo: { org: string; name: string };
-    pr: { title: string; number: string };
-    labels: { text: string; color: string }[];
-    reviewer: { name: string; timeAgo: string };
-  };
+    repo: { org: string; name: string }
+    pr: { title: string; number: string }
+    labels: { text: string; color: string }[]
+    reviewer: { name: string; timeAgo: string }
+  }
 }
 
 interface PlainTextBareChrome {
-  cardType: "plain-bare";
+  cardType: "plain-bare"
   chrome: {
-    context: string;
-    rotation?: number;
-  };
+    context: string
+    rotation?: number
+  }
 }
 
 interface PlainTextStickyChrome {
-  cardType: "plain-sticky";
+  cardType: "plain-sticky"
   chrome: {
-    context: string;
-    rotation?: number;
-  };
+    context: string
+    rotation?: number
+  }
 }
 
 interface PlainTextAnnotationChrome {
-  cardType: "plain-annotation";
+  cardType: "plain-annotation"
   chrome: {
-    context: string;
-    accentColor?: string;
-  };
+    context: string
+    accentColor?: string
+  }
 }
 
 /* ── Discriminated union ── */
@@ -153,27 +153,27 @@ export type LensEntry = LensEntryBase &
     | PlainTextBareChrome
     | PlainTextStickyChrome
     | PlainTextAnnotationChrome
-  );
+  )
 
-export type CardType = LensEntry["cardType"];
+export type CardType = LensEntry["cardType"]
 
 /** Type-safe extraction: get the entry shape for a specific card type */
-export type EntryOf<T extends CardType> = Extract<LensEntry, { cardType: T }>;
+export type EntryOf<T extends CardType> = Extract<LensEntry, { cardType: T }>
 
 /** The three pillar/lens names — used across lab-lenses, EC, lab-pillars */
-export const LENS_NAMES = ["users", "gaps", "patterns"] as const;
-export type LensName = (typeof LENS_NAMES)[number];
+export const LENS_NAMES = ["users", "gaps", "patterns"] as const
+export type LensName = (typeof LENS_NAMES)[number]
 
 /** Display form of each lens name — tied to LENS_NAMES, not freeform strings */
 export const LENS_DISPLAY: Record<LensName, string> = {
   users: "Users",
   gaps: "Gaps",
   patterns: "Patterns",
-};
+}
 
 export interface Lens {
-  desc: string;
-  entries: LensEntry[];
+  desc: string
+  entries: LensEntry[]
 }
 
 /* ── USERS ── */
@@ -191,8 +191,7 @@ const USERS: Lens = {
         "The images on the cardiology article are not showing up on my phone. Tested on iPhone 11, Safari. Other articles seem fine.",
       story:
         "I ask what phone, what browser. Older iOS, Safari. Format issue, quick to fix. But it came through a colleague, not our monitoring. I flag it in standup and a few of us pull up the analytics. Nearly a fifth of our users are on configurations we are not testing against. We expand the matrix together.",
-      iStatement:
-        "I care as much about how we find problems as how we fix them.",
+      iStatement: "I care as much about how we find problems as how we fix them.",
       keywords: ["Curiosity", "Initiative"],
       chrome: {
         breadcrumb: { org: "AMBOSS", team: "Medical Content" },
@@ -255,7 +254,7 @@ const USERS: Lens = {
       },
     },
   ],
-};
+}
 
 /* ── GAPS ── */
 
@@ -284,12 +283,10 @@ const GAPS: Lens = {
       years: "2019\u20132021",
       headline: "How do I respond when something looks smaller than it is?",
       cardType: "slack-direct",
-      artifact:
-        "This ticket said \u2018small change\u2019 but I have been on it for two days.",
+      artifact: "This ticket said \u2018small change\u2019 but I have been on it for two days.",
       story:
         "I look at the ticket. A title and a one-line description. Of course it looked small. I suggest we start refining tickets as a team before they enter the sprint. It takes a few weeks to become a habit but the \u201Csmall change that took three days\u201D conversations stop.",
-      iStatement:
-        "I make sure we understand the weight of the work before we carry it.",
+      iStatement: "I make sure we understand the weight of the work before we carry it.",
       keywords: ["Collaboration", "Patience"],
       chrome: {
         sender: { name: "Marcus W.", avatar: "M", avatarBg: "#5B5FC7" },
@@ -306,8 +303,7 @@ const GAPS: Lens = {
         "The new fund detail page looks clean in Figma but the data it needs does not exist in the API the same way.",
       story:
         "I start comparing the design against the API and the mismatches add up. Fields named differently. Data nested where the design expects it flat. The designer built from what the legacy app showed on screen. The new API is structured differently. I bring it to the PO and designer and we map it out together. Some things shift on the design side, some become requests to backend. Neither side had it wrong. They just had not looked at the same source.",
-      iStatement:
-        "I make sure what we design and what we can build are based on the same reality.",
+      iStatement: "I make sure what we design and what we can build are based on the same reality.",
       keywords: ["Alignment", "Communication"],
       chrome: {
         page: "Fund Detail v3",
@@ -325,8 +321,7 @@ const GAPS: Lens = {
         "Why did you choose this approach over the alternative? Walk us through the trade-offs.",
       story:
         "The reasoning existed but it had stayed inside our team. I walk them through it. What we considered, what we ruled out, why. The constraints: timeline, the legacy system, what the API could support. They push back on one point. Fair challenge. We adjust. The decision gets stronger because someone outside our immediate team tested it.",
-      iStatement:
-        "I make my reasoning visible so others can challenge it and make it better.",
+      iStatement: "I make my reasoning visible so others can challenge it and make it better.",
       keywords: ["Communication", "Collaboration"],
       chrome: {
         docId: "ADR-012",
@@ -336,7 +331,7 @@ const GAPS: Lens = {
       },
     },
   ],
-};
+}
 
 /* ── PATTERNS ── */
 
@@ -349,12 +344,9 @@ const PATTERNS: Lens = {
       years: "2018\u20132019",
       headline: "How do I start when the shape is still unclear?",
       cardType: "plain-bare",
-      artifact:
-        "Can you start on this? We will figure out the details as we go.",
-      story:
-        "I have learned that a short conversation before building is magic.",
-      iStatement:
-        "I use a short conversation to make the work clearer before it grows.",
+      artifact: "Can you start on this? We will figure out the details as we go.",
+      story: "I have learned that a short conversation before building is magic.",
+      iStatement: "I use a short conversation to make the work clearer before it grows.",
       keywords: ["Patience", "Communication"],
       chrome: {
         context: "1:1 with Product Owner",
@@ -370,8 +362,7 @@ const PATTERNS: Lens = {
       artifact: "How does anyone work on this file? It is massive.",
       story:
         "They are looking at a file that has grown with every feature cycle. Nobody planned for it to be this big. I pair with them and we map out which parts are active and which are legacy. We start carving off sections into their own modules, starting with the ones they need to touch.",
-      iStatement:
-        "I listen when someone new sees what the rest of us stopped noticing.",
+      iStatement: "I listen when someone new sees what the rest of us stopped noticing.",
       keywords: ["Curiosity", "Collaboration"],
       chrome: {
         context: "New team member, week 1",
@@ -388,8 +379,7 @@ const PATTERNS: Lens = {
         "Cross-team sync: marketing keeps referring to \u201Cthe widget\u201D and engineering keeps asking \u201Cwhich widget?\u201D",
       story:
         "We have five different interactive elements and marketing calls all of them \u201Cthe widget.\u201D Every conversation is twice as long because both sides are translating in real time. I put together a simple shared reference: screenshots, names, where each one lives. Small piece of work. But after that, someone says \u201Cthe widget\u201D and there is a page to point at instead of a conversation to untangle.",
-      iStatement:
-        "I make sure the words we use mean the same thing to everyone.",
+      iStatement: "I make sure the words we use mean the same thing to everyone.",
       keywords: ["Alignment", "Transparency"],
       chrome: {
         date: "March 14, 2024",
@@ -417,8 +407,7 @@ const PATTERNS: Lens = {
         "I finish a feature and tag the designer for review. Next day, nothing. I follow up. They have moved on to the next project and assumed it was fine.",
       story:
         "Nobody closed the loop. I suggest we add a design sign-off before merge. Quick look, five minutes. The drifts get caught while they are still easy to fix.",
-      iStatement:
-        "I make sure the people who defined the work get to see it before it ships.",
+      iStatement: "I make sure the people who defined the work get to see it before it ships.",
       keywords: ["Ownership", "Initiative"],
       chrome: {
         repo: { org: "dkb-app", name: "frontend" },
@@ -440,8 +429,7 @@ const PATTERNS: Lens = {
         "We have fourteen feature flags in production. Does anyone know which ones are still active?",
       story:
         "No one is sure. They were added for safe rollouts and left in place long after the features settled. Some of them months old, some with flag names still exposed in the markup where a user could see them. We audit them as a team and strip out what is no longer needed. After that I push for every new flag to get a review date. If the feature is stable by then, the flag comes out.",
-      iStatement:
-        "I pay attention to what is still running and whether it should be.",
+      iStatement: "I pay attention to what is still running and whether it should be.",
       keywords: ["Ownership", "Transparency"],
       chrome: {
         context: "During standup",
@@ -449,7 +437,7 @@ const PATTERNS: Lens = {
       },
     },
   ],
-};
+}
 
 /* ── Export ── */
 
@@ -458,19 +446,17 @@ export const LENSES: Record<LensName, Lens> = {
   users: USERS,
   gaps: GAPS,
   patterns: PATTERNS,
-};
+}
 
 /** Flat list of all entries across lenses. */
-export const ALL_ENTRIES: readonly LensEntry[] = LENS_NAMES.flatMap(
-  (name) => LENSES[name].entries,
-);
+export const ALL_ENTRIES: readonly LensEntry[] = LENS_NAMES.flatMap((name) => LENSES[name].entries)
 
 /** Look up an entry by id. */
 export function getEntry(id: number): LensEntry | undefined {
-  return ALL_ENTRIES.find((e) => e.id === id);
+  return ALL_ENTRIES.find((e) => e.id === id)
 }
 
 /** Look up a lens by name. */
 export function getLens(name: LensName): Lens {
-  return LENSES[name];
+  return LENSES[name]
 }

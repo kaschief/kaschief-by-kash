@@ -63,6 +63,12 @@ export const LAB_ROUTES: readonly LabRoute[] = [
     desc: "Job cards appear then dissolve — signal fragments remain",
     section: "scroll",
   },
+  {
+    href: "/lab-bridges",
+    label: "Act II Bridges",
+    desc: "Five bridge patterns from story desk to funnel to coda",
+    section: "scroll",
+  },
 ];
 
 const SECTION_LABELS: Record<LabRoute["section"], string> = {
