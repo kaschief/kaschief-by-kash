@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { fadeJumpSlide, useLenis, useNavStore, type ActiveZoneInfo } from "@hooks";
-import { SCROLL_NAV, SECTION_IDS_ORDERED, DEFAULT_SCROLL_OFFSET, SECTION_SCROLL_OFFSET, type SectionId } from "@utilities";
+import { SECTION_IDS_ORDERED, DEFAULT_SCROLL_OFFSET, SECTION_SCROLL_OFFSET, type SectionId } from "@utilities";
 
 /* ── Constants ── */
 
@@ -14,43 +14,54 @@ const MIN_PROGRESS = 0.35;
 const VELOCITY_THRESHOLD = 800;
 /** How many consecutive fast-scroll samples before showing (debounce). */
 const FAST_SCROLL_SAMPLES = 4;
+/** Minimum time (ms) the button stays visible after appearing — gives user time to click. */
+const LINGER_MS = 3000;
 /** Overshoot past zone boundary to clear it (px). */
-const BOUNDARY_OFFSET_PX = 40;
-/** Max distance (px) a section heading can be from the zone edge to snap to it. */
-const SNAP_RADIUS_PX = 600;
+interface SkipTarget {
+  scrollTo: number;
+  sectionId: SectionId;
+}
 
 /**
- * Down: find the first section heading just past the zone bottom (snap to next act).
- * Up: find the section heading this zone belongs to (snap to start of current act).
+ * Find the next section heading to skip to, based on current scroll position.
+ * Down: first section heading that's at least one viewport below current scroll.
+ * Up: last section heading that's above current scroll.
  */
 function findSkipTarget(
   zone: { top: number; bottom: number },
   direction: "down" | "up",
-): number | null {
+): SkipTarget | null {
+  const scrollY = window.scrollY;
+
+  // Measure all sections and sort by actual DOM position
+  const sections: { id: SectionId; absTop: number; scrollTo: number }[] = [];
+  for (const id of SECTION_IDS_ORDERED) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    const absTop = el.getBoundingClientRect().top + scrollY;
+    const offset = SECTION_SCROLL_OFFSET[id as SectionId] ?? DEFAULT_SCROLL_OFFSET;
+    sections.push({ id: id as SectionId, absTop, scrollTo: absTop - offset });
+  }
+  sections.sort((a, b) => a.absTop - b.absTop);
+
   if (direction === "down") {
-    // First section heading after the zone ends
-    for (const id of SECTION_IDS_ORDERED) {
-      const el = document.getElementById(id);
-      if (!el) continue;
-      const top = el.getBoundingClientRect().top + window.scrollY;
-      const offset = SECTION_SCROLL_OFFSET[id as SectionId] ?? DEFAULT_SCROLL_OFFSET;
-      if (top > zone.bottom && top - zone.bottom < SNAP_RADIUS_PX) {
-        return top - offset;
-      }
+    // Skip past the sticky zone — land on the first content after it.
+    // Find the nearest section heading at or before the zone end to set correct nav state.
+    let nearestSection: typeof sections[0] | undefined;
+    for (const s of sections) {
+      if (s.absTop <= zone.bottom) nearestSection = s;
     }
+    return {
+      scrollTo: zone.bottom,
+      sectionId: nearestSection?.id ?? sections[0].id,
+    };
   } else {
-    // Last section heading at or before the zone start (= the act this zone belongs to)
-    let best: number | null = null;
-    for (const id of SECTION_IDS_ORDERED) {
-      const el = document.getElementById(id);
-      if (!el) continue;
-      const top = el.getBoundingClientRect().top + window.scrollY;
-      const offset = SECTION_SCROLL_OFFSET[id as SectionId] ?? DEFAULT_SCROLL_OFFSET;
-      if (top <= zone.top + SNAP_RADIUS_PX) {
-        best = top - offset;
-      }
+    // Skip back to the start of the zone — land on the section heading that owns it.
+    let best: typeof sections[0] | null = null;
+    for (const s of sections) {
+      if (s.absTop <= zone.top) best = s;
     }
-    return best;
+    return best ? { scrollTo: best.scrollTo, sectionId: best.id } : null;
   }
   return null;
 }
@@ -111,35 +122,96 @@ interface StickyZoneSkipProps {
   activeZone: ActiveZoneInfo | null;
 }
 
+/* ── Visibility state machine ── */
+
+type VisPhase = "hidden" | "active" | "lingering" | "dismissed";
+
+type VisAction =
+  | { type: "TRIGGER_ON" }
+  | { type: "TRIGGER_OFF" }
+  | { type: "LINGER_EXPIRED" }
+  | { type: "DISMISS" }
+  | { type: "ZONE_CHANGED" };
+
+function visReducer(state: VisPhase, action: VisAction): VisPhase {
+  switch (action.type) {
+    case "TRIGGER_ON":
+      // From hidden or lingering, go active. Dismissed stays dismissed.
+      if (state === "dismissed") return state;
+      return "active";
+    case "TRIGGER_OFF":
+      // Only transition active → lingering (hidden/dismissed stay put)
+      return state === "active" ? "lingering" : state;
+    case "LINGER_EXPIRED":
+      return state === "lingering" ? "hidden" : state;
+    case "DISMISS":
+      return "dismissed";
+    case "ZONE_CHANGED":
+      return "hidden";
+  }
+}
+
 export function StickyZoneSkip({ activeZone }: StickyZoneSkipProps) {
   const getLenis = useLenis();
   const { direction, isFast } = useScrollIntent();
   const { isNavigating } = useNavStore();
-  // Derive visibility purely from props — no setState in effects.
-  // Show when deep in zone AND scrolling fast. Hides when either condition drops.
-  const visible = !!activeZone && activeZone.progress >= MIN_PROGRESS && isFast;
+
+  const [phase, dispatch] = useReducer(visReducer, "hidden");
+  const lingerTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const prevZoneElRef = useRef<HTMLElement | null>(null);
+
+  // Core trigger: deep in zone AND scrolling fast (pure derivation from props)
+  const triggered = !!activeZone && activeZone.progress >= MIN_PROGRESS && isFast;
+
+  // Reset when zone element changes — ref is only read/written inside this effect, never during render
+  const zoneEl = activeZone?.zone.element ?? null;
+  useEffect(() => {
+    if (zoneEl === prevZoneElRef.current) return;
+    prevZoneElRef.current = zoneEl;
+    clearTimeout(lingerTimerRef.current);
+    dispatch({ type: "ZONE_CHANGED" });
+  }, [zoneEl]);
+
+  // Dispatch TRIGGER_ON / TRIGGER_OFF from effects
+  useEffect(() => {
+    if (triggered) {
+      dispatch({ type: "TRIGGER_ON" });
+    } else {
+      dispatch({ type: "TRIGGER_OFF" });
+    }
+  }, [triggered]);
+
+  // Start/extend linger timer when entering lingering phase
+  useEffect(() => {
+    if (phase !== "lingering") return;
+    clearTimeout(lingerTimerRef.current);
+    lingerTimerRef.current = setTimeout(() => {
+      dispatch({ type: "LINGER_EXPIRED" });
+    }, LINGER_MS);
+    return () => clearTimeout(lingerTimerRef.current);
+  }, [phase]);
+
+  const visible = phase === "active" || phase === "lingering";
 
   const handleSkip = useCallback(() => {
     const lenis = getLenis();
     if (!lenis || !activeZone) return;
 
-    const { zone } = activeZone;
-    // Down: snap to next section heading, or zone end.
-    // Up: snap to this zone's section heading (start of current act).
-    const fallback =
-      direction === "down"
-        ? zone.bottom + BOUNDARY_OFFSET_PX
-        : Math.max(0, zone.top - window.innerHeight);
+    const result = findSkipTarget(activeZone.zone, direction);
+    if (!result) return;
 
-    const target = findSkipTarget(zone, direction) ?? fallback;
+    // Dismiss button immediately
+    clearTimeout(lingerTimerRef.current);
+    dispatch({ type: "DISMISS" });
 
-    // Fade out → instant jump past zone → fade back in (no animation scrub)
-    const jumpTo =
-      direction === "down"
-        ? Math.max(0, target - SCROLL_NAV.approachPx)
-        : target + SCROLL_NAV.approachPx;
+    // Signal navigating with the actual target section so nav highlights correctly
+    const { startNavigation, endNavigation } = useNavStore.getState();
+    startNavigation(result.sectionId);
 
-    fadeJumpSlide(lenis, jumpTo, target, SCROLL_NAV.slideInDuration, () => {});
+    // Hard cut — jump directly to target, no slide
+    fadeJumpSlide(lenis, result.scrollTo, result.scrollTo, 0, () => {
+      endNavigation();
+    });
   }, [getLenis, activeZone, direction]);
 
   // Escape key binding
@@ -172,7 +244,7 @@ export function StickyZoneSkip({ activeZone }: StickyZoneSkipProps) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="fixed bottom-8 right-6 z-40 flex cursor-pointer items-center gap-1.5 rounded-full border border-[var(--stroke)] px-4 py-2 font-ui text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] transition-colors duration-200 hover:text-[var(--gold-dim)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-dim)]"
+          className="fixed bottom-16 left-1/2 z-40 flex -translate-x-1/2 cursor-pointer items-center gap-1.5 rounded-full border border-[var(--stroke)] px-4 py-2 font-ui text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] transition-colors duration-200 hover:text-[var(--gold-dim)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-dim)]"
           style={{
             background: "rgba(7, 7, 10, 0.7)",
             backdropFilter: "blur(12px)",
