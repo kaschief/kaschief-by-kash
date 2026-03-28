@@ -272,5 +272,3 @@ export const BALL_SIZE_KEYS = [0, 12, 20, 12] as const;
 export const BALL_PEAK_OPACITY = 0.9;
 /** Revealed text max width (px) */
 export const REVEALED_TEXT_MAX_W = 500;
-/** Scroll indicator debounce (ms) */
-export const SCROLL_INDICATOR_DELAY_MS = 100;

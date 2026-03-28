@@ -4,11 +4,11 @@
  * Act II — The Engineer.
  *
  * Structure:
- *   Container A (title → convergence → lenses thesis/curtain/storycards)
+ *   Lenses scroll (title → convergence → lenses thesis/curtain/storycards)
  *     └─ Single sticky viewport
  *   Summary panel (normal flow)
  *   Story Desk (normal flow — remaining storycards)
- *   Container B (particles → funnel → terminal)
+ *   Sankey scroll (particles → funnel → terminal)
  *     └─ Sticky viewport
  */
 
@@ -148,7 +148,7 @@ function ScrambleWord({ text, active, prefersReducedMotion }: { text: string; ac
 /* ================================================================== */
 
 /**
- * Container A = convergence + lenses in one sticky viewport.
+ * Lenses scroll = convergence + lenses in one sticky viewport.
  *
  * Convergence runs 0 → CONVERGENCE_GATE (fragments fully dissolve).
  * Lenses thesis starts at THESIS_START (during embers, before fragments finish).
@@ -159,8 +159,8 @@ const LENSES_START_VH = Math.ceil(
   (THESIS_START - LENSES_INTEGRATION.earlyOffset) * CONTAINER_VH,
 );
 
-/** Container B = particles → funnel → terminal (PARTICLES_START → 1 in EC progress) */
-const CONTAINER_B_VH = Math.ceil((1 - PARTICLES_START) * CONTAINER_VH);
+/** Sankey scroll = particles → funnel → terminal (PARTICLES_START → 1 in EC progress) */
+const SANKEY_SCROLL_VH = Math.ceil((1 - PARTICLES_START) * CONTAINER_VH);
 
 /** Derived lenses phase boundaries (normalized 0→1) for HUD */
 const LENSES_CURTAIN_START = CINEMATIC_START / TOTAL_RAW_SIZE;
@@ -177,8 +177,8 @@ export function ActIIEngineer() {
   /* ---- Ref: Act II coda (after funnel) ---- */
   const codaRef = useRef<HTMLDivElement>(null);
 
-  /* ---- Refs: Container A (convergence + lenses, one viewport) ---- */
-  const containerARef = useRef<HTMLDivElement>(null);
+  /* ---- Refs: Lenses scroll (convergence + lenses, one viewport) ---- */
+  const lensesScrollRef = useRef<HTMLDivElement>(null);
   const stickyViewportARef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const titleInViewRef = useRef<HTMLDivElement>(null);
@@ -192,20 +192,20 @@ export function ActIIEngineer() {
   /* ---- HUD debug ref ---- */
   const hudRef = useRef<HTMLDivElement>(null);
 
-  /* ---- Refs: Container B (particles → funnel) ---- */
-  const containerBRef = useRef<HTMLDivElement>(null);
+  /* ---- Refs: Sankey scroll (particles → funnel) ---- */
+  const sankeyScrollRef = useRef<HTMLDivElement>(null);
 
   /* ---- Animation hooks ---- */
   const rolesCloud = useRolesCloud();
   const particleFunnel = useParticleFunnel({ isLgRef: isLg });
   const lenses = useLenses();
 
-  /* ---- Responsive height for Container A ---- */
+  /* ---- Responsive height for Lenses scroll ---- */
   const isSmUp = useBreakpoint(BREAKPOINTS.sm);
   const lensesVh = isSmUp
     ? LENSES_SECTION_VH
     : Math.ceil(LENSES_SECTION_VH * LENSES_INTEGRATION.mobileScrollFactor);
-  const containerAHeight = LENSES_START_VH + lensesVh;
+  const lensesScrollVh = LENSES_START_VH + lensesVh;
 
   /* ---- Title scramble + Lenis hold ---- */
   const getLenis = useLenis();
@@ -230,19 +230,19 @@ export function ActIIEngineer() {
   }, [titleInView, getLenis]);
 
   /* ================================================================ */
-  /*  Scroll: Container A (convergence + lenses in one viewport)       */
+  /*  Scroll: Lenses scroll (convergence + lenses in one viewport)       */
   /* ================================================================ */
 
   const { scrollYProgress: progressA } = useScroll({
-    target: containerARef,
+    target: lensesScrollRef,
     offset: ["start start", "end end"],
   });
 
-  /** Apply all Container A scroll-driven state for a given local progress. */
+  /** Apply all Lenses scroll scroll-driven state for a given local progress. */
   const applyContainerAProgress = useCallback(
     (p: number) => {
       // Convert local progress (0→1) to scroll position in vh
-      const scrollVh = p * containerAHeight;
+      const scrollVh = p * lensesScrollVh;
 
       /* ---- Curtain edge from summary panel ---- */
       let curtainTop = window.innerHeight;
@@ -352,7 +352,7 @@ export function ActIIEngineer() {
         lensesRawProgress.current = 0;
       }
     },
-    [containerAHeight, lensesVh, rolesCloud, isLg],
+    [lensesScrollVh, lensesVh, rolesCloud, isLg],
   );
 
   useMotionValueEvent(progressA, "change", applyContainerAProgress);
@@ -380,16 +380,16 @@ export function ActIIEngineer() {
   }, [lensesUpdate]);
 
   /* ================================================================ */
-  /*  Scroll: Container B (particles → funnel → terminal)              */
+  /*  Scroll: Sankey scroll (particles → funnel → terminal)              */
   /* ================================================================ */
 
-  const { scrollYProgress: progressB } = useScroll({
-    target: containerBRef,
+  const { scrollYProgress: sankeyProgress } = useScroll({
+    target: sankeyScrollRef,
     offset: ["start start", "end end"],
   });
 
-  /** Apply all Container B scroll-driven state for a given local progress. */
-  const applyContainerBProgress = useCallback(
+  /** Apply all Sankey scroll scroll-driven state for a given local progress. */
+  const applySankeyProgress = useCallback(
     (p: number) => {
       // Map container-local progress (0→1) to EC progress (PARTICLES_START→1)
       const ecProgress = PARTICLES_START + p * (1 - PARTICLES_START);
@@ -412,8 +412,8 @@ export function ActIIEngineer() {
     [particleFunnel],
   );
 
-  useMotionValueEvent(progressB, "change", (p) => {
-    applyContainerBProgress(p);
+  useMotionValueEvent(sankeyProgress, "change", (p) => {
+    applySankeyProgress(p);
   });
 
   /* ================================================================ */
@@ -447,9 +447,9 @@ export function ActIIEngineer() {
       {/*  CONTAINER A: Convergence + Lenses (one sticky viewport)     */}
       {/* ============================================================ */}
       <div
-        ref={containerARef}
+        ref={lensesScrollRef}
         data-sticky-zone
-        style={{ height: `${containerAHeight}vh` }}
+        style={{ height: `${lensesScrollVh}vh` }}
         className="relative">
         <div
           ref={(el) => {
@@ -579,9 +579,9 @@ export function ActIIEngineer() {
       {/*  CONTAINER B: Particles → Funnel → Terminal                   */}
       {/* ============================================================ */}
       <div
-        ref={containerBRef}
+        ref={sankeyScrollRef}
         data-sticky-zone
-        style={{ height: `${CONTAINER_B_VH}vh` }}
+        style={{ height: `${SANKEY_SCROLL_VH}vh` }}
         className="relative">
         <div
           className="sticky top-0 h-screen w-full overflow-hidden [container-type:size]"

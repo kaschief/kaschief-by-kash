@@ -2,7 +2,7 @@
 
 import { lazy, Suspense, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { CursorArrow } from "@components";
+import { CursorArrow, StickyZoneControls } from "@components";
 import { Contact } from "@features/contact";
 import { Hero } from "@features/hero";
 import { Methods } from "@features/methods";
@@ -103,6 +103,7 @@ export function HomePageClient({ viewModel }: HomePageClientProps) {
 
   return (
     <LenisProvider>
+      <StickyZoneControls />
       {enableCustomCursor ? <CursorArrow /> : null}
       <div data-typo="nav">
         <Navigation />

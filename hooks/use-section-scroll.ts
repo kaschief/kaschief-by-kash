@@ -12,6 +12,7 @@ import {
 import type Lenis from "lenis";
 import { useLenis } from "./use-lenis";
 import { useNavStore } from "./use-nav-store";
+import { fadeJumpSlide } from "./fade-jump";
 
 interface ScrollSectionOptions {
   updateHistory?: boolean;
@@ -82,59 +83,6 @@ function smoothScroll(
 }
 
 /**
- * Fade out → instant jump → fade in + smooth slide to target.
- * Used for long-distance nav and scroll-to-top past pin zones.
- *
- * `slideTo` can be a number or a callback that returns a number.
- * When a callback is provided it runs after the jump, so the slide
- * target reflects post-jump layout (pin spacers may shift positions).
- */
-function fadeJumpSlide(
-  lenis: Lenis,
-  jumpTo: number,
-  slideTo: number | (() => number),
-  slideDuration: number,
-  onDone: () => void,
-): void {
-  const container = getScrollContainer();
-  container.style.transition = `opacity ${SCROLL_NAV.fadeOutMs}ms ease-out`;
-  container.style.opacity = "0";
-
-  setTimeout(() => {
-    // Hide completely during jump — prevents any intermediate scroll state from painting
-    container.style.visibility = "hidden";
-    lenis.scrollTo(jumpTo, { immediate: true, force: true });
-
-    // Wait 3 frames for all scroll-driven animations to settle:
-    //   Frame 1: scroll events fire, raw progress refs update
-    //   Frame 2: RAF loops (e.g. lenses LERP) snap to new raw values
-    //   Frame 3: DOM mutations from frame-2 updates are committed
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          container.style.visibility = "";
-          container.style.transition = `opacity ${SCROLL_NAV.fadeInMs}ms ease-in`;
-          container.style.opacity = "1";
-
-          const resolvedTarget = typeof slideTo === "function" ? slideTo() : slideTo;
-
-          lenis.scrollTo(resolvedTarget, {
-            duration: slideDuration,
-            easing: EASE_OUT_QUART,
-            lock: true,
-            force: true,
-            onComplete: () => {
-              container.style.transition = "";
-              setTimeout(onDone, END_NAV_DELAY_MS);
-            },
-          });
-        });
-      });
-    });
-  }, SCROLL_NAV.fadeOutMs);
-}
-
-/**
  * Check if the scroll path from `from` to `to` crosses any active
  * ScrollTrigger pin zone or CSS sticky zone. Returns the far edge of
  * the last crossed zone, or null if none are in the way.
@@ -177,11 +125,6 @@ function getPinSkipTarget(from: number, to: number): number | null {
     });
 
   return candidate;
-}
-
-/** Resolve the scroll container for fade transitions. */
-function getScrollContainer(): HTMLElement {
-  return document.getElementById("journey") ?? document.documentElement;
 }
 
 /* ── Hook ── */

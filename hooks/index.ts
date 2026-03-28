@@ -1,3 +1,4 @@
+export { fadeJumpSlide } from "./fade-jump";
 export { useBreakpoint } from "./use-breakpoint";
 export { useCustomCursorEnabled } from "./use-custom-cursor-enabled";
 export { LenisProvider, useLenis } from "./use-lenis";
@@ -8,3 +9,6 @@ export { usePreserveScrollAnchor } from "./use-preserve-scroll-anchor";
 export { useScrollDecel } from "./use-scroll-decel";
 export { NAVIGATION_SCROLL_EVENT, useSectionScroll } from "./use-section-scroll";
 export { useStickyOnce } from "./use-sticky-once";
+export { useStickyZones } from "./use-sticky-zones";
+export type { StickyZone, ActiveZoneInfo } from "./use-sticky-zones";
+export { useZoneAcceleration } from "./use-zone-acceleration";

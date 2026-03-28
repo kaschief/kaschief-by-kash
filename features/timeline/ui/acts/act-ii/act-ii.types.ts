@@ -201,7 +201,6 @@ export const CANVAS_XFADE = {
 
 /** SVG funnel — ribbons, dots, labels, nodes */
 export const FUNNEL = {
-  // Wrapper timing
   svgInDuration: 0.02,
   dotsInDuration: 0.03,
   labelsLead: 0.02, // labels start before SVG
