@@ -42,8 +42,7 @@ const SCROLL_BASE_VH = 2000;
    5. PARTICLES    — colored dots explode from center, converge to funnel positions
    6. FUNNEL       — SVG Sankey-style ribbons grow tier by tier with dot sources,
                      stream labels, company nodes, and narrator glass panels
-   7. MID NARRATOR — "Let me show you where I've been" transition text
-   8. TERMINAL     — code typing replay for each company (AMBOSS, Finleap, DKB, Med-El)
+   7. TERMINAL     — code typing replay for each company (AMBOSS, Finleap, DKB, Med-El)
                      with narrative reveal (scene → action → shift) per company
    ================================================================== */
 
@@ -67,8 +66,6 @@ export const PHASES = {
   thesisToParticles: 0.0, // gap (0 = immediate)
   particles: 0.0, // DISABLED — particles removed, funnel starts immediately
   funnel: 0.1, // SVG ribbons grow tier by tier
-  funnelLinger: 0.02, // funnel holds complete before fading
-  funnelFade: 0.025, // funnel fade-out
   titleAnchor: 0.005, // title starts this far into scroll
   convergenceToTitle: 0.025, // convergence starts this far after title
 } as const;
@@ -246,14 +243,6 @@ export const MOBILE_SKILLS = {
   skillScaleStart: 0.8,
 } as const;
 
-/** Mid narrator — "Let me show you where I've been" */
-export const MID_NARRATOR = {
-  delay: 0.005, // starts just after funnel fades
-  duration: 0.035,
-  fadeDur: 0.005, // very quick fade in/out
-  slideY: 10, // px
-} as const;
-
 /** Chrome — title fade, curtain reveal */
 export const EC_UI_CONFIG = {
   labelOpacity: 0.3,
@@ -352,11 +341,9 @@ const rawRibbonTiers = [0, 1, 2, 3].map((i) => ({
 }));
 const rawFunnelComplete = rawRibbonTiers[3].end;
 
-/* Convergence point + funnel fade */
+/* Convergence point */
 const rawConvergePtStart = rawRibbonTiers[3].start;
 const rawConvergePtEnd = rawFunnelComplete + FUNNEL.convergePtOvershoot;
-const rawFunnelOutStart = rawFunnelComplete + PHASES.funnelLinger;
-const rawFunnelOutEnd = rawFunnelOutStart + PHASES.funnelFade;
 
 /* Narrator + caption tiers */
 const rawNarratorTiers = rawRibbonTiers.map((t) => ({
@@ -368,10 +355,6 @@ const rawCaptionTiers = rawRibbonTiers.map((t) => ({
   end: t.end + rawTierDuration * FUNNEL.captionOvershoot,
 }));
 
-/* Mid narrator */
-const rawMidNarratorStart = rawFunnelOutEnd + MID_NARRATOR.delay;
-const rawMidNarratorEnd = rawMidNarratorStart + MID_NARRATOR.duration;
-
 /* ==================================================================
    AUTO-SIZED CONTAINER
    =====================
@@ -381,7 +364,7 @@ const rawMidNarratorEnd = rawMidNarratorStart + MID_NARRATOR.duration;
    to the content, with no dead space.
    ================================================================== */
 
-const rawContentEnd = rawMidNarratorEnd + 0.01;
+const rawContentEnd = rawFunnelComplete + 0.01;
 
 /** Container height in vh — auto-sized to content. */
 export const CONTAINER_VH = Math.ceil(rawContentEnd * SCROLL_BASE_VH);
@@ -441,8 +424,6 @@ export const RIBBON_TIERS = rawRibbonTiers.map((t) => ({
 export const FUNNEL_COMPLETE = rescale(rawFunnelComplete);
 export const CONVERGE_PT_START = rescale(rawConvergePtStart);
 export const CONVERGE_PT_END = rescale(rawConvergePtEnd);
-export const FUNNEL_OUT_START = rescale(rawFunnelOutStart);
-export const FUNNEL_OUT_END = rescale(rawFunnelOutEnd);
 export const NARRATOR_TIERS = rawNarratorTiers.map((t) => ({
   start: rescale(t.start),
   end: rescale(t.end),
@@ -451,9 +432,6 @@ export const CAPTION_TIERS = rawCaptionTiers.map((t) => ({
   start: rescale(t.start),
   end: rescale(t.end),
 }));
-export const MID_NARRATOR_START = rescale(rawMidNarratorStart);
-export const MID_NARRATOR_END = rescale(rawMidNarratorEnd);
-
 /* ---- Assembled SCROLL_PHASES object (consumed by scroll callbacks) ---- */
 export const SCROLL_PHASES = {
   TITLE: { start: TITLE_START, end: TITLE_END },
@@ -473,10 +451,8 @@ export const SCROLL_PHASES = {
   LABELS_IN: { start: LABELS_IN_START, end: LABELS_IN_END },
   RIBBON_TIERS,
   CONVERGE_PT: { start: CONVERGE_PT_START, end: CONVERGE_PT_END },
-  FUNNEL_OUT: { start: FUNNEL_OUT_START, end: FUNNEL_OUT_END },
   CAPTION_TIERS,
   NARRATOR_TIERS,
-  MID_NARRATOR: { start: MID_NARRATOR_START, end: MID_NARRATOR_END },
 };
 
 /** Canvas particle local phases (0–1 within PARTICLES range) */

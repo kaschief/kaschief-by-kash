@@ -651,9 +651,6 @@ export const CONTENT = {
     conjunction: "and\u00A0", // non-breaking space before last keyword
   },
 
-  /** Mid-narrator transition between funnel and terminal */
-  midNarrator: "Phrase here to transition to Leader section",
-
   /** Terminal chrome */
   terminal: {
     header: "~/career \u2014 zsh",

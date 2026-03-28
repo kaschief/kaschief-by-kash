@@ -174,6 +174,9 @@ export function ActIIEngineer() {
   const { isLg } = useBreakpointRefs();
   const prefersReducedMotion = useReducedMotion();
 
+  /* ---- Ref: Act II coda (after funnel) ---- */
+  const codaRef = useRef<HTMLDivElement>(null);
+
   /* ---- Refs: Container A (convergence + lenses, one viewport) ---- */
   const containerARef = useRef<HTMLDivElement>(null);
   const stickyViewportARef = useRef<HTMLDivElement>(null);
@@ -403,10 +406,6 @@ export function ActIIEngineer() {
           frame = "funnel:labels";
         if (ecProgress > SCROLL_PHASES.CONVERGE_PT.start)
           frame = "funnel:converge";
-        if (ecProgress > SCROLL_PHASES.MID_NARRATOR.start)
-          frame = "funnel:narrator";
-        if (ecProgress > SCROLL_PHASES.FUNNEL_OUT.start)
-          frame = "funnel:fade-out";
         hudRef.current.textContent = `${frame} | ec:${ecProgress.toFixed(3)} p:${p.toFixed(3)}`;
       }
     },
@@ -590,6 +589,39 @@ export function ActIIEngineer() {
           {/* Particle canvas, funnel SVG, narrator panels, mobile skills, mid narrator */}
           {particleFunnel.jsx}
         </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/*  ACT II CODA — identity statement after funnel               */}
+      {/* ============================================================ */}
+      <div
+        ref={codaRef}
+        className="flex flex-col items-center text-center px-6"
+        style={{
+          paddingTop: "min(100px, 14vh)",
+          paddingBottom: "min(120px, 16vh)",
+          background: "var(--bg)",
+        }}>
+        <motion.p
+          className="font-serif"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            fontSize: "clamp(1.6rem, 3.5vw, 2.8rem)",
+            lineHeight: 1.18,
+            letterSpacing: "-0.01em",
+            maxWidth: "min(720px, 90vw)",
+          }}>
+          <span style={{ color: "var(--cream-muted)" }}>
+            The engineer those years produced does not look for what is broken.
+          </span>
+          <br />
+          <span style={{ color: "var(--cream)" }}>
+            They look for what is wrong.
+          </span>
+        </motion.p>
       </div>
     </>
   );

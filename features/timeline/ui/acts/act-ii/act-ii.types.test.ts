@@ -10,7 +10,7 @@ import {
   CONVERGENCE_START,
   CONVERGENCE_END,
   PARTICLES_END,
-  MID_NARRATOR_END,
+  FUNNEL_COMPLETE,
 } from "./act-ii.types";
 
 describe("Act II timing chain", () => {
@@ -25,12 +25,12 @@ describe("Act II timing chain", () => {
     expect(CONVERGENCE_START).toBeLessThan(CONVERGENCE_END);
     expect(CONVERGENCE_END).toBeLessThanOrEqual(CONVERGENCE_GATE);
     expect(THESIS_START).toBeLessThan(PARTICLES_START);
-    expect(PARTICLES_START).toBeLessThan(PARTICLES_END);
-    expect(PARTICLES_END).toBeLessThanOrEqual(MID_NARRATOR_END);
+    expect(PARTICLES_START).toBeLessThanOrEqual(PARTICLES_END); // particles phase may be zero-duration (disabled)
+    expect(PARTICLES_END).toBeLessThanOrEqual(FUNNEL_COMPLETE);
   });
 
   it("has no phase exceeding 1.0", () => {
-    expect(MID_NARRATOR_END).toBeLessThanOrEqual(1);
+    expect(FUNNEL_COMPLETE).toBeLessThanOrEqual(1);
     expect(PARTICLES_END).toBeLessThanOrEqual(1);
     expect(CONVERGENCE_GATE).toBeLessThanOrEqual(1);
   });
@@ -48,6 +48,6 @@ describe("Act II timing chain", () => {
     expect(SCROLL_PHASES.CONVERGENCE).toBeDefined();
     expect(SCROLL_PHASES.CONVERGENCE_GATE).toBeDefined();
     expect(SCROLL_PHASES.PARTICLES).toBeDefined();
-    expect(SCROLL_PHASES.MID_NARRATOR).toBeDefined();
+    expect(SCROLL_PHASES.CONVERGE_PT).toBeDefined();
   });
 });
