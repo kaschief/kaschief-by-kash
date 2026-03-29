@@ -26,6 +26,14 @@ export const LAYOUT = {
   /** Pin duration as a fraction of viewport height, per direction. */
   pinDownVh: 0.8,
   pinUpVh: 0.2,
+
+  /**
+   * Height of the braid/fog overlap zone between Act II's funnel and Act III.
+   * Matches the top fog gradient in ActIIITitle (200px). When navigating to
+   * Act III, the scroll target lands this far below the section top so the
+   * funnel braid tail is hidden above the viewport.
+   */
+  actTransitionFogPx: 200,
 } as const;
 
 /** Tunable scroll navigation transition config. */

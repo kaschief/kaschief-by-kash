@@ -456,7 +456,7 @@ export function ActIIEngineer() {
       <StoryDeskBridge />
 
       {/* ============================================================ */}
-      {/*  CONTAINER B: Particles → Funnel → Terminal                   */}
+      {/*  CONTAINER B: Particles → Funnel                   */}
       {/* ============================================================ */}
       <div
         ref={sankeyScrollRef}

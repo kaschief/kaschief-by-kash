@@ -243,7 +243,7 @@ export function ActIIILeader() {
   const glowOpacity = useTransform(scrollYProgress, glow, GLOW_OPACITY);
 
   return (
-    <section id={ACT_LEADER} ref={ref} className="relative" aria-label="Act III — Leadership career" style={{ backgroundColor: "#0A0A0F" }}>
+    <section id={ACT_LEADER} ref={ref} className="relative" aria-label="Act III — Leadership career" style={{ backgroundColor: "#0A0A0F", zIndex: 2 }}>
       {/* Top fog — smooth transition from Act II */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-12"

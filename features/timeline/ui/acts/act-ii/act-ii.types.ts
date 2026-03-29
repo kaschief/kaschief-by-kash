@@ -67,6 +67,7 @@ export const PHASES = {
   particles: 0.0, // DISABLED — particles removed, funnel starts immediately
   funnel: 0.1, // SVG ribbons grow tier by tier
   merge: 0.1, // streams converge + desaturate into single column
+  braidTrack: 0.06, // camera follows cream braid down, pulling viewer into Act III
   titleAnchor: 0.005, // title starts this far into scroll
   convergenceToTitle: 0.025, // convergence starts this far after title
 } as const;
@@ -345,6 +346,10 @@ const rawFunnelComplete = rawRibbonTiers[3].end;
 const rawMergeStart = rawFunnelComplete;
 const rawMergeEnd = rawMergeStart + PHASES.merge;
 
+/* Braid track — camera follows cream braid down toward Act III */
+const rawBraidTrackStart = rawMergeEnd;
+const rawBraidTrackEnd = rawBraidTrackStart + PHASES.braidTrack;
+
 /* Convergence point */
 const rawConvergePtStart = rawRibbonTiers[3].start;
 const rawConvergePtEnd = rawFunnelComplete + FUNNEL.convergePtOvershoot;
@@ -368,7 +373,7 @@ const rawCaptionTiers = rawRibbonTiers.map((t) => ({
    to the content, with no dead space.
    ================================================================== */
 
-const rawContentEnd = rawMergeEnd + 0.01;
+const rawContentEnd = rawBraidTrackEnd + 0.01;
 
 /** Container height in vh — auto-sized to content. */
 export const CONTAINER_VH = Math.ceil(rawContentEnd * SCROLL_BASE_VH);
@@ -428,6 +433,8 @@ export const RIBBON_TIERS = rawRibbonTiers.map((t) => ({
 export const FUNNEL_COMPLETE = rescale(rawFunnelComplete);
 export const MERGE_START = rescale(rawMergeStart);
 export const MERGE_END = rescale(rawMergeEnd);
+export const BRAID_TRACK_START = rescale(rawBraidTrackStart);
+export const BRAID_TRACK_END = rescale(rawBraidTrackEnd);
 export const CONVERGE_PT_START = rescale(rawConvergePtStart);
 export const CONVERGE_PT_END = rescale(rawConvergePtEnd);
 export const NARRATOR_TIERS = rawNarratorTiers.map((t) => ({
