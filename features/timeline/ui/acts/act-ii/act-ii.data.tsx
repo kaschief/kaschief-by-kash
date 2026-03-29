@@ -656,8 +656,21 @@ export const CONTENT = {
     header: "~/career \u2014 zsh",
   },
 
-  /** Convergence point label (desktop SVG + mobile) */
-  convergenceLabel: "The Engineer I Became",
+  /** Merge — flanking text as streams converge into white ribbon */
+  merge: {
+    left: "By DKB, the pattern was clear. Some of the most persistent bugs were in the room, not the codebase.",
+    right: "Addressing them became the work, and leadership became the natural extension of it.",
+  },
+
+  /** Story desk bridge — heading + narrator */
+  bridge: {
+    heading: ["Each project was different.", "The patterns were the same."],
+    narrator:
+      "Every company had its own version of the same friction, between what was said and what actually shipped.\n\nThe more I worked across teams and systems, the more my role expanded beyond the code itself. I kept stepping into the places where alignment had broken down, where the real issue was not technical difficulty, but shared clarity.\n\nBy DKB, the pattern was clear. Some of the most persistent bugs were in the room, not the codebase. Addressing them became the work, and leadership became the natural extension of it.",
+  },
+
+  /** Story desk intro line */
+  storyDeskIntro: "The rest are here if you want them.",
 
   /** Page chrome / debug title */
   pageTitle: "Engineer-Candidate",
@@ -668,14 +681,6 @@ export const CONTENT = {
       "What pulled me toward engineering was already there in nursing. ICU taught me that I liked complexity, troubleshooting, and understanding how different parts of a system affect each other.",
     block2: "That way of thinking carried naturally into engineering.",
   },
-
-  /** Glass narrator panels alongside funnel tiers */
-  funnelNarrator: [
-    "It started with an instinct from the ward \u2014 watching how people actually behave under pressure, not how you imagine they will. That instinct found its first codebase.",
-    "The tools multiplied. Each one resharpened the instinct. Vue for speed. React for structure. Lighthouse for the milliseconds that separate staying from leaving.",
-    "Somewhere along the way, the code stopped being the point. The codebase became a mirror \u2014 reflecting how teams communicate, where habits calcify, what nobody dares to touch.",
-    "At scale, every stream thickened. Testing, architecture, design systems, product partnership. The question shifted from what to build to what to protect.",
-  ] as readonly string[],
 
   /** Terminal narrative panels (scene/action/shift per company) */
   terminalNarratives: [

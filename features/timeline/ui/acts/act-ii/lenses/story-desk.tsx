@@ -12,6 +12,7 @@ import { REMAINING_ENTRIES } from "./card-config";
 import { renderCard } from "./render-card";
 import type { LensEntry } from "@data";
 import { useMediaQuery } from "@hooks";
+import { CONTENT } from "../act-ii.data";
 
 const POSITIONS = [
   { col: 0, row: 0, rot: -1.2, nudgeX: 4, nudgeY: 3 },
@@ -397,7 +398,7 @@ export function StoryDesk() {
             color: "var(--cream-muted)",
             maxWidth: 520,
           }}>
-          The rest are here if you want them.
+          {CONTENT.storyDeskIntro}
         </p>
       </div>
 

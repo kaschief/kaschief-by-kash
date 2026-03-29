@@ -2,6 +2,7 @@
 
 import { useRef } from "react"
 import { motion, useInView } from "framer-motion"
+import { CONTENT } from "../act-ii.data"
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
@@ -14,8 +15,8 @@ export function StoryDeskBridge() {
       ref={ref}
       className="flex flex-col items-center text-center px-6"
       style={{
-        paddingTop: "min(160px, 20vh)",
-        paddingBottom: "min(160px, 20vh)",
+        paddingTop: "min(64px, 8vh)",
+        paddingBottom: "min(48px, 6vh)",
         background: "var(--bg)",
       }}>
       <motion.h2
@@ -29,9 +30,9 @@ export function StoryDeskBridge() {
           letterSpacing: "-0.015em",
           maxWidth: "min(800px, 92vw)",
         }}>
-        <span style={{ color: "var(--cream-muted)" }}>Each project was different.</span>
+        <span style={{ color: "var(--cream-muted)" }}>{CONTENT.bridge.heading[0]}</span>
         <br />
-        <span style={{ color: "var(--cream)" }}>The patterns were the same.</span>
+        <span style={{ color: "var(--cream)" }}>{CONTENT.bridge.heading[1]}</span>
       </motion.h2>
 
       <motion.p
@@ -46,18 +47,12 @@ export function StoryDeskBridge() {
           fontStyle: "italic",
           maxWidth: "min(480px, 88vw)",
         }}>
-        Every company had its own version of the same friction, between what was said and what
-        actually shipped.
-        <br />
-        <br />
-        The more I worked across teams and systems, the more my role expanded beyond the code
-        itself. I kept stepping into the places where alignment had broken down, where the real
-        issue was not technical difficulty, but shared clarity.
-        <br />
-        <br />
-        By DKB, the pattern was clear. Some of the most persistent bugs were in the room, not the
-        codebase. Addressing them became the work, and leadership became the natural extension of
-        it.
+        {CONTENT.bridge.narrator.split("\n\n").map((paragraph, i) => (
+          <span key={i}>
+            {i > 0 && <><br /><br /></>}
+            {paragraph}
+          </span>
+        ))}
       </motion.p>
     </div>
   )
