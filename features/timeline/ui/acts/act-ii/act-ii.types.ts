@@ -66,6 +66,7 @@ export const PHASES = {
   thesisToParticles: 0.0, // gap (0 = immediate)
   particles: 0.0, // DISABLED — particles removed, funnel starts immediately
   funnel: 0.1, // SVG ribbons grow tier by tier
+  merge: 0.1, // streams converge + desaturate into single column
   titleAnchor: 0.005, // title starts this far into scroll
   convergenceToTitle: 0.025, // convergence starts this far after title
 } as const;
@@ -340,6 +341,10 @@ const rawRibbonTiers = [0, 1, 2, 3].map((i) => ({
 }));
 const rawFunnelComplete = rawRibbonTiers[3].end;
 
+/* Merge — streams converge into single column */
+const rawMergeStart = rawFunnelComplete;
+const rawMergeEnd = rawMergeStart + PHASES.merge;
+
 /* Convergence point */
 const rawConvergePtStart = rawRibbonTiers[3].start;
 const rawConvergePtEnd = rawFunnelComplete + FUNNEL.convergePtOvershoot;
@@ -363,7 +368,7 @@ const rawCaptionTiers = rawRibbonTiers.map((t) => ({
    to the content, with no dead space.
    ================================================================== */
 
-const rawContentEnd = rawFunnelComplete + 0.01;
+const rawContentEnd = rawMergeEnd + 0.01;
 
 /** Container height in vh — auto-sized to content. */
 export const CONTAINER_VH = Math.ceil(rawContentEnd * SCROLL_BASE_VH);
@@ -421,6 +426,8 @@ export const RIBBON_TIERS = rawRibbonTiers.map((t) => ({
   end: rescale(t.end),
 }));
 export const FUNNEL_COMPLETE = rescale(rawFunnelComplete);
+export const MERGE_START = rescale(rawMergeStart);
+export const MERGE_END = rescale(rawMergeEnd);
 export const CONVERGE_PT_START = rescale(rawConvergePtStart);
 export const CONVERGE_PT_END = rescale(rawConvergePtEnd);
 export const NARRATOR_TIERS = rawNarratorTiers.map((t) => ({
