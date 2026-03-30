@@ -10,11 +10,13 @@ import {
   SECTION_NAV_LINKS,
   type NavLink,
 } from "@data";
-import { useNavStore, useLenis, useSectionScroll } from "@hooks";
+import { useLayoutReady, useNavStore, useLenis, useSectionScroll } from "@hooks";
 import {
+  DEFAULT_SCROLL_OFFSET,
   HISTORY_EVENT,
   SECTION_ID,
   SECTION_IDS_ORDERED,
+  SECTION_SCROLL_OFFSET,
   TOKENS,
   TRANSITION,
   type SectionId,
@@ -37,6 +39,9 @@ const WHO_AM_I_NAV = SECTION_NAV_LINKS.filter((l) => l.sectionId === "portrait")
 const ACT_NAV = ROLE_NAV_LINKS;
 const SECTION_NAV = SECTION_NAV_LINKS.filter((l) => l.sectionId !== "portrait");
 const OBSERVER_THRESHOLDS = [0, 0.1, 0.25, 0.5];
+
+/** Safety timeout for hash-scroll if layout barriers never clear (ms). */
+const HASH_SCROLL_SAFETY_MS = 5000;
 
 const NavigationMobileMenu = dynamic(
   () =>
@@ -329,8 +334,9 @@ export function Navigation() {
   }, [mobileOpen]);
 
   useEffect(() => {
-    const id = getSectionIdFromHash(window.location.hash);
-    if (!id) return;
+    const hashId = getSectionIdFromHash(window.location.hash);
+    if (!hashId) return;
+    const id: SectionId = hashId;
 
     activeSectionRef.current = id;
     dispatch({
@@ -338,15 +344,58 @@ export function Navigation() {
       payload: { activeSection: id },
     });
 
-    // Delay hash-scroll so GSAP ScrollTrigger pins and spacers are
-    // initialized first — otherwise element positions are wrong.
-    const timer = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        scrollToSection(id, { updateHistory: false });
-      });
+    // The inline script in layout.tsx hides the page (opacity: 0) and
+    // disables scroll restoration when a hash is present. Register
+    // barriers for every component that shifts layout asynchronously.
+    // When both clear, jump to the correct position then instantly
+    // reveal — no transition, no flash.
+    const root = document.documentElement;
+    const store = useLayoutReady.getState();
+    store.registerBarrier("timeline-mounted");
+    store.registerBarrier("portrait-pin-ready");
+
+    function reveal() {
+      root.style.removeProperty("visibility");
+    }
+
+    const unsubscribe = store.onReady(() => {
+      const el = document.getElementById(id);
+      if (!el) {
+        console.warn(`[nav] hash-scroll: #${id} not found after barriers cleared`);
+        reveal();
+        return;
+      }
+      const offset = SECTION_SCROLL_OFFSET[id] ?? DEFAULT_SCROLL_OFFSET;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      const target = top - offset;
+
+      // Sync Lenis so subsequent nav-clicks read the correct scroll position.
+      // Do NOT call ScrollTrigger.refresh() here — it recalculates pin spacers
+      // and can shift the layout we just stabilized.
+      const lenis = getLenis();
+      if (lenis) {
+        lenis.scrollTo(target, { immediate: true });
+      } else {
+        window.scrollTo({ top: target, behavior: "instant" as ScrollBehavior });
+      }
+
+      // Reveal on next frame so the browser paints at the new position first
+      requestAnimationFrame(() => reveal());
     });
-    return () => cancelAnimationFrame(timer);
-  }, [scrollToSection]);
+
+    // Safety timeout — reveal even if barriers never clear
+    const safetyTimer = setTimeout(() => {
+      console.warn(`[nav] hash-scroll: barriers did not clear within ${HASH_SCROLL_SAFETY_MS}ms`);
+      reveal();
+    }, HASH_SCROLL_SAFETY_MS);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(safetyTimer);
+      store.reset();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only: hash scroll runs once on page load
+  }, []);
 
   useEffect(() => {
     const handlePop = () => {

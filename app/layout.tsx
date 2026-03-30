@@ -71,6 +71,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={fontVariables}>
+      <head>
+        {/* When a URL hash is present, hide content before first paint
+            and disable scroll restoration. visibility:hidden keeps the
+            dark background painted (no white canvas leak). The navigation
+            barrier system reveals after scrolling to the correct position. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if(location.hash){document.documentElement.style.visibility="hidden";history.scrollRestoration="manual"}`,
+          }}
+        />
+      </head>
       <body className="font-sans antialiased">
         <a
           href="#main-content"

@@ -17,12 +17,7 @@ describe("section scroll offsets", () => {
   it("scrolls full-viewport sections flush with viewport top", () => {
     expect(SECTION_SCROLL_OFFSET[ACT_NURSE]).toBe(0);
     expect(SECTION_SCROLL_OFFSET[ACT_ENGINEER]).toBe(0);
-  });
-
-  it("scrolls Act III past the braid fog zone using the layout constant", () => {
-    expect(SECTION_SCROLL_OFFSET[ACT_LEADER]).toBe(-LAYOUT.actTransitionFogPx);
-    // Negative offset = land below section top (braid hidden above viewport)
-    expect(SECTION_SCROLL_OFFSET[ACT_LEADER]).toBeLessThan(0);
+    expect(SECTION_SCROLL_OFFSET[ACT_LEADER]).toBe(0);
   });
 
   it("only overrides sections that are defined in SECTION_ID", () => {

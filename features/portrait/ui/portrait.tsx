@@ -6,7 +6,7 @@ import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { StatsGrid } from "@components";
-import { useLenis, usePinStore } from "@hooks";
+import { useLayoutReady, useLenis, usePinStore } from "@hooks";
 import { EASE, LAYOUT, TOKENS } from "@utilities";
 
 const { cream, textDim, gold } = TOKENS;
@@ -45,12 +45,15 @@ export function Portrait() {
     if (!mql.matches) {
       // Async via rAF to avoid synchronous setState in effect body
       requestAnimationFrame(() => setCountersActive(true));
+      // No pin created — clear barrier immediately
+      useLayoutReady.getState().clearBarrier("portrait-pin-ready");
       return;
     }
 
     // Already completed — no pin at all, just a normal section
     if (usePinStore.getState().completed["portrait"]) {
       requestAnimationFrame(() => setCountersActive(true));
+      useLayoutReady.getState().clearBarrier("portrait-pin-ready");
       return;
     }
 
@@ -87,6 +90,9 @@ export function Portrait() {
 
         // 5. Mark done in store so pin is never recreated
         usePinStore.getState().markDone("portrait");
+
+        // 6. Re-signal readiness — layout shifted due to spacer removal
+        useLayoutReady.getState().clearBarrier("portrait-pin-ready");
       },
       onUpdate: (self) => {
         if (self.direction === -1 && self.progress > 0 && self.progress < upThreshold) {
@@ -94,6 +100,10 @@ export function Portrait() {
         }
       },
     });
+
+    // Pin spacer is inserted synchronously by ScrollTrigger.create() —
+    // signal that Portrait's layout-shifting work is complete.
+    useLayoutReady.getState().clearBarrier("portrait-pin-ready");
 
     if (glowRef.current) {
       gsap.fromTo(

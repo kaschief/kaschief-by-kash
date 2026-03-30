@@ -182,13 +182,13 @@ const USERS: Lens = {
     {
       id: 1,
       company: "AMBOSS",
-      years: "2018\u20132019",
+      years: "2018–2019",
       headline: "How do I approach a bug found by accident?",
       cardType: "jira",
       artifact:
         "The images on the cardiology article are not showing up on my phone. Tested on iPhone 11, Safari. Other articles seem fine.",
       story:
-        "I ask what phone, what browser. Older iOS, Safari. Format issue, quick to fix. But it came through a colleague, not our monitoring. I flag it in standup and a few of us pull up the analytics. Nearly a fifth of our users are on configurations we are not testing against. We expand the matrix together.",
+        "I ask what phone, what browser. Older iOS, Safari. It is a format issue, quick to fix. What stays with me is how it reached us, through a colleague, not our monitoring. I bring it up in standup, and a few of us pull up the analytics. Nearly a fifth of our users are on configurations we are not testing against. We expand the matrix together.",
       iStatement: "I care as much about how we find problems as how we fix them.",
       chrome: {
         breadcrumb: { org: "AMBOSS", team: "Medical Content" },
@@ -202,13 +202,12 @@ const USERS: Lens = {
     {
       id: 2,
       company: "Compado",
-      years: "2019\u20132021",
+      years: "2019–2021",
       headline: "How do I look for trouble before someone reports it?",
       cardType: "sentry",
-      artifact:
-        "Sentry log: TypeError on the meal kit recommendation page. Frequency: 300+ in the last 24 hours. All from mobile Safari.",
+      artifact: "",
       story:
-        "I open the log and the error is in the click handler for product links. The page renders fine, but when a user taps a product on certain iOS versions, the tap registers twice. They end up on the wrong page or nowhere at all. I trace the issue, fix the handler, and prevent the double-firing. But 300+ errors in a day and nobody noticed until I happened to check. I set up a weekly error review with the team after that.",
+        "I open the trace logs and find the error in the click handler for product links. The page renders normally, but on certain iOS versions a tap can fire twice. Users end up on the wrong page, or nowhere at all. I fix the handler and stop the double firing. But what mattered just as much was the visibility gap. More than 300 errors had built up before anyone saw the pattern. After that, I set up a weekly error review with the team.",
       iStatement: "I look at the logs even when nothing seems broken.",
       chrome: {
         project: { org: "Compado", repo: "meal-kit-recommendation" },
@@ -229,22 +228,22 @@ const USERS: Lens = {
     {
       id: 3,
       company: "DKB",
-      years: "2021\u20132024",
+      years: "2021–2024",
       headline: "How do I assess whether something is really done?",
       cardType: "slack-channel",
       artifact:
-        "Kash, have you seen the transfer page? The recipient name is missing. A user would not know where their money is going.",
+        "Hey Nina, quick flag, the transfer page is missing the recipient name. The transfer still works, but from the user side it is not clear where the money is going.",
       story:
-        "Something broke in the mapping. The transfer goes through fine but a user seeing money leave with no name attached is not going to trust it. I fix it and raise the question with the team: what do the transfer screens need to show before we call a deploy done? We write the checklist together.",
+        "Something broke in the link between data and the UI. The transfer succeeds, but without the recipient name the screen stops feeling trustworthy. I fix it, then bring the question to the team: what has to be visible on these screens before a feature deployment counts as safe? I push for QA, Product, and engineering to review the testing criteria together, so the tickets get sharper and the definition of done becomes more reliable.",
       iStatement:
         "I think about what the user sees before I think about whether the code is correct.",
       chrome: {
         channel: "#frontend-dkb",
-        sender: { name: "Thomas M.", avatar: "T", avatarBg: "#2B5A3F" },
+        sender: { name: "Kaschief J.", avatar: "KJ", avatarBg: "#5B5FC7" },
         timestamp: "10:17 AM",
         emoji: [
-          { icon: "\uD83D\uDC40", count: 3 },
-          { icon: "\u26A0\uFE0F", count: 1 },
+          { icon: "👀", count: 3 },
+          { icon: "⚠️", count: 1 },
         ],
       },
     },
@@ -259,12 +258,12 @@ const GAPS: Lens = {
     {
       id: 4,
       company: "AMBOSS",
-      years: "2018\u20132019",
+      years: "2018–2019",
       headline: "How do I view a design that feels complete?",
       cardType: "figma-comment",
       artifact: "Here is the menu. It opens from the side.",
       story:
-        "I click through the prototype. It opens cleanly, but I cannot find a clear way to exit. No close action, no outside click, no escape. I ask how a user leaves this state. We walk through it together. It was designed as an entry point, not as a full cycle. We add the missing exits and make them consistent with how similar patterns behave across the app.",
+        "I click through the prototype. It opens cleanly, but there is no clear way out, no close action, no outside click, no escape. I ask how a user leaves this state. We walk through it together and realize we designed the entry, but not the full loop. We add the missing exits and align them with how similar patterns behave across the app.",
       iStatement: "I check how someone gets in and how they get out.",
       chrome: {
         page: "Side Menu v2",
@@ -274,15 +273,16 @@ const GAPS: Lens = {
     {
       id: 5,
       company: "Compado",
-      years: "2019\u20132021",
+      years: "2019 - 2021",
       headline: "How do I respond when something looks smaller than it is?",
       cardType: "slack-direct",
-      artifact: "This ticket said \u2018small change\u2019 but I have been on it for two days.",
+      artifact:
+        "Before I pick this up, can we refine it a bit? It says small change, but the scope is not clear.",
       story:
-        "I look at the ticket. A title and a one-line description. Of course it looked small. I suggest we start refining tickets as a team before they enter the sprint. It takes a few weeks to become a habit but the \u201Csmall change that took three days\u201D conversations stop.",
+        "I look at the ticket. A title, a sentence, without much specs. I recognize the cost of ambiguity and scope early, when requirements are unclear. I push for quick refinement before sprint entry, so we size the work before it lands on someone’s desk.",
       iStatement: "I make sure we understand the weight of the work before we carry it.",
       chrome: {
-        sender: { name: "Marcus W.", avatar: "M", avatarBg: "#5B5FC7" },
+        sender: { name: "Kaschief J.", avatar: "KJ", avatarBg: "#5B5FC7" },
         timestamp: "3:42 PM",
       },
     },
@@ -295,11 +295,12 @@ const GAPS: Lens = {
       artifact:
         "The new fund detail page looks clean in Figma but the data it needs does not exist in the API the same way.",
       story:
-        "I start comparing the design against the API and the mismatches add up. Fields named differently. Data nested where the design expects it flat. The designer built from what the legacy app showed on screen. The new API is structured differently. I bring it to the PO and designer and we map it out together. Some things shift on the design side, some become requests to backend. Neither side had it wrong. They just had not looked at the same source.",
-      iStatement: "I make sure what we design and what we can build are based on the same reality.",
+        "I start comparing the design against the API and the mismatches keep surfacing. Fields are named differently. Data is nested where the design expects it flat. The design reflects the legacy app. The API reflects the new system. I bring it to the PO and designer and we work through it together. We adjust the design where needed, raise backend requests where needed, and leave with one aligned version instead of separate assumptions.",
+      iStatement:
+        "I make sure what we design and what we can build are based on the same information.",
       chrome: {
         page: "Fund Detail v3",
-        author: { name: "Designer", avatar: "D" },
+        author: { name: "Kaschief", avatar: "K" },
         devMode: true,
       },
     },
@@ -310,9 +311,9 @@ const GAPS: Lens = {
       headline: "How do I react when my reasoning is challenged?",
       cardType: "adr-comment",
       artifact:
-        "Why did you choose this approach over the alternative? Walk us through the trade-offs.",
+        "Why did you choose this approach over the alternative? Mind walking us through the trade-offs?",
       story:
-        "The reasoning existed but it had stayed inside our team. I walk them through it. What we considered, what we ruled out, why. The constraints: timeline, the legacy system, what the API could support. They push back on one point. Fair challenge. We adjust. The decision gets stronger because someone outside our immediate team tested it.",
+        "The reasoning existed but it had stayed inside our team. I try to bring decisions into an Architectural Decision Record as early as I can, so everyone can see the pathway to a technical decision. I walk teams through what we considered, what we ruled out, and why, including the timeline, the constraints, and options. I believe that a decision becomes stronger when someone outside our immediate team is able to challenge it.",
       iStatement: "I make my reasoning visible so others can challenge it and make it better.",
       chrome: {
         docId: "ADR-012",
@@ -332,11 +333,12 @@ const PATTERNS: Lens = {
     {
       id: 8,
       company: "AMBOSS",
-      years: "2018\u20132019",
+      years: "2018 - 2019",
       headline: "How do I start when the shape is still unclear?",
       cardType: "plain-bare",
       artifact: "Can you start on this? We will figure out the details as we go.",
-      story: "I have learned that a short conversation before building is magic.",
+      story:
+        "I have learned that a short conversation before building is magic. It gives me a chance to ask questions, share what I am thinking, and get feedback before I have sunk time into something that might be off track. I like to make sure we can highlight the possible blind spots before we start.",
       iStatement: "I use a short conversation to make the work clearer before it grows.",
       chrome: {
         context: "1:1 with Product Owner",
@@ -346,12 +348,12 @@ const PATTERNS: Lens = {
     {
       id: 9,
       company: "AMBOSS",
-      years: "2018\u20132019",
-      headline: "How do I listen to someone who just arrived?",
+      years: "2018 - 2019",
+      headline: "How do I approach feedback from someone who just arrived to our team?",
       cardType: "plain-sticky",
       artifact: "How does anyone work on this file? It is massive.",
       story:
-        "They are looking at a file that has grown with every feature cycle. Nobody planned for it to be this big. I pair with them and we map out which parts are active and which are legacy. We start carving off sections into their own modules, starting with the ones they need to touch.",
+        "They are looking at a file that grew with every feature cycle. Nobody intended for it to become this hard to enter. I pair with them and we sort through what is still active, what is legacy, and what they actually need to change. Then we start breaking sections into their own modules, starting with the parts blocking their work.",
       iStatement: "I listen when someone new sees what the rest of us stopped noticing.",
       chrome: {
         context: "New team member, week 1",
@@ -361,13 +363,12 @@ const PATTERNS: Lens = {
     {
       id: 10,
       company: "Compado",
-      years: "2019\u20132021",
-      headline: "How do I work across different languages for the same thing?",
+      years: "2019–2021",
+      headline: "How do I work when the same word means different things to different teams?",
       cardType: "meeting-note",
-      artifact:
-        "Cross-team sync: marketing keeps referring to \u201Cthe widget\u201D and engineering keeps asking \u201Cwhich widget?\u201D",
+      artifact: "",
       story:
-        "We have five different interactive elements and marketing calls all of them \u201Cthe widget.\u201D Every conversation is twice as long because both sides are translating in real time. I put together a simple shared reference: screenshots, names, where each one lives. Small piece of work. But after that, someone says \u201Cthe widget\u201D and there is a page to point at instead of a conversation to untangle.",
+        "We had five different interactive elements and marketing called all of them “the widget.” Every conversation slowed down because we kept translating the same ambiguity back and forth, with the the real definitions buried in chats. I put together a simple shared reference: screenshots, names, where each one lived. It was a small piece of work, but after that, when someone said “the widget”, there was something objective to point to instead of another thread to untangle.",
       iStatement: "I make sure the words we use mean the same thing to everyone.",
       chrome: {
         date: "March 14, 2024",
@@ -376,7 +377,7 @@ const PATTERNS: Lens = {
         agendaLabel: "Agenda",
         agendaText: "Marketing terminology and implementation handoff",
         highlightedQuote:
-          "Marketing keeps referring to \u201Cthe widget\u201D and engineering keeps asking \u201Cwhich widget?\u201D",
+          "Marketing keeps referring to “the widget” and engineering keeps asking “which widget?”",
         footnote: "Need shared naming before next sprint.",
         viewers: [
           { avatar: "K", color: "#E8734A" },
@@ -388,13 +389,12 @@ const PATTERNS: Lens = {
     {
       id: 11,
       company: "DKB",
-      years: "2021\u20132024",
+      years: "2021–2024",
       headline: "How do I close the loop before shipping?",
       cardType: "github-review",
-      artifact:
-        "I finish a feature and tag the designer for review. Next day, nothing. I follow up. They have moved on to the next project and assumed it was fine.",
+      artifact: "",
       story:
-        "Nobody closed the loop. I suggest we add a design sign-off before merge. Quick look, five minutes. The drifts get caught while they are still easy to fix.",
+        "I finished a feature and tagged the designer for review. The next day, nothing. When I followed up, they had already moved on and assumed it was fine. The work was built, but the loop was still open. I pushed for a quick design sign-off before merge. It took five minutes, and it caught mismatches while they were still easy to fix.",
       iStatement: "I make sure the people who defined the work get to see it before it ships.",
       chrome: {
         repo: { org: "dkb-app", name: "frontend" },
@@ -403,19 +403,19 @@ const PATTERNS: Lens = {
           { text: "frontend", color: "#7057FF" },
           { text: "enhancement", color: "#0E8A16" },
         ],
-        reviewer: { name: "Lisa K.", timeAgo: "2 days ago" },
+        reviewer: { name: "Kaschief J.", timeAgo: "2 days ago" },
       },
     },
     {
       id: 12,
       company: "DKB",
-      years: "2021\u20132024",
+      years: "2021–2024",
       headline: "How do I think about temporary things that stay too long?",
       cardType: "plain-annotation",
       artifact:
         "We have fourteen feature flags in production. Does anyone know which ones are still active?",
       story:
-        "No one is sure. They were added for safe rollouts and left in place long after the features settled. Some of them months old, some with flag names still exposed in the markup where a user could see them. We audit them as a team and strip out what is no longer needed. After that I push for every new flag to get a review date. If the feature is stable by then, the flag comes out.",
+        "No one was sure. The flags were added to make rollouts safer, then stayed long after the risk was gone. Some had been sitting there for months, and a few were still leaking into the network response where users could see them. We audited them as a team, kept the ones still needed, and stripped out what no longer belonged. After that I push for every new flag to have a review date, so temporary decisions did not quietly become permanent.",
       iStatement: "I pay attention to what is still running and whether it should be.",
       chrome: {
         context: "During standup",
