@@ -169,7 +169,7 @@ export function SkillCard({
       <motion.div style={{ x: fadedDisplaceX, y: combinedY }} className="relative">
         {/* Question — hero text, accent substring highlighted in order phase */}
         <motion.div
-          className="mb-[0.5cqh] font-narrator text-[clamp(13px,1.2vw,17px)] leading-[1.3] text-balance"
+          className="mb-[0.5cqh] font-narrator font-bold text-[clamp(13px,1.2vw,17px)] leading-[1.3] text-balance"
           style={{
             color: isHovered ? COLORS.cardTitleHover : questionColor,
             transition: `color ${COLOR_TRANSITION}`,

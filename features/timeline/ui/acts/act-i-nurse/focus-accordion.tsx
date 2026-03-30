@@ -32,7 +32,7 @@ export function FocusAccordion({
   );
 
   return (
-    <div className="absolute inset-x-0 top-0 bottom-0 z-50 sm:hidden">
+    <div className="absolute inset-x-0 top-0 bottom-0 z-50 lg:hidden">
       <motion.div
         className="absolute inset-0"
         style={{ opacity: bgOpacity, background: "var(--bg)" }}
@@ -122,12 +122,12 @@ function AccordionItem({
             className="overflow-hidden">
             <div className="pb-5">
               <p
-                className="mb-3 font-narrator text-[13px] leading-relaxed"
+                className="mb-3 font-narrator font-semibold text-[15px] leading-relaxed"
                 style={{ color: COLORS.cardBody }}>
                 {node.question}
               </p>
               <p
-                className="font-narrator text-[14px] leading-relaxed"
+                className="font-narrator text-[16px] leading-relaxed"
                 style={{ color: "var(--gold)" }}>
                 {node.iStatement}
               </p>

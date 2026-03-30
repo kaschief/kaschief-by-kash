@@ -4,8 +4,9 @@
 
 | Role | Font | Style | Color | Used for |
 |------|------|-------|-------|----------|
-| **Question** | `font-narrator` (Crimson Pro) | normal | `--cream` | "What do I do when...", "How do I handle..." |
+| **Question** | `font-narrator` (Crimson Pro) | bold 700 (Act I) / semibold 600 (Act II) | `--cream` | "What do I do when...", "How do I handle..." |
 | **I-statement** | `font-narrator` (Crimson Pro) | normal | `--gold` | "I collect the data...", "I make sure..." |
+| **I-statement (overlay)** | `font-serif` (Playfair) | normal | `--gold` | Act II story desk overlay |
 | **Story** | `font-sans` (Inter) | light 300 | `--cream-muted` | Narrative paragraphs, evidence text |
 | **Title** | `font-sans` (Inter) | normal | `--cream-muted` | "Recognize the signal..." (Act I only) |
 | **Chrome / Meta** | `font-ui` (Urbanist) | uppercase | `--cream-muted` | "AMBOSS · 2018-2019", "ACT I", labels |

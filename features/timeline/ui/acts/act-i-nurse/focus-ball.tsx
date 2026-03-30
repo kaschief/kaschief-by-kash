@@ -159,7 +159,7 @@ function RevealedText({
 
   return (
     <motion.div
-      className="pointer-events-none absolute z-10 hidden sm:block"
+      className="pointer-events-none absolute z-10 hidden lg:block"
       style={{
         left,
         top,
