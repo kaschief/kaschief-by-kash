@@ -656,17 +656,18 @@ export const CONTENT = {
     header: "~/career \u2014 zsh",
   },
 
-  /** Merge — flanking text as streams converge into white ribbon */
-  merge: {
+  /** Flanking text — shown in funnel merge (desktop) and bridge narrator (mobile) */
+  funnelClimax: {
     left: "By DKB, the pattern was clear. Some of the most persistent bugs were in the room, not the codebase.",
     right: "Addressing them became the work, and leadership became the natural extension of it.",
   },
 
-  /** Story desk bridge — heading + narrator */
+  /** Story desk bridge — heading + narrator paragraphs */
   bridge: {
     heading: ["Each project was different.", "The patterns were the same."],
+    /** Narrator body — shared across all viewports */
     narrator:
-      "Every company had its own version of the same friction, between what was said and what actually shipped.\n\nThe more I worked across teams and systems, the more my role expanded beyond the code itself. I kept stepping into the places where alignment had broken down, where the real issue was not technical difficulty, but shared clarity.\n\nBy DKB, the pattern was clear. Some of the most persistent bugs were in the room, not the codebase. Addressing them became the work, and leadership became the natural extension of it.",
+      "Every company had its own version of the same friction, between what was said and what actually shipped.\n\nThe more I worked across teams and systems, the more my role expanded beyond the code itself. I kept stepping into the places where alignment had broken down, where the real issue was not technical difficulty, but shared clarity.",
   },
 
   /** Story desk intro line */
