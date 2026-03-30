@@ -6,7 +6,7 @@ import { ActLabel } from "@components";
 import { ACT_I } from "@data";
 import { EASE } from "@utilities";
 
-const { act, color: COLOR, period, splash, title } = ACT_I;
+const { act, color: COLOR, institution, period, role, splash, title } = ACT_I;
 
 // ECG waveform — single QRS spike unit, tiled.
 const spike = (offset: number) =>
@@ -187,11 +187,13 @@ export function Splash() {
             className="mt-4 flex flex-wrap items-center justify-center gap-2 font-ui text-[11px] tracking-wide sm:mt-8 sm:gap-3"
             initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}}
             transition={{ duration: 0.8, delay: 1, ease: EASE }}>
-            <span className="text-(--cream-muted)">NYU Langone</span>
-            <span className="text-(--text-faint)">/</span>
-            <span className="text-(--text-faint)">{ACT_I.location}</span>
-            <span className="text-(--text-faint)">/</span>
-            <span className="text-(--text-faint)">{period}</span>
+            <span className="text-(--cream-muted)">{role}</span>
+            <span className="text-(--text-dim)">·</span>
+            <span className="text-(--cream-muted)">{institution}</span>
+            <span className="text-(--text-dim)">/</span>
+            <span className="text-(--text-dim)">{ACT_I.location}</span>
+            <span className="text-(--text-dim)">/</span>
+            <span className="text-(--text-dim)">{period}</span>
           </motion.div>
 
           <motion.p

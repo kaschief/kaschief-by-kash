@@ -10,7 +10,7 @@ import {
   SECTION_NAV_LINKS,
   type NavLink,
 } from "@data";
-import { useLayoutReady, useNavStore, useLenis, useSectionScroll } from "@hooks";
+import { useNavStore, useLenis, useSectionScroll } from "@hooks";
 import {
   DEFAULT_SCROLL_OFFSET,
   HISTORY_EVENT,
@@ -42,6 +42,12 @@ const OBSERVER_THRESHOLDS = [0, 0.1, 0.25, 0.5];
 
 /** Safety timeout for hash-scroll if layout barriers never clear (ms). */
 const HASH_SCROLL_SAFETY_MS = 5000;
+/** Land slightly past sticky section boundaries so the next act is actually pinned. */
+const HASH_SCROLL_STICKY_OVERSHOOT_PX = 2;
+/** Consider the hash target stable once it stops drifting for a few frames. */
+const HASH_SCROLL_STABLE_EPSILON_PX = 4;
+const HASH_SCROLL_STABLE_FRAMES = 3;
+const HASH_SCROLL_MIN_SETTLE_MS = 1500;
 
 const NavigationMobileMenu = dynamic(
   () =>
@@ -58,6 +64,17 @@ function getSectionIdFromHash(hash: string): SectionId | null {
   if (!hash.startsWith("#")) return null;
   const id = hash.slice(1);
   return isSectionId(id) ? id : null;
+}
+
+/** Stable layout top independent of transform/sticky shifts during page setup. */
+function getAbsoluteTop(el: HTMLElement): number {
+  let top = 0;
+  let current: HTMLElement | null = el;
+  while (current) {
+    top += current.offsetTop;
+    current = current.offsetParent as HTMLElement | null;
+  }
+  return top;
 }
 
 interface DesktopNavLinkProps {
@@ -140,7 +157,7 @@ export function Navigation() {
     currentActiveSection = targetSection;
   } else if (settledSection) {
     currentActiveSection = settledSection;
-    activeSectionRef.current = settledSection; // eslint-disable-line react-hooks/refs -- sync ref for scroll callbacks, not used for rendering
+    activeSectionRef.current = settledSection; // Sync ref for scroll callbacks; not used for rendering.
     // Clear after one render so scroll detection takes over
     queueMicrotask(() => clearSettled());
   }
@@ -344,55 +361,82 @@ export function Navigation() {
       payload: { activeSection: id },
     });
 
-    // The inline script in layout.tsx hides the page (opacity: 0) and
-    // disables scroll restoration when a hash is present. Register
-    // barriers for every component that shifts layout asynchronously.
-    // When both clear, jump to the correct position then instantly
-    // reveal — no transition, no flash.
+    // The inline script in layout.tsx hides the page and disables scroll
+    // restoration when a hash is present. Instead of waiting on ad-hoc
+    // layout barriers, keep re-aligning to the target until its absolute
+    // position stops drifting, then reveal.
     const root = document.documentElement;
-    const store = useLayoutReady.getState();
-    store.registerBarrier("timeline-mounted");
-    store.registerBarrier("portrait-pin-ready");
+    let raf = 0;
+    let stableFrames = 0;
+    let lastTarget: number | null = null;
+    let lastTargetShiftAt = performance.now();
+    const deadline = performance.now() + HASH_SCROLL_SAFETY_MS;
 
     function reveal() {
       root.style.removeProperty("visibility");
     }
 
-    const unsubscribe = store.onReady(() => {
+    function alignToHashTarget() {
       const el = document.getElementById(id);
       if (!el) {
-        console.warn(`[nav] hash-scroll: #${id} not found after barriers cleared`);
-        reveal();
+        if (performance.now() >= deadline) {
+          console.warn(`[nav] hash-scroll: #${id} not found before timeout`);
+          reveal();
+          return;
+        }
+        raf = requestAnimationFrame(alignToHashTarget);
         return;
       }
+
       const offset = SECTION_SCROLL_OFFSET[id] ?? DEFAULT_SCROLL_OFFSET;
-      const top = el.getBoundingClientRect().top + window.scrollY;
-      const target = top - offset;
+      const stickyOvershoot = offset === 0 ? HASH_SCROLL_STICKY_OVERSHOOT_PX : 0;
+      const target = getAbsoluteTop(el) - offset + stickyOvershoot;
 
       // Sync Lenis so subsequent nav-clicks read the correct scroll position.
-      // Do NOT call ScrollTrigger.refresh() here — it recalculates pin spacers
-      // and can shift the layout we just stabilized.
+      // Force an immediate correction on every frame until the layout settles.
       const lenis = getLenis();
       if (lenis) {
-        lenis.scrollTo(target, { immediate: true });
+        lenis.resize();
+        lenis.scrollTo(target, { immediate: true, force: true });
       } else {
         window.scrollTo({ top: target, behavior: "instant" as ScrollBehavior });
       }
 
-      // Reveal on next frame so the browser paints at the new position first
-      requestAnimationFrame(() => reveal());
-    });
+      const scrollDelta = Math.abs(window.scrollY - target);
+      const targetDelta =
+        lastTarget === null ? Number.POSITIVE_INFINITY : Math.abs(target - lastTarget);
+      if (targetDelta > HASH_SCROLL_STABLE_EPSILON_PX) {
+        lastTargetShiftAt = performance.now();
+      }
+      stableFrames =
+        scrollDelta <= HASH_SCROLL_STABLE_EPSILON_PX &&
+        targetDelta <= HASH_SCROLL_STABLE_EPSILON_PX
+          ? stableFrames + 1
+          : 0;
+      lastTarget = target;
 
-    // Safety timeout — reveal even if barriers never clear
-    const safetyTimer = setTimeout(() => {
-      console.warn(`[nav] hash-scroll: barriers did not clear within ${HASH_SCROLL_SAFETY_MS}ms`);
-      reveal();
-    }, HASH_SCROLL_SAFETY_MS);
+      if (
+        stableFrames >= HASH_SCROLL_STABLE_FRAMES &&
+        performance.now() - lastTargetShiftAt >= HASH_SCROLL_MIN_SETTLE_MS
+      ) {
+        requestAnimationFrame(() => reveal());
+        return;
+      }
+
+      if (performance.now() >= deadline) {
+        console.warn(`[nav] hash-scroll: target did not stabilize within ${HASH_SCROLL_SAFETY_MS}ms`);
+        reveal();
+        return;
+      }
+
+      raf = requestAnimationFrame(alignToHashTarget);
+    }
+
+    raf = requestAnimationFrame(alignToHashTarget);
 
     return () => {
-      unsubscribe();
-      clearTimeout(safetyTimer);
-      store.reset();
+      if (raf) cancelAnimationFrame(raf);
+      root.style.removeProperty("visibility");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only: hash scroll runs once on page load
   }, []);

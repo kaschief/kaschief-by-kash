@@ -1,11 +1,11 @@
-import { LAYOUT } from "./constants";
-import { SECTION_ID, type SectionId } from "./sections";
+import { LAYOUT } from "./constants"
+import { SECTION_ID, type SectionId } from "./sections"
 
-const { navScrollOffset } = LAYOUT;
-const { ACT_NURSE, ACT_ENGINEER, ACT_LEADER, CONTACT } = SECTION_ID;
+const { navScrollOffset } = LAYOUT
+const { ACT_NURSE, ACT_ENGINEER, ACT_LEADER, ACT_BUILDER, CONTACT } = SECTION_ID
 
 /** Offset applied when scrolling to a section via nav click. */
-export const DEFAULT_SCROLL_OFFSET = navScrollOffset;
+export const DEFAULT_SCROLL_OFFSET = navScrollOffset
 
 /**
  * Per-section scroll offsets.
@@ -18,5 +18,6 @@ export const SECTION_SCROLL_OFFSET: Partial<Record<SectionId, number>> = {
   [ACT_NURSE]: 0,
   [ACT_ENGINEER]: 0,
   [ACT_LEADER]: 0,
+  [ACT_BUILDER]: 0,
   [CONTACT]: 0,
-};
+}

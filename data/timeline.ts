@@ -1,9 +1,11 @@
-import { ROLES } from "./site"
+import { PERSONAL, ROLES } from "./site"
 const [nurseRole, engineerRole, leaderRole, builderRole] = ROLES
 
 /* ------------------------------------------------------------------ */
 /*  Company identity                                                   */
 /* ------------------------------------------------------------------ */
+
+const { location } = PERSONAL
 
 export const COMPANY_ID = {
   AMBOSS: "amboss",
@@ -141,6 +143,8 @@ export interface SkillScenario {
 export interface ActINurseContent {
   readonly act: string
   readonly title: string
+  readonly role: string
+  readonly institution: string
   readonly period: string
   readonly location: string
   readonly color: string
@@ -160,11 +164,13 @@ export interface ActINurseContent {
 export const ACT_I: ActINurseContent = {
   act: "ACT I",
   title: `The ${nurseRole.label}`,
+  role: "Critical Care Nurse",
+  institution: "NYU Langone Medical Center",
   period: "2015 — 2018",
   location: "New York, NY",
   color: nurseRole.color,
   splash:
-    "Intensive care taught me how to read a situation fast, stay exact under pressure, and make decisions when the cost of confusion was real.",
+    "Years in intensive care taught me how to read a situation fast, stay exact under pressure, and make decisions when the cost of confusion was real.",
   intro:
     "Three years as a critical care nurse at New York University Langone Medical Center — the largest medical complex in the New York. Neuro ICU, Cardiac ICU, ER trauma.",
   detail:
@@ -186,7 +192,7 @@ export const ACT_I: ActINurseContent = {
     { id: "s4", label: "Precision Under Pressure" },
     { id: "s5", label: "Cross-Domain Translation" },
   ],
-  throughline: "The ICU was not just a previous career. It was where my operating system started.",
+  throughline: "Beyond being a previous career, the ICU was where my operating system started.",
   skillScenarios: [
     {
       id: "detection",
@@ -257,7 +263,7 @@ export const ACT_II: ActContent = {
   act: "ACT II",
   title: `The ${engineerRole.label}`,
   period: "2018 - 2022",
-  location: "Berlin, Germany",
+  location,
   color: engineerRole.color,
   splash:
     "I have spent a lot of my working life solving problems inside complex systems, first human ones, then technical ones. I wanted to engineer solutions that mattered to people, and I wanted to do it at scale.",
