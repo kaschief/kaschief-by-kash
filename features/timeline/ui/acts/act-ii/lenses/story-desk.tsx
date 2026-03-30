@@ -223,11 +223,11 @@ function StoryOverlay({
 
         {/* Headline (question) */}
         <p
-          className="font-serif text-center"
+          className="font-narrator text-center"
           style={{
             fontSize: "clamp(0.95rem, 1.6vw, 1.15rem)",
             color: "var(--cream)",
-            fontWeight: 500,
+            fontWeight: 600,
             maxWidth: 560,
             marginBottom: "clamp(14px, 2.5vh, 24px)",
           }}>
@@ -315,7 +315,7 @@ function DeskCard({
           marginTop: 8,
           fontFamily: "var(--font-narrator)",
           fontStyle: "italic",
-          fontSize: touch ? 13 : 13,
+          fontSize: touch ? 13 : 15,
           lineHeight: 1.4,
           color: "var(--gold)",
           ...(touch

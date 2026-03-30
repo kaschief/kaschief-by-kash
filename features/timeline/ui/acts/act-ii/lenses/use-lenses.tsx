@@ -513,13 +513,12 @@ export function useLenses() {
                           headlineWordRefs.current[i] = [];
                         headlineWordRefs.current[i][w] = el;
                       }}
-                      className="font-narrator"
+                      className="font-narrator font-semibold"
                       style={{
                         opacity: 0,
                         display: "inline-block",
                         marginRight: "0.3em",
                         fontSize: "clamp(0.82rem, 1.4vw, 1.2rem)",
-                        fontStyle: "italic",
                         color: "var(--cream)",
                         transition: "color 0.15s ease",
                         willChange: "opacity, color",
@@ -598,7 +597,7 @@ export function useLenses() {
                 className="mt-3 text-center"
                 style={{
                   ...STORY_STYLE,
-                  fontSize: "clamp(0.75rem, 3vw, 0.85rem)",
+                  fontSize: "clamp(0.85rem, 3.5vw, 0.95rem)",
                   lineHeight: 1.7,
                 }}>
                 {entry.story}

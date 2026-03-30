@@ -460,14 +460,18 @@ export function ActIIEngineer() {
         ref={sankeyScrollRef}
         data-sticky-zone
         style={{ height: `${SANKEY_SCROLL_VH}vh` }}
-        className="relative hidden sm:block">
+        className="relative hidden lg:block">
         <div
           className="sticky top-0 h-screen w-full overflow-hidden [container-type:size]"
           style={{ background: "var(--bg)", zIndex: 1, willChange: "transform" }}>
-          {/* Particle canvas, funnel SVG, narrator panels, mobile skills, mid narrator */}
           {particleFunnel.jsx}
         </div>
       </div>
+      {/* Gradient fade from funnel into Act III — desktop only */}
+      <div
+        className="pointer-events-none relative hidden lg:block h-24"
+        style={{ background: "linear-gradient(to bottom, var(--bg), #0A0A0F)", zIndex: 2 }}
+      />
     </>
   )
 }
