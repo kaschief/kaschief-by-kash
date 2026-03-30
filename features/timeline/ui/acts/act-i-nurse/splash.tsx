@@ -195,8 +195,8 @@ export function Splash() {
           </motion.div>
 
           <motion.p
-            className="mx-auto mt-10 max-w-lg font-[family-name:var(--font-spectral)] text-sm leading-relaxed text-(--cream) sm:mt-20 sm:text-base md:mt-24 md:text-xl"
-            style={{ fontStyle: "italic" }}
+            className="mx-auto mt-10 max-w-lg font-narrator text-sm leading-relaxed text-(--cream) sm:mt-20 sm:text-base md:mt-24 md:text-xl"
+            style={{}}
             initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.9, delay: 1.1, ease: EASE }}>
             {splash}

@@ -26,6 +26,8 @@ import {
   BLUR_THRESHOLD,
   COMPANY_LABEL,
   CARD_ZOOM,
+  NARRATOR_STYLE,
+  I_STATEMENT_STYLE,
 } from "./lenses.config";
 import {
   PROLOGUE,
@@ -537,12 +539,10 @@ export function useLenses() {
                   }}>
                   <div
                     style={{
-                      fontFamily: "var(--font-serif)",
-                      fontStyle: "italic",
+                      ...I_STATEMENT_STYLE,
                       fontSize: "clamp(0.95rem, 1.8vw, 1.5rem)",
                       lineHeight: 1.35,
                       letterSpacing: "-0.01em",
-                      color: "var(--gold)",
                       fontWeight: 400,
                     }}>
                     {entry.iStatement}
@@ -554,14 +554,12 @@ export function useLenses() {
                     storyRefs.current[i] = el;
                   }}
                   style={{
+                    ...NARRATOR_STYLE,
                     opacity: 0,
                     marginTop: 24,
                     willChange: "transform, opacity",
-                    fontFamily: "var(--font-narrator)",
-                    fontStyle: "italic",
                     fontSize: "clamp(0.72rem, 0.95vw, 0.88rem)",
                     lineHeight: 1.75,
-                    color: "var(--text-dim)",
                   }}>
                   {entry.story}
                 </div>
@@ -591,22 +589,17 @@ export function useLenses() {
               <div
                 className="mt-4 text-center"
                 style={{
-                  fontFamily: "var(--font-serif)",
-                  fontStyle: "italic",
+                  ...I_STATEMENT_STYLE,
                   fontSize: "clamp(1rem, 4vw, 1.3rem)",
-                  lineHeight: 1.4,
-                  color: "var(--gold)",
                 }}>
                 {entry.iStatement}
               </div>
               <div
                 className="mt-3 text-center"
                 style={{
-                  fontFamily: "var(--font-narrator)",
-                  fontStyle: "italic",
+                  ...NARRATOR_STYLE,
                   fontSize: "clamp(0.75rem, 3vw, 0.85rem)",
                   lineHeight: 1.7,
-                  color: "var(--text-dim)",
                 }}>
                 {entry.story}
               </div>

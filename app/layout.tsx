@@ -2,6 +2,7 @@ import "./globals.css";
 import {
   Crimson_Pro,
   Inter,
+  Kaisei_Decol,
   Playfair_Display,
   Urbanist,
 } from "next/font/google";
@@ -37,11 +38,19 @@ const crimsonPro = Crimson_Pro({
   display: "swap",
 });
 
+const kaiseiDecol = Kaisei_Decol({
+  subsets: ["latin"],
+  variable: "--font-kaisei-decol",
+  display: "swap",
+  weight: ["400"],
+});
+
 const fontVariables = [
   inter.variable,
   playfair.variable,
   urbanist.variable,
   crimsonPro.variable,
+  kaiseiDecol.variable,
 ].join(" ");
 
 export const metadata: Metadata = {
