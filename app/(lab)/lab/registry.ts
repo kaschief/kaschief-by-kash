@@ -22,6 +22,12 @@ export const LAB_ROUTES: readonly LabRoute[] = [
     desc: "Bold graphic typography with mouse-reactive parallax layers",
     section: "wip-covers",
   },
+  {
+    href: "/lab-methods",
+    label: "Methods",
+    desc: "Skill panels with ScrollTrigger pinning and detail overlays",
+    section: "wip-covers",
+  },
 ];
 
 const SECTION_LABELS: Record<LabRoute["section"], string> = {

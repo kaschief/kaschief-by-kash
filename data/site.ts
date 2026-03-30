@@ -7,13 +7,14 @@ const {
   ACT_LEADER,
   ACT_NURSE,
   CONTACT,
-  METHODS,
   PHILOSOPHY: PHILOSOPHY_SECTION,
   PORTRAIT,
 } = SECTION_ID;
 
 export interface PersonalInfo {
   readonly name: string;
+  readonly firstName: string;
+  readonly lastName: string;
   readonly initials: string;
   readonly email: string;
   readonly phone: string;
@@ -33,7 +34,6 @@ type RoleLabel = (typeof ROLE_LABEL)[keyof typeof ROLE_LABEL];
 
 const SECTION_NAV_LABEL = {
   WHO_AM_I: "Who Am I",
-  METHODS: "Methods",
   CONTACT: "Contact",
 } as const;
 
@@ -66,6 +66,8 @@ export type Role = RoleNavLink;
 
 export const PERSONAL: PersonalInfo = {
   name: "Kaschief Johnson",
+  firstName: "Kaschief",
+  lastName: "Johnson",
   initials: "KJ",
   email: "kaschiefj@gmail.com",
   phone: "+49 176 204 19325",
@@ -108,12 +110,6 @@ const NAV_LINKS: readonly NavLink[] = [
   },
   {
     type: NAV_LINK_TYPE.SECTION,
-    label: SECTION_NAV_LABEL.METHODS,
-    sectionId: METHODS,
-    color: gold,
-  },
-  {
-    type: NAV_LINK_TYPE.SECTION,
     label: SECTION_NAV_LABEL.CONTACT,
     sectionId: CONTACT,
     color: gold,
@@ -151,4 +147,13 @@ export const PHILOSOPHY = {
     "They adapt to whatever container",
     "the work demands.",
   ],
+} as const;
+
+export const CONTACT_COPY = {
+  paragraphs: [
+    "Every role I have had required seeing what other people had stopped noticing.",
+    "That is still what I am looking for.",
+    "My path has not been conventional. I am looking for a place where that is a strength, where I have room to work with some independence, and where the work itself has a positive effect.",
+  ],
+  coda: "Based in Berlin. Open to remote and international work. English, German, French, Spanish.",
 } as const;
