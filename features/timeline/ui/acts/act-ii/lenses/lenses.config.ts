@@ -80,6 +80,23 @@ export const COMPANY_LABEL = {
   resting: 0.35,
 } as const
 
+/* ── Shared text styles ── */
+
+/** Narrator body text — Kaisei Decol, cream-muted, used in bridge, story desk, lenses */
+export const NARRATOR_STYLE: React.CSSProperties = {
+  fontFamily: "var(--font-narrator)",
+  color: "var(--cream-muted)",
+  lineHeight: 1.8,
+}
+
+/** I-statement — serif italic gold, used in story desk overlay, lenses, cards */
+export const I_STATEMENT_STYLE: React.CSSProperties = {
+  fontFamily: "var(--font-serif)",
+  fontStyle: "italic",
+  color: "var(--gold)",
+  lineHeight: 1.4,
+}
+
 /* ── Card zoom per breakpoint ── */
 
 export const CARD_ZOOM = {

@@ -12,7 +12,13 @@ export function Takeaway({ id, text, height: zonHeight = "150vh" }: TakeawayProp
       <div className={`${stickyClass} flex h-screen h-[100svh] items-center justify-center px-(--page-gutter)`}>
         <FadeIn>
           <h3 className="mx-auto max-w-2xl text-center font-[family-name:var(--font-spectral)] text-[clamp(22px,3vw,36px)] italic leading-[1.35] tracking-[-0.01em] text-(--cream)">
-            {text}
+            {text.includes("\n")
+              ? text.split("\n").map((line, i) => (
+                  <span key={i} className="block">
+                    {line}
+                  </span>
+                ))
+              : text}
           </h3>
         </FadeIn>
       </div>

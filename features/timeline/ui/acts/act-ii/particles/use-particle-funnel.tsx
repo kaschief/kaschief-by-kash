@@ -73,9 +73,35 @@ const CENTER_X = 500
 const UNIT_W = 5
 
 /* Merge / column zone */
-const MERGE_Y = 850 // converge sooner — right below DKB
-const COLUMN_EXIT_Y = 4000 // far off-screen so braid runs into Act III
+const MERGE_Y = 850
+const COLUMN_EXIT_Y = 4000
 const COLUMN_W = STREAMS.reduce((sum, s) => sum + s.width * UNIT_W, 0)
+
+/** Camera zoom + braid tracking config */
+const CAMERA = {
+  narrowW: 400,
+  narrowH: 500,
+  narrowXOffset: 200,
+  braidTrackPan: 100,
+} as const
+
+/** Flanking climax text positioning and animation */
+const CLIMAX = {
+  offsetPx: 240,
+  maxWidth: "min(320px, 26vw)",
+  slidePx: 120,
+  leftStartFrac: 0.25,
+  leftEndFrac: 0.9,
+  rightStagger: 0.85,
+  driftYStart: 30,
+  driftYEnd: -15,
+} as const
+
+/** Ribbon clip reveal */
+const RIBBON_REVEAL = {
+  staggerRange: 0.004,
+  intermediateY: 770,
+} as const
 
 /* ================================================================== */
 /*  Stream geometry — compute center-x at each tier for every stream   */
@@ -140,7 +166,7 @@ function computeStreamPoints(): Map<string, TierPoint[]> {
     // organic transition before the straight DKB→merge zone
     const intermediateCX = lerp(prevCX, slotCX, 0.3)
     const intermediateHW = lerp(hw, mergeHW, 0.3)
-    points.push({ y: 770, cx: intermediateCX, hw: intermediateHW })
+    points.push({ y: RIBBON_REVEAL.intermediateY, cx: intermediateCX, hw: intermediateHW })
 
     points.push({ y: MERGE_Y, cx: slotCX, hw: mergeHW })
 
@@ -482,20 +508,18 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
       funnelSvgWrapRef.current.style.opacity = String(svgIn)
     }
 
-    /* ---- Camera: follow the braid downward like tracking a brush stroke ---- */
+    /* ---- Camera ---- */
     if (funnelSvgRef.current) {
-      // Phase 1: zoom + pan to merge (unchanged — DKB through merge)
       const camT = smoothstep(RIBBON_TIERS[3].start, MERGE_END, progress)
       const eased = camT * camT * (3 - 2 * camT)
       const panY1 = lerp(0, MERGE_Y, eased)
-      const narrowW = lerp(FUNNEL_VIEWBOX_WIDTH, 400, eased)
-      const narrowX = lerp(0, CENTER_X - 200, eased)
-      const narrowH = lerp(FUNNEL_VIEWBOX_HEIGHT, 500, eased)
+      const narrowW = lerp(FUNNEL_VIEWBOX_WIDTH, CAMERA.narrowW, eased)
+      const narrowX = lerp(0, CENTER_X - CAMERA.narrowXOffset, eased)
+      const narrowH = lerp(FUNNEL_VIEWBOX_HEIGHT, CAMERA.narrowH, eased)
 
-      // Phase 2: braid track — keep panning down the cream column after merge
       const trackT = smoothstep(BRAID_TRACK_START, BRAID_TRACK_END, progress)
       const trackEased = trackT * trackT * (3 - 2 * trackT)
-      const panY2 = lerp(0, 100, trackEased) // gentle drift — cream still visible as section ends
+      const panY2 = lerp(0, CAMERA.braidTrackPan, trackEased)
 
       funnelSvgRef.current.setAttribute(
         "viewBox",
@@ -528,55 +552,36 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
       el.style.transform = `translateY(${lerp(FUNNEL.labelSlideY, 0, labelIn)}px)`
     }
 
-    /* ---- Stream paths — staggered organic reveal ---- */
-    /*
-     * Each stream gets a seeded stagger offset so they grow at slightly
-     * different speeds — like free animals in a flock, not a marching grid.
-     * All start near tier 0 but some push ahead, others lag a beat.
-     * Streams are skills, not company-owned; path only determines routing.
-     */
+    /* ---- Stream ribbon reveal ---- */
     {
-      // Per-tier smoothstep chain. RIBBON_TIERS are contiguous
-      // (tier[0].end === tier[1].start) so there are no gaps.
-      // Includes intermediate point at y=770 between DKB and merge
-      // to prevent a pop in that transition zone.
-      const tierYs: number[] = [TIER_Y[0], ...TIER_Y.slice(1), 770, MERGE_Y, COLUMN_EXIT_Y]
+      const tierYs: number[] = [TIER_Y[0], ...TIER_Y.slice(1), RIBBON_REVEAL.intermediateY, MERGE_Y, COLUMN_EXIT_Y]
       const mergeRange = MERGE_END - MERGE_START
       const thresholds = [
         ...RIBBON_TIERS.map((t) => ({ start: t.start, end: t.end })),
-        // DKB(700)→intermediate(770)
         { start: MERGE_START, end: MERGE_START + mergeRange * 0.3 },
-        // intermediate(770)→merge(850)
         { start: MERGE_START + mergeRange * 0.2, end: MERGE_START + mergeRange * 0.6 },
-        // merge(850)→exit(4000): spans merge tail + full braid track phase
         { start: MERGE_START + mergeRange * 0.5, end: BRAID_TRACK_END },
       ]
 
-      const clipTop = TIER_Y[0] + STEM_BELOW - 1 // just below dot
-      const STAGGER_RANGE = 0.004
+      const clipTop = TIER_Y[0] + STEM_BELOW - 1
 
       for (let si = 0; si < STREAMS.length; si++) {
         const el = streamPathRefs.current[si]
         const clipRect = streamClipRectRefs.current[si]
         if (!el) continue
 
-        // Per-stream progress offset — some lead, some trail
-        const staggerOffset = (hashToUnit(si * 137 + 29) - 0.5) * 2 * STAGGER_RANGE
-        // Stagger fades out approaching merge — streams converge into lockstep
+        const staggerOffset = (hashToUnit(si * 137 + 29) - 0.5) * 2 * RIBBON_REVEAL.staggerRange
         const mergeBlend = smoothstep(MERGE_START, lerp(MERGE_START, MERGE_END, 0.3), progress)
         const sp = progress + staggerOffset * (1 - mergeBlend)
 
-        // Each stream evaluates the threshold chain at its own staggered progress
         let clipBottom: number = TIER_Y[0]
         for (let ti = 0; ti < thresholds.length; ti++) {
           const { start, end } = thresholds[ti]
-          // Stagger ribbon tiers, raw progress for merge (must converge together)
           const p = ti < RIBBON_TIERS.length ? sp : progress
           const t = smoothstep(start, end, p)
           if (t > 0) clipBottom = Math.max(clipBottom, lerp(tierYs[ti], tierYs[ti + 1], t))
         }
 
-        // Entry: ribbon grows from dot row during first tier
         const entryT = smoothstep(RIBBON_TIERS[0].start, RIBBON_TIERS[0].end, sp)
 
         if (entryT <= 0) {
@@ -605,30 +610,24 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
       el.style.transform = `translateY(${lerp(FUNNEL.nodeSlideY, 0, nodeT)}px)`
     }
 
-    /* ---- Flanking text — cinematic entrance from sides during late merge ---- */
+    /* ---- Flanking climax text ---- */
     {
-      // Delay: text arrives well after merge begins (60% into merge range)
-      const textStart = lerp(MERGE_START, MERGE_END, 0.25)
-      const textEnd = lerp(MERGE_START, MERGE_END, 0.9)
+      const textStart = lerp(MERGE_START, MERGE_END, CLIMAX.leftStartFrac)
+      const textEnd = lerp(MERGE_START, MERGE_END, CLIMAX.leftEndFrac)
       const textT = smoothstep(textStart, textEnd, progress)
-      // Ease-out for a decelerating slide-in
       const eased = 1 - (1 - textT) * (1 - textT)
-
-      // Parallax drift upward as camera follows braid down
       const textParallax = smoothstep(textStart, MERGE_END, progress)
-      const textDriftY = lerp(30, -15, textParallax)
+      const textDriftY = lerp(CLIMAX.driftYStart, CLIMAX.driftYEnd, textParallax)
 
-      // Left text: slides in from left
       if (mergeTextLeftRef.current) {
         mergeTextLeftRef.current.style.opacity = String(eased)
-        mergeTextLeftRef.current.style.transform = `translateY(calc(-50% + ${textDriftY}px)) translateX(${lerp(-120, 0, eased)}px)`
+        mergeTextLeftRef.current.style.transform = `translateY(calc(-50% + ${textDriftY}px)) translateX(${lerp(-CLIMAX.slidePx, 0, eased)}px)`
       }
-      // Right text: slides in from right, staggered slightly lower + later
       if (mergeTextRightRef.current) {
-        const rightT = smoothstep(lerp(textStart, textEnd, 0.15), textEnd, progress)
+        const rightT = smoothstep(lerp(textStart, textEnd, CLIMAX.rightStagger), textEnd, progress)
         const rightEased = 1 - (1 - rightT) * (1 - rightT)
         mergeTextRightRef.current.style.opacity = String(rightEased)
-        mergeTextRightRef.current.style.transform = `translateY(calc(-50% + ${textDriftY + 20}px)) translateX(${lerp(120, 0, rightEased)}px)`
+        mergeTextRightRef.current.style.transform = `translateY(calc(-50% + ${textDriftY}px)) translateX(${lerp(CLIMAX.slidePx, 0, rightEased)}px)`
       }
     }
 
@@ -868,15 +867,15 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
         </svg>
       </div>
 
-      {/* Flanking text — left */}
+      {/* Flanking climax text — left */}
       <div
         ref={mergeTextLeftRef}
         className="absolute pointer-events-none hidden sm:block"
         style={{
-          right: "calc(50% + 180px)",
+          right: `calc(50% + ${CLIMAX.offsetPx}px)`,
           top: "50%",
           transform: "translateY(-50%)",
-          maxWidth: "min(320px, 26vw)",
+          maxWidth: CLIMAX.maxWidth,
           opacity: 0,
           willChange: "transform, opacity",
           textAlign: "right",
@@ -895,15 +894,15 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
         </p>
       </div>
 
-      {/* Flanking text — right (staggered lower) */}
+      {/* Flanking climax text — right */}
       <div
         ref={mergeTextRightRef}
         className="absolute pointer-events-none hidden sm:block"
         style={{
-          left: "calc(50% + 180px)",
+          left: `calc(50% + ${CLIMAX.offsetPx}px)`,
           top: "50%",
           transform: "translateY(-50%)",
-          maxWidth: "min(320px, 26vw)",
+          maxWidth: CLIMAX.maxWidth,
           opacity: 0,
           willChange: "transform, opacity",
           textAlign: "left",

@@ -3,6 +3,7 @@
 import { useRef } from "react"
 import { motion, useInView } from "framer-motion"
 import { CONTENT } from "../act-ii.data"
+import { NARRATOR_STYLE } from "./lenses.config"
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
@@ -41,10 +42,9 @@ export function StoryDeskBridge() {
         transition={{ duration: 0.7, delay: 0.28, ease: EASE }}
         className="font-narrator mt-10 sm:mt-12"
         style={{
-          color: "var(--text-dim)",
+          ...NARRATOR_STYLE,
           fontSize: "clamp(0.88rem, 1.2vw, 1rem)",
           lineHeight: 2,
-          fontStyle: "italic",
           maxWidth: "min(480px, 88vw)",
         }}>
         {CONTENT.bridge.narrator.split("\n\n").map((paragraph, i) => (
@@ -62,10 +62,9 @@ export function StoryDeskBridge() {
         transition={{ duration: 0.7, delay: 0.5, ease: EASE }}
         className="font-narrator mt-8 sm:hidden"
         style={{
-          color: "var(--text-dim)",
+          ...NARRATOR_STYLE,
           fontSize: "clamp(0.88rem, 1.2vw, 1rem)",
           lineHeight: 2,
-          fontStyle: "italic",
           maxWidth: "min(480px, 88vw)",
         }}>
         {CONTENT.funnelClimax.left} {CONTENT.funnelClimax.right}

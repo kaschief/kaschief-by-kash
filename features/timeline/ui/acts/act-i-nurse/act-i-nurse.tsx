@@ -16,14 +16,14 @@ export function ActINurse() {
       <ChaosToOrder />
       {/* Fade from skill cards into throughline */}
       <div
-        className="relative h-24 lg:h-64"
+        className="relative h-2 lg:h-4"
         style={{
           background: "linear-gradient(to bottom, transparent, var(--bg) 60%)",
         }}
       />
       <Takeaway id="act-i-takeaway" text={ACT_I.throughline} />
 
-      <div className="h-24 md:h-40" />
+      <div className="h-2 md:h-4" />
     </section>
   );
 }

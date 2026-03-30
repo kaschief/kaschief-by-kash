@@ -7,7 +7,7 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { COMPANY_LABEL } from "./lenses.config";
+import { COMPANY_LABEL, NARRATOR_STYLE, I_STATEMENT_STYLE } from "./lenses.config";
 import { REMAINING_ENTRIES } from "./card-config";
 import { renderCard } from "./render-card";
 import type { LensEntry } from "@data";
@@ -238,10 +238,8 @@ function StoryOverlay({
         <p
           className="font-serif text-center"
           style={{
-            fontStyle: "italic",
+            ...I_STATEMENT_STYLE,
             fontSize: "clamp(1.15rem, 2.4vw, 1.65rem)",
-            lineHeight: 1.45,
-            color: "var(--gold)",
             maxWidth: 620,
             marginBottom: "clamp(20px, 3.5vh, 36px)",
           }}>
@@ -252,10 +250,9 @@ function StoryOverlay({
         <p
           className="font-narrator text-center"
           style={{
-            fontStyle: "italic",
+            ...NARRATOR_STYLE,
             fontSize: "clamp(0.82rem, 1.05vw, 0.95rem)",
             lineHeight: 1.9,
-            color: "var(--text-dim)",
             maxWidth: 560,
           }}>
           {entry.story}

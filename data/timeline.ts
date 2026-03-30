@@ -166,7 +166,6 @@ export interface ActINurseContent {
   readonly detail: string
   readonly features: readonly NurseFeature[]
   readonly skills: readonly SkillRef[]
-  readonly trainedHeadline: string
   readonly throughline: string
   readonly skillScenarios: readonly SkillScenario[]
 }
@@ -204,56 +203,56 @@ export const ACT_I: ActINurseContent = {
     { id: "s4", label: "Precision Under Pressure" },
     { id: "s5", label: "Cross-Domain Translation" },
   ],
-  trainedHeadline: "What that environment trained into me.",
   throughline: "The ICU was not just a previous career. It was where my operating system started.",
   skillScenarios: [
     {
       id: "detection",
-      question: "What do you do when the numbers are not telling the whole story yet?",
-      accentText: "you do",
+      question: "What do I do when the numbers are not telling the whole story yet?",
+      accentText: "I do",
       title: "Recognize the signal before it is obvious",
       proof:
         "Ran hourly neuro checks, watched ICP trends, compared vitals with the patient in front of me, and caught changes before the chart reflected them.",
       capability:
-        "Collect the data, build the picture from fragments, and decide what information matters.",
+        "I collect the data, build the picture from fragments, and decide what information matters.",
     },
     {
       id: "diagnosis",
-      question: "When something breaks, how do you find the cause?",
-      accentText: "find the cause",
+      question: "When something breaks, how do I find the cause?",
+      accentText: "I find the cause",
       title: "Start with what changed",
       proof:
         "Checked the ventilator, reviewed medication changes, assessed secretions, and worked backwards through what had changed when something suddenly looked wrong.",
-      capability: "Trace problems back to their cause instead of reacting to the loudest symptom.",
+      capability:
+        "I trace problems back to their cause instead of reacting to the loudest symptom.",
     },
     {
       id: "communication",
-      question: "How do you explain something critical to someone who has never seen it before?",
+      question: "How do I explain something critical to someone who has never seen it before?",
       accentText: "explain something",
       title: "Put complex things into plain language",
       proof:
         "Explained machines and alarms to families in the middle of the night and gave surgeons clear updates during rounds.",
       capability:
-        "Translate complex situations into clear language for whoever needs to understand them.",
+        "I translate complex situations into clear language for whoever needs to understand them.",
     },
     {
       id: "execution",
-      question: "How do you get it right when everything is happening at once?",
+      question: "How do I get it right when everything is happening at once?",
       accentText: "everything is happening",
       title: "Stop. Breathe. Focus.",
       proof:
         "Adjusted ventilators, titrated vasopressors, drew labs, documented changes, and moved between patients without losing track of the details.",
-      capability: "Execute precisely while tracking everything else that is unfolding.",
+      capability: "I execute precisely while tracking everything else that is unfolding.",
     },
     {
       id: "triage",
-      question: "How do you decide where your attention goes when every patient is critical?",
+      question: "How do I decide where my attention goes when every patient is critical?",
       accentText: "decide",
       title: "Fix the most dangerous problem first",
       proof:
         "Managed four ICU patients at once, deciding who needed immediate attention and who could safely wait.",
       capability:
-        "Focus attention where risk is highest and escalate before the system catches up.",
+        "I focus attention where risk is highest and escalate before the system catches up.",
     },
     {
       id: "composure",
@@ -262,7 +261,7 @@ export const ACT_I: ActINurseContent = {
       title: "Anchor and keep direction",
       proof:
         "Stayed steady during tense moments so the room could focus on the next step instead of the stress.",
-      capability: "Stay steady so the room can think clearly and move to the next step.",
+      capability: "I stay steady so the room can think clearly and move to the next step.",
     },
   ],
 }
