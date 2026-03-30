@@ -3,12 +3,12 @@
 import { useRef } from "react"
 import { motion, useScroll, useTransform, useInView, type Variants } from "framer-motion"
 import { SECTION_ID } from "@utilities"
-import { PERSONAL, CONTACT_COPY } from "@data"
+import { PERSONAL, CONTACT_CONTENT } from "@data"
 
 const { CONTACT } = SECTION_ID
 
 const { firstName, lastName, email, phone, linkedin, github } = PERSONAL
-const { paragraphs: PARAGRAPHS, coda: CODA } = CONTACT_COPY
+const { paragraphs: PARAGRAPHS, coda: CODA } = CONTACT_CONTENT
 
 const CONTACT_ITEMS = [
   { key: "email", label: email, href: `mailto:${email}`, external: false },

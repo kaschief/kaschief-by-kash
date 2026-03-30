@@ -1,65 +1,59 @@
-"use client";
+"use client"
 
-import { type CSSProperties, useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
-import Image from "next/image";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { StatsGrid } from "@components";
-import { useLayoutReady, useLenis, usePinStore } from "@hooks";
-import { EASE, LAYOUT, TOKENS } from "@utilities";
+import { type CSSProperties, useEffect, useRef, useState } from "react"
+import { motion, useInView } from "framer-motion"
+import Image from "next/image"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { StatsGrid } from "@components"
+import { useLenis, usePinStore } from "@hooks"
+import { EASE, LAYOUT, TOKENS } from "@utilities"
+import { PERSONAL, PORTRAIT_CONTENT } from "@data"
 
-const { cream, textDim, gold } = TOKENS;
-
-const PORTRAIT_STATS = [
-  { value: "4", label: "Companies" },
-  { value: "8+", label: "Years in tech" },
-  { value: "5M+", label: "Users impacted" },
-];
+const { cream, textDim, gold } = TOKENS
+const { location } = PERSONAL
+const { headline, bio, stats: PORTRAIT_STATS } = PORTRAIT_CONTENT
 
 /**
  * Single scale unit: 1% of viewport height, capped so fonts don't
  * blow up on tall monitors. Every dimension in this section is a
  * multiple of --ps, so the entire layout scales uniformly.
  */
-const S = (n: number) => `calc(${n} * var(--ps))`;
+const S = (n: number) => `calc(${n} * var(--ps))`
 
 const sectionStyle: CSSProperties = {
   "--ps": "clamp(7.8px, 1svh, 9.5px)",
   height: "100svh",
-} as CSSProperties;
+} as CSSProperties
 
 export function Portrait() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLDivElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(imageRef, { once: true, margin: "-60px" });
-  const [countersActive, setCountersActive] = useState(false);
-  const getLenis = useLenis();
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const imageRef = useRef<HTMLDivElement>(null)
+  const glowRef = useRef<HTMLDivElement>(null)
+  const inView = useInView(imageRef, { once: true, margin: "-60px" })
+  const [countersActive, setCountersActive] = useState(false)
+  const getLenis = useLenis()
 
   useEffect(() => {
-    const el = sectionRef.current;
-    if (!el) return;
+    const el = sectionRef.current
+    if (!el) return
 
-    const mql = window.matchMedia("(min-width: 768px)");
+    const mql = window.matchMedia("(min-width: 768px)")
     if (!mql.matches) {
       // Async via rAF to avoid synchronous setState in effect body
-      requestAnimationFrame(() => setCountersActive(true));
-      // No pin created — clear barrier immediately
-      useLayoutReady.getState().clearBarrier("portrait-pin-ready");
-      return;
+      requestAnimationFrame(() => setCountersActive(true))
+      return
     }
 
     // Already completed — no pin at all, just a normal section
     if (usePinStore.getState().completed["portrait"]) {
-      requestAnimationFrame(() => setCountersActive(true));
-      useLayoutReady.getState().clearBarrier("portrait-pin-ready");
-      return;
+      requestAnimationFrame(() => setCountersActive(true))
+      return
     }
 
-    const vh = window.innerHeight;
-    const downDistance = vh * LAYOUT.pinDownVh;
-    const upThreshold = LAYOUT.pinUpVh / LAYOUT.pinDownVh;
+    const vh = window.innerHeight
+    const downDistance = vh * LAYOUT.pinDownVh
+    const upThreshold = LAYOUT.pinUpVh / LAYOUT.pinDownVh
 
     const trigger = ScrollTrigger.create({
       trigger: el,
@@ -71,39 +65,32 @@ export function Portrait() {
       onLeave: (self) => {
         // GSAP-recommended approach for pin-once with Lenis:
         // 1. Capture scroll position & pin distance before killing
-        const lenis = getLenis();
-        const scroll = lenis?.scroll ?? window.scrollY;
-        const pinDistance = self.end - self.start;
+        const lenis = getLenis()
+        const scroll = lenis?.scroll ?? window.scrollY
+        const pinDistance = self.end - self.start
 
         // 2. Kill trigger but preserve element's final position
-        self.kill(true, true);
+        self.kill(true, true)
 
         // 3. Recalculate all ScrollTrigger positions (spacer is now gone)
-        ScrollTrigger.refresh();
+        ScrollTrigger.refresh()
 
         // 4. Compensate scroll so user doesn't see a jump
         if (lenis) {
-          lenis.scrollTo(scroll - pinDistance, { immediate: true });
+          lenis.scrollTo(scroll - pinDistance, { immediate: true })
         } else {
-          window.scrollTo(0, scroll - pinDistance);
+          window.scrollTo(0, scroll - pinDistance)
         }
 
         // 5. Mark done in store so pin is never recreated
-        usePinStore.getState().markDone("portrait");
-
-        // 6. Re-signal readiness — layout shifted due to spacer removal
-        useLayoutReady.getState().clearBarrier("portrait-pin-ready");
+        usePinStore.getState().markDone("portrait")
       },
       onUpdate: (self) => {
         if (self.direction === -1 && self.progress > 0 && self.progress < upThreshold) {
-          self.scroll(self.start);
+          self.scroll(self.start)
         }
       },
-    });
-
-    // Pin spacer is inserted synchronously by ScrollTrigger.create() —
-    // signal that Portrait's layout-shifting work is complete.
-    useLayoutReady.getState().clearBarrier("portrait-pin-ready");
+    })
 
     if (glowRef.current) {
       gsap.fromTo(
@@ -119,13 +106,13 @@ export function Portrait() {
             scrub: true,
           },
         },
-      );
+      )
     }
 
     return () => {
-      trigger.kill();
-    };
-  }, [getLenis]);
+      trigger.kill()
+    }
+  }, [getLenis])
 
   return (
     <section id="portrait" ref={sectionRef} style={sectionStyle}>
@@ -140,7 +127,6 @@ export function Portrait() {
             md:flex-row md:items-center md:justify-center
             xl:flex-col xl:items-center"
           style={{ gap: S(4) }}>
-
           {/* Image */}
           <div
             className="relative mx-auto shrink-0 md:mx-0"
@@ -160,9 +146,7 @@ export function Portrait() {
               style={{ backgroundColor: "var(--bg)" }}
               initial={{ clipPath: "inset(16% 0% 16% 0%)" }}
               animate={
-                inView
-                  ? { clipPath: "inset(0% 0% 2% 0%)" }
-                  : { clipPath: "inset(16% 0% 16% 0%)" }
+                inView ? { clipPath: "inset(0% 0% 2% 0%)" } : { clipPath: "inset(16% 0% 16% 0%)" }
               }
               transition={{ duration: 0.6, ease: EASE }}>
               <div
@@ -205,26 +189,25 @@ export function Portrait() {
             <p
               className="font-ui font-medium uppercase tracking-[0.25em]"
               style={{ color: gold, fontSize: S(1.3), marginBottom: S(1.5) }}>
-              Berlin, Germany
+              {location}
             </p>
 
             <h2
               className="font-serif font-normal tracking-[-0.02em]"
               style={{ color: cream, lineHeight: 1.1, fontSize: S(3.8), marginBottom: S(1.5) }}>
-              From the bedside
+              {headline[0]}
               <br />
-              to the&nbsp;terminal.
+              {headline[1]}
             </h2>
 
-            <p
-              className="mx-auto max-w-lg leading-relaxed md:mx-0 xl:mx-auto"
-              style={{ color: textDim, lineHeight: 1.7, fontSize: S(1.6), marginBottom: S(2.5) }}>
-              I started my career as an ICU nurse, where I learned to stay calm
-              under pressure and make decisions that matter. That instinct
-              followed me into software engineering, then into leadership, and
-              now into building products of my own. Every role taught me
-              something the last one couldn&rsquo;t.
-            </p>
+            {bio.map((paragraph, i) => (
+              <p
+                key={i}
+                className="mx-auto max-w-lg leading-relaxed md:mx-0 xl:mx-auto"
+                style={{ color: textDim, lineHeight: 1.7, fontSize: S(1.6), marginBottom: S(2.5) }}>
+                {paragraph}
+              </p>
+            ))}
 
             <StatsGrid
               stats={PORTRAIT_STATS}
@@ -236,5 +219,5 @@ export function Portrait() {
         </div>
       </div>
     </section>
-  );
+  )
 }
