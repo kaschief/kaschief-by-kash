@@ -54,6 +54,22 @@ export function StoryDeskBridge() {
           </span>
         ))}
       </motion.p>
+
+      {/* Funnel climax text — mobile only (desktop shows these in the funnel merge) */}
+      <motion.p
+        initial={{ opacity: 0, y: 14 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.7, delay: 0.5, ease: EASE }}
+        className="font-narrator mt-8 sm:hidden"
+        style={{
+          color: "var(--text-dim)",
+          fontSize: "clamp(0.88rem, 1.2vw, 1rem)",
+          lineHeight: 2,
+          fontStyle: "italic",
+          maxWidth: "min(480px, 88vw)",
+        }}>
+        {CONTENT.funnelClimax.left} {CONTENT.funnelClimax.right}
+      </motion.p>
     </div>
   )
 }

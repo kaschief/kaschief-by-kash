@@ -891,7 +891,7 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
             fontWeight: 700,
             letterSpacing: "-0.01em",
           }}>
-          {CONTENT.merge.left}
+          {CONTENT.funnelClimax.left}
         </p>
       </div>
 
@@ -918,7 +918,7 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
             fontWeight: 700,
             letterSpacing: "-0.01em",
           }}>
-          {CONTENT.merge.right}
+          {CONTENT.funnelClimax.right}
         </p>
       </div>
 
