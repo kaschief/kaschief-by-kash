@@ -1,6 +1,7 @@
 export { fadeJumpSlide } from "./fade-jump";
 export { useBreakpoint } from "./use-breakpoint";
 export { useCustomCursorEnabled } from "./use-custom-cursor-enabled";
+export { useLayoutReady } from "./use-layout-ready";
 export { LenisProvider, useLenis } from "./use-lenis";
 export { useMediaQuery } from "./use-media-query";
 export { useNavStore } from "./use-nav-store";

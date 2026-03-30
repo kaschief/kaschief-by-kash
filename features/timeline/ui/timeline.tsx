@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useLayoutReady } from "@hooks";
 import { ActINurse, ActIIEngineer, ActIIILeader, ActIVBuilder } from "./acts";
 import { TradingArsenal } from "./trading-system";
 import { SECTION_ID } from "@utilities";
@@ -26,6 +27,14 @@ function ActTransition({ children }: { children: React.ReactNode }) {
 }
 
 export function Timeline() {
+  const clearBarrier = useLayoutReady((s) => s.clearBarrier);
+
+  // Signal that Timeline DOM is committed and painted.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => clearBarrier("timeline-mounted"));
+    return () => cancelAnimationFrame(id);
+  }, [clearBarrier]);
+
   return (
     <section id="journey" className="relative">
       <ActINurse />
