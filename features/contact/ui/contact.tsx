@@ -1,165 +1,215 @@
-"use client";
+"use client"
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import {
-  FadeUp,
-  FadeIn,
-  ListRow,
-  ListRowArrow,
-  RevealLine,
-} from "@components";
-import { TOKENS, SECTION_ID } from "@utilities";
-import { PERSONAL } from "@data";
-import type { ContactLinkProps } from "./contact.types";
+import { useRef } from "react"
+import { motion, useScroll, useTransform, useInView, type Variants } from "framer-motion"
+import { SECTION_ID } from "@utilities"
+import { PERSONAL, CONTACT_COPY } from "@data"
 
-const { fontSerif } = TOKENS;
-const { CONTACT } = SECTION_ID;
+const { CONTACT } = SECTION_ID
 
-const CONTACT_LINKS = (
-  email: string,
-  linkedin: string,
-  github: string,
-  phone: string,
-): ContactLinkProps[] => [
-  { label: "Email", detail: email, href: `mailto:${email}` },
-  {
-    label: "LinkedIn",
-    detail: linkedin.replace("https://", ""),
-    href: linkedin,
-    external: true,
-  },
-  {
-    label: "GitHub",
-    detail: github.replace("https://", ""),
-    href: github,
-    external: true,
-  },
-  { label: "Phone", detail: phone, href: `tel:${phone}` },
-];
+const { firstName, lastName, email, phone, linkedin, github } = PERSONAL
+const { paragraphs: PARAGRAPHS, coda: CODA } = CONTACT_COPY
 
-/* ------------------------------------------------------------------ */
-/*  Section                                                             */
-/* ------------------------------------------------------------------ */
+const CONTACT_ITEMS = [
+  { key: "email", label: email, href: `mailto:${email}`, external: false },
+  { key: "phone", label: phone, href: `tel:${phone}`, external: false },
+  { key: "linkedin", label: "LinkedIn", href: linkedin, external: true },
+  { key: "github", label: "GitHub", href: github, external: true },
+]
+
+/* ── Easing ── */
+const SMOOTH = [0.22, 1, 0.36, 1] as unknown as number[]
+
+/* ── Variants ── */
+const nameV: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 1.5, ease: SMOOTH } },
+}
+
+const ruleVert: Variants = {
+  hidden: { scaleY: 0 },
+  visible: { scaleY: 1, transition: { duration: 1.4, delay: 0.3, ease: SMOOTH } },
+}
+
+const ruleHoriz: Variants = {
+  hidden: { scaleX: 0 },
+  visible: { scaleX: 1, transition: { duration: 1.4, delay: 0.3, ease: SMOOTH } },
+}
+
+const parasV: Variants = {
+  hidden: {},
+  visible: { transition: { delayChildren: 0.6, staggerChildren: 0.4 } },
+}
+
+const paraV: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 1.4, ease: SMOOTH } },
+}
+
+const contactsV: Variants = {
+  hidden: {},
+  visible: { transition: { delayChildren: 2.6, staggerChildren: 0.2 } },
+}
+
+const contactV: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 1, ease: SMOOTH } },
+}
+
+/* ── Shared sub-components ── */
+
+function CopyBlock({ className }: { className?: string }) {
+  return (
+    <motion.div className={`flex flex-col gap-[1em] ${className ?? ""}`} variants={parasV}>
+      {PARAGRAPHS.map((p, i) => (
+        <motion.p
+          key={i}
+          className="font-narrator text-[clamp(0.88rem,1.05vw,1.02rem)] leading-[1.85] font-light"
+          style={{ color: "var(--cream)", opacity: 0.72 }}
+          variants={paraV}>
+          {p}
+        </motion.p>
+      ))}
+      <motion.p
+        className="font-narrator text-[clamp(0.78rem,0.88vw,0.88rem)] leading-[1.75] font-light italic"
+        style={{ color: "var(--cream)", opacity: 0.38 }}
+        variants={paraV}>
+        {CODA}
+      </motion.p>
+    </motion.div>
+  )
+}
+
+function ContactLinks({ className }: { className?: string }) {
+  return (
+    <motion.div className={`flex flex-col gap-3 ${className ?? ""}`} variants={contactsV}>
+      {CONTACT_ITEMS.map((item, i) => (
+        <motion.a
+          key={item.key}
+          href={item.href}
+          target={item.external ? "_blank" : undefined}
+          rel={item.external ? "noopener noreferrer" : undefined}
+          className={`font-ui uppercase transition-colors duration-500 hover:text-[var(--gold)] ${
+            i === 0 ? "text-[0.78rem] tracking-[0.26em]" : "text-[0.64rem] tracking-[0.16em]"
+          }`}
+          style={{
+            color: i === 0 ? "var(--cream)" : "var(--text-dim)",
+            opacity: i === 0 ? 0.8 : 1,
+          }}
+          variants={contactV}>
+          {item.label}
+        </motion.a>
+      ))}
+    </motion.div>
+  )
+}
+
+/* ================================================================== */
+
+/** If the page loaded with #contact, skip entrance animation entirely. */
+const isHashTarget = typeof window !== "undefined" && window.location.hash === `#${CONTACT}`
 
 export function Contact() {
-  const { email, linkedin, github, phone } = PERSONAL;
-  const links = CONTACT_LINKS(email, linkedin, github, phone);
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const inView = useInView(sectionRef, { once: true, amount: 0.1 })
+  const animate = isHashTarget || inView ? "visible" : "hidden"
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"],
-  });
-  const glowScale = useTransform(scrollYProgress, [0.2, 0.7], [0.7, 1.1]);
-  const glowOpacity = useTransform(
-    scrollYProgress,
-    [0.1, 0.4, 0.9],
-    [0, 0.5, 0],
-  );
+  })
+  const glowOpacity = useTransform(scrollYProgress, [0.1, 0.4, 0.9], [0, 0.45, 0])
 
   return (
-    <section
-      id={CONTACT}
-      ref={sectionRef}
-      className="relative overflow-hidden px-[var(--page-gutter)] py-12 sm:py-28">
-      {/* Atmospheric glows */}
-      <motion.div
-        className="pointer-events-none absolute inset-0"
-        style={{ opacity: glowOpacity }}>
-        <motion.div
+    <section id={CONTACT} ref={sectionRef} className="relative h-screen overflow-hidden">
+      {/* Atmospheric glow */}
+      <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
+        <div
           className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
-            background:
-              "radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 55%)",
-            scale: glowScale,
-          }}
-        />
-        <div
-          className="absolute left-[25%] top-[35%] h-[350px] w-[350px] rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(91,158,194,0.025) 0%, transparent 55%)",
-            animation: "glow-drift 20s linear infinite",
-          }}
-        />
-        <div
-          className="absolute right-[20%] bottom-[25%] h-[350px] w-[350px] rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(94,187,115,0.025) 0%, transparent 55%)",
-            animation: "glow-drift 25s linear 5s infinite",
+            background: "radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 55%)",
           }}
         />
       </motion.div>
 
-      <div className="relative z-10 mx-auto max-w-2xl text-center">
-        <FadeIn>
-          <p className="mb-5 font-ui text-[10px] font-medium uppercase tracking-[0.4em] text-[var(--gold-dim)]">
-            Next Act
-          </p>
-        </FadeIn>
-
-        <RevealLine delay={0.15}>
+      {/* ═══ DESKTOP (>=1024px): Split layout ═══ */}
+      <div
+        className="hidden lg:flex relative z-10 h-full items-center justify-center"
+        style={{ padding: "0 clamp(2rem, 6vw, 8rem)" }}>
+        {/* Left: monumental name — shrink-proof, sizes by its own clamp() */}
+        <motion.div
+          variants={nameV}
+          initial="hidden"
+          animate={animate}
+          className="flex shrink-0 items-center">
           <h2
-            className="mb-3 text-4xl text-[var(--cream)] sm:text-5xl lg:text-6xl"
-            style={{ fontFamily: fontSerif }}>
-            Yours to write.
-          </h2>
-        </RevealLine>
-
-        <FadeUp delay={0.4}>
-          <p
-            className="mx-auto mb-10 max-w-md text-sm text-[var(--text-dim)]"
-            style={{ lineHeight: 1.8 }}>
-            Open to engineering, leadership, and roles where range is a feature,
-            not a footnote.
-          </p>
-        </FadeUp>
-
-        {/* Contact links — built on ListRow, consistent with all list patterns */}
-        <FadeUp delay={0.5}>
-          <div className="border-t border-[var(--stroke)] text-left">
-            {links.map((link) => (
-              <ListRow
-                key={link.label}
-                color="var(--gold)"
-                href={link.href}
-                target={link.external ? "_blank" : undefined}
-                rel={link.external ? "noopener noreferrer" : undefined}
-                className="flex items-start justify-between gap-3 sm:items-center sm:gap-4"
-                animated={false}>
-                {({ hovered }) => (
-                  <>
-                    <div className="min-w-0 flex-1 pr-2">
-                      <p className="mb-1 font-ui text-[9px] uppercase tracking-[0.22em] text-[var(--text-faint)] transition-colors group-hover:text-[var(--cream-muted)]">
-                        {link.label}
-                      </p>
-                      <p className="text-sm leading-relaxed text-[var(--cream-muted)] transition-colors group-hover:text-[var(--cream)] break-all">
-                        {link.detail}
-                      </p>
-                    </div>
-                    <ListRowArrow
-                      hovered={hovered}
-                      color="var(--gold)"
-                      className="hidden shrink-0 self-center text-sm sm:inline-flex"
-                    />
-                  </>
-                )}
-              </ListRow>
-            ))}
-          </div>
-        </FadeUp>
-
-        <FadeIn delay={0.7}>
-          <div
-            className="mx-auto mt-14 h-px w-14"
+            className="font-serif font-bold leading-[0.85] tracking-[-0.03em] select-none text-right"
             style={{
-              background:
-                "linear-gradient(90deg, transparent, var(--gold), transparent)",
-            }}
+              color: "var(--cream)",
+              fontSize: "clamp(4rem, 7.5vw, 14rem)",
+            }}>
+            {firstName}
+            <br />
+            <span className="block" style={{ color: "var(--cream)", opacity: 0.5 }}>
+              {lastName}
+            </span>
+          </h2>
+        </motion.div>
+
+        {/* Vertical gold rule */}
+        <div
+          className="flex shrink-0 items-center justify-center self-stretch"
+          style={{ padding: "0 clamp(1.5rem, 3vw, 4rem)" }}>
+          <motion.div
+            variants={ruleVert}
+            initial="hidden"
+            animate={animate}
+            className="w-px origin-top"
+            style={{ background: "var(--gold)", height: "45vh" }}
           />
-        </FadeIn>
+        </div>
+
+        {/* Right: copy + contact — capped width, takes remaining space */}
+        <motion.div
+          initial="hidden"
+          animate={animate}
+          className="flex max-w-[460px] flex-col justify-center gap-10">
+          <CopyBlock />
+          <ContactLinks />
+        </motion.div>
+      </div>
+
+      {/* ═══ PHONE + TABLET (<1024px): Stacked, vertically centered ═══ */}
+      <div className="flex lg:hidden relative z-10 h-full flex-col justify-center px-[var(--page-gutter)]">
+        {/* Name */}
+        <motion.div variants={nameV} initial="hidden" animate={animate}>
+          <h2
+            className="font-serif font-bold leading-[0.85] tracking-[-0.03em] select-none"
+            style={{
+              color: "var(--cream)",
+              fontSize: "clamp(3rem, 14vw, 8rem)",
+            }}>
+            {firstName}
+            <br />
+            <span style={{ opacity: 0.5 }}>{lastName}</span>
+          </h2>
+        </motion.div>
+
+        {/* Gold rule */}
+        <motion.div
+          variants={ruleHoriz}
+          initial="hidden"
+          animate={animate}
+          className="h-px w-12 origin-left mt-7 mb-7"
+          style={{ background: "var(--gold)" }}
+        />
+
+        {/* Content */}
+        <motion.div initial="hidden" animate={animate} className="flex flex-col gap-8">
+          <CopyBlock />
+          <ContactLinks />
+        </motion.div>
       </div>
     </section>
-  );
+  )
 }

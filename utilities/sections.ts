@@ -25,7 +25,6 @@ const {
   ACT_ENGINEER,
   ACT_LEADER,
   ACT_BUILDER,
-  METHODS,
   CONTACT,
 } = SECTION_ID;
 
@@ -37,6 +36,5 @@ export const SECTION_IDS_ORDERED: readonly SectionId[] = [
   ACT_ENGINEER,
   ACT_LEADER,
   ACT_BUILDER,
-  METHODS,
   CONTACT,
 ];

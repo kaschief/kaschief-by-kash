@@ -5,7 +5,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { CursorArrow, StickyZoneControls } from "@components";
 import { Contact } from "@features/contact";
 import { Hero } from "@features/hero";
-import { Methods } from "@features/methods";
 import { Navigation } from "@features/navigation";
 import { Philosophy } from "@features/philosophy";
 import { Portrait } from "@features/portrait";
@@ -128,17 +127,10 @@ export function HomePageClient({ viewModel }: HomePageClientProps) {
             <Philosophy />
           </div>
         </SectionTransition>
-        <SectionTransition>
-          <div data-typo="methods">
-            <Methods />
-          </div>
-        </SectionTransition>
-        <SectionTransition offset={40}>
-          <ScrollDivider />
-          <div data-typo="contact">
-            <Contact />
-          </div>
-        </SectionTransition>
+        <ScrollDivider />
+        <div data-typo="contact">
+          <Contact />
+        </div>
       </PageLayout>
     </LenisProvider>
   );
