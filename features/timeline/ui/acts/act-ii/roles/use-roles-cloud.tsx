@@ -57,17 +57,28 @@ import {
   ROLES_HOLD_END,
   ROLES_DRAIN_END,
 } from "../act-ii.types";
-import {
-  ACT_BLUE,
-  CREAM,
-  CREAM_MUTED,
-  TEXT_DIM,
-  TEXT_FAINT,
-  GOLD,
-  PROMOTED as PROMOTED_GREEN,
-  COMMIT_TYPE_COLORS,
-  COMMIT_TYPE_FALLBACK,
-} from "../../act-ii-legacy/act-ii.constants";
+/* ── Roles cloud color config ── */
+const COLORS = {
+  actBlue: "#5B9EC2",
+  cream: "#F0E6D0",
+  creamMuted: "#B0A890",
+  textDim: "#8A8478",
+  textFaint: "#4A4640",
+  gold: "#C9A84C",
+  promoted: "#5EBB73",
+  commitTypes: {
+    feat: "#5B9EC2",
+    fix: "#E05252",
+    perf: "#5EBB73",
+    refactor: "#C9A84C",
+    test: "#9B8FCE",
+    docs: "#8B9DC3",
+    ship: "#C9A84C",
+    chore: "#8A8478",
+    collab: "#7A8B6E",
+    fallback: "#4A4640",
+  },
+} as const;
 
 /* ── Seed mapping ── */
 
@@ -790,19 +801,19 @@ export function useRolesCloud() {
                 <div
                   ref={setFillRef}
                   className="text-sm font-bold sm:text-base lg:text-lg"
-                  style={{ color: CREAM, opacity: 0 }}>
+                  style={{ color: COLORS.cream, opacity: 0 }}>
                   {company.company}
                 </div>
                 <div
                   ref={setFillRef}
                   className="mt-0.5 font-ui text-xs"
-                  style={{ color: ACT_BLUE, opacity: 0 }}>
+                  style={{ color: COLORS.actBlue, opacity: 0 }}>
                   {company.role}
                 </div>
                 <div
                   ref={setFillRef}
                   className="mt-1 font-ui text-[11px]"
-                  style={{ color: TEXT_DIM, opacity: 0 }}>
+                  style={{ color: COLORS.textDim, opacity: 0 }}>
                   {company.location} &middot; {company.period}
                 </div>
                 {/* Commits + overlaid impact metrics */}
@@ -811,7 +822,7 @@ export function useRolesCloud() {
                   <ul className="flex flex-col" style={{ gap: "0.125rem" }}>
                     {company.commits.map((commit, commitIdx) => {
                       const typeColor =
-                        COMMIT_TYPE_COLORS[commit.type] ?? COMMIT_TYPE_FALLBACK;
+                        COLORS.commitTypes[commit.type as keyof typeof COLORS.commitTypes] ?? COLORS.commitTypes.fallback;
                       return (
                         <li
                           key={commitIdx}
@@ -824,7 +835,7 @@ export function useRolesCloud() {
                           </span>
                           <span
                             ref={setFillRef}
-                            style={{ color: TEXT_FAINT, opacity: 0 }}>
+                            style={{ color: COLORS.textFaint, opacity: 0 }}>
                             :{" "}
                           </span>
                           {commit.msg.split(/\s+/).map((word, wordIdx) => {
@@ -849,7 +860,7 @@ export function useRolesCloud() {
                                   }}
                                   className="inline-block"
                                   style={{
-                                    color: CREAM,
+                                    color: COLORS.cream,
                                     opacity: 0,
                                     visibility: "hidden",
                                   }}>
@@ -863,7 +874,7 @@ export function useRolesCloud() {
                                 key={wordIdx}
                                 ref={setFillRef}
                                 className="inline-block"
-                                style={{ color: CREAM_MUTED, opacity: 0 }}>
+                                style={{ color: COLORS.creamMuted, opacity: 0 }}>
                                 {word}
                                 {space}
                               </span>
@@ -879,7 +890,7 @@ export function useRolesCloud() {
                     style={{ gap: "0.125rem" }}>
                     {company.repo.impact.map((metric, mi) => {
                       const isPromotion = metric.promoted === true;
-                      const baseColor = isPromotion ? GOLD : CREAM_MUTED;
+                      const baseColor = isPromotion ? COLORS.gold : COLORS.creamMuted;
                       const displayText = metric.text ?? metric.label;
                       const hl = metric.highlight;
 
@@ -891,7 +902,7 @@ export function useRolesCloud() {
                           content = (
                             <>
                               {displayText.slice(0, idx)}
-                              <span style={{ color: PROMOTED_GREEN }}>{hl}</span>
+                              <span style={{ color: COLORS.promoted }}>{hl}</span>
                               {displayText.slice(idx + hl.length)}
                             </>
                           );

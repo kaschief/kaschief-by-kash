@@ -18,24 +18,6 @@ export type CompanyId = (typeof COMPANY_ID)[keyof typeof COMPANY_ID]
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-export interface Job {
-  readonly id: string
-  readonly company: string
-  readonly role: string
-  readonly period: string
-  readonly location: string
-  readonly color: string
-  readonly tech: readonly string[]
-  readonly summary: string
-  readonly url: string
-  readonly deepDive: {
-    readonly context: string
-    readonly contribution: string
-    readonly outcome: string
-    readonly skills: readonly string[]
-  }
-}
-
 export interface ManagementStory {
   readonly id: string
   readonly tags: readonly string[]
@@ -270,93 +252,6 @@ export const ACT_I: ActINurseContent = {
 /* ------------------------------------------------------------------ */
 /*  ACT II — The Engineer                                              */
 /* ------------------------------------------------------------------ */
-
-export const JOBS: readonly Job[] = [
-  {
-    id: "amboss",
-    company: "AMBOSS",
-    role: "Frontend Engineer",
-    period: "2018 - 2019",
-    location: "Berlin",
-    color: engineerRole.color,
-    tech: ["React", "A/B Testing", "User Research"],
-    summary: "Medical exam platform used by 500K+ students globally",
-    url: "https://amboss.com",
-    deepDive: {
-      context:
-        "This was my first engineering role, and it mattered that it was in health tech. Coming from nursing, I understood the users — medical students under immense pressure who needed tools that worked flawlessly.",
-      contribution:
-        "I wasn't just writing React components; I was validating whether features actually helped people learn faster. The A/B testing culture here shaped how I think about product decisions: not opinions, but evidence.",
-      outcome:
-        "We shipped features, measured them, and killed what didn't work. That discipline has stayed with me ever since.",
-      skills: [
-        "Rapid prototyping",
-        "Evidence-based decisions",
-        "User empathy from domain knowledge",
-      ],
-    },
-  },
-  {
-    id: "compado",
-    company: "Compado",
-    role: "Frontend Engineer → Senior Frontend Engineer",
-    period: "2019 - 2021",
-    location: "Berlin",
-    color: engineerRole.color,
-    tech: ["Vue", "SEO", "Performance"],
-    summary: "Product comparison sites with dynamic content systems",
-    url: "https://compado.com",
-    deepDive: {
-      context:
-        "Compado was where I learned that performance is a feature. We built product comparison sites where milliseconds mattered for SEO rankings and conversion.",
-      contribution:
-        "I went deep on Core Web Vitals, lazy loading strategies, and how to architect Vue apps that score well on Lighthouse while still being rich and interactive.",
-      outcome:
-        "The promotion to Senior wasn't about tenure — it came because I took ownership of the entire frontend performance story and delivered measurable business results: 50% faster load times, 25% more organic traffic.",
-      skills: ["Performance optimization", "SEO engineering", "Ownership mentality"],
-    },
-  },
-  {
-    id: "capinside",
-    company: "CAPinside",
-    role: "Senior Frontend Engineer",
-    period: "2021",
-    location: "Hamburg",
-    color: engineerRole.color,
-    tech: ["Vue", "TypeScript", "Fintech"],
-    summary: "Fintech platform serving 10,000+ financial advisors",
-    url: "https://capinside.com",
-    deepDive: {
-      context:
-        "Short tenure, deep impact. CAPinside had a legacy frontend that was holding back the entire product. I was brought in specifically to replace it.",
-      contribution:
-        "The challenge wasn't just technical — it was convincing a fintech company serving 10,000 financial advisors that a full rewrite was safer than continuing to patch. I mapped every feature, built migration paths, and delivered a Vue + TypeScript application that loaded 35% faster.",
-      outcome:
-        "The lesson: sometimes the most senior thing you can do is have the conviction to say 'this needs to be rebuilt' and then prove it.",
-      skills: ["Technical conviction", "Migration planning", "Stakeholder alignment"],
-    },
-  },
-  {
-    id: "dkb",
-    company: "DKB Code Factory",
-    role: "Senior → Engineering Manager",
-    period: "2021 - 2022",
-    location: "Berlin",
-    color: engineerRole.color,
-    tech: ["React", "TypeScript", "Playwright", "Micro-frontends"],
-    summary: "Rebuilt UI/UX of a banking platform for 5M+ users",
-    url: "https://dkb.de",
-    deepDive: {
-      context:
-        "DKB is Germany's largest direct bank — 5 million users. The frontend needed a complete overhaul, and I was part of the team rebuilding it in React with TypeScript and micro-frontends.",
-      contribution:
-        "What set me apart wasn't the code. I introduced testing culture: Jest for units, Playwright for e2e. The team had been shipping without automated tests. I built the testing infrastructure, wrote the patterns, and coached others to adopt them.",
-      outcome:
-        "Within 12 months, I was promoted to Engineering Manager — not because I asked, but because I was already doing the work: unblocking people, improving processes, and taking responsibility for outcomes beyond my own PRs.",
-      skills: ["Testing infrastructure", "Process improvement", "Leadership through action"],
-    },
-  },
-]
 
 export const ACT_II: ActContent = {
   act: "ACT II",
@@ -818,18 +713,18 @@ export const MGMT_STORIES: readonly ManagementStory[] = [
 /*  ACT III — The Leader (v2 cinematic)                                */
 /* ------------------------------------------------------------------ */
 
-export interface LeaderScenario {
+interface LeaderScenario {
   readonly id: string
   readonly situation: string
   readonly response: string
 }
 
-export interface LeaderAnnotation {
+interface LeaderAnnotation {
   readonly label: string
   readonly text: string
 }
 
-export interface LeaderContent {
+interface LeaderContent {
   readonly act: string
   readonly title: string
   readonly color: string
