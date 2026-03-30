@@ -42,9 +42,9 @@ describe("Act I skill scenarios", () => {
     for (const scenario of skillScenarios) {
       expect(scenario.id.length).toBeGreaterThan(0);
       expect(scenario.question.length).toBeGreaterThan(0);
-      expect(scenario.title.length).toBeGreaterThan(0);
-      expect(scenario.proof.length).toBeGreaterThan(0);
-      expect(scenario.capability.length).toBeGreaterThan(0);
+      expect(scenario.title?.length ?? 0).toBeGreaterThan(0);
+      expect(scenario.story.length).toBeGreaterThan(0);
+      expect(scenario.iStatement.length).toBeGreaterThan(0);
     }
   });
 });

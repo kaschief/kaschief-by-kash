@@ -7,7 +7,7 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { COMPANY_LABEL, NARRATOR_STYLE, I_STATEMENT_STYLE } from "./lenses.config";
+import { COMPANY_LABEL, STORY_STYLE, I_STATEMENT_STYLE } from "./lenses.config";
 import { REMAINING_ENTRIES } from "./card-config";
 import { renderCard } from "./render-card";
 import type { LensEntry } from "@data";
@@ -112,7 +112,7 @@ function StoryOverlay({
       className="fixed inset-0 flex items-end sm:items-center justify-end sm:justify-center sm:px-4"
       role="dialog"
       aria-modal="true"
-      aria-label={`Story: ${entry.headline}`}
+      aria-label={`Story: ${entry.question}`}
       style={{
         zIndex: 10001,
         background: "rgba(4,4,6,0.94)",
@@ -231,7 +231,7 @@ function StoryOverlay({
             maxWidth: 560,
             marginBottom: "clamp(14px, 2.5vh, 24px)",
           }}>
-          {entry.headline}
+          {entry.question}
         </p>
 
         {/* I-statement — the hero */}
@@ -248,9 +248,9 @@ function StoryOverlay({
 
         {/* Story */}
         <p
-          className="font-narrator text-center"
+          className="font-sans text-center"
           style={{
-            ...NARRATOR_STYLE,
+            ...STORY_STYLE,
             fontSize: "clamp(0.82rem, 1.05vw, 0.95rem)",
             lineHeight: 1.9,
             maxWidth: 560,
@@ -315,7 +315,7 @@ function DeskCard({
           marginTop: 8,
           fontFamily: "var(--font-narrator)",
           fontStyle: "italic",
-          fontSize: touch ? 11 : 13,
+          fontSize: touch ? 13 : 13,
           lineHeight: 1.4,
           color: "var(--gold)",
           ...(touch

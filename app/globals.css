@@ -89,7 +89,7 @@ html.lenis body {
   --font-serif: var(--font-playfair), Georgia, serif;
   --font-mono: var(--font-jetbrains-mono), monospace;
   --font-ui: var(--font-urbanist), system-ui, sans-serif;
-  --font-narrator: var(--font-kaisei-decol), Georgia, serif;
+  --font-narrator: var(--font-crimson-pro), Georgia, serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

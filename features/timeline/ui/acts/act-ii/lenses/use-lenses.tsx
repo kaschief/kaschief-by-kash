@@ -26,7 +26,7 @@ import {
   BLUR_THRESHOLD,
   COMPANY_LABEL,
   CARD_ZOOM,
-  NARRATOR_STYLE,
+  STORY_STYLE,
   I_STATEMENT_STYLE,
 } from "./lenses.config";
 import {
@@ -364,7 +364,7 @@ export function useLenses() {
         className="absolute left-1/2 top-1/2 text-center select-none pointer-events-none"
         style={{
           opacity: 0,
-          fontFamily: "var(--font-serif)",
+          fontFamily: "var(--font-narrator)",
           fontSize: "clamp(1.4rem, 3vw, 2.4rem)",
           color: "var(--cream)",
           fontWeight: 400,
@@ -505,7 +505,7 @@ export function useLenses() {
                     lineHeight: 1.6,
                     willChange: "transform",
                   }}>
-                  {entry.headline.split(" ").map((word, w) => (
+                  {entry.question.split(" ").map((word, w) => (
                     <span
                       key={w}
                       ref={(el) => {
@@ -554,7 +554,7 @@ export function useLenses() {
                     storyRefs.current[i] = el;
                   }}
                   style={{
-                    ...NARRATOR_STYLE,
+                    ...STORY_STYLE,
                     opacity: 0,
                     marginTop: 24,
                     willChange: "transform, opacity",
@@ -597,7 +597,7 @@ export function useLenses() {
               <div
                 className="mt-3 text-center"
                 style={{
-                  ...NARRATOR_STYLE,
+                  ...STORY_STYLE,
                   fontSize: "clamp(0.75rem, 3vw, 0.85rem)",
                   lineHeight: 1.7,
                 }}>

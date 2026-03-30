@@ -17,6 +17,8 @@ export const TOKENS = {
   // Text
   cream: "var(--cream)",
   creamMuted: "var(--cream-muted)",
+  /** Narrator in Act I chaos-to-order — brighter than cream-muted for dark bg readability */
+  narratorBright: "#D4CBBA",
   textDim: "var(--text-dim)",
   textFaint: "var(--text-faint)",
 
@@ -29,10 +31,15 @@ export const TOKENS = {
 
   // Fonts
   fontSerif: "var(--font-serif)",
+  fontNarrator: "var(--font-narrator)",
   fontUi: "var(--font-ui)",
 
   // Act colors (match --act-* CSS variables)
   actRed: "var(--act-red)",
+  /** Dimmed act-red for inline highlights — doesn't compete with gold */
+  actRedDim: "#B04444",
+  /** Bright act-red for hover states */
+  actRedHot: "#F06060",
   actBlue: "var(--act-blue)",
   actGold: "var(--act-gold)",
   actGreen: "var(--act-green)",

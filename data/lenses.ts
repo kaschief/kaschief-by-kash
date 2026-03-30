@@ -16,8 +16,8 @@ interface LensEntryBase {
   id: number
   company: string
   years: string
-  /** One-line title framing the scenario */
-  headline: string
+  /** Question framing the scenario */
+  question: string
   artifact: string
   story: string
   iStatement: string
@@ -183,7 +183,7 @@ const USERS: Lens = {
       id: 1,
       company: "AMBOSS",
       years: "2018–2019",
-      headline: "How do I approach a bug found by accident?",
+      question: "How do I approach a bug found by accident?",
       cardType: "jira",
       artifact:
         "The images on the cardiology article are not showing up on my phone. Tested on iPhone 11, Safari. Other articles seem fine.",
@@ -203,7 +203,7 @@ const USERS: Lens = {
       id: 2,
       company: "Compado",
       years: "2019–2021",
-      headline: "How do I look for trouble before someone reports it?",
+      question: "How do I look for trouble before someone reports it?",
       cardType: "sentry",
       artifact: "",
       story:
@@ -229,7 +229,7 @@ const USERS: Lens = {
       id: 3,
       company: "DKB",
       years: "2021–2024",
-      headline: "How do I assess whether something is really done?",
+      question: "How do I assess whether something is really done?",
       cardType: "slack-channel",
       artifact:
         "Hey Nina, quick flag, the transfer page is missing the recipient name. The transfer still works, but from the user side it is not clear where the money is going.",
@@ -259,7 +259,7 @@ const GAPS: Lens = {
       id: 4,
       company: "AMBOSS",
       years: "2018–2019",
-      headline: "How do I view a design that feels complete?",
+      question: "How do I view a design that feels complete?",
       cardType: "figma-comment",
       artifact: "Here is the menu. It opens from the side.",
       story:
@@ -274,7 +274,7 @@ const GAPS: Lens = {
       id: 5,
       company: "Compado",
       years: "2019 - 2021",
-      headline: "How do I respond when something looks smaller than it is?",
+      question: "How do I handle unclear scope?",
       cardType: "slack-direct",
       artifact:
         "Before I pick this up, can we refine it a bit? It says small change, but the scope is not clear.",
@@ -290,7 +290,7 @@ const GAPS: Lens = {
       id: 6,
       company: "CAPinside",
       years: "2021",
-      headline: "How do I respond when design and data disagree?",
+      question: "How do I respond when design and data disagree?",
       cardType: "figma-comment",
       artifact:
         "The new fund detail page looks clean in Figma but the data it needs does not exist in the API the same way.",
@@ -308,7 +308,7 @@ const GAPS: Lens = {
       id: 7,
       company: "CAPinside",
       years: "2021",
-      headline: "How do I react when my reasoning is challenged?",
+      question: "How do I react when my reasoning is challenged?",
       cardType: "adr-comment",
       artifact:
         "Why did you choose this approach over the alternative? Mind walking us through the trade-offs?",
@@ -334,7 +334,7 @@ const PATTERNS: Lens = {
       id: 8,
       company: "AMBOSS",
       years: "2018 - 2019",
-      headline: "How do I start when the shape is still unclear?",
+      question: "How do I start when the shape is still unclear?",
       cardType: "plain-bare",
       artifact: "Can you start on this? We will figure out the details as we go.",
       story:
@@ -349,7 +349,7 @@ const PATTERNS: Lens = {
       id: 9,
       company: "AMBOSS",
       years: "2018 - 2019",
-      headline: "How do I approach feedback from someone who just arrived to our team?",
+      question: "How do I approach feedback from someone who just arrived to our team?",
       cardType: "plain-sticky",
       artifact: "How does anyone work on this file? It is massive.",
       story:
@@ -364,7 +364,7 @@ const PATTERNS: Lens = {
       id: 10,
       company: "Compado",
       years: "2019–2021",
-      headline: "How do I work when the same word means different things to different teams?",
+      question: "How do I work when the same word means different things to different teams?",
       cardType: "meeting-note",
       artifact: "",
       story:
@@ -390,7 +390,7 @@ const PATTERNS: Lens = {
       id: 11,
       company: "DKB",
       years: "2021–2024",
-      headline: "How do I close the loop before shipping?",
+      question: "How do I close the loop before shipping?",
       cardType: "github-review",
       artifact: "",
       story:
@@ -410,7 +410,7 @@ const PATTERNS: Lens = {
       id: 12,
       company: "DKB",
       years: "2021–2024",
-      headline: "How do I think about temporary things that stay too long?",
+      question: "How do I think about temporary things that stay too long?",
       cardType: "plain-annotation",
       artifact:
         "We have fourteen feature flags in production. Does anyone know which ones are still active?",

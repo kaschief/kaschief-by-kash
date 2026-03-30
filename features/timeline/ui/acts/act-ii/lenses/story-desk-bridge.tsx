@@ -24,7 +24,7 @@ export function StoryDeskBridge() {
         initial={{ opacity: 0, y: 24 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.85, ease: EASE }}
-        className="font-serif"
+        className="font-narrator"
         style={{
           fontSize: "clamp(2.4rem, 6vw, 4.5rem)",
           lineHeight: 1.08,
