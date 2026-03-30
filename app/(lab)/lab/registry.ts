@@ -12,57 +12,20 @@ export interface LabRoute {
   href: string;
   label: string;
   desc: string;
-  section: "archived" | "reference" | "scroll";
+  section: "wip-covers";
 }
 
 export const LAB_ROUTES: readonly LabRoute[] = [
-  // Archived
   {
-    href: "/legacy-engineer",
-    label: "Legacy Engineer",
-    desc: "Original Act II terminal section",
-    section: "archived",
-  },
-
-  // Reference prototypes
-  {
-    href: "/lab-sankey",
-    label: "Horizontal Sankey",
-    desc: "Left-to-right SVG Sankey, streams flow through company bars",
-    section: "reference",
-  },
-  {
-    href: "/lab-particles",
-    label: "Particle Flow",
-    desc: "Canvas particles with glow, trails, wobble along stream paths",
-    section: "reference",
-  },
-
-  // Scroll explorations
-  {
-    href: "/lab-pillars",
-    label: "Pillars",
-    desc: "Card-stack pillar exploration with scroll-driven stories",
-    section: "scroll",
-  },
-  {
-    href: "/lab-roles",
-    label: "Roles Convergence",
-    desc: "Act II convergence cloud — base for roles transition experiment",
-    section: "scroll",
-  },
-  {
-    href: "/lab-bridges",
-    label: "Act II Bridges",
-    desc: "Five bridge patterns from story desk to funnel to coda",
-    section: "scroll",
+    href: "/lab-wip-5",
+    label: "Construction Hoarding",
+    desc: "Bold graphic typography with mouse-reactive parallax layers",
+    section: "wip-covers",
   },
 ];
 
 const SECTION_LABELS: Record<LabRoute["section"], string> = {
-  archived: "Archived",
-  reference: "Reference Prototypes",
-  scroll: "Scroll Explorations",
+  "wip-covers": "WIP Covers",
 };
 
 export interface LabSection {

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  NAV_LINKS,
   PERSONAL,
   PHILOSOPHY,
   ROLE_NAV_LINKS,
@@ -12,8 +11,9 @@ import { SECTION_ID, SECTION_IDS_ORDERED } from "@utilities";
 describe("site data contracts", () => {
   it("uses valid section ids in nav links", () => {
     const sectionSet = new Set(SECTION_IDS_ORDERED);
+    const allLinks = [...ROLE_NAV_LINKS, ...SECTION_NAV_LINKS];
 
-    for (const link of NAV_LINKS) {
+    for (const link of allLinks) {
       expect(
         sectionSet.has(link.sectionId as (typeof SECTION_IDS_ORDERED)[number]),
       ).toBe(true);
@@ -25,11 +25,10 @@ describe("site data contracts", () => {
     expect(new Set(sectionIds).size).toBe(sectionIds.length);
   });
 
-  it("models the full nav in NAV_LINKS and derives ROLES from it", () => {
+  it("derives ROLES from ROLE_NAV_LINKS", () => {
     expect(ROLE_NAV_LINKS.length).toBeGreaterThan(0);
     expect(SECTION_NAV_LINKS.length).toBeGreaterThan(0);
     expect(ROLES).toEqual(ROLE_NAV_LINKS);
-    expect(NAV_LINKS).toHaveLength(ROLE_NAV_LINKS.length + SECTION_NAV_LINKS.length);
   });
 
   it("keeps personal/contact fields populated", () => {

@@ -162,13 +162,6 @@ export type EntryOf<T extends CardType> = Extract<LensEntry, { cardType: T }>
 export const LENS_NAMES = ["users", "gaps", "patterns"] as const
 export type LensName = (typeof LENS_NAMES)[number]
 
-/** Display form of each lens name — tied to LENS_NAMES, not freeform strings */
-export const LENS_DISPLAY: Record<LensName, string> = {
-  users: "Users",
-  gaps: "Gaps",
-  patterns: "Patterns",
-}
-
 export interface Lens {
   desc: string
   entries: LensEntry[]
@@ -437,12 +430,3 @@ export const LENSES: Record<LensName, Lens> = {
 /** Flat list of all entries across lenses. */
 export const ALL_ENTRIES: readonly LensEntry[] = LENS_NAMES.flatMap((name) => LENSES[name].entries)
 
-/** Look up an entry by id. */
-export function getEntry(id: number): LensEntry | undefined {
-  return ALL_ENTRIES.find((e) => e.id === id)
-}
-
-/** Look up a lens by name. */
-export function getLens(name: LensName): Lens {
-  return LENSES[name]
-}

@@ -22,30 +22,28 @@ export interface PersonalInfo {
   readonly github: string;
 }
 
-export const ROLE_LABEL = {
+const ROLE_LABEL = {
   NURSE: "Nurse",
   ENGINEER: "Engineer",
   LEADER: "Leader",
   BUILDER: "Builder",
 } as const;
 
-export type RoleLabel = (typeof ROLE_LABEL)[keyof typeof ROLE_LABEL];
+type RoleLabel = (typeof ROLE_LABEL)[keyof typeof ROLE_LABEL];
 
-export const SECTION_NAV_LABEL = {
+const SECTION_NAV_LABEL = {
   WHO_AM_I: "Who Am I",
   METHODS: "Methods",
   CONTACT: "Contact",
 } as const;
 
-export type SectionNavLabel =
+type SectionNavLabel =
   (typeof SECTION_NAV_LABEL)[keyof typeof SECTION_NAV_LABEL];
 
-export const NAV_LINK_TYPE = {
+const NAV_LINK_TYPE = {
   ROLE: "role",
   SECTION: "section",
 } as const;
-
-export type NavLinkType = (typeof NAV_LINK_TYPE)[keyof typeof NAV_LINK_TYPE];
 
 interface BaseNavLink {
   sectionId: SectionId;
@@ -77,7 +75,7 @@ export const PERSONAL: PersonalInfo = {
 };
 
 // Single source of truth for top nav composition and styling.
-export const NAV_LINKS: readonly NavLink[] = [
+const NAV_LINKS: readonly NavLink[] = [
   {
     type: NAV_LINK_TYPE.SECTION,
     label: SECTION_NAV_LABEL.WHO_AM_I,

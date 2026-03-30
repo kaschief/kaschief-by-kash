@@ -37,7 +37,6 @@ describe("feature public-api contracts", () => {
       "ActIIEngineer",
       "ActIIILeader",
       "ActIIILegacy",
-      "ActIILegacy",
       "ActINurse",
       "ActIVBuilder",
       "Timeline",
