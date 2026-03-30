@@ -8,12 +8,12 @@ export const COLORS = {
   /** Act accent — labels, hairlines, arrows */
   accent: ACT_I.color,
   /** Brighter accent for hover states */
-  accentHot: "#F06060",
-  /** Muted accent for inline question highlights */
-  accentMuted: "#9E3535",
+  accentHot: TOKENS.actRedHot,
+  /** Muted accent for inline question highlights — dimmed red that doesn't compete with gold */
+  accentMuted: TOKENS.actRedDim,
 
-  /** Narrator text — brightest text on screen */
-  narrator: "#F5ECD8",
+  /** Narrator text — brighter than cream-muted for readability over chaos background */
+  narrator: TOKENS.narratorBright,
   /** Card title default — muted to defer to narrator */
   cardTitle: TOKENS.creamMuted,
   /** Card title on hover — lifts to cream */

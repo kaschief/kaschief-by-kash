@@ -148,11 +148,12 @@ export interface Company {
 export interface SkillScenario {
   readonly id: string
   readonly question: string
+  readonly iStatement: string
+  readonly story: string
   /** Substring of question to highlight in accent color during order phase */
-  readonly accentText: string
-  readonly title: string
-  readonly proof: string
-  readonly capability: string
+  readonly accentText?: string
+  /** Short summary line — Act I only */
+  readonly title?: string
 }
 
 export interface ActINurseContent {
@@ -210,9 +211,9 @@ export const ACT_I: ActINurseContent = {
       question: "What do I do when the numbers are not telling the whole story yet?",
       accentText: "I do",
       title: "Recognize the signal before it is obvious",
-      proof:
+      story:
         "Ran hourly neuro checks, watched ICP trends, compared vitals with the patient in front of me, and caught changes before the chart reflected them.",
-      capability:
+      iStatement:
         "I collect the data, build the picture from fragments, and decide what information matters.",
     },
     {
@@ -220,9 +221,9 @@ export const ACT_I: ActINurseContent = {
       question: "When something breaks, how do I find the cause?",
       accentText: "I find the cause",
       title: "Start with what changed",
-      proof:
+      story:
         "Checked the ventilator, reviewed medication changes, assessed secretions, and worked backwards through what had changed when something suddenly looked wrong.",
-      capability:
+      iStatement:
         "I trace problems back to their cause instead of reacting to the loudest symptom.",
     },
     {
@@ -230,9 +231,9 @@ export const ACT_I: ActINurseContent = {
       question: "How do I explain something critical to someone who has never seen it before?",
       accentText: "explain something",
       title: "Put complex things into plain language",
-      proof:
+      story:
         "Explained machines and alarms to families in the middle of the night and gave surgeons clear updates during rounds.",
-      capability:
+      iStatement:
         "I translate complex situations into clear language for whoever needs to understand them.",
     },
     {
@@ -240,18 +241,18 @@ export const ACT_I: ActINurseContent = {
       question: "How do I get it right when everything is happening at once?",
       accentText: "everything is happening",
       title: "Stop. Breathe. Focus.",
-      proof:
+      story:
         "Adjusted ventilators, titrated vasopressors, drew labs, documented changes, and moved between patients without losing track of the details.",
-      capability: "I execute precisely while tracking everything else that is unfolding.",
+      iStatement: "I execute precisely while tracking everything else that is unfolding.",
     },
     {
       id: "triage",
       question: "How do I decide where my attention goes when every patient is critical?",
       accentText: "decide",
       title: "Fix the most dangerous problem first",
-      proof:
+      story:
         "Managed four ICU patients at once, deciding who needed immediate attention and who could safely wait.",
-      capability:
+      iStatement:
         "I focus attention where risk is highest and escalate before the system catches up.",
     },
     {
@@ -259,9 +260,9 @@ export const ACT_I: ActINurseContent = {
       question: "When the pressure rises in the room, what matters most?",
       accentText: "pressure",
       title: "Anchor and keep direction",
-      proof:
+      story:
         "Stayed steady during tense moments so the room could focus on the next step instead of the stress.",
-      capability: "I stay steady so the room can think clearly and move to the next step.",
+      iStatement: "I stay steady so the room can think clearly and move to the next step.",
     },
   ],
 }

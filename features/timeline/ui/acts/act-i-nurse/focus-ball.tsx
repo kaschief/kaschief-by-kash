@@ -5,7 +5,6 @@ import { motion, useTransform } from "framer-motion";
 import { ACT_I } from "@data";
 import { BREAKPOINTS } from "@utilities";
 import {
-  COLORS,
   DEVICES,
   type Devices,
   FOCUS_START,
@@ -148,8 +147,8 @@ function RevealedText({
   });
 
   // Per-card vertical offset to align capability text with the question text center
-  const LG_OFFSETS = [0.5, 0.5, 1.2, 0.5, 1.2, 1.0];
-  const SM_OFFSETS = [0.5, 0.5, 1.0, 0.5, 1.0, 0.8];
+  const LG_OFFSETS = [-0.5, -0.5, 0.2, -0.5, 0.2, 0.0];
+  const SM_OFFSETS = [-0.5, -0.5, 0.0, -0.5, 0.0, -0.2];
   const top = useTransform(t, () => {
     const bp = getBreakpointTier(lgRef.current);
     const stack = bp === DEVICES.desktop ? STACK_LG[index] : STACK_SM[index];
@@ -168,9 +167,9 @@ function RevealedText({
         maxWidth: `min(${REVEALED_TEXT_MAX_W}px, 50%)`,
       }}>
       <p
-        className="font-sans text-[clamp(11px,1.1vw,15px)] font-light leading-relaxed"
-        style={{ color: COLORS.narrator }}>
-        {ACT_I.skillScenarios[index].capability}
+        className="font-narrator text-[clamp(13px,1.3vw,18px)] leading-relaxed"
+        style={{ color: "var(--gold)" }}>
+        {ACT_I.skillScenarios[index].iStatement}
       </p>
     </motion.div>
   );

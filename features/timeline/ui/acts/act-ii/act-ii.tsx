@@ -173,7 +173,6 @@ export function ActIIEngineer() {
   const lensesRawProgress = useRef(0)
   const lensesAnimFrameId = useRef(0)
 
-
   /* ---- Refs: Sankey scroll (particles → funnel) ---- */
   const sankeyScrollRef = useRef<HTMLDivElement>(null)
 
@@ -400,7 +399,7 @@ export function ActIIEngineer() {
                 initial={{ opacity: 0 }}
                 animate={titleActive ? { opacity: 1 } : {}}
                 transition={{ duration: 1, delay: 0.8 }}
-                className="font-serif text-sm italic text-center mt-6 mx-auto sm:text-base"
+                className="font-narrator text-sm text-center mt-6 mx-auto sm:text-base md:text-xl leading-relaxed"
                 style={{
                   color: "var(--cream-muted)",
                   maxWidth: "min(500px, 85vw)",
@@ -427,17 +426,16 @@ export function ActIIEngineer() {
               className="font-narrator"
               style={{
                 color: "var(--cream-muted)",
-                fontSize: "1.05rem",
-                lineHeight: 1.75,
-                fontStyle: "italic",
+                fontSize: "1.25rem",
+                lineHeight: 1.625,
               }}>
               {CONTENT.summary.block1}
             </p>
             <p
               className="font-narrator mt-8"
               style={{
-                color: "var(--text-dim)",
-                fontSize: "0.9rem",
+                color: "var(--text-cream)",
+                fontSize: "1.05rem",
                 lineHeight: 1.7,
                 fontStyle: "italic",
               }}>
@@ -470,7 +468,6 @@ export function ActIIEngineer() {
           {particleFunnel.jsx}
         </div>
       </div>
-
     </>
   )
 }

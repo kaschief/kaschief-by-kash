@@ -882,12 +882,11 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
           zIndex: 10,
         }}>
         <p
-          className="font-serif"
+          className="font-narrator"
           style={{
             fontSize: "clamp(1.2rem, 1.8vw, 1.5rem)",
             lineHeight: 1.6,
             color: "#F0E6D0",
-            fontWeight: 700,
             letterSpacing: "-0.01em",
           }}>
           {CONTENT.funnelClimax.left}
@@ -909,12 +908,11 @@ export function useParticleFunnel({ isLgRef: isLg }: ParticleFunnelOptions) {
           zIndex: 10,
         }}>
         <p
-          className="font-serif"
+          className="font-narrator"
           style={{
             fontSize: "clamp(1.2rem, 1.8vw, 1.5rem)",
             lineHeight: 1.6,
             color: "#F0E6D0",
-            fontWeight: 700,
             letterSpacing: "-0.01em",
           }}>
           {CONTENT.funnelClimax.right}

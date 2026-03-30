@@ -122,14 +122,14 @@ function AccordionItem({
             className="overflow-hidden">
             <div className="pb-5">
               <p
-                className="mb-3 font-[family-name:var(--font-spectral)] text-[13px] italic leading-relaxed"
+                className="mb-3 font-narrator text-[13px] leading-relaxed"
                 style={{ color: COLORS.cardBody }}>
                 {node.question}
               </p>
               <p
-                className="font-sans text-[12px] font-light leading-relaxed"
-                style={{ color: COLORS.cardSecondary }}>
-                {node.capability}
+                className="font-narrator text-[14px] leading-relaxed"
+                style={{ color: "var(--gold)" }}>
+                {node.iStatement}
               </p>
             </div>
           </motion.div>

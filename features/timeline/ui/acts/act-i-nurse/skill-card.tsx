@@ -169,12 +169,13 @@ export function SkillCard({
       <motion.div style={{ x: fadedDisplaceX, y: combinedY }} className="relative">
         {/* Question — hero text, accent substring highlighted in order phase */}
         <motion.div
-          className="mb-[0.5cqh] font-sans text-[clamp(10px,1.6cqh,19px)] leading-[1.3] text-balance sm:font-serif sm:italic"
+          className="mb-[0.5cqh] font-narrator text-[clamp(13px,1.2vw,17px)] leading-[1.3] text-balance"
           style={{
             color: isHovered ? COLORS.cardTitleHover : questionColor,
             transition: `color ${COLOR_TRANSITION}`,
           }}>
           {(() => {
+            if (!node.accentText) return node.question;
             const idx = node.question.indexOf(node.accentText);
             if (idx === -1) return node.question;
             const before = node.question.slice(0, idx);
@@ -193,7 +194,7 @@ export function SkillCard({
 
         {/* Title — fades in at snap, becomes primary text in stack (hidden on phone) */}
         <motion.div
-          className="mb-[0.3cqh] hidden font-sans text-[clamp(9px,1.4cqh,16px)] leading-[1.3] tracking-[-0.01em] text-pretty sm:block"
+          className="mb-[0.3cqh] hidden font-sans text-[clamp(10px,0.8vw,12px)] leading-[1.3] tracking-[-0.01em] text-pretty sm:block"
           style={{
             color: isHovered ? COLORS.cardTitleHover : titleColor,
             opacity: titleOpacity,
@@ -212,7 +213,7 @@ export function SkillCard({
             overflow: "hidden",
             transition: `color ${COLOR_TRANSITION}, max-height ${PROOF_TRANSITION}`,
           }}>
-          {node.proof}
+          {node.story}
         </motion.p>
       </motion.div>
     </motion.div>

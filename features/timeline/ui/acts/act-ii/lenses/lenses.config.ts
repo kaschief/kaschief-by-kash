@@ -82,17 +82,24 @@ export const COMPANY_LABEL = {
 
 /* ── Shared text styles ── */
 
-/** Narrator body text — Kaisei Decol, cream-muted, used in bridge, story desk, lenses */
+/** Story body text — Inter light, used for proof/story paragraphs */
+export const STORY_STYLE: React.CSSProperties = {
+  fontFamily: "var(--font-sans)",
+  fontWeight: 300,
+  color: "var(--cream-muted)",
+  lineHeight: 1.8,
+}
+
+/** Narrator voice — Crimson Pro, cream-muted, used for bridge, splash, narrator paragraphs */
 export const NARRATOR_STYLE: React.CSSProperties = {
   fontFamily: "var(--font-narrator)",
   color: "var(--cream-muted)",
   lineHeight: 1.8,
 }
 
-/** I-statement — serif italic gold, used in story desk overlay, lenses, cards */
+/** I-statement — serif gold, used in story desk overlay, lenses, cards */
 export const I_STATEMENT_STYLE: React.CSSProperties = {
   fontFamily: "var(--font-serif)",
-  fontStyle: "italic",
   color: "var(--gold)",
   lineHeight: 1.4,
 }

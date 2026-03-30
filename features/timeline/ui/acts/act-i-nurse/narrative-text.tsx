@@ -23,7 +23,7 @@ const NARRATOR_BG_MOBILE =
   "radial-gradient(ellipse 70% 55%, rgba(7,7,10,0.88) 0%, rgba(7,7,10,0.6) 40%, transparent 100%)";
 
 const FONT_CLASS =
-  "font-[family-name:var(--font-spectral)] italic leading-relaxed";
+  "font-narrator leading-relaxed";
 const FONT_DESKTOP = `${FONT_CLASS} text-[clamp(16px,1.6vw,22px)]`;
 const FONT_MOBILE = `${FONT_CLASS} text-[clamp(18px,2.8vw,22px)]`;
 
