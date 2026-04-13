@@ -734,6 +734,9 @@ interface LeaderContent {
   readonly act: string
   readonly title: string
   readonly color: string
+  readonly institution: string
+  readonly location: string
+  readonly period: string
   readonly headline: string
   readonly subhead: string
   readonly scenarios: readonly LeaderScenario[]
@@ -746,6 +749,9 @@ export const ACT_III_LEADER: LeaderContent = {
   act: "ACT III",
   title: `The ${leaderRole.label}`,
   color: leaderRole.color,
+  institution: "DKB Code Factory",
+  location: "Berlin",
+  period: "2022—2024",
   headline: "turned pressure into clearer decisions, calmer teams, and better outcomes.",
   subhead:
     "In high-stakes product environments, I helped teams align faster, narrow the real problem, and keep delivery moving when priorities shifted and confusion started to spread.",
