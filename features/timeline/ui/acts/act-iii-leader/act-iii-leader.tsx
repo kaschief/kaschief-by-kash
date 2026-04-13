@@ -15,15 +15,16 @@ import {
 const { ACT_LEADER } = SECTION_ID;
 const { glow } = SCROLL_RANGE;
 const {
-  act,
   annotations,
   closing,
   color: COLOR,
   headline,
+  institution,
+  location,
+  period,
   proof,
   scenarios,
   subhead,
-  title,
 } = ACT_III_LEADER;
 
 // ─── Splash ──────────────────────────────────────────────────────────────────
@@ -36,11 +37,21 @@ function Splash() {
     <div
       ref={ref}
       className="relative flex min-h-[85svh] flex-col justify-between px-(--page-gutter) pb-16 pt-10 md:pb-24 md:pt-16">
-      {/* Top bar */}
-      <div className="flex items-center justify-between font-ui text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
-        <span>{act} · {title}</span>
-        <span>DKB Code Factory · Berlin · 2022—2024</span>
-      </div>
+      {/* Top bar — institution/place/time. The "ACT III · The Leader" label
+          is rendered by ActIIITitle directly above this section, so repeating
+          it here would be self-referential. The institution name carries the
+          brightness, with location and period stepping down in hierarchy. */}
+      <motion.div
+        className="flex flex-wrap items-center justify-end gap-x-2.5 gap-y-1 font-ui text-[12px] uppercase tracking-[0.28em] sm:text-[13px]"
+        initial={{ opacity: 0, y: -6 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.7, delay: 0.2, ease: EASE }}>
+        <span className="font-medium text-(--cream-muted)">{institution}</span>
+        <span className="text-(--text-dim)">·</span>
+        <span className="text-(--text-dim)">{location}</span>
+        <span className="text-(--text-dim)">·</span>
+        <span className="text-(--text-dim)">{period}</span>
+      </motion.div>
 
       {/* Headline block */}
       <div className="mt-auto pt-20 md:pt-0">
@@ -64,16 +75,6 @@ function Splash() {
           {subhead}
         </motion.p>
       </div>
-
-      {/* Bottom annotation */}
-      <motion.p
-        className="mt-12 max-w-xs border-l border-(--stroke) pl-4 font-ui text-[11px] leading-relaxed text-(--text-faint) md:ml-auto md:mt-0"
-        initial={{ opacity: 0 }}
-        animate={inView ? { opacity: 1 } : {}}
-        transition={{ duration: 0.6, delay: 0.7, ease: EASE }}>
-        Less about management theatre, more about judgment, coordination, and
-        steadying the room.
-      </motion.p>
     </div>
   );
 }
