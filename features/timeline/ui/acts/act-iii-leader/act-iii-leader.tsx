@@ -27,6 +27,39 @@ const {
   subhead,
 } = ACT_III_LEADER;
 
+// ─── Section background tokens ──────────────────────────────────────────────
+// LEADER_BG is slightly warmer than the global --bg so Act III feels its own.
+// SITE_BG mirrors --bg, hardcoded here because we need the literal value for
+// linear-gradient interpolation (CSS vars cannot be interpolated by the
+// gradient parser when one stop is a var and the other is a hex).
+const LEADER_BG = "#0A0A0F";
+const SITE_BG = "#07070A";
+/** Length of the cross-fade band at each section boundary (px). */
+const FOG_BAND_PX = 240;
+
+// ─── Shared eyebrow ──────────────────────────────────────────────────────────
+// Single source of truth for the small uppercase labels above each section
+// heading ("Selected scenarios", "What I actually did", "In practice", and the
+// institution name in the top bar). Matches the institution label tone so
+// the whole act reads with one consistent eyebrow voice.
+
+const EYEBROW_CLASSNAME =
+  "font-ui text-[12px] font-medium uppercase tracking-[0.28em] text-(--cream-muted) sm:text-[13px]";
+
+function Eyebrow({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <p className={`${EYEBROW_CLASSNAME}${className ? ` ${className}` : ""}`}>
+      {children}
+    </p>
+  );
+}
+
 // ─── Splash ──────────────────────────────────────────────────────────────────
 
 function Splash() {
@@ -42,11 +75,11 @@ function Splash() {
           it here would be self-referential. The institution name carries the
           brightness, with location and period stepping down in hierarchy. */}
       <motion.div
-        className="flex flex-wrap items-center justify-end gap-x-2.5 gap-y-1 font-ui text-[12px] uppercase tracking-[0.28em] sm:text-[13px]"
+        className={`flex flex-wrap items-center justify-end gap-x-2.5 gap-y-1 ${EYEBROW_CLASSNAME}`}
         initial={{ opacity: 0, y: -6 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.7, delay: 0.2, ease: EASE }}>
-        <span className="font-medium text-(--cream-muted)">{institution}</span>
+        <span>{institution}</span>
         <span className="text-(--text-dim)">·</span>
         <span className="text-(--text-dim)">{location}</span>
         <span className="text-(--text-dim)">·</span>
@@ -85,9 +118,7 @@ function ScenarioMontage() {
   return (
     <div className="border-t border-(--stroke) px-(--page-gutter) py-16 md:py-24">
       <FadeUp>
-        <p className="mb-3 font-ui text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
-          Selected scenarios
-        </p>
+        <Eyebrow className="mb-3">Selected scenarios</Eyebrow>
         <h3 className="max-w-3xl font-sans text-3xl font-black uppercase leading-[0.88] tracking-[-0.03em] text-(--cream) md:text-6xl lg:text-7xl">
           A few moments that show how I operated.
         </h3>
@@ -156,9 +187,7 @@ function CoreCapabilities() {
         {/* Left column — headline + prose */}
         <div>
           <FadeUp>
-            <p className="mb-3 font-ui text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
-              What I actually did
-            </p>
+            <Eyebrow className="mb-3">What I actually did</Eyebrow>
           </FadeUp>
           <FadeUp delay={0.1}>
             <h3 className="max-w-2xl font-sans text-3xl font-black uppercase leading-[0.88] tracking-[-0.03em] text-(--cream) md:text-5xl lg:text-6xl">
@@ -198,9 +227,7 @@ function Proof() {
       <div className="grid items-start gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
         {/* Left — heading */}
         <FadeUp>
-          <p className="mb-3 font-ui text-[10px] uppercase tracking-[0.35em] text-(--text-faint)">
-            In practice
-          </p>
+          <Eyebrow className="mb-3">In practice</Eyebrow>
           <h3 className="max-w-lg font-sans text-3xl font-black uppercase leading-[0.88] tracking-[-0.03em] text-(--cream) md:text-5xl lg:text-6xl">
             What I was able to improve.
           </h3>
@@ -244,11 +271,27 @@ export function ActIIILeader() {
   const glowOpacity = useTransform(scrollYProgress, glow, GLOW_OPACITY);
 
   return (
-    <section id={ACT_LEADER} ref={ref} className="relative" aria-label="Act III — Leadership career" style={{ backgroundColor: "#0A0A0F", zIndex: 2 }}>
-      {/* Top fog — smooth transition from Act II */}
+    <section
+      id={ACT_LEADER}
+      ref={ref}
+      className="relative"
+      aria-label="Act III — Leadership career"
+      style={{ backgroundColor: LEADER_BG, zIndex: 2 }}>
+      {/*
+        Top fog — cross-fades the global --bg into the warmer Leader bg.
+        The previous gradient went `LEADER_BG → transparent`, which is a
+        no-op because the section bg directly underneath is also LEADER_BG,
+        so it painted nothing. The hard cutoff between Act II and Act III
+        was the visible result. This bridges the two literal colors over a
+        wide enough band that the eye never catches the seam.
+      */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-12"
-        style={{ background: "linear-gradient(to bottom, #0A0A0F, transparent)" }}
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-0"
+        style={{
+          height: FOG_BAND_PX,
+          background: `linear-gradient(to bottom, ${SITE_BG} 0%, ${LEADER_BG} 100%)`,
+        }}
       />
       <ActIIITitle />
 
@@ -260,6 +303,19 @@ export function ActIIILeader() {
         <CoreCapabilities />
         <Proof />
       </div>
+
+      {/*
+        Bottom fog — symmetrical cross-fade back into the global --bg as the
+        section ends. Matches FOG_BAND_PX so entry and exit feel balanced.
+      */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0"
+        style={{
+          height: FOG_BAND_PX,
+          background: `linear-gradient(to bottom, ${LEADER_BG} 0%, ${SITE_BG} 100%)`,
+        }}
+      />
     </section>
   );
 }
