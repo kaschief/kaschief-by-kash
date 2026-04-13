@@ -3,7 +3,6 @@ import { SECTION_ID, SECTION_IDS_ORDERED, type SectionId } from "@utilities";
 import { resolveActiveSection } from "./active-section";
 
 const {
-  ACT_BUILDER,
   ACT_ENGINEER,
   ACT_LEADER,
   ACT_NURSE,
@@ -36,7 +35,6 @@ describe("resolveActiveSection", () => {
       [ACT_NURSE]: -100,
       [ACT_ENGINEER]: 50,
       [ACT_LEADER]: 100,
-      [ACT_BUILDER]: 200,
       [METHODS]: 400,
       [CONTACT]: 600,
     });
@@ -57,7 +55,6 @@ describe("resolveActiveSection", () => {
       [ACT_NURSE]: 300,
       [ACT_ENGINEER]: 430,
       [ACT_LEADER]: 800,
-      [ACT_BUILDER]: 1200,
       [METHODS]: 1700,
       [CONTACT]: 2200,
     });
@@ -78,7 +75,6 @@ describe("resolveActiveSection", () => {
       [ACT_NURSE]: 1200,
       [ACT_ENGINEER]: 1600,
       [ACT_LEADER]: 2000,
-      [ACT_BUILDER]: 2600,
       [METHODS]: 3200,
       [CONTACT]: 3800,
     });

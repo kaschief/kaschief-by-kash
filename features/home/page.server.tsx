@@ -6,8 +6,10 @@ import { getHomePageViewModel } from "./model/get-home-page-view-model";
  *
  * This keeps server concerns (data assembly / future integrations)
  * out of client bundles while letting the client shell focus on interaction.
+ *
+ * Synchronous to avoid triggering the Suspense fallback on hard refresh.
  */
-export async function HomePage() {
-  const viewModel = await getHomePageViewModel();
+export function HomePage() {
+  const viewModel = getHomePageViewModel();
   return <HomePageClient viewModel={viewModel} />;
 }

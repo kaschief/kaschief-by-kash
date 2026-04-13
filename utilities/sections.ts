@@ -24,17 +24,19 @@ const {
   ACT_NURSE,
   ACT_ENGINEER,
   ACT_LEADER,
-  ACT_BUILDER,
   CONTACT,
 } = SECTION_ID;
 
-/** DOM top-to-bottom order - must match page.tsx render order. */
+/**
+ * DOM top-to-bottom order for nav scroll detection.
+ * Must match page.tsx render order. Only sections on the main page.
+ * ACT_BUILDER is intentionally excluded — it lives in the lab.
+ */
 export const SECTION_IDS_ORDERED: readonly SectionId[] = [
   PORTRAIT,
   PHILOSOPHY,
   ACT_NURSE,
   ACT_ENGINEER,
   ACT_LEADER,
-  ACT_BUILDER,
   CONTACT,
 ];

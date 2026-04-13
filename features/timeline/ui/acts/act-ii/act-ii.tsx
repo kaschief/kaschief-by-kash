@@ -190,7 +190,22 @@ export function ActIIEngineer() {
 
   /* ---- Title scramble + Lenis hold ---- */
   const getLenis = useLenis()
-  const titleInView = useInView(titleInViewRef, { once: true, amount: 0.5 })
+  /**
+   * Fire only when the title block is fully in view.
+   *
+   * Why `amount: "all"`:
+   * - The title-active state both starts the scramble AND triggers a 1.8s
+   *   Lenis hold (`lenis.stop()` below). With `amount: 0.5` the trigger
+   *   fired while the engineer section was still entering the viewport
+   *   from below — the user got frozen mid-transition with the Act I
+   *   throughline still in the top of the viewport and only the bottom
+   *   half of the Act II title visible. That awkward frozen in-between
+   *   state is the "dead gap" between Act I and Act II.
+   * - Requiring the entire title block to be in view delays the freeze
+   *   until the engineer section is fully pinned, so the hold lands on a
+   *   clean "title centered, page settled" state.
+   */
+  const titleInView = useInView(titleInViewRef, { once: true, amount: "all" })
   const [titleActive, setTitleActive] = useState(false)
   const titleHoldFired = useRef(false)
   useEffect(() => {

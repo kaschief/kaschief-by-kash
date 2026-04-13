@@ -18,11 +18,9 @@ describe("feature public-api contracts", () => {
     const keys = Object.keys(NavigationFeature).sort();
     expect(keys).toEqual([
       "ACTIVE_SECTION_CONFIG",
-      "INITIAL_NAVIGATION_STATE",
       "NAVIGATION_TIMING",
       "Navigation",
       "isSectionId",
-      "navigationReducer",
       "resolveActiveSection",
     ]);
   });

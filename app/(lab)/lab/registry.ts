@@ -12,7 +12,7 @@ export interface LabRoute {
   href: string;
   label: string;
   desc: string;
-  section: "wip-covers";
+  section: "wip-covers" | "archived";
 }
 
 export const LAB_ROUTES: readonly LabRoute[] = [
@@ -28,10 +28,17 @@ export const LAB_ROUTES: readonly LabRoute[] = [
     desc: "Skill panels with ScrollTrigger pinning and detail overlays",
     section: "wip-covers",
   },
+  {
+    href: "/lab-builder",
+    label: "Builder (Act IV)",
+    desc: "Algorithmic trading system — 14 custom indicators, 13.5K lines of Pine Script",
+    section: "archived",
+  },
 ];
 
 const SECTION_LABELS: Record<LabRoute["section"], string> = {
   "wip-covers": "WIP Covers",
+  archived: "Archived Sections",
 };
 
 export interface LabSection {
