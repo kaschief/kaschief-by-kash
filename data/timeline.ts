@@ -202,7 +202,7 @@ export const ACT_I: ActINurseContent = {
       story:
         "Ran hourly neuro checks, watched ICP trends, compared vitals with the patient in front of me, and caught changes before the chart reflected them.",
       iStatement:
-        "I collect the data, build the picture from fragments, and decide what information matters.",
+        "I collect data, build the picture from fragments, and decide what information matters.",
     },
     {
       id: "diagnosis",

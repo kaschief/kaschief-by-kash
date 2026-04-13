@@ -486,6 +486,7 @@ html[data-font-pack="night-signal"] {
 }
 
 html {
+  color-scheme: dark;
   scroll-behavior: auto;
   max-width: 100%;
   overflow-x: clip;
@@ -494,6 +495,8 @@ html {
 body {
   max-width: 100%;
   overflow-x: clip;
+  background-color: var(--bg);
+  color: var(--cream);
 }
 
 /* Custom cursor: only hide system cursor when custom cursor is enabled */

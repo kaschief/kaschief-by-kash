@@ -69,6 +69,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0B0B0F",
+  colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
 };
@@ -79,7 +80,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={fontVariables}>
+    <html lang="en" className={fontVariables} style={{ colorScheme: "dark", backgroundColor: "#07070A" }}>
       <head>
         {/* When a URL hash is present, hide content before first paint
             and disable scroll restoration. visibility:hidden keeps the
@@ -91,7 +92,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased" style={{ backgroundColor: "#07070A", color: "#F0E6D0" }}>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded focus:bg-[var(--gold)] focus:px-4 focus:py-2 focus:font-ui focus:text-xs focus:font-semibold focus:uppercase focus:tracking-wider focus:text-[var(--bg)]">

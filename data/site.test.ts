@@ -25,10 +25,14 @@ describe("site data contracts", () => {
     expect(new Set(sectionIds).size).toBe(sectionIds.length);
   });
 
-  it("derives ROLES from ROLE_NAV_LINKS", () => {
+  it("includes all nav roles plus Builder in ROLES", () => {
     expect(ROLE_NAV_LINKS.length).toBeGreaterThan(0);
     expect(SECTION_NAV_LINKS.length).toBeGreaterThan(0);
-    expect(ROLES).toEqual(ROLE_NAV_LINKS);
+    // ROLES includes Builder (lab-only) beyond what's in nav
+    expect(ROLES.length).toBe(ROLE_NAV_LINKS.length + 1);
+    for (const navRole of ROLE_NAV_LINKS) {
+      expect(ROLES).toContainEqual(navRole);
+    }
   });
 
   it("keeps personal/contact fields populated", () => {

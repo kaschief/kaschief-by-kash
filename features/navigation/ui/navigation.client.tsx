@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
@@ -13,7 +13,6 @@ import {
 import { useNavStore, useLenis, useSectionScroll } from "@hooks";
 import {
   DEFAULT_SCROLL_OFFSET,
-  HISTORY_EVENT,
   SECTION_ID,
   SECTION_IDS_ORDERED,
   SECTION_SCROLL_OFFSET,
@@ -22,27 +21,22 @@ import {
   type SectionId,
   Z_INDEX,
 } from "@utilities";
-import { isSectionId, resolveActiveSection } from "../model/active-section";
+import { isSectionId } from "../model/active-section";
 import { resolveNavLinkColor } from "../model/nav-link-state";
-import {
-  INITIAL_NAVIGATION_STATE,
-  NAVIGATION_TIMING,
-  navigationReducer,
-} from "../model/navigation-machine";
+import { NAVIGATION_TIMING } from "../model/navigation-machine";
 
 const { textDim } = TOKENS;
 const { nav } = Z_INDEX;
-const { POP_STATE } = HISTORY_EVENT;
 const { PORTRAIT } = SECTION_ID;
 
 const WHO_AM_I_NAV = SECTION_NAV_LINKS.filter((l) => l.sectionId === "portrait");
 const ACT_NAV = ROLE_NAV_LINKS;
 const SECTION_NAV = SECTION_NAV_LINKS.filter((l) => l.sectionId !== "portrait");
-const OBSERVER_THRESHOLDS = [0, 0.1, 0.25, 0.5];
+const IO_THRESHOLDS = [0, 0.1, 0.25, 0.5];
 
-/** Safety timeout for hash-scroll if layout barriers never clear (ms). */
+/** Safety timeout for hash-scroll if target never stabilizes (ms). */
 const HASH_SCROLL_SAFETY_MS = 5000;
-/** Land slightly past sticky section boundaries so the next act is actually pinned. */
+/** Land slightly past sticky section boundaries so the act is pinned. */
 const HASH_SCROLL_STICKY_OVERSHOOT_PX = 2;
 /** Consider the hash target stable once it stops drifting for a few frames. */
 const HASH_SCROLL_STABLE_EPSILON_PX = 4;
@@ -66,7 +60,7 @@ function getSectionIdFromHash(hash: string): SectionId | null {
   return isSectionId(id) ? id : null;
 }
 
-/** Stable layout top independent of transform/sticky shifts during page setup. */
+/** Stable layout top independent of transform/sticky shifts. */
 function getAbsoluteTop(el: HTMLElement): number {
   let top = 0;
   let current: HTMLElement | null = el;
@@ -126,245 +120,147 @@ function DesktopNavLink({
 }
 
 /**
- * Navigation UI for the portfolio timeline.
+ * Navigation — rebuilt with simpler internals.
  *
- * Architectural note:
- * - Rendering stays in this file.
- * - Stateful behavior and business rules stay in feature model modules.
- * This keeps the component easier to reason about and easier to test.
+ * Active section: single IntersectionObserver (no getBoundingClientRect per frame).
+ * Visibility: one passive scroll listener with threshold check.
+ * State: plain useState hooks (no reducer, no suppression).
+ * Hash scroll: MutationObserver waits for target, scrolls once, reveals.
  */
 export function Navigation() {
   const { name } = PERSONAL;
-  const [state, dispatch] = useReducer(
-    navigationReducer,
-    INITIAL_NAVIGATION_STATE,
-  );
-  const navRef = useRef<HTMLElement | null>(null);
 
-  const pendingMobileSectionRef = useRef<SectionId | null>(null);
-  const activeSectionRef = useRef<SectionId | "">("");
+  // --- State (plain hooks, no reducer) ---
+  const [visible, setVisible] = useState(false);
+  const [activeSection, setActiveSection] = useState<SectionId | "">("");
+  const [hoveredLink, setHoveredLink] = useState<SectionId | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileMenuLoaded, setMobileMenuLoaded] = useState(false);
+
+  const navRef = useRef<HTMLElement | null>(null);
+  const pendingMobileSectionRef = useRef<SectionId | null>(null);
+
   const getLenis = useLenis();
   const { scrollToSection, scrollToTop } = useSectionScroll();
   const { isNavigating, targetSection, settledSection, clearSettled } = useNavStore();
 
-  const activeSection = state.activeSection;
-
-  // Derive active section from state/store — no ref reads during render.
-  // Priority: navigating target > settled section > reducer state.
-  let currentActiveSection: SectionId | "" = activeSection;
+  // --- Derived active section ---
+  // Priority: navigating target > settled section > IO-detected section
+  let displayedSection: SectionId | "" = activeSection;
   if (isNavigating && targetSection) {
-    currentActiveSection = targetSection;
+    displayedSection = targetSection;
   } else if (settledSection) {
-    currentActiveSection = settledSection;
-    activeSectionRef.current = settledSection; // Sync ref for scroll callbacks; not used for rendering.
-    // Clear after one render so scroll detection takes over
-    queueMicrotask(() => clearSettled());
+    displayedSection = settledSection;
+    // Sync to local state so IO detection picks up from here
+    queueMicrotask(() => {
+      setActiveSection(settledSection);
+      clearSettled();
+    });
   }
-  const hoveredLink = state.hoveredLink;
-  const mobileOpen = state.mobileMenu.kind === "open";
-  const visible = state.kind === "visible";
 
+  // Eager-load mobile menu component once opened
   useEffect(() => {
-    if (mobileOpen) {
-      setMobileMenuLoaded(true);
-    }
+    if (mobileOpen) setMobileMenuLoaded(true);
   }, [mobileOpen]);
 
-  // Sync settled section back to reducer so state.activeSection survives
-  // after clearSettled runs. Without this, scroll events during the
-  // double-rAF gap (before startNavigation) can overwrite activeSection
-  // with the pre-navigation position, causing stale highlights on reopen.
+  // --- IO-based active section detection ---
   useEffect(() => {
-    if (settledSection) {
-      dispatch({
-        type: "SET_ACTIVE_SECTION",
-        payload: { activeSection: settledSection },
-      });
-    }
-  }, [settledSection]);
-
-  useEffect(() => {
-    const updateActiveSection = () => {
-      if (useNavStore.getState().isNavigating) return;
-
-      const sectionTopById = SECTION_IDS_ORDERED.reduce<
-        Record<SectionId, number | null>
-      >(
-        (acc, id) => {
-          const el = document.getElementById(id);
-          acc[id] = el ? el.getBoundingClientRect().top : null;
-          return acc;
-        },
-        {} as Record<SectionId, number | null>,
-      );
-
-      activeSectionRef.current = resolveActiveSection({
-        scrollY: window.scrollY,
-        viewportHeight: window.innerHeight,
-        documentHeight: document.documentElement.scrollHeight,
-        sectionTopById,
-      });
-    };
+    const ratioMap = new Map<SectionId, number>();
 
     const observer = new IntersectionObserver(
-      () => {
-        updateActiveSection();
+      (entries) => {
+        if (useNavStore.getState().isNavigating) return;
+
+        for (const entry of entries) {
+          const id = entry.target.id;
+          if (!isSectionId(id)) continue;
+
+          if (entry.intersectionRatio > 0) {
+            ratioMap.set(id, entry.intersectionRatio);
+          } else {
+            ratioMap.delete(id);
+          }
+        }
+
+        // Pick highest-ratio section
+        let best: SectionId | "" = "";
+        let bestRatio = 0;
+        for (const [id, ratio] of ratioMap) {
+          if (ratio > bestRatio) {
+            best = id;
+            bestRatio = ratio;
+          }
+        }
+
+        // Bottom-of-page snap: always activate last section near end
+        const nearBottom =
+          window.scrollY + window.innerHeight >=
+          document.documentElement.scrollHeight - 80;
+        if (nearBottom) {
+          best = SECTION_IDS_ORDERED[SECTION_IDS_ORDERED.length - 1];
+        }
+
+        setActiveSection(best);
       },
       {
         root: null,
         rootMargin: "-35% 0px -55% 0px",
-        threshold: OBSERVER_THRESHOLDS,
+        threshold: IO_THRESHOLDS,
       },
     );
 
+    // Observe all section elements; re-run when lazy content mounts
     const observed = new Set<SectionId>();
 
     const observeSections = () => {
       for (const sectionId of SECTION_IDS_ORDERED) {
         if (observed.has(sectionId)) continue;
-
         const section = document.getElementById(sectionId);
         if (!section) continue;
-
         observer.observe(section);
         observed.add(sectionId);
       }
-
-      updateActiveSection();
     };
 
     observeSections();
 
-    // Timeline is lazy-loaded; observe section nodes when they mount later.
+    // Timeline is lazy-loaded; watch for new section nodes
     const mutationObserver = new MutationObserver(observeSections);
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      mutationObserver.disconnect();
       observer.disconnect();
+      mutationObserver.disconnect();
     };
   }, []);
 
+  // --- Nav visibility (scroll threshold) ---
   useEffect(() => {
-    const handleScroll = () => {
-      if (!useNavStore.getState().isNavigating) {
-        const sectionTopById = SECTION_IDS_ORDERED.reduce<
-          Record<SectionId, number | null>
-        >(
-          (acc, id) => {
-            const el = document.getElementById(id);
-            acc[id] = el ? el.getBoundingClientRect().top : null;
-            return acc;
-          },
-          {} as Record<SectionId, number | null>,
-        );
-
-        activeSectionRef.current = resolveActiveSection({
-          scrollY: window.scrollY,
-          viewportHeight: window.innerHeight,
-          documentHeight: document.documentElement.scrollHeight,
-          sectionTopById,
-        });
-      }
-
-      dispatch({
-        type: "SCROLLED",
-        payload: {
-          nowMs: Date.now(),
-          isVisible:
-            window.scrollY >
-            window.innerHeight * NAVIGATION_TIMING.navVisibleViewportRatio,
-          activeSection: activeSectionRef.current,
-        },
-      });
+    const onScroll = () => {
+      setVisible(
+        window.scrollY > window.innerHeight * NAVIGATION_TIMING.navVisibleViewportRatio,
+      );
     };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    const raf = requestAnimationFrame(handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      cancelAnimationFrame(raf);
-    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    requestAnimationFrame(onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    let raf1 = 0;
-    let raf2 = 0;
-
-    if (!mobileOpen && pendingMobileSectionRef.current) {
-      const sectionId = pendingMobileSectionRef.current;
-      pendingMobileSectionRef.current = null;
-
-      // After removing overflow:hidden, mobile browsers (especially iOS Safari)
-      // need multiple frames to fully restore scroll dimensions.
-      // Frame 1: browser recalculates layout after overflow change.
-      // Frame 2: Lenis dimensions are refreshed and scroll fires reliably.
-      raf1 = requestAnimationFrame(() => {
-        const lenis = getLenis();
-        if (lenis) {
-          lenis.resize();
-          if (lenis.isStopped) lenis.start();
-        }
-
-        raf2 = requestAnimationFrame(() => {
-          if (sectionId === PORTRAIT) {
-            scrollToTop({ updateHistory: true });
-          } else {
-            scrollToSection(sectionId, { updateHistory: true });
-          }
-        });
-      });
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-      if (raf1) cancelAnimationFrame(raf1);
-      if (raf2) cancelAnimationFrame(raf2);
-    };
-  }, [mobileOpen, getLenis, scrollToSection, scrollToTop]);
-
-  useEffect(() => {
-    if (!mobileOpen) return;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const navElement = navRef.current;
-      if (!navElement) return;
-
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-
-      if (!navElement.contains(target)) {
-        dispatch({ type: "CLOSE_MOBILE_MENU" });
-      }
-    };
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-    };
-  }, [mobileOpen]);
-
+  // --- Hash scroll ---
+  // Re-aligns to the target every frame until the target stops drifting,
+  // then reveals. A one-shot scroll is not enough here: between the
+  // initial scrollTo and the reveal, several layout shifts can happen —
+  // the Portrait pin spacer being created in its useEffect, GSAP
+  // ScrollTrigger.refresh() running from LenisProvider's RAF, font swaps,
+  // and lazy Timeline children mounting. Any of those shift the absolute
+  // top of the target after a one-shot scroll, leaving the user landed
+  // at a position that is now inside the previous section.
   useEffect(() => {
     const hashId = getSectionIdFromHash(window.location.hash);
     if (!hashId) return;
-    const id: SectionId = hashId;
 
-    activeSectionRef.current = id;
-    dispatch({
-      type: "SET_ACTIVE_SECTION",
-      payload: { activeSection: id },
-    });
+    setActiveSection(hashId);
 
-    // The inline script in layout.tsx hides the page and disables scroll
-    // restoration when a hash is present. Instead of waiting on ad-hoc
-    // layout barriers, keep re-aligning to the target until its absolute
-    // position stops drifting, then reveal.
     const root = document.documentElement;
     let raf = 0;
     let stableFrames = 0;
@@ -377,10 +273,10 @@ export function Navigation() {
     }
 
     function alignToHashTarget() {
-      const el = document.getElementById(id);
+      const el = document.getElementById(hashId!);
       if (!el) {
         if (performance.now() >= deadline) {
-          console.warn(`[nav] hash-scroll: #${id} not found before timeout`);
+          console.warn(`[nav] hash-scroll: #${hashId} not found before timeout`);
           reveal();
           return;
         }
@@ -388,12 +284,11 @@ export function Navigation() {
         return;
       }
 
-      const offset = SECTION_SCROLL_OFFSET[id] ?? DEFAULT_SCROLL_OFFSET;
+      const offset = SECTION_SCROLL_OFFSET[hashId!] ?? DEFAULT_SCROLL_OFFSET;
       const stickyOvershoot = offset === 0 ? HASH_SCROLL_STICKY_OVERSHOOT_PX : 0;
       const target = getAbsoluteTop(el) - offset + stickyOvershoot;
 
-      // Sync Lenis so subsequent nav-clicks read the correct scroll position.
-      // Force an immediate correction on every frame until the layout settles.
+      // Force an immediate correction every frame until layout settles.
       const lenis = getLenis();
       if (lenis) {
         lenis.resize();
@@ -424,7 +319,9 @@ export function Navigation() {
       }
 
       if (performance.now() >= deadline) {
-        console.warn(`[nav] hash-scroll: target did not stabilize within ${HASH_SCROLL_SAFETY_MS}ms`);
+        console.warn(
+          `[nav] hash-scroll: target did not stabilize within ${HASH_SCROLL_SAFETY_MS}ms`,
+        );
         reveal();
         return;
       }
@@ -441,42 +338,89 @@ export function Navigation() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only: hash scroll runs once on page load
   }, []);
 
+  // --- Mobile menu overflow + scroll recovery ---
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    let raf1 = 0;
+    let raf2 = 0;
+
+    if (!mobileOpen && pendingMobileSectionRef.current) {
+      const sectionId = pendingMobileSectionRef.current;
+      pendingMobileSectionRef.current = null;
+
+      // 2-frame delay: iOS Safari needs layout recalc after overflow change
+      raf1 = requestAnimationFrame(() => {
+        const lenis = getLenis();
+        if (lenis) {
+          lenis.resize();
+          if (lenis.isStopped) lenis.start();
+        }
+
+        raf2 = requestAnimationFrame(() => {
+          if (sectionId === PORTRAIT) {
+            scrollToTop({ updateHistory: true });
+          } else {
+            scrollToSection(sectionId, { updateHistory: true });
+          }
+        });
+      });
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      if (raf1) cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+    };
+  }, [mobileOpen, getLenis, scrollToSection, scrollToTop]);
+
+  // --- Outside-click to close mobile menu ---
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const navElement = navRef.current;
+      if (!navElement) return;
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!navElement.contains(target)) {
+        setMobileOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [mobileOpen]);
+
+  // --- Popstate for browser back/forward ---
   useEffect(() => {
     const handlePop = () => {
       const id = getSectionIdFromHash(window.location.hash);
       if (!id) return;
-
-      activeSectionRef.current = id;
-      dispatch({
-        type: "SET_ACTIVE_SECTION",
-        payload: { activeSection: id },
-      });
+      setActiveSection(id);
       scrollToSection(id, { updateHistory: false });
     };
 
-    window.addEventListener(POP_STATE, handlePop);
-    return () => {
-      window.removeEventListener(POP_STATE, handlePop);
-    };
+    window.addEventListener("popstate", handlePop);
+    return () => window.removeEventListener("popstate", handlePop);
   }, [scrollToSection]);
 
-  const handleSectionClick = (sectionId: SectionId) => {
-    activeSectionRef.current = sectionId;
-    dispatch({
-      type: "SET_ACTIVE_SECTION",
-      payload: { activeSection: sectionId },
-    });
+  // --- Handlers ---
+  const handleSectionClick = useCallback(
+    (sectionId: SectionId) => {
+      setActiveSection(sectionId);
 
-    if (mobileOpen) {
-      pendingMobileSectionRef.current = sectionId;
-      dispatch({ type: "CLOSE_MOBILE_MENU" });
-      return;
-    }
+      if (mobileOpen) {
+        pendingMobileSectionRef.current = sectionId;
+        setMobileOpen(false);
+        return;
+      }
 
-    // scrollToSection handles startNavigation/endNavigation via store
-    scrollToSection(sectionId, { updateHistory: true });
-  };
+      scrollToSection(sectionId, { updateHistory: true });
+    },
+    [mobileOpen, scrollToSection],
+  );
 
+  // --- Render (identical visual design) ---
   return (
     <AnimatePresence>
       {visible && (
@@ -529,16 +473,11 @@ export function Navigation() {
                 <DesktopNavLink
                   key={link.sectionId}
                   link={link}
-                  activeSection={currentActiveSection}
+                  activeSection={displayedSection}
                   hoveredSection={hoveredLink}
                   idleColor={textDim}
                   onNavigate={handleSectionClick}
-                  onHoverSection={(sectionId) =>
-                    dispatch({
-                      type: "SET_HOVERED_LINK",
-                      payload: { sectionId },
-                    })
-                  }
+                  onHoverSection={setHoveredLink}
                 />
               ))}
 
@@ -548,16 +487,11 @@ export function Navigation() {
                 <DesktopNavLink
                   key={link.sectionId}
                   link={link}
-                  activeSection={currentActiveSection}
+                  activeSection={displayedSection}
                   hoveredSection={hoveredLink}
                   idleColor={textDim}
                   onNavigate={handleSectionClick}
-                  onHoverSection={(sectionId) =>
-                    dispatch({
-                      type: "SET_HOVERED_LINK",
-                      payload: { sectionId },
-                    })
-                  }
+                  onHoverSection={setHoveredLink}
                 />
               ))}
 
@@ -567,16 +501,11 @@ export function Navigation() {
                 <DesktopNavLink
                   key={link.sectionId}
                   link={link}
-                  activeSection={currentActiveSection}
+                  activeSection={displayedSection}
                   hoveredSection={hoveredLink}
                   idleColor={textDim}
                   onNavigate={handleSectionClick}
-                  onHoverSection={(sectionId) =>
-                    dispatch({
-                      type: "SET_HOVERED_LINK",
-                      payload: { sectionId },
-                    })
-                  }
+                  onHoverSection={setHoveredLink}
                 />
               ))}
 
@@ -593,7 +522,7 @@ export function Navigation() {
 
             {/* Mobile toggle */}
             <button
-              onClick={() => dispatch({ type: "TOGGLE_MOBILE_MENU" })}
+              onClick={() => setMobileOpen((prev) => !prev)}
               className="cursor-pointer text-[var(--cream)] transition-colors hover:text-[var(--gold)] lg:hidden"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}>
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -604,12 +533,12 @@ export function Navigation() {
           {mobileMenuLoaded ? (
             <NavigationMobileMenu
               mobileOpen={mobileOpen}
-              activeSection={currentActiveSection}
+              activeSection={displayedSection}
               whoAmINav={WHO_AM_I_NAV}
               actNav={ACT_NAV}
               sectionNav={SECTION_NAV}
               onNavigate={handleSectionClick}
-              onClose={() => dispatch({ type: "CLOSE_MOBILE_MENU" })}
+              onClose={() => setMobileOpen(false)}
             />
           ) : null}
         </motion.nav>

@@ -11,7 +11,7 @@ describe("section scroll offsets", () => {
   });
 
   it("defines section-specific overrides only where needed", () => {
-    expect(Object.keys(SECTION_SCROLL_OFFSET)).toHaveLength(5);
+    expect(Object.keys(SECTION_SCROLL_OFFSET)).toHaveLength(4);
   });
 
   it("scrolls full-viewport sections flush with viewport top", () => {

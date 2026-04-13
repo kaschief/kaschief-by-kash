@@ -102,12 +102,6 @@ const NAV_LINKS: readonly NavLink[] = [
     color: actGold,
   },
   {
-    type: NAV_LINK_TYPE.ROLE,
-    label: ROLE_LABEL.BUILDER,
-    sectionId: ACT_BUILDER,
-    color: actGreen,
-  },
-  {
     type: NAV_LINK_TYPE.SECTION,
     label: SECTION_NAV_LABEL.CONTACT,
     sectionId: CONTACT,
@@ -134,7 +128,11 @@ const NAV_LINKS_BY_TYPE = NAV_LINKS.reduce(
 export const ROLE_NAV_LINKS: readonly RoleNavLink[] = NAV_LINKS_BY_TYPE.roles
 export const SECTION_NAV_LINKS: readonly SectionNavLink[] = NAV_LINKS_BY_TYPE.sections
 
-export const ROLES: readonly Role[] = ROLE_NAV_LINKS
+/** All career roles — includes Builder even though it's not in nav (used by timeline data). */
+export const ROLES: readonly Role[] = [
+  ...ROLE_NAV_LINKS,
+  { type: "role" as const, label: ROLE_LABEL.BUILDER, sectionId: ACT_BUILDER, color: actGreen },
+]
 
 export const PHILOSOPHY = {
   label: "How I Think",

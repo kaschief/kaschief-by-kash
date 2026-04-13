@@ -1,10 +1,9 @@
 "use client"
 
-import { ActINurse, ActIIEngineer, ActIIILeader, ActIVBuilder } from "./acts"
-import { TradingArsenal } from "./trading-system"
+import { ActINurse, ActIIEngineer, ActIIILeader } from "./acts"
 import { SECTION_ID } from "@utilities"
 
-const { ACT_BUILDER, ACT_ENGINEER } = SECTION_ID
+const { ACT_ENGINEER } = SECTION_ID
 
 export function Timeline() {
   return (
@@ -14,10 +13,6 @@ export function Timeline() {
         <ActIIEngineer />
       </section>
       <ActIIILeader />
-      <section id={ACT_BUILDER}>
-        <ActIVBuilder />
-        <TradingArsenal />
-      </section>
     </section>
   )
 }

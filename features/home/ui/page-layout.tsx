@@ -18,7 +18,7 @@ export function PageLayout({ children }: PageLayoutProps) {
   const pageGutter = isTabletUp && !isDesktopXl ? "2.5rem" : "1.5rem";
 
   return (
-    <main
+    <div
       className="film-grain"
       style={
         {
@@ -26,6 +26,6 @@ export function PageLayout({ children }: PageLayoutProps) {
         } as CSSProperties
       }>
       {children}
-    </main>
+    </div>
   );
 }
