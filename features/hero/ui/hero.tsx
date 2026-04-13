@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { PERSONAL, ROLES } from "@data";
+import { PERSONAL, ROLE_NAV_LINKS } from "@data";
 import { EASE, SECTION_ID } from "@utilities";
 
 const { PORTRAIT } = SECTION_ID;
@@ -138,7 +138,7 @@ export function Hero() {
         {/* Roles — staggered fade-in with blur-to-focus */}
         <motion.div
           className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-          {ROLES.map(({ label, color, sectionId }, i) => (
+          {ROLE_NAV_LINKS.map(({ label, color, sectionId }, i) => (
             <motion.span
               key={label}
               initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
@@ -167,7 +167,7 @@ export function Hero() {
           <motion.span
             initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 0.6, delay: 1.0 + ROLES.length * 0.12, ease: EASE }}
+            transition={{ duration: 0.6, delay: 1.0 + ROLE_NAV_LINKS.length * 0.12, ease: EASE }}
             className="flex items-center gap-2">
             <span className="text-[var(--text-faint)] opacity-40">/</span>
             <a
