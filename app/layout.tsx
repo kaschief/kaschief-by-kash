@@ -59,33 +59,17 @@ const SITE_DESCRIPTION =
   "Portfolio of Kaschief Johnson — critical care nurse, software engineer, and engineering manager.";
 
 export const metadata: Metadata = {
-  // metadataBase makes every relative URL in openGraph / twitter /
-  // icons / alternates resolve to an absolute URL. Social platforms
-  // reject relative image paths, so this is required for share cards
-  // to render at all.
   metadataBase: new URL(SITE_URL),
-
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
-
-  // Favicon served statically from `public/kj-monogram.svg`. Do NOT
-  // move this file under `app/` as an `icon.svg` convention — Next 16
-  // Turbopack caches the result of the icon route handler in a way
-  // that survives `.next` nukes in some environments.
-  //
-  // IMPORTANT for anyone editing the SVG: keep it free of XML comments
-  // that contain the literal sequence `- -` (double hyphen). The XML
-  // spec forbids `- -` inside comments, and a malformed SVG silently
-  // fails in favicon contexts (the tab renders as empty). An earlier
-  // version of this file had a comment mentioning `var(- -bg)` which
-  // broke the entire favicon pipeline without any visible error.
+  // Favicon in `public/`, not `app/` — Turbopack's app-icon handler
+  // serves stale content in this environment. When editing the SVG,
+  // no `--` in comments: XML spec forbids it and breaks the file silently.
   icons: {
     icon: [{ url: "/kj-monogram.svg", type: "image/svg+xml" }],
   },
-
-  // openGraph images come from the `app/opengraph-image.tsx` file
-  // convention automatically — Next.js picks it up and injects it
-  // into metadata at build time. Do not duplicate the entry here.
+  // OG image auto-picked from `app/opengraph-image.tsx`. Twitter falls
+  // back to the OG image when `twitter.images` is unset.
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -94,19 +78,12 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
   },
-
-  // Twitter card mirrors openGraph. When `twitter.images` is not set,
-  // Next.js and most clients fall back to the openGraph image, so the
-  // `app/opengraph-image.tsx` file is reused for Twitter automatically.
   twitter: {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
   },
-
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/" },
 };
 
 export const viewport: Viewport = {

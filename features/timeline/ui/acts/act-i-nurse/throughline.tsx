@@ -3,30 +3,11 @@
 import { FadeIn } from "@components";
 
 interface ThroughlineProps {
-  /**
-   * Stable id retained for upstream callers and for legibility in DevTools.
-   * No longer used as a pin-store key — the section is now a plain
-   * single-viewport beat.
-   */
   id: string;
   text: string;
 }
 
-/**
- * Single-viewport closing beat for Act I.
- *
- * Why no sticky-once / pin-store coupling:
- * - The previous `useStickyOnce` wrapper was 150vh tall with a 100vh sticky
- *   child, which produced a ~100vh exit runway between the message and
- *   Act II's title. On hash refreshes past this section, the wrapper would
- *   collapse on the user's first scroll event and force a ~50vh upward
- *   `lenis.scrollTo` compensation, which dropped the user back into Act I.
- * - A plain `h-svh` section with no sticky behavior, no pin-store key, and no
- *   scroll-driven compensation removes both failure modes deterministically.
- *
- * Visual: full-viewport, centered narrator quote. The quote scrolls with the
- * page like any other section.
- */
+/** Full-viewport closing beat for Act I. No sticky-once — caused hash-refresh scroll jumps. */
 export function Throughline({ id, text }: ThroughlineProps) {
   return (
     <div

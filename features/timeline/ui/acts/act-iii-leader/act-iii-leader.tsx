@@ -27,21 +27,11 @@ const {
   subhead,
 } = ACT_III_LEADER;
 
-// ─── Section background tokens ──────────────────────────────────────────────
-// LEADER_BG is slightly warmer than the global --bg so Act III feels its own.
-// SITE_BG mirrors --bg, hardcoded here because we need the literal value for
-// linear-gradient interpolation (CSS vars cannot be interpolated by the
-// gradient parser when one stop is a var and the other is a hex).
+// LEADER_BG is Act III's warmer background; SITE_BG mirrors `--bg` but must
+// be literal for linear-gradient interpolation (no CSS vars in one stop).
 const LEADER_BG = "#0A0A0F";
 const SITE_BG = "#07070A";
-/** Length of the cross-fade band at each section boundary (px). */
 const FOG_BAND_PX = 240;
-
-// ─── Shared eyebrow ──────────────────────────────────────────────────────────
-// Single source of truth for the small uppercase labels above each section
-// heading ("Selected scenarios", "What I actually did", "In practice", and the
-// institution name in the top bar). Matches the institution label tone so
-// the whole act reads with one consistent eyebrow voice.
 
 const EYEBROW_CLASSNAME =
   "font-ui text-[12px] font-medium uppercase tracking-[0.28em] text-(--cream-muted) sm:text-[13px]";
@@ -70,10 +60,7 @@ function Splash() {
     <div
       ref={ref}
       className="relative flex min-h-[85svh] flex-col justify-between px-(--page-gutter) pb-16 pt-10 md:pb-24 md:pt-16">
-      {/* Top bar — institution/place/time. The "ACT III · The Leader" label
-          is rendered by ActIIITitle directly above this section, so repeating
-          it here would be self-referential. The institution name carries the
-          brightness, with location and period stepping down in hierarchy. */}
+      {/* Institution + place + time. ActIIITitle already renders the act label. */}
       <motion.div
         className={`flex flex-wrap items-center justify-end gap-x-2.5 gap-y-1 ${EYEBROW_CLASSNAME}`}
         initial={{ opacity: 0, y: -6 }}
@@ -277,14 +264,7 @@ export function ActIIILeader() {
       className="relative"
       aria-label="Act III — Leadership career"
       style={{ backgroundColor: LEADER_BG, zIndex: 2 }}>
-      {/*
-        Top fog — cross-fades the global --bg into the warmer Leader bg.
-        The previous gradient went `LEADER_BG → transparent`, which is a
-        no-op because the section bg directly underneath is also LEADER_BG,
-        so it painted nothing. The hard cutoff between Act II and Act III
-        was the visible result. This bridges the two literal colors over a
-        wide enough band that the eye never catches the seam.
-      */}
+      {/* Top + bottom fog: cross-fade between SITE_BG and LEADER_BG over FOG_BAND_PX. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 z-0"
@@ -304,10 +284,6 @@ export function ActIIILeader() {
         <Proof />
       </div>
 
-      {/*
-        Bottom fog — symmetrical cross-fade back into the global --bg as the
-        section ends. Matches FOG_BAND_PX so entry and exit feel balanced.
-      */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 bottom-0 z-0"

@@ -194,41 +194,10 @@ export function ActIIEngineer() {
     : Math.ceil(LENSES_SECTION_VH * LENSES_INTEGRATION.mobileScrollFactor)
   const lensesScrollVh = LENSES_START_VH + lensesVh
 
-  /* ---- Title opacity — approach fade + exit fade, composed ---- *
-   *
-   * Why this shape:
-   * - The engineer title used to live inside the `lensesScrollRef` sticky
-   *   child as `absolute inset-0 flex justify-center`. CSS `position:
-   *   sticky; top: 0` has an intrinsic ~100vh approach phase: before the
-   *   parent's top reaches the viewport top, the sticky child follows
-   *   the parent from below, so its centered content slides up through
-   *   the viewport instead of appearing at center. That slide-up is
-   *   what produced the visible gap where the title sat in the bottom
-   *   half of the viewport while the top half was empty.
-   * - The fix is to move the title out of the sticky child entirely and
-   *   render it as `position: fixed` at viewport center, driven by
-   *   scroll-linked motion values. The title snaps on at center as the
-   *   user approaches the engineer section, holds through the title
-   *   phase, then fades out during convergence — identical to the
-   *   hash-refresh experience.
-   *
-   * Approach fade (scroll-in):
-   * - `approachProgress` tracks `lensesScrollRef` entering the viewport
-   *   via `offset: ["start end", "start start"]`. Progress 0 when the
-   *   container's top sits at the viewport bottom, 1 when it reaches
-   *   the viewport top.
-   * - `approachOpacity` ramps 0→1 across the last ~40% of that range so
-   *   the title materializes over roughly 40vh of scroll rather than
-   *   popping.
-   *
-   * Exit fade (scroll-out):
-   * - `exitOpacity` is written by `applyContainerAProgress` below using
-   *   the existing TITLE-phase + summary-panel curtain logic.
-   *
-   * Final opacity = min(approach, exit) — either gate can hide the
-   * title, and the composed motion value is passed straight to the
-   * fixed title container below.
-   */
+  /* Title uses fixed positioning + scroll-driven opacity instead of
+   * `position: sticky`, which has an intrinsic ~100vh approach phase
+   * where the child slides up from the viewport bottom. Opacity is
+   * min(approachFade, exitFade). */
   const getLenis = useLenis()
 
   const { scrollYProgress: approachProgress } = useScroll({
@@ -246,11 +215,8 @@ export function ActIIEngineer() {
   const titleHoldFired = useRef(false)
   const titleHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Trigger scramble + Lenis hold when the title becomes fully visible.
-  // Using the motion-value event instead of `useInView` because the
-  // title is now `position: fixed` — it would be "in view" on first
-  // mount regardless of scroll, which would fire the hold while the
-  // user is still on Act I.
+  // Fire scramble + Lenis hold from scroll progress, not useInView —
+  // the title is fixed-positioned and would be "in view" on mount.
   useMotionValueEvent(approachProgress, "change", (p) => {
     if (p < 0.95 || titleHoldFired.current) return
     titleHoldFired.current = true
@@ -264,13 +230,10 @@ export function ActIIEngineer() {
     )
   })
 
-  // Cleanup on unmount: clear any pending hold timer and make sure
-  // Lenis is not left in a stopped state.
   useEffect(() => {
     return () => {
       if (titleHoldTimer.current) clearTimeout(titleHoldTimer.current)
-      const lenis = getLenis()
-      lenis?.start()
+      getLenis()?.start()
     }
   }, [getLenis])
 
@@ -391,18 +354,7 @@ export function ActIIEngineer() {
 
   return (
     <>
-      {/* ============================================================ */}
-      {/*  TITLE — fixed at viewport center, opacity scroll-driven.   */}
-      {/*                                                              */}
-      {/*  Rendered outside the sticky container so it is not subject */}
-      {/*  to CSS sticky's intrinsic approach phase (see the          */}
-      {/*  `titleOpacity` comment block above). The fixed container   */}
-      {/*  always sits at viewport center; `titleOpacity` gates       */}
-      {/*  visibility so it is invisible until the user approaches    */}
-      {/*  the engineer section and invisible again once convergence  */}
-      {/*  begins. Pointer-events-none so it never blocks clicks on   */}
-      {/*  the scroll content below it.                               */}
-      {/* ============================================================ */}
+      {/* Title: fixed at viewport center, opacity scroll-driven. */}
       <motion.div
         aria-hidden="false"
         className="pointer-events-none fixed inset-0 flex flex-col items-center justify-center px-4"

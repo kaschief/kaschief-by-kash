@@ -163,13 +163,6 @@ export function Hero() {
               </button>
             </motion.span>
           ))}
-          {/*
-            Dev/preview-only Lab entry point.
-            Gated by NEXT_PUBLIC_ENABLE_LAB so it's dead-code-eliminated
-            from production builds — the whole motion.span is tree-shaken
-            when the env var is not "true" at build time. See docs in
-            app/(lab)/layout.tsx for the full gating strategy.
-          */}
           {process.env.NEXT_PUBLIC_ENABLE_LAB === "true" && (
             <motion.span
               initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
