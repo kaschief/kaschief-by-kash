@@ -13,7 +13,15 @@
  */
 
 import { useRef, useState, useEffect, useCallback } from "react"
-import { motion, useScroll, useMotionValueEvent, useInView, useReducedMotion } from "framer-motion"
+import {
+  motion,
+  useScroll,
+  useMotionValueEvent,
+  useMotionValue,
+  useTransform,
+  useReducedMotion,
+  type MotionValue,
+} from "framer-motion"
 import { ACT_II } from "@data"
 import { smoothstep } from "./math"
 import { ACT_BLUE, CONTENT } from "./act-ii.data"
@@ -164,8 +172,6 @@ export function ActIIEngineer() {
   /* ---- Refs: Lenses scroll (convergence + lenses, one viewport) ---- */
   const lensesScrollRef = useRef<HTMLDivElement>(null)
   const stickyViewportARef = useRef<HTMLDivElement>(null)
-  const titleRef = useRef<HTMLDivElement>(null)
-  const titleInViewRef = useRef<HTMLDivElement>(null)
   const summaryPanelRef = useRef<HTMLDivElement>(null)
 
   /* ---- Lenses smoothing refs ---- */
@@ -188,42 +194,85 @@ export function ActIIEngineer() {
     : Math.ceil(LENSES_SECTION_VH * LENSES_INTEGRATION.mobileScrollFactor)
   const lensesScrollVh = LENSES_START_VH + lensesVh
 
-  /* ---- Title scramble + Lenis hold ---- */
-  const getLenis = useLenis()
-  /**
-   * Fire only when the title block is fully in view.
+  /* ---- Title opacity — approach fade + exit fade, composed ---- *
    *
-   * Why `amount: "all"`:
-   * - The title-active state both starts the scramble AND triggers a 1.8s
-   *   Lenis hold (`lenis.stop()` below). With `amount: 0.5` the trigger
-   *   fired while the engineer section was still entering the viewport
-   *   from below — the user got frozen mid-transition with the Act I
-   *   throughline still in the top of the viewport and only the bottom
-   *   half of the Act II title visible. That awkward frozen in-between
-   *   state is the "dead gap" between Act I and Act II.
-   * - Requiring the entire title block to be in view delays the freeze
-   *   until the engineer section is fully pinned, so the hold lands on a
-   *   clean "title centered, page settled" state.
+   * Why this shape:
+   * - The engineer title used to live inside the `lensesScrollRef` sticky
+   *   child as `absolute inset-0 flex justify-center`. CSS `position:
+   *   sticky; top: 0` has an intrinsic ~100vh approach phase: before the
+   *   parent's top reaches the viewport top, the sticky child follows
+   *   the parent from below, so its centered content slides up through
+   *   the viewport instead of appearing at center. That slide-up is
+   *   what produced the visible gap where the title sat in the bottom
+   *   half of the viewport while the top half was empty.
+   * - The fix is to move the title out of the sticky child entirely and
+   *   render it as `position: fixed` at viewport center, driven by
+   *   scroll-linked motion values. The title snaps on at center as the
+   *   user approaches the engineer section, holds through the title
+   *   phase, then fades out during convergence — identical to the
+   *   hash-refresh experience.
+   *
+   * Approach fade (scroll-in):
+   * - `approachProgress` tracks `lensesScrollRef` entering the viewport
+   *   via `offset: ["start end", "start start"]`. Progress 0 when the
+   *   container's top sits at the viewport bottom, 1 when it reaches
+   *   the viewport top.
+   * - `approachOpacity` ramps 0→1 across the last ~40% of that range so
+   *   the title materializes over roughly 40vh of scroll rather than
+   *   popping.
+   *
+   * Exit fade (scroll-out):
+   * - `exitOpacity` is written by `applyContainerAProgress` below using
+   *   the existing TITLE-phase + summary-panel curtain logic.
+   *
+   * Final opacity = min(approach, exit) — either gate can hide the
+   * title, and the composed motion value is passed straight to the
+   * fixed title container below.
    */
-  const titleInView = useInView(titleInViewRef, { once: true, amount: "all" })
+  const getLenis = useLenis()
+
+  const { scrollYProgress: approachProgress } = useScroll({
+    target: lensesScrollRef,
+    offset: ["start end", "start start"],
+  })
+  const approachOpacity = useTransform(approachProgress, [0.6, 1.0], [0, 1])
+  const exitOpacity = useMotionValue(1)
+  const titleOpacity = useTransform(
+    [approachOpacity as MotionValue<number>, exitOpacity],
+    ([a, e]: number[]) => Math.min(a ?? 0, e ?? 0),
+  )
+
   const [titleActive, setTitleActive] = useState(false)
   const titleHoldFired = useRef(false)
-  useEffect(() => {
-    if (!titleInView) return
-    // Wrapped in rAF so this is an async callback, not synchronous setState in effect
-    requestAnimationFrame(() => setTitleActive(true))
-    // Lenis hold — freeze scroll then release after configured duration
-    if (titleHoldFired.current) return
+  const titleHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Trigger scramble + Lenis hold when the title becomes fully visible.
+  // Using the motion-value event instead of `useInView` because the
+  // title is now `position: fixed` — it would be "in view" on first
+  // mount regardless of scroll, which would fire the hold while the
+  // user is still on Act I.
+  useMotionValueEvent(approachProgress, "change", (p) => {
+    if (p < 0.95 || titleHoldFired.current) return
     titleHoldFired.current = true
+    requestAnimationFrame(() => setTitleActive(true))
     const lenis = getLenis()
     if (!lenis) return
     lenis.stop()
-    const timer = setTimeout(() => lenis.start(), EC_UI_CONFIG.titleHoldMs)
+    titleHoldTimer.current = setTimeout(
+      () => lenis.start(),
+      EC_UI_CONFIG.titleHoldMs,
+    )
+  })
+
+  // Cleanup on unmount: clear any pending hold timer and make sure
+  // Lenis is not left in a stopped state.
+  useEffect(() => {
     return () => {
-      clearTimeout(timer)
-      lenis.start()
+      if (titleHoldTimer.current) clearTimeout(titleHoldTimer.current)
+      const lenis = getLenis()
+      lenis?.start()
     }
-  }, [titleInView, getLenis])
+  }, [getLenis])
 
   /* ================================================================ */
   /*  Scroll: Lenses scroll (convergence + lenses in one viewport)       */
@@ -252,24 +301,22 @@ export function ActIIEngineer() {
       const ecProgressFull = scrollVh / CONTAINER_VH
       // ecProgress: clamped for title fade and convergence-era logic
       const ecProgress = Math.min(ecProgressFull, CONVERGENCE_GATE)
-      if (titleRef.current) {
-        const slowFade =
-          1 -
-          smoothstep(
-            SCROLL_PHASES.TITLE.start,
-            SCROLL_PHASES.TITLE.end * EC_UI_CONFIG.titleSlowFadeMult,
-            ecProgress,
-          )
-        const curtainFade =
-          curtainTop >= window.innerHeight
-            ? 1
-            : Math.max(
-                0,
-                (curtainTop - window.innerHeight * EC_UI_CONFIG.titleCurtainThreshold) /
-                  (window.innerHeight * EC_UI_CONFIG.titleCurtainRange),
-              )
-        titleRef.current.style.opacity = String(Math.min(slowFade, curtainFade))
-      }
+      const slowFade =
+        1 -
+        smoothstep(
+          SCROLL_PHASES.TITLE.start,
+          SCROLL_PHASES.TITLE.end * EC_UI_CONFIG.titleSlowFadeMult,
+          ecProgress,
+        )
+      const curtainFade =
+        curtainTop >= window.innerHeight
+          ? 1
+          : Math.max(
+              0,
+              (curtainTop - window.innerHeight * EC_UI_CONFIG.titleCurtainThreshold) /
+                (window.innerHeight * EC_UI_CONFIG.titleCurtainRange),
+            )
+      exitOpacity.set(Math.min(slowFade, curtainFade))
 
       /* ---- Roles cloud (fragments, embers, grid, roles grid) ---- */
       const viewportHeight = window.innerHeight
@@ -289,7 +336,7 @@ export function ActIIEngineer() {
         lensesRawProgress.current = 0
       }
     },
-    [lensesScrollVh, lensesVh, rolesCloud, isLg],
+    [lensesScrollVh, lensesVh, rolesCloud, isLg, exitOpacity],
   )
 
   useMotionValueEvent(progressA, "change", applyContainerAProgress)
@@ -345,6 +392,65 @@ export function ActIIEngineer() {
   return (
     <>
       {/* ============================================================ */}
+      {/*  TITLE — fixed at viewport center, opacity scroll-driven.   */}
+      {/*                                                              */}
+      {/*  Rendered outside the sticky container so it is not subject */}
+      {/*  to CSS sticky's intrinsic approach phase (see the          */}
+      {/*  `titleOpacity` comment block above). The fixed container   */}
+      {/*  always sits at viewport center; `titleOpacity` gates       */}
+      {/*  visibility so it is invisible until the user approaches    */}
+      {/*  the engineer section and invisible again once convergence  */}
+      {/*  begins. Pointer-events-none so it never blocks clicks on   */}
+      {/*  the scroll content below it.                               */}
+      {/* ============================================================ */}
+      <motion.div
+        aria-hidden="false"
+        className="pointer-events-none fixed inset-0 flex flex-col items-center justify-center px-4"
+        style={{ opacity: titleOpacity, willChange: "opacity", zIndex: 5 }}>
+        <div>
+          <motion.div
+            initial={{ opacity: 0, letterSpacing: "0.3em" }}
+            animate={titleActive ? { opacity: 1, letterSpacing: "0.5em" } : {}}
+            transition={{ duration: 1.2, delay: 0.2 }}
+            className="mb-6 text-xs sm:text-sm md:text-base text-center"
+            style={{ color: ACT_BLUE }}>
+            {ACT_II.act}
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            animate={titleActive ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 1, delay: 0.4 }}
+            className="font-sans text-4xl font-bold tracking-[-0.03em] text-center sm:text-6xl md:text-8xl lg:text-[140px] lg:tracking-[-0.04em]"
+            style={{ color: "var(--cream)" }}>
+            {ACT_II.title
+              .toUpperCase()
+              .replace(/I/, "1")
+              .split(" ")
+              .map((word, i) => (
+                <span key={i} className="block">
+                  <ScrambleWord
+                    text={word}
+                    active={titleActive}
+                    prefersReducedMotion={prefersReducedMotion}
+                  />
+                </span>
+              ))}
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={titleActive ? { opacity: 1 } : {}}
+            transition={{ duration: 1, delay: 0.8 }}
+            className="font-narrator text-sm text-center mt-6 mx-auto sm:text-base md:text-xl leading-relaxed"
+            style={{
+              color: "var(--cream-muted)",
+              maxWidth: "min(500px, 85vw)",
+            }}>
+            {ACT_II.splash}
+          </motion.p>
+        </div>
+      </motion.div>
+
+      {/* ============================================================ */}
       {/*  CONTAINER A: Convergence + Lenses (one sticky viewport)     */}
       {/* ============================================================ */}
       <div
@@ -374,54 +480,6 @@ export function ActIIEngineer() {
           {/* Lenses: crossfade content (cards, pills — constrained width layer) */}
           <div className="relative h-full mx-auto" style={{ maxWidth: MAX_CONTENT_WIDTH }}>
             {lenses.contentJsx}
-          </div>
-
-          {/* Title */}
-          <div
-            ref={titleRef}
-            className="absolute inset-0 flex flex-col items-center justify-center"
-            style={{ willChange: "transform, opacity" }}>
-            <div ref={titleInViewRef}>
-              <motion.div
-                initial={{ opacity: 0, letterSpacing: "0.3em" }}
-                animate={titleActive ? { opacity: 1, letterSpacing: "0.5em" } : {}}
-                transition={{ duration: 1.2, delay: 0.2 }}
-                className="mb-6 text-xs sm:text-sm md:text-base text-center"
-                style={{ color: ACT_BLUE }}>
-                {ACT_II.act}
-              </motion.div>
-              <motion.h2
-                initial={{ opacity: 0, y: 30 }}
-                animate={titleActive ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 1, delay: 0.4 }}
-                className="font-sans text-4xl font-bold tracking-[-0.03em] text-center sm:text-6xl md:text-8xl lg:text-[140px] lg:tracking-[-0.04em]"
-                style={{ color: "var(--cream)" }}>
-                {ACT_II.title
-                  .toUpperCase()
-                  .replace(/I/, "1")
-                  .split(" ")
-                  .map((word, i) => (
-                    <span key={i} className="block">
-                      <ScrambleWord
-                        text={word}
-                        active={titleActive}
-                        prefersReducedMotion={prefersReducedMotion}
-                      />
-                    </span>
-                  ))}
-              </motion.h2>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={titleActive ? { opacity: 1 } : {}}
-                transition={{ duration: 1, delay: 0.8 }}
-                className="font-narrator text-sm text-center mt-6 mx-auto sm:text-base md:text-xl leading-relaxed"
-                style={{
-                  color: "var(--cream-muted)",
-                  maxWidth: "min(500px, 85vw)",
-                }}>
-                {ACT_II.splash}
-              </motion.p>
-            </div>
           </div>
         </div>
 
