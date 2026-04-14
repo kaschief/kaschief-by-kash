@@ -2,8 +2,29 @@
  * Lab route group layout — loads experimental fonts on top of the
  * 4 production fonts from the root layout. These are only downloaded
  * when visiting /lab-*, /legacy-engineer, or /act-ii routes.
+ *
+ * Production gate
+ * ---------------
+ * Every route under `app/(lab)/` is hard-gated behind
+ * `NEXT_PUBLIC_ENABLE_LAB`. When the flag is unset (production
+ * builds on main), the layout calls `notFound()` before any child
+ * renders, so `/lab`, `/lab-builder`, `/lab-methods`, `/lab-wip-5`,
+ * and any future lab route all return the site's canonical 404 page.
+ *
+ * The flag should be:
+ * - `true` in local dev (set via .env.local, see .env.example)
+ * - `true` on Vercel Preview deploys (set via Project Settings
+ *   → Environment Variables, scoped to Preview + Development only)
+ * - UNSET on Vercel Production (main branch) — do not add it at all
+ *
+ * Layer 1 (UI entry points in nav + hero) and layer 3 (robots.ts
+ * disallow rules) are gated separately. This layout is layer 2 —
+ * the hard route gate. See app/robots.ts and the
+ * `NEXT_PUBLIC_ENABLE_LAB` references in features/navigation and
+ * features/hero for the other two layers.
  */
 
+import { notFound } from "next/navigation";
 import {
   Alegreya,
   Archivo,
@@ -248,5 +269,8 @@ const labFontVariables = [
 ].join(" ");
 
 export default function LabLayout({ children }: { children: React.ReactNode }) {
+  if (process.env.NEXT_PUBLIC_ENABLE_LAB !== "true") {
+    notFound();
+  }
   return <div className={labFontVariables}>{children}</div>;
 }

@@ -177,8 +177,6 @@ export function useSectionScroll() {
         distance > window.innerHeight * SCROLL_NAV.longJumpThresholdVh ||
         skipTarget !== null;
 
-      console.log(`[nav] ${sectionId} | from:${Math.round(currentScroll)} to:${Math.round(finalTarget)} dist:${Math.round(distance)} offset:${offset} longJump:${isLongJump} skip:${skipTarget !== null ? Math.round(skipTarget) : "none"}`);
-
       // For sections with offset: 0 (full-viewport sticky containers), the
       // scroll target must land a few pixels PAST the section top so that
       // scrollY > sectionTop, guaranteeing the sticky element is pinned.
@@ -190,11 +188,7 @@ export function useSectionScroll() {
         const jumpTo = Math.max(0, finalTarget - SCROLL_NAV.approachPx);
         // Slide target is recalculated after the jump via callback — pin
         // spacers may shift element positions during the instant scroll.
-        const slideTo = () => {
-          const recalc = getAbsoluteTop(el) - offset + stickyOvershoot;
-          console.log(`[nav] slideTo recalc: ${Math.round(recalc)} (jump landed at ${Math.round(window.scrollY)})`);
-          return recalc;
-        };
+        const slideTo = () => getAbsoluteTop(el) - offset + stickyOvershoot;
 
         fadeJumpSlide(lenis, jumpTo, slideTo, SCROLL_NAV.slideInDuration, endNavigation);
       } else {
