@@ -771,19 +771,26 @@ export function useRolesCloud() {
         }
       })}
 
-      {/* Company roles grid (2x2) */}
+      {/* Company roles grid (2x2)
+         *
+         * Mobile spacing notes:
+         * - px-3 sm:px-8 — narrower outer padding on phones gives each
+         *   cell ~16px more horizontal width, which is the difference
+         *   between role labels wrapping to 3 lines and 2 lines.
+         * - gap-y-5 sm:gap-y-0 — adds vertical breathing room between
+         *   the two rows on mobile so the lower row doesn't feel
+         *   crammed under the upper row. On tablet+ the original
+         *   horizontal-only gap is preserved.
+         * - gap-x-3 sm:gap-x-6 — slightly tighter horizontal gap on
+         *   phones than the original 1.5rem, which buys a few more
+         *   pixels of cell width for the same total grid width.
+         */}
       <div
         ref={rolesGridEl}
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
         style={{ opacity: 0 }}>
         <div
-          className="grid grid-cols-2"
-          style={{
-            gap: "0 1.5rem",
-            maxWidth: "64rem",
-            width: "100%",
-            padding: "0 2rem",
-          }}>
+          className="grid grid-cols-2 mx-auto w-full max-w-4xl px-3 sm:px-8 gap-x-3 sm:gap-x-6 gap-y-5 sm:gap-y-0">
           {COMPANIES.map((company, ci) => {
             const seedSet = new Set(
               company.distillation.seedWords.map((w) => w.toLowerCase()),
@@ -792,8 +799,10 @@ export function useRolesCloud() {
             return (
               <div
                 key={company.hash}
+                className="min-w-0"
                 style={{
-                  paddingLeft: "0.75rem",
+                  paddingLeft: "0.5rem",
+                  paddingRight: "0.25rem",
                   paddingTop: "0.625rem",
                   paddingBottom: "0.625rem",
                   fontSize: "0.8125rem",
@@ -814,7 +823,13 @@ export function useRolesCloud() {
                   ref={setFillRef}
                   className="mt-1 font-ui text-[11px]"
                   style={{ color: COLORS.textDim, opacity: 0 }}>
-                  {company.location} &middot; {company.period}
+                  {company.location} &middot;{" "}
+                  {/* Show short period on mobile (e.g. "2018–2019") to
+                      keep the metadata line from wrapping in narrow
+                      cells. Tablet+ keeps the full "Sep 2018 — Oct
+                      2019" form for richer context. */}
+                  <span className="sm:hidden">{company.periodShort}</span>
+                  <span className="hidden sm:inline">{company.period}</span>
                 </div>
                 {/* Commits + overlaid impact metrics */}
                 <div className="relative" style={{ marginTop: "0.5rem" }}>
