@@ -57,13 +57,19 @@ export const metadata: Metadata = {
   title: "Kaschief Johnson | Portfolio",
   description:
     "Four careers. One adaptable mind. Portfolio of Kaschief Johnson — critical care nurse, software engineer, engineering manager, and independent product builder.",
+  // Favicon served statically from `public/kj-monogram.svg`. Do NOT
+  // move this file under `app/` as an `icon.svg` convention — Next 16
+  // Turbopack caches the result of the icon route handler in a way
+  // that survives `.next` nukes in some environments.
+  //
+  // IMPORTANT for anyone editing the SVG: keep it free of XML comments
+  // that contain the literal sequence `- -` (double hyphen). The XML
+  // spec forbids `- -` inside comments, and a malformed SVG silently
+  // fails in favicon contexts (the tab renders as empty). An earlier
+  // version of this file had a comment mentioning `var(- -bg)` which
+  // broke the entire favicon pipeline without any visible error.
   icons: {
-    icon: [
-      { url: "/icon-light-32x32.png", media: "(prefers-color-scheme: light)" },
-      { url: "/icon-dark-32x32.png", media: "(prefers-color-scheme: dark)" },
-      { url: "/icon.svg", type: "image/svg+xml" },
-    ],
-    apple: "/apple-icon.png",
+    icon: [{ url: "/kj-monogram.svg", type: "image/svg+xml" }],
   },
 };
 
