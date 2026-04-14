@@ -53,10 +53,21 @@ const fontVariables = [
   kaiseiDecol.variable,
 ].join(" ");
 
+const SITE_URL = "https://kaschief.com";
+const SITE_TITLE = "Kaschief Johnson | Portfolio";
+const SITE_DESCRIPTION =
+  "Portfolio of Kaschief Johnson — critical care nurse, software engineer, and engineering manager.";
+
 export const metadata: Metadata = {
-  title: "Kaschief Johnson | Portfolio",
-  description:
-    "Four careers. One adaptable mind. Portfolio of Kaschief Johnson — critical care nurse, software engineer, engineering manager, and independent product builder.",
+  // metadataBase makes every relative URL in openGraph / twitter /
+  // icons / alternates resolve to an absolute URL. Social platforms
+  // reject relative image paths, so this is required for share cards
+  // to render at all.
+  metadataBase: new URL(SITE_URL),
+
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+
   // Favicon served statically from `public/kj-monogram.svg`. Do NOT
   // move this file under `app/` as an `icon.svg` convention — Next 16
   // Turbopack caches the result of the icon route handler in a way
@@ -70,6 +81,31 @@ export const metadata: Metadata = {
   // broke the entire favicon pipeline without any visible error.
   icons: {
     icon: [{ url: "/kj-monogram.svg", type: "image/svg+xml" }],
+  },
+
+  // openGraph images come from the `app/opengraph-image.tsx` file
+  // convention automatically — Next.js picks it up and injects it
+  // into metadata at build time. Do not duplicate the entry here.
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: "Kaschief Johnson",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+
+  // Twitter card mirrors openGraph. When `twitter.images` is not set,
+  // Next.js and most clients fall back to the openGraph image, so the
+  // `app/opengraph-image.tsx` file is reused for Twitter automatically.
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+
+  alternates: {
+    canonical: "/",
   },
 };
 
