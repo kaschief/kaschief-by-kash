@@ -209,12 +209,16 @@ export function Portrait() {
               </p>
             ))}
 
-            <StatsGrid
-              stats={PORTRAIT_STATS}
-              color={cream}
-              layout="row"
-              forceActive={countersActive}
-            />
+            {/* Responsive alignment mirrors the text column's
+                text-center md:text-left xl:text-center pattern. */}
+            <div className="flex justify-center md:justify-start xl:justify-center">
+              <StatsGrid
+                stats={PORTRAIT_STATS}
+                color={cream}
+                layout="row"
+                forceActive={countersActive}
+              />
+            </div>
           </motion.div>
         </div>
       </div>
