@@ -7,12 +7,11 @@ import { PERSONAL, CONTACT_CONTENT } from "@data"
 
 const { CONTACT } = SECTION_ID
 
-const { firstName, lastName, email, phone, linkedin, github } = PERSONAL
+const { firstName, lastName, email, linkedin, github } = PERSONAL
 const { paragraphs: PARAGRAPHS, coda: CODA } = CONTACT_CONTENT
 
 const CONTACT_ITEMS = [
   { key: "email", label: email, href: `mailto:${email}`, external: false },
-  { key: "phone", label: phone, href: `tel:${phone}`, external: false },
   { key: "linkedin", label: "LinkedIn", href: linkedin, external: true },
   { key: "github", label: "GitHub", href: github, external: true },
 ]

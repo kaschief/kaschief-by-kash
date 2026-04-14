@@ -36,11 +36,10 @@ describe("site data contracts", () => {
   });
 
   it("keeps personal/contact fields populated", () => {
-    const { email, github, linkedin, location, name, phone } = PERSONAL;
+    const { email, github, linkedin, location, name } = PERSONAL;
 
     expect(name.length).toBeGreaterThan(0);
     expect(email.includes("@")).toBe(true);
-    expect(phone.length).toBeGreaterThan(0);
     expect(location.length).toBeGreaterThan(0);
     expect(linkedin.startsWith("https://")).toBe(true);
     expect(github.startsWith("https://")).toBe(true);

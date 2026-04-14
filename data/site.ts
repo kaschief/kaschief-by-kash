@@ -17,7 +17,6 @@ export interface PersonalInfo {
   readonly lastName: string
   readonly initials: string
   readonly email: string
-  readonly phone: string
   readonly location: string
   readonly linkedin: string
   readonly github: string
@@ -68,8 +67,7 @@ export const PERSONAL: PersonalInfo = {
   firstName: "Kaschief",
   lastName: "Johnson",
   initials: "KJ",
-  email: "kaschiefj@gmail.com",
-  phone: "+49 176 204 19325",
+  email: "hi@kaschief.com",
   location: "Berlin, Germany",
   linkedin: "https://linkedin.com/in/kaschief-johnson",
   github: "https://github.com/kaschief/kash-indicators",
