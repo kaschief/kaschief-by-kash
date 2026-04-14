@@ -129,7 +129,17 @@ export function StatsGrid({
                 ? "font-serif tracking-tight"
                 : "font-serif text-3xl"
             }
-            style={isRow ? { color, fontSize: PS(2.8) } : { color }}>
+            // lining-nums tabular-nums: Playfair Display's default oldstyle
+            // figures put digits at different vertical positions.
+            style={
+              isRow
+                ? {
+                    color,
+                    fontSize: PS(2.8),
+                    fontVariantNumeric: "lining-nums tabular-nums",
+                  }
+                : { color, fontVariantNumeric: "lining-nums tabular-nums" }
+            }>
             <AnimatedValue value={stat.value} active={active} color={color} />
           </p>
           <p

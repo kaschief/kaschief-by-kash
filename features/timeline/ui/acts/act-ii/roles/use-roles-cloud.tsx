@@ -771,20 +771,7 @@ export function useRolesCloud() {
         }
       })}
 
-      {/* Company roles grid (2x2)
-         *
-         * Mobile spacing notes:
-         * - px-3 sm:px-8 — narrower outer padding on phones gives each
-         *   cell ~16px more horizontal width, which is the difference
-         *   between role labels wrapping to 3 lines and 2 lines.
-         * - gap-y-5 sm:gap-y-0 — adds vertical breathing room between
-         *   the two rows on mobile so the lower row doesn't feel
-         *   crammed under the upper row. On tablet+ the original
-         *   horizontal-only gap is preserved.
-         * - gap-x-3 sm:gap-x-6 — slightly tighter horizontal gap on
-         *   phones than the original 1.5rem, which buys a few more
-         *   pixels of cell width for the same total grid width.
-         */}
+      {/* Company roles grid (2x2) */}
       <div
         ref={rolesGridEl}
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
@@ -824,10 +811,6 @@ export function useRolesCloud() {
                   className="mt-1 font-ui text-[11px]"
                   style={{ color: COLORS.textDim, opacity: 0 }}>
                   {company.location} &middot;{" "}
-                  {/* Show short period on mobile (e.g. "2018–2019") to
-                      keep the metadata line from wrapping in narrow
-                      cells. Tablet+ keeps the full "Sep 2018 — Oct
-                      2019" form for richer context. */}
                   <span className="sm:hidden">{company.periodShort}</span>
                   <span className="hidden sm:inline">{company.period}</span>
                 </div>

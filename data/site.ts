@@ -153,7 +153,7 @@ export const PORTRAIT_CONTENT = {
     "Each role expanded the way I think and work.",
   ],
   stats: [
-    { value: "4", label: "Eras" },
+    { value: "3", label: "Eras" },
     { value: "8+", label: "Years in tech" },
     { value: "5M+", label: "Users impacted" },
   ],

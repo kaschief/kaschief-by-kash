@@ -246,15 +246,9 @@ export function Navigation() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // --- Hash scroll ---
-  // Re-aligns to the target every frame until the target stops drifting,
-  // then reveals. A one-shot scroll is not enough here: between the
-  // initial scrollTo and the reveal, several layout shifts can happen —
-  // the Portrait pin spacer being created in its useEffect, GSAP
-  // ScrollTrigger.refresh() running from LenisProvider's RAF, font swaps,
-  // and lazy Timeline children mounting. Any of those shift the absolute
-  // top of the target after a one-shot scroll, leaving the user landed
-  // at a position that is now inside the previous section.
+  // Hash scroll: re-align to target every frame until stable, then reveal.
+  // Portrait pin spacer, ScrollTrigger.refresh, font swaps, and lazy Timeline
+  // mounts all shift target position after a one-shot scroll — the loop absorbs those.
   useEffect(() => {
     const hashId = getSectionIdFromHash(window.location.hash);
     if (!hashId) return;
@@ -509,12 +503,6 @@ export function Navigation() {
                 />
               ))}
 
-              {/*
-                Dev/preview-only Lab entry point.
-                Gated by NEXT_PUBLIC_ENABLE_LAB so it's dead-code-eliminated
-                from production builds — the divider AND the link are tree-
-                shaken when the env var is not "true" at build time.
-              */}
               {process.env.NEXT_PUBLIC_ENABLE_LAB === "true" && (
                 <>
                   <span className="mx-1.5 h-3.5 w-px bg-white/[0.08]" />
