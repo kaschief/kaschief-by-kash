@@ -69,7 +69,7 @@ export const PERSONAL: PersonalInfo = {
   initials: "KJ",
   email: "hi@kaschief.com",
   location: "Berlin, Germany",
-  linkedin: "https://linkedin.com/in/kaschief-johnson",
+  linkedin: "https://www.linkedin.com/in/kaschief-johnson-56a23a107/",
   github: "https://github.com/kaschief/kash-indicators",
 }
 
