@@ -70,7 +70,7 @@ export const PERSONAL: PersonalInfo = {
   email: "hi@kaschief.com",
   location: "Berlin, Germany",
   linkedin: "https://www.linkedin.com/in/kaschief-johnson-56a23a107/",
-  github: "https://github.com/kaschief/kash-indicators",
+  github: "https://github.com/kaschief",
 }
 
 // Single source of truth for top nav composition and styling.
