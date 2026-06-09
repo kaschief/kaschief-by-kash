@@ -12,10 +12,17 @@ export interface LabRoute {
   href: string;
   label: string;
   desc: string;
-  section: "wip-covers" | "archived";
+  section: "in-progress" | "wip-covers" | "archived";
 }
 
 export const LAB_ROUTES: readonly LabRoute[] = [
+  {
+    href: "/lab-builder-lenses",
+    label: "Builder · Lenses",
+    desc: "Hybrid scroll + hover reveal across five indicators on one chart",
+    section: "in-progress",
+  },
+
   {
     href: "/lab-wip-5",
     label: "Construction Hoarding",
@@ -28,15 +35,17 @@ export const LAB_ROUTES: readonly LabRoute[] = [
     desc: "Skill panels with ScrollTrigger pinning and detail overlays",
     section: "wip-covers",
   },
+
   {
     href: "/lab-builder",
-    label: "Builder (Act IV)",
-    desc: "Algorithmic trading system — 14 custom indicators, 13.5K lines of Pine Script",
+    label: "Builder (Legacy)",
+    desc: "Original Act IV — 14 indicators, progression, horizontal strip",
     section: "archived",
   },
 ];
 
 const SECTION_LABELS: Record<LabRoute["section"], string> = {
+  "in-progress": "In Progress",
   "wip-covers": "WIP Covers",
   archived: "Archived Sections",
 };
