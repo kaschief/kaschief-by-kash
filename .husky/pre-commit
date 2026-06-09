@@ -1,1 +1,21 @@
+#!/usr/bin/env sh
+
+# Resolve pnpm even when the hook runs from a GUI git client or a shell whose
+# active node bin lacks the corepack shim (e.g. nvm's node v26 here). The repo
+# pins pnpm via package.json "packageManager", so corepack is the source of truth.
+if ! command -v pnpm >/dev/null 2>&1; then
+  for dir in "$NVM_BIN" "$HOME/.nvm/versions/node"/*/bin; do
+    if [ -x "$dir/pnpm" ]; then
+      PATH="$dir:$PATH"
+      export PATH
+      break
+    fi
+  done
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "pre-commit: pnpm not found. Run 'corepack enable' or install pnpm." >&2
+  exit 1
+fi
+
 pnpm -s typecheck && pnpm -s check:rules && npx lint-staged
