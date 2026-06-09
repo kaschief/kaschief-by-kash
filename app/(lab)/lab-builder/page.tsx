@@ -1,7 +1,7 @@
 "use client";
 
 import { LabNav } from "../lab-nav";
-import { ActIVBuilder } from "@features/timeline";
+import { ActIVBuilder, TradingArsenal } from "@features/timeline";
 
 export default function LabBuilder() {
   return (
@@ -9,6 +9,7 @@ export default function LabBuilder() {
       <LabNav />
       <div style={{ background: "var(--bg)" }}>
         <ActIVBuilder />
+        <TradingArsenal />
       </div>
     </>
   );
