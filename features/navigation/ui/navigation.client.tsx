@@ -13,7 +13,6 @@ import {
 import { useNavStore, useLenis, useSectionScroll } from "@hooks";
 import {
   DEFAULT_SCROLL_OFFSET,
-  SECTION_ID,
   SECTION_IDS_ORDERED,
   SECTION_SCROLL_OFFSET,
   TOKENS,
@@ -27,7 +26,6 @@ import { NAVIGATION_TIMING } from "../model/navigation-machine";
 
 const { textDim } = TOKENS;
 const { nav } = Z_INDEX;
-const { PORTRAIT } = SECTION_ID;
 
 const WHO_AM_I_NAV = SECTION_NAV_LINKS.filter((l) => l.sectionId === "portrait");
 const ACT_NAV = ROLE_NAV_LINKS;
@@ -351,11 +349,7 @@ export function Navigation() {
         }
 
         raf2 = requestAnimationFrame(() => {
-          if (sectionId === PORTRAIT) {
-            scrollToTop({ updateHistory: true });
-          } else {
-            scrollToSection(sectionId, { updateHistory: true });
-          }
+          scrollToSection(sectionId, { updateHistory: true });
         });
       });
     }

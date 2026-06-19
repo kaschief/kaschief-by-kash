@@ -30,6 +30,10 @@ export function Panel({
 
   return (
     <div
+      aria-hidden={!isActive}
+      data-testid="methods-panel"
+      data-panel={group.id}
+      data-active={isActive ? "true" : "false"}
       style={{
         position: "absolute",
         inset: 0,

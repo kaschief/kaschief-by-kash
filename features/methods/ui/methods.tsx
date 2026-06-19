@@ -189,7 +189,12 @@ export function Methods() {
   );
 
   return (
-    <div id={METHODS} style={{ position: "relative" }}>
+    <div
+      id={METHODS}
+      role="region"
+      aria-label="Methods"
+      data-testid="methods-section"
+      style={{ position: "relative" }}>
       {/* ── Desktop: ScrollTrigger pinned panels ── */}
       <div
         ref={stickyRef}

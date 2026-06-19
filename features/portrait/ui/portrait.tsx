@@ -115,7 +115,7 @@ export function Portrait() {
   }, [getLenis])
 
   return (
-    <section id="portrait" ref={sectionRef} style={sectionStyle}>
+    <section id="portrait" ref={sectionRef} aria-label="Portrait" style={sectionStyle}>
       <div className="flex h-full flex-col items-center justify-center px-(--page-gutter)">
         {/*
           Single grid — CSS switches layout:

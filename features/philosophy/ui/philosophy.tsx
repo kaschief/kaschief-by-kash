@@ -61,6 +61,7 @@ export function Philosophy() {
     <section
       id={PHILOSOPHY_SECTION}
       ref={ref}
+      aria-label="Philosophy"
       className="relative overflow-hidden px-[var(--page-gutter)] py-20 sm:py-28">
       <SectionGlow color={gold} size="sm" />
 

@@ -430,3 +430,13 @@ export const LENSES: Record<LensName, Lens> = {
 /** Flat list of all entries across lenses. */
 export const ALL_ENTRIES: readonly LensEntry[] = LENS_NAMES.flatMap((name) => LENSES[name].entries)
 
+/** Entries promoted into the Act II cinematic lens sequence. */
+export const HIGHLIGHT_ENTRY_IDS = [1, 5, 6, 11] as const
+
+export const HIGHLIGHT_ENTRIES: readonly LensEntry[] = HIGHLIGHT_ENTRY_IDS.map(
+  (id) => ALL_ENTRIES.find((entry) => entry.id === id)!,
+)
+
+export const REMAINING_ENTRIES: readonly LensEntry[] = ALL_ENTRIES.filter(
+  (entry) => !(HIGHLIGHT_ENTRY_IDS as readonly number[]).includes(entry.id),
+)

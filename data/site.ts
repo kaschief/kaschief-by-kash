@@ -7,6 +7,7 @@ const {
   ACT_LEADER,
   ACT_NURSE,
   CONTACT,
+  METHODS,
   PHILOSOPHY: PHILOSOPHY_SECTION,
   PORTRAIT,
 } = SECTION_ID
@@ -33,6 +34,7 @@ type RoleLabel = (typeof ROLE_LABEL)[keyof typeof ROLE_LABEL]
 
 const SECTION_NAV_LABEL = {
   WHO_AM_I: "Who Am I",
+  METHODS: "Methods",
   CONTACT: "Contact",
 } as const
 
@@ -98,6 +100,12 @@ const NAV_LINKS: readonly NavLink[] = [
     label: ROLE_LABEL.LEADER,
     sectionId: ACT_LEADER,
     color: actGold,
+  },
+  {
+    type: NAV_LINK_TYPE.SECTION,
+    label: SECTION_NAV_LABEL.METHODS,
+    sectionId: METHODS,
+    color: gold,
   },
   {
     type: NAV_LINK_TYPE.SECTION,

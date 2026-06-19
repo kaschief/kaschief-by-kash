@@ -15,6 +15,8 @@ const { detailOverlay } = Z_INDEX;
 export interface DetailOverlayProps {
   /** Render prop receives `item(delay)` for staggered entrance animations. */
   children: (helpers: { item: (delay: number) => CSSProperties }) => ReactNode;
+  ariaLabel?: string;
+  testId?: string;
   onClose: () => void;
   onPrev?: () => void;
   onNext?: () => void;
@@ -27,6 +29,8 @@ export interface DetailOverlayProps {
 /** Unified full-screen detail overlay shell. */
 export function DetailOverlay({
   children,
+  ariaLabel = "Details",
+  testId = "detail-overlay",
   onClose,
   onPrev,
   onNext,
@@ -88,8 +92,12 @@ export function DetailOverlay({
   });
 
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- backdrop dismiss: keyboard close handled by Escape key listener in useEffect above
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- backdrop dismiss: keyboard close handled by Escape key listener in useEffect above
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={ariaLabel}
+      data-testid={testId}
       onClick={onClose}
       style={{
         position: "fixed",

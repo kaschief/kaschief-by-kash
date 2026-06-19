@@ -9,9 +9,9 @@
 /** Z-index stacking order (low → high). */
 export const Z_INDEX = {
   scrollFade: 40, // fixed top-fade overlay (below nav, above page content)
-  detailOverlay: 800, // full-screen detail overlays
-  repoPanel: 900, // repo panel overlay (above detail overlays, below nav)
-  nav: 950, // navigation bar (always visible above overlays)
+  nav: 950, // navigation bar (above page content, below modal overlays)
+  detailOverlay: 960, // full-screen detail overlays
+  repoPanel: 970, // repo panel overlay (above detail overlays)
   cursor: 100000, // custom cursor (always on top — must exceed all overlays including story desk at 10001)
 } as const;
 

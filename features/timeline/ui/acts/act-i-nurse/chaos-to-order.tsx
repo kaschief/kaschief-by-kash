@@ -85,9 +85,11 @@ export function ChaosToOrder() {
       ref={sceneRef}
       className="relative"
       data-sticky-zone
+      data-testid="act-i-chaos-zone"
       style={{ height: `${SCENE_HEIGHT_VH}vh` }}>
       <div
         ref={stickyRef}
+        data-testid="act-i-chaos-sticky"
         className="sticky top-0 mx-auto h-screen h-[100svh] max-w-350"
         style={{
           containerType: "size",

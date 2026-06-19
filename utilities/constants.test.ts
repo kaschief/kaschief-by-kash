@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { LAYOUT, Z_INDEX } from "./constants";
 
 describe("Z_INDEX stacking order", () => {
-  it("ensures navigation is always visible above overlays", () => {
-    // User must always be able to navigate away from any overlay
-    expect(Z_INDEX.nav).toBeGreaterThan(Z_INDEX.repoPanel);
-    expect(Z_INDEX.nav).toBeGreaterThan(Z_INDEX.detailOverlay);
+  it("keeps modal overlays above navigation while they are open", () => {
+    // Overlay controls must remain clickable even near the fixed nav bar
+    expect(Z_INDEX.detailOverlay).toBeGreaterThan(Z_INDEX.nav);
+    expect(Z_INDEX.repoPanel).toBeGreaterThan(Z_INDEX.nav);
   });
 
   it("prevents repo panel from being hidden behind detail overlays", () => {

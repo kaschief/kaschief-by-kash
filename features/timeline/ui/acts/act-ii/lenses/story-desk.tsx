@@ -277,6 +277,8 @@ function DeskCard({
 
   return (
     <button
+      data-testid="act-ii-story-card"
+      data-company={entry.company}
       className="text-left group story-desk-card"
       onClick={onClick}
       onMouseEnter={touch ? undefined : () => setHovered(true)}
@@ -379,6 +381,9 @@ export function StoryDesk() {
   return (
     <div
       ref={sectionRef}
+      role="region"
+      aria-label="Act II story desk"
+      data-testid="act-ii-story-desk"
       style={{
         background: "var(--bg)",
         paddingBottom: 100,

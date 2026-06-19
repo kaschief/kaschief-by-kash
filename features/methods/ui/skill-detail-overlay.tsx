@@ -18,6 +18,8 @@ export function SkillDetailOverlay({
 }: SkillDetailOverlayProps) {
   return (
     <DetailOverlay
+      ariaLabel={`Skill detail: ${skill.label}`}
+      testId="methods-skill-detail"
       onClose={onClose}
       onPrev={onPrev}
       onNext={onNext}

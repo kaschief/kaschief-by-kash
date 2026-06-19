@@ -7,22 +7,19 @@
  * REMAINING_ENTRIES: 8 cards shown in Shore desk composition
  */
 
-import { ALL_ENTRIES, LENS_NAMES, LENSES, type LensName, type LensEntry } from "@data";
+import {
+  HIGHLIGHT_ENTRIES,
+  LENS_NAMES,
+  LENSES,
+  REMAINING_ENTRIES,
+  type LensEntry,
+  type LensName,
+} from "@data";
 import { renderCard } from "./render-card";
 
 /* ── Highlight card IDs (crossfade section) ── */
 
-export const HIGHLIGHT_IDS = [1, 5, 6, 11] as const;
-
-/** 4 highlight entries for the cinematic crossfade */
-export const HIGHLIGHT_ENTRIES: readonly LensEntry[] = HIGHLIGHT_IDS.map(
-  (id) => ALL_ENTRIES.find((e) => e.id === id)!,
-);
-
-/** 8 remaining entries for the Shore desk */
-export const REMAINING_ENTRIES: readonly LensEntry[] = ALL_ENTRIES.filter(
-  (e) => !(HIGHLIGHT_IDS as readonly number[]).includes(e.id),
-);
+export { HIGHLIGHT_ENTRIES, REMAINING_ENTRIES };
 
 /* ── Lens color map ── */
 

@@ -10,6 +10,9 @@ export function NavButton({ label, isActive, onClick }: NavButtonProps) {
 
   return (
     <button
+      type="button"
+      aria-pressed={isActive}
+      aria-label={`Show ${label}`}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
