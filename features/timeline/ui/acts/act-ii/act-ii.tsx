@@ -357,6 +357,7 @@ export function ActIIEngineer() {
       {/* Title: fixed at viewport center, opacity scroll-driven. */}
       <motion.div
         aria-hidden="false"
+        data-testid="act-ii-title"
         className="pointer-events-none fixed inset-0 flex flex-col items-center justify-center px-4"
         style={{ opacity: titleOpacity, willChange: "opacity", zIndex: 5 }}>
         <div>
@@ -408,6 +409,7 @@ export function ActIIEngineer() {
       <div
         ref={lensesScrollRef}
         data-sticky-zone
+        data-testid="act-ii-lenses-zone"
         style={{ height: `${lensesScrollVh}vh` }}
         className="relative">
         <div
@@ -484,6 +486,7 @@ export function ActIIEngineer() {
       <div
         ref={sankeyScrollRef}
         data-sticky-zone
+        data-testid="act-ii-sankey-zone"
         style={{ height: `${SANKEY_SCROLL_VH}vh` }}
         className="relative hidden lg:block">
         <div

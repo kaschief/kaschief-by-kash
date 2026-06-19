@@ -116,6 +116,8 @@ export function SkillCard({
   return (
     <motion.div
       role="article"
+      data-testid="act-i-skill-card"
+      data-skill-id={node.id}
       tabIndex={isLg ? 0 : undefined}
       aria-label={node.question}
       onMouseEnter={isLg ? () => { if (!inStack.current) { setHovered(true); setNudged(false); } } : undefined}

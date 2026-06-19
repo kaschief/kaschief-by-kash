@@ -95,6 +95,9 @@ export function Splash() {
   return (
     <div
       ref={sceneRef}
+      role="region"
+      aria-label="Act I splash"
+      data-testid="act-i-splash"
       className="relative flex min-h-screen min-h-[100svh] flex-col items-center justify-center overflow-hidden py-14 sm:py-20 md:py-28 lg:py-32">
       {/* ── Centered content ── */}
       <div className="relative z-10 w-full px-(--page-gutter)">
@@ -109,6 +112,7 @@ export function Splash() {
           <div className="relative">
             {/* ECG — mobile */}
             <div
+              data-testid="act-i-ecg"
               className="pointer-events-none absolute -z-10 lg:hidden"
               style={{ left: "-50vw", right: "-50vw", top: "-20%", bottom: "-20%", willChange: "transform" }}>
               <svg width="100%" height="100%" viewBox="0 0 1600 120" preserveAspectRatio="none" fill="none">
@@ -124,6 +128,7 @@ export function Splash() {
             </div>
             {/* ECG — desktop */}
             <div
+              data-testid="act-i-ecg"
               className="pointer-events-none absolute inset-y-0 -z-10 hidden lg:block"
               style={{ left: "-50vw", right: "-50vw", willChange: "transform" }}>
               <svg width="100%" height="100%" viewBox="0 0 4200 120" preserveAspectRatio="none" fill="none">
@@ -140,6 +145,7 @@ export function Splash() {
 
             {/* 72 BPM — desktop */}
             <motion.div
+              data-testid="act-i-bpm"
               className="absolute -top-2 right-0 z-10 hidden text-right sm:-top-4 md:block"
               initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}}
               transition={{ duration: 1, delay: 0.5, ease: EASE }}>
@@ -167,6 +173,7 @@ export function Splash() {
 
             {/* 72 BPM — mobile */}
             <motion.div
+              data-testid="act-i-bpm"
               className="mt-4 flex items-center justify-center gap-2 md:hidden"
               initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}}
               transition={{ duration: 1, delay: 0.5, ease: EASE }}>
@@ -208,6 +215,7 @@ export function Splash() {
 
       {/* Keyword Ticker */}
       <motion.div
+        data-testid="act-i-keyword-ticker"
         className="absolute inset-x-0 bottom-6 overflow-hidden sm:bottom-10 md:bottom-14"
         initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}}
         transition={{ duration: 1.5, delay: 1.5 }}>

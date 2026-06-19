@@ -120,7 +120,11 @@ export function Contact() {
   const glowOpacity = useTransform(scrollYProgress, [0.1, 0.4, 0.9], [0, 0.45, 0])
 
   return (
-    <section id={CONTACT} ref={sectionRef} className="relative h-screen overflow-hidden">
+    <section
+      id={CONTACT}
+      ref={sectionRef}
+      aria-label="Contact"
+      className="relative h-screen overflow-hidden">
       {/* Atmospheric glow */}
       <motion.div className="pointer-events-none absolute inset-0" style={{ opacity: glowOpacity }}>
         <div
