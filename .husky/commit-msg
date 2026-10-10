@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+set -e
+
+# GUI Git clients do not load shell init files, so npx may be absent from PATH.
+if command -v npx >/dev/null 2>&1; then
+  npx --no -- commitlint --edit "$1"
+elif command -v mise >/dev/null 2>&1; then
+  mise exec -- npx --no -- commitlint --edit "$1"
+else
+  echo "commit-msg: Node.js tooling not found; cannot run commitlint." >&2
+  exit 127
+fi
