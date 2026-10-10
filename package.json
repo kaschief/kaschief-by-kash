@@ -24,7 +24,7 @@
     "test:e2e:mobile": "playwright test --project=chromium-mobile",
     "test:e2e:report": "playwright show-report",
     "test:e2e:ui": "playwright test --ui",
-    "prepare": "husky"
+    "prepare": "git config --global --get includeIf.gitdir:~/kash-code/.path >/dev/null || husky"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
