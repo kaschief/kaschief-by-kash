@@ -1,4 +1,4 @@
-# kaschief.com
+# kaschief • by kash
 
 The source of my portfolio site, [kaschief.com](https://kaschief.com): a scroll-driven story of moving from ICU nursing into software engineering and leadership.
 
